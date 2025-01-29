@@ -220,15 +220,14 @@
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Actions Table -->
     <div class="section actions">
-      <h2>Actions</h2>
       <ActionsTable actions={character.actions} />
     </div>
 
-    <!-- Equipment -->
-    <div class="section equipment">
-      <h2>Equipment</h2>
+    <!-- Proficiencies & Training -->
+    <div class="section proficiencies">
+      <h2>Proficiencies & Training</h2>
       <div class="equipment-grid">
         <div class="equipment-category">
           <h3>Armor</h3>

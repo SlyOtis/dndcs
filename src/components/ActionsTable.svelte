@@ -58,9 +58,10 @@
     {#each actionCategories as category}
       {#if category.actions.length > 0}
         <div class="category-header">
-          <div class="category-title">{category.title}</div>
           {#if category.title === 'ATTACK'}
-            <div class="subtitle">• Attacks per Action: 1</div>
+            <div class="subtitle">ACTIONS • Attacks per Action: 1</div>
+          {:else}
+            <div class="category-title">{category.title}</div>
           {/if}
         </div>
 
@@ -183,12 +184,13 @@
   .category-title {
     color: #ffd700;
     font-weight: bold;
-    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .subtitle {
-    color: #c4a000;
-    font-size: 0.9rem;
+    color: #ffd700;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
   }
 
   .actions-table {
