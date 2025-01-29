@@ -1,14 +1,4 @@
 <script lang="ts">
-</script>
-
-<main>
-
-</main>
-
-<style>
-
-</style>
-<script lang="ts">
   let character = {
     name: "Lucky Lars",
     level: 4,
