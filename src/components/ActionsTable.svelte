@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Action } from '../types';
   
-  export let actions: Action[];
+  export let actions: Action[] = [];
   
   const tabs = ['ALL', 'ATTACK', 'ACTION', 'BONUS ACTION', 'REACTION', 'OTHER', 'LIMITED USE'];
   let activeTab = 'ALL';
