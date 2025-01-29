@@ -74,7 +74,8 @@
         range: "30 (120)",
         toHit: "+9",
         damage: "1d6+5",
-        notes: "Martial, Ammunition, Range, Light, Loading, Vex, Range (30/120)"
+        notes: "Martial, Ammunition, Range, Light, Loading, Vex, Range (30/120)",
+        isWeapon: true
       },
       {
         name: "Little Tickle",
@@ -82,7 +83,8 @@
         range: "40 (120)",
         toHit: "+9",
         damage: "2d8+5",
-        notes: "Firearms, Ammunition (Firearms), Range, Reload, Slip, Range (40/120)"
+        notes: "Firearms, Ammunition (Firearms), Range, Reload, Slip, Range (40/120)",
+        isWeapon: true
       },
       {
         name: "Vicious Revolver",
@@ -90,7 +92,18 @@
         range: "40 (120)",
         toHit: "+9",
         damage: "2d8+5",
-        notes: "Firearms, Ammunition (Firearms), Range, Reload, Slip, Range (40/120)"
+        notes: "Firearms, Ammunition (Firearms), Range, Reload, Slip, Range (40/120)",
+        isWeapon: true
+      },
+      {
+        name: "Unarmed Strike",
+        type: "Melee Attack",
+        range: "5 ft.",
+        toHit: "+2",
+        damage: "1",
+        notes: "Melee Attack",
+        isWeapon: true,
+        description: "You make a melee attack that involves using your body to deal one of the following effects:\n\nDamage: You make an attack roll against the creature, and on a hit, you deal 1 + STR Bludgeoning damage.\n\nGrapple: The target must succeed on a Str./Dex. (it chooses which) saving throw (DC = 8 + Prof. Bonus + Str.) or it has the Grappled condition.\n\nShove: The target must succeed on a Str./Dex. (it chooses which) saving throw (DC = 8 + Prof. Bonus + Str.) or you can either push it 5 ft. away or cause it to have the Prone condition."
       }
     ],
 
