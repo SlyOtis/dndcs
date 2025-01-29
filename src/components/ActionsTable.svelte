@@ -6,23 +6,23 @@
   const tabs = ['ALL', 'ATTACK', 'ACTION', 'BONUS ACTION', 'REACTION', 'OTHER', 'LIMITED USE'];
   let activeTab = 'ALL';
 
-  let $searchQuery = '';
+  let searchQuery = '';
   
-  let $filteredActions = $derived(actions.filter(action => {
-    if ($searchQuery) {
-      return action.name.toLowerCase().includes($searchQuery.toLowerCase());
+  let filteredActions = $derived(actions.filter(action => {
+    if (searchQuery) {
+      return action.name.toLowerCase().includes(searchQuery.toLowerCase());
     }
     return true;
   }));
 
-  let $actionCategories = $derived([
+  let actionCategories = $derived([
     {
       title: 'ATTACK',
-      actions: $filteredActions.filter(a => a.isWeapon)
+      actions: filteredActions.filter(a => a.isWeapon)
     },
     {
       title: 'Actions in Combat',
-      actions: $filteredActions.filter(a => !a.isWeapon)
+      actions: filteredActions.filter(a => !a.isWeapon)
     }
   ]);
 </script>
@@ -33,7 +33,7 @@
       <input 
         type="text" 
         placeholder="Search Item Names, Types, Rarities, or Tags"
-        bind:value={$searchQuery}
+        bind:value={searchQuery}
       >
       <button class="filter-button">
         <span class="filter-icon">▼</span>
@@ -55,7 +55,7 @@
   </div>
 
   <div class="actions-content">
-    {#each $actionCategories as category}
+    {#each actionCategories as category}
       {#if category.actions.length > 0}
         <div class="category-header">
           {#if category.title === 'ATTACK'}
