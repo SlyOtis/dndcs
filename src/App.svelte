@@ -233,35 +233,27 @@
       <div class="equipment-grid">
         <div class="equipment-category">
           <h3>Armor</h3>
-          <ul>
-            {#each character.equipment.armor as item}
-              <li>{item}</li>
-            {/each}
-          </ul>
+          <div class="equipment-list">
+            {character.equipment.armor.join(', ')}
+          </div>
         </div>
         <div class="equipment-category">
           <h3>Weapons</h3>
-          <ul>
-            {#each character.equipment.weapons as item}
-              <li>{item}</li>
-            {/each}
-          </ul>
+          <div class="equipment-list">
+            {character.equipment.weapons.join(', ')}
+          </div>
         </div>
         <div class="equipment-category">
           <h3>Tools</h3>
-          <ul>
-            {#each character.equipment.tools as item}
-              <li>{item}</li>
-            {/each}
-          </ul>
+          <div class="equipment-list">
+            {character.equipment.tools.join(', ')}
+          </div>
         </div>
         <div class="equipment-category">
           <h3>Languages</h3>
-          <ul>
-            {#each character.equipment.languages as item}
-              <li>{item}</li>
-            {/each}
-          </ul>
+          <div class="equipment-list">
+            {character.equipment.languages.join(', ')}
+          </div>
         </div>
       </div>
     </div>
@@ -507,18 +499,11 @@
     font-size: 1rem;
   }
 
-  .equipment-category ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .equipment-category li {
-    padding: 0.25rem 0;
-    border-bottom: 1px solid #333;
-  }
-
-  .equipment-category li:last-child {
-    border-bottom: none;
+  .equipment-list {
+    padding: 0.5rem;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    line-height: 1.4;
   }
 </style>
