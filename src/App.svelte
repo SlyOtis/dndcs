@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ActionsTable from './components/ActionsTable.svelte';
   let character = {
     name: "Lucky Lars",
     level: 4,
@@ -209,22 +210,7 @@
     <!-- Actions -->
     <div class="section actions">
       <h2>Actions</h2>
-      <div class="actions-grid">
-        {#each character.actions as action}
-          <div class="action-item">
-            <div class="action-header">
-              <span class="action-name">{action.name}</span>
-              <span class="action-type">{action.type}</span>
-            </div>
-            <div class="action-stats">
-              <span>Range: {action.range}</span>
-              <span>To Hit: {action.toHit}</span>
-              <span>Damage: {action.damage}</span>
-            </div>
-            <div class="action-notes">{action.notes}</div>
-          </div>
-        {/each}
-      </div>
+      <ActionsTable actions={character.actions} />
     </div>
 
     <!-- Equipment -->
@@ -447,44 +433,6 @@
     align-items: center;
   }
 
-  .actions-grid {
-    display: grid;
-    gap: 1rem;
-  }
-
-  .action-item {
-    border: 1px solid #c4a000;
-    border-radius: 4px;
-    padding: 0.5rem;
-  }
-
-  .action-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-
-  .action-name {
-    color: #ffd700;
-    font-weight: bold;
-  }
-
-  .action-type {
-    color: #c4a000;
-    font-size: 0.9rem;
-  }
-
-  .action-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .action-notes {
-    font-size: 0.9rem;
-    color: #999;
-  }
 
   .equipment-grid {
     display: grid;
