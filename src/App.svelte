@@ -89,11 +89,18 @@
 </main>
 
 <style>
+  :global(body) {
+    margin: 0;
+    background-color: #1a1a1a;
+    color: #ffffff;
+  }
+
   .character-sheet {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
     font-family: system-ui, -apple-system, sans-serif;
+    background-color: #2a2a2a;
   }
 
   .character-header {
@@ -125,8 +132,21 @@
   .ability-score {
     text-align: center;
     padding: 1rem;
-    border: 2px solid #ccc;
+    border: 2px solid #c4a000;
     border-radius: 8px;
+    background-color: #1a1a1a;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ability-score::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #c4a000, #ffd700, #c4a000);
   }
 
   .ability-label {
@@ -142,7 +162,8 @@
 
   .ability-modifier {
     font-size: 1.2rem;
-    color: #666;
+    color: #ffd700;
+    font-weight: bold;
   }
 
   .combat-stats {
@@ -154,8 +175,21 @@
   .stat-block {
     text-align: center;
     padding: 1rem;
-    border: 2px solid #ccc;
+    border: 2px solid #c4a000;
     border-radius: 8px;
+    background-color: #1a1a1a;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #c4a000, #ffd700, #c4a000);
   }
 
   .stat-block label {
