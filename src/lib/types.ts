@@ -3,7 +3,7 @@ import type {Writable} from "svelte/store";
 type Currency = 'cp' | 'sp' | 'gp' | 'pp'
 type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'misc'
 type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
-type DiceType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12'
+type ActionType = 'Action' | 'Bonus' | 'Reaction' | 'Other'
 
 interface Value {
   amount: number
@@ -11,9 +11,9 @@ interface Value {
 }
 
 interface Damage {
-  diceCount: number
-  diceType: DiceType
-  damageType: string
+  amount: number
+  dice: number
+  type: string
   bonus: number
 }
 
@@ -41,6 +41,7 @@ interface Effect {
   value: number | string
   duration: string
   condition: string
+  target?: string
 }
 
 interface Charges {
@@ -97,17 +98,35 @@ interface CharacterInventoryItem {
   customProperties?: Record<string, unknown>
 }
 
-type ActionType = 'Attack' | 'Bonus' | 'Reaction' | 'Other'
+export interface ActionRange {
+  min: number
+  max: number
+}
+
+export interface DamageSave {
+  dc: number
+  type: string
+  onSuccess: string
+}
+
+export interface DamageAoe {
+  type: string
+  size: number
+}
 
 export interface CharacterAction {
   name: string
   type: ActionType
-  range: string
-  toHit: string
-  damage: string
-  notes: string
-  isWeapon?: boolean
-  description?: string
+  range?: ActionRange
+  damage?: Array<Damage>
+  save?: DamageSave
+  aoe?: DamageAoe
+  notes?: string
+  toHit?: number
+  properties?: Array<string>
+  itemId?: string
+  spellId?: string
+  effects?: Effect[]
 }
 
 export interface CharacterSavingThrow {
