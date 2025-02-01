@@ -22,5 +22,6 @@
         gap: 16px;
         width: auto;
         height: auto;
+        grid-area: ab;
     }
 </style>

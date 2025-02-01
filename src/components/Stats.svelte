@@ -10,23 +10,7 @@
 
 
 <div class="root">
-    <PlainBox bind:value={info.proficiencyBonus}
-              title="Proficiency"
-              subTitle="bonus"
-              prefix="+"
-    />
 
-    <PlainBox bind:value={info.speed}
-              title="Walking"
-              subTitle="speed"
-    />
-
-    <HitPoints bind:hp={info.hp} />
-    <Initiative bind:initiative={info.initiative} />
-    <PlainBox bind:value={info.ac}
-              title="Armor"
-              subTitle="class"
-    />
 </div>
 
 <style>

@@ -1,3 +1,5 @@
+import type {Writable} from "svelte/store";
+
 type Currency = 'cp' | 'sp' | 'gp' | 'pp'
 type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'misc'
 type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
@@ -60,7 +62,7 @@ interface Container {
     weight: number
     items: number
   }
-  contents: InventoryItem[]
+  contents: CharacterInventoryItem[]
 }
 
 interface Properties {
@@ -74,7 +76,7 @@ interface Attunement {
   attuned: boolean
 }
 
-interface InventoryItem {
+interface CharacterInventoryItem {
   id: string
   title: string
   type: ItemType
@@ -95,7 +97,7 @@ interface InventoryItem {
   customProperties?: Record<string, unknown>
 }
 
-export interface Action {
+export interface CharacterAction {
   name: string
   type: string
   range: string
@@ -108,7 +110,7 @@ export interface Action {
 
 export interface ActionCategory {
   title: string
-  actions: Action[]
+  actions: CharacterAction[]
 }
 
 export interface CharacterSavingThrow {
@@ -135,12 +137,12 @@ interface HitDice {
   die: number
 }
 
-interface CharacterRace {
+interface RaceInfo {
   name: string
   type: string
 }
 
-interface CharacterClass {
+interface ClassInfo {
   name: string
   hitDice: HitDice
 }
@@ -149,33 +151,33 @@ interface Feat {
   title: string
 }
 
-export interface Skill {
+export interface CharacterSkill {
   name: string
   ability: string
   modifier: number
-  proficient: number
+  proficiency: number
 }
 
-export interface Sense {
+export interface CharacterSense {
   title: string
   score: number | string
   condition?: null | string
 }
 
-export interface CharacterSpells {
+export interface SpellsInfo {
   modifier: string
   slots: {
     [level: number]: number
   }
 }
 
-export interface Spell {
+export interface CharacterSpell {
   title: string
   score: number | string
   condition?: null | string
 }
 
-export interface Proficiency {
+export interface CharacterProficiency {
   id: string
   title: string
   value: string[]
@@ -186,7 +188,7 @@ export interface StateImage {
   url: string
 }
 
-export interface CharacterCondition {
+export interface ConditionInfo {
   title: string
   image?: StateImage
   effects: string[]
@@ -210,7 +212,7 @@ type StateDetail = {
   }
 }
 
-interface CharacterState {
+interface StateInfo {
   type: string
   image?: StateImage
   source?: string
@@ -233,11 +235,11 @@ export interface CharacterInfo {
   initiative: number
   speed: string
   proficiencyBonus: number
-  race: CharacterRace
-  class: CharacterClass
-  spells: CharacterSpells
-  conditions: CharacterCondition[]
-  state: CharacterState
+  race: RaceInfo
+  class: ClassInfo
+  spells: SpellsInfo
+  conditions: ConditionInfo[]
+  state: StateInfo
 }
 
 export interface Character {
@@ -245,10 +247,14 @@ export interface Character {
   feats: Feat[]
   abilities: CharacterAbility[]
   savingThrows: CharacterSavingThrow[]
-  skills: Skill[]
-  senses: Sense[]
-  actions: Action[]
-  spells: Spell[]
-  proficients: Proficiency[]
-  inventory: InventoryItem[]
+  skills: CharacterSkill[]
+  senses: CharacterSense[]
+  actions: CharacterAction[]
+  spells: CharacterSpell[]
+  proficients: CharacterProficiency[]
+  inventory: CharacterInventoryItem[]
+}
+
+export type CharacterStore = {
+  [K in keyof Character]: Writable<Character[K]>
 }
