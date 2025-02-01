@@ -79,7 +79,7 @@
         overflow: hidden;
         border: 6px var(--color-primary-main) solid;
         width: 100%;
-        height: auto;
+        height: 100%;
     }
 
     h3 {

@@ -3,7 +3,7 @@
   import Abilities from "./components/Abilities.svelte";
   import SavingThrows from "./components/SavingThrows.svelte";
   import Skills from "./components/Skills.svelte";
-  import Actions from "./components/Actions.svelte";
+  import ActionsTab from "./components/ActionsTab.svelte";
   import Senses from "./components/Senses.svelte";
   import Proficiencies from "./components/Proficiencies.svelte";
   import type {CharacterStore} from "./lib/types";
@@ -16,7 +16,7 @@
   import Inspiration from "./components/Inspiration.svelte";
   import DefensesNConditions from "./components/DefensesNConditions.svelte";
 
-  let {info, abilities, savingThrows, skills, senses, proficients}: CharacterStore = getCharacter()
+  let {info, abilities, savingThrows, skills, senses, proficients, actions}: CharacterStore = getCharacter()
 
 </script>
 
@@ -64,18 +64,18 @@
                     bind:conditions={$info.conditions}
                     bind:defences={$info.defences}
             />
-            <MainTabs initialTab="actions">
-                {#snippet background()}
-                    <Actions/>
+            <MainTabs initialTab="actionsTab">
+                {#snippet actionsTab()}
+                    <ActionsTab bind:actions={$actions} />
                 {/snippet}
-                {#snippet inventory()}
+                {#snippet inventoryTab()}
                     <Inventory/>
                 {/snippet}
-                {#snippet actions()}
-                    <Actions/>
+                {#snippet featsTab()}
+                    <Inventory/>
                 {/snippet}
-                {#snippet feats()}
-                    <Actions/>
+                {#snippet backgroundTab()}
+                    <Inventory/>
                 {/snippet}
             </MainTabs>
         </div>

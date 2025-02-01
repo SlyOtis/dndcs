@@ -3,21 +3,28 @@ import type {Writable} from "svelte/store";
 type Currency = 'cp' | 'sp' | 'gp' | 'pp'
 type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'misc'
 type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
-type ActionType = 'Action' | 'Bonus' | 'Reaction' | 'Other'
 
-interface Value {
+
+type ActionType = 'Action' | 'Bonus' | 'Reaction' | 'Other'
+/**
+ * Indicator for how to render the action, as Special text block, or an inline standard Attack/Heal/Spell action
+ */
+type ActionLayout = 'Attack' | 'Special'
+type Proficiency = 0 | 0.5 | 1 | 2
+
+export interface Value {
   amount: number
   currency: Currency
 }
 
-interface Damage {
+export interface Damage {
   amount: number
   dice: number
   type: string
   bonus: number
 }
 
-interface Range {
+export interface Range {
   normal: number
   max: number
 }
@@ -66,7 +73,7 @@ interface Container {
   contents: CharacterInventoryItem[]
 }
 
-interface Properties {
+export interface Properties {
   damage?: Damage
   range?: Range
   ac?: ArmorClass
@@ -116,23 +123,25 @@ export interface DamageAoe {
 
 export interface CharacterAction {
   name: string
+  description?: string
+  layout: ActionLayout
   type: ActionType
-  range?: ActionRange
+  range?: Range
   damage?: Array<Damage>
   save?: DamageSave
   aoe?: DamageAoe
-  notes?: string
   toHit?: number
   properties?: Array<string>
   itemId?: string
   spellId?: string
   effects?: Effect[]
+  usesSlots?: boolean
 }
 
 export interface CharacterSavingThrow {
   title: string
   modifier: number
-  proficiency: number
+  proficiency: Proficiency
 }
 
 export interface CharacterAbility {
@@ -164,14 +173,16 @@ interface ClassInfo {
 }
 
 interface Feat {
+  id: string
   title: string
+  description: string
 }
 
 export interface CharacterSkill {
   name: string
   ability: string
   modifier: number
-  proficiency: number
+  proficiency: Proficiency
 }
 
 export interface CharacterSense {
@@ -244,6 +255,17 @@ interface StateInfo {
   effects?: string[]
 }
 
+/**
+ * Custom slots such as Grit Points, Sorcerer Points, and so on.
+ */
+export interface SlotsInfo {
+  title: string
+  description: string
+  amount: number
+  expended: number
+  regainedAt?: string
+}
+
 export interface CharacterInfo {
   name: string
   description: string
@@ -259,7 +281,8 @@ export interface CharacterInfo {
   proficiencyBonus: number
   race: RaceInfo
   class: ClassInfo
-  spells: SpellsInfo
+  spells?: SpellsInfo
+  slots?: SlotsInfo
   conditions: ConditionInfo[]
   defences: DefenceInfo[]
   state: StateInfo
@@ -270,8 +293,8 @@ export interface Character {
   feats: Feat[]
   abilities: CharacterAbility[]
   savingThrows: CharacterSavingThrow[]
-  skills: CharacterSkill[]
-  senses: CharacterSense[]
+  skills: CharacterSkill[] // All possible skills for the character
+  senses: CharacterSense[] // All possible sense for the character, all passive abilities, darkvision and so on
   actions: CharacterAction[]
   spells: CharacterSpell[]
   proficients: CharacterProficiency[]

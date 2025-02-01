@@ -5,10 +5,10 @@
     initialTab,
     ...tabs
   }: {
-    inventory: Snippet,
-    actions: Snippet,
-    feats: Snippet,
-    background: Snippet,
+    inventoryTab: Snippet,
+    actionsTab: Snippet,
+    featsTab: Snippet,
+    backgroundTab: Snippet,
     initialTab: string,
   } = $props();
 
@@ -25,16 +25,16 @@
 
 <div class="root primary-border">
     <div class="header">
-        <button onclick={e => selectTab(e, 'actions')} class:selected={selectedTab === 'actions'}>
+        <button onclick={e => selectTab(e, 'actionsTab')} class:selected={selectedTab === 'actionsTab'}>
             Actions
         </button>
-        <button onclick={e => selectTab(e, 'inventory')} class:selected={selectedTab === 'inventory'}>
+        <button onclick={e => selectTab(e, 'inventoryTab')} class:selected={selectedTab === 'inventoryTab'}>
             Inventory
         </button>
-        <button onclick={e => selectTab(e, 'feats')} class:selected={selectedTab === 'feats'}>
+        <button onclick={e => selectTab(e, 'featsTab')} class:selected={selectedTab === 'featsTab'}>
             Feats
         </button>
-        <button onclick={e => selectTab(e, 'background')} class:selected={selectedTab === 'background'}>
+        <button onclick={e => selectTab(e, 'backgroundTab')} class:selected={selectedTab === 'backgroundTab'}>
             Background
         </button>
     </div>
@@ -76,6 +76,7 @@
         border: none;
         cursor: pointer;
         background-color: var(--color-content-main);
+        padding: 8px 16px;
     }
 
     .selected {
