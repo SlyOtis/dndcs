@@ -1,4 +1,4 @@
-import type {Character, CharacterStore} from "./types";
+import type {Character, CharacterCurrency, CharacterStore} from "./types";
 import {writable} from "svelte/store";
 
 export async function rollDie(die: number, amount: number) {
@@ -55,17 +55,35 @@ export function writeRollLog(type: string, text: string, roll: number, total: nu
   localStorage.setItem('roll_log', JSON.stringify(logData));
 }
 
-function writeToCharacterStore(character: Character): CharacterStore {
-  return Object.keys(character).reduce((prev, curr) => {
-    const prop = character[curr as keyof Character] as Character[keyof Character]
-    return {
-      ...prev,
-      [curr]: writable<typeof prop>(prop),
-    }
-  }, {}) as CharacterStore
+function writeToCharacterStore(character: Character): Character {
+  return character
+  // const store = writable<Character>(character, (start) => {
+  //   localStorage.setItem('character', JSON.stringify(start));
+  // })
+
+  // return store
 }
 
-export function getCharacter(): CharacterStore {
+export function asGold(currency: CharacterCurrency): number {
+  const totalGP =
+    (currency?.pp || 0) * 10 +    // Convert platinum to gold (1pp = 10gp)
+    (currency?.gp || 0) +         // Gold pieces as is
+    (currency?.sp || 0) * 0.1 +   // Convert silver to gold (1sp = 0.1gp)
+    (currency?.cp || 0) * 0.01;   // Convert copper to gold (1cp = 0.01gp)
+
+  return Number(totalGP.toFixed(3)); // Round to 2 decimal places
+}
+
+export function addCurrencies(currency: CharacterCurrency, currency2: CharacterCurrency): CharacterCurrency {
+  return (Object.keys(currency2) as [curr: keyof CharacterCurrency]).reduce((prev, curr): CharacterCurrency => {
+    return {
+      ...prev,
+      [curr]: (prev?.[curr] || 0) + (currency2?.[curr] || 0),
+    }
+  }, currency)
+}
+
+export function getCharacter(): Character {
   const character = localStorage.getItem('character')
   // TODO:: Redirect on missing character??
   if (character) {
@@ -88,6 +106,8 @@ export function getCharacter(): CharacterStore {
       },
       ac: 15,
       initiative: 4,
+      weight: 100,
+      carry_capacity: 100,
       speed: "30 ft",
       proficiencyBonus: 2,
       race: {
@@ -166,49 +186,49 @@ export function getCharacter(): CharacterStore {
       }
     ],
     savingThrows: [
-      { title: "Strength", modifier: 0, proficiency: 0 },
-      { title: "Dexterity", modifier: 6, proficiency: 1 },
-      { title: "Constitution", modifier: 2, proficiency: 0 },
-      { title: "Intelligence", modifier: 0, proficiency: 0 },
-      { title: "Wisdom", modifier: 2, proficiency: 0 },
-      { title: "Charisma", modifier: 3, proficiency: 1 }
+      {title: "Strength", modifier: 0, proficiency: 0},
+      {title: "Dexterity", modifier: 6, proficiency: 1},
+      {title: "Constitution", modifier: 2, proficiency: 0},
+      {title: "Intelligence", modifier: 0, proficiency: 0},
+      {title: "Wisdom", modifier: 2, proficiency: 0},
+      {title: "Charisma", modifier: 3, proficiency: 1}
     ],
     skills: [
-      { name: "Acrobatics", ability: "dex", modifier: 4, proficiency: 0 },
-      { name: "Animal Handling", ability: "wis", modifier: 2, proficiency: 0 },
-      { name: "Arcana", ability: "int", modifier: 0, proficiency: 0 },
-      { name: "Athletics", ability: "str", modifier: 0, proficiency: 0 },
-      { name: "Deception", ability: "cha", modifier: 3, proficiency: 1 },
-      { name: "History", ability: "int", modifier: 0, proficiency: 0 },
-      { name: "Insight", ability: "wis", modifier: 4, proficiency: 1 },
-      { name: "Intimidation", ability: "cha", modifier: 3, proficiency: 1 },
-      { name: "Investigation", ability: "int", modifier: 0, proficiency: 0 },
-      { name: "Medicine", ability: "wis", modifier: 2, proficiency: 0 },
-      { name: "Nature", ability: "int", modifier: 0, proficiency: 0 },
-      { name: "Perception", ability: "wis", modifier: 4, proficiency: 1 },
-      { name: "Performance", ability: "cha", modifier: 1, proficiency: 0 },
-      { name: "Persuasion", ability: "cha", modifier: 1, proficiency: 0 },
-      { name: "Religion", ability: "int", modifier: 0, proficiency: 0 },
-      { name: "Sleight of Hand", ability: "dex", modifier: 6, proficiency: 1 },
-      { name: "Stealth", ability: "dex", modifier: 6, proficiency: 1 },
-      { name: "Survival", ability: "wis", modifier: 2, proficiency: 0 }
+      {name: "Acrobatics", ability: "dex", modifier: 4, proficiency: 0},
+      {name: "Animal Handling", ability: "wis", modifier: 2, proficiency: 0},
+      {name: "Arcana", ability: "int", modifier: 0, proficiency: 0},
+      {name: "Athletics", ability: "str", modifier: 0, proficiency: 0},
+      {name: "Deception", ability: "cha", modifier: 3, proficiency: 1},
+      {name: "History", ability: "int", modifier: 0, proficiency: 0},
+      {name: "Insight", ability: "wis", modifier: 4, proficiency: 1},
+      {name: "Intimidation", ability: "cha", modifier: 3, proficiency: 1},
+      {name: "Investigation", ability: "int", modifier: 0, proficiency: 0},
+      {name: "Medicine", ability: "wis", modifier: 2, proficiency: 0},
+      {name: "Nature", ability: "int", modifier: 0, proficiency: 0},
+      {name: "Perception", ability: "wis", modifier: 4, proficiency: 1},
+      {name: "Performance", ability: "cha", modifier: 1, proficiency: 0},
+      {name: "Persuasion", ability: "cha", modifier: 1, proficiency: 0},
+      {name: "Religion", ability: "int", modifier: 0, proficiency: 0},
+      {name: "Sleight of Hand", ability: "dex", modifier: 6, proficiency: 1},
+      {name: "Stealth", ability: "dex", modifier: 6, proficiency: 1},
+      {name: "Survival", ability: "wis", modifier: 2, proficiency: 0}
     ],
     senses: [
-      { title: "Passive Perception", score: 14 }, // 10 + Perception modifier (4)
-      { title: "Passive Investigation", score: 10 }, // 10 + Investigation modifier (0)
-      { title: "Passive Insight", score: 14 }, // 10 + Insight modifier (4)
-      { title: "Passive Stealth", score: 16 }, // 10 + Stealth modifier (6)
-      { title: "Blindsight", score: 0 },
-      { title: "Darkvision", score: "60 ft" },
-      { title: "Tremorsense", score: 0 },
-      { title: "Truesight", score: 0 }
+      {title: "Passive Perception", score: 14}, // 10 + Perception modifier (4)
+      {title: "Passive Investigation", score: 10}, // 10 + Investigation modifier (0)
+      {title: "Passive Insight", score: 14}, // 10 + Insight modifier (4)
+      {title: "Passive Stealth", score: 16}, // 10 + Stealth modifier (6)
+      {title: "Blindsight", score: 0},
+      {title: "Darkvision", score: "60 ft"},
+      {title: "Tremorsense", score: 0},
+      {title: "Truesight", score: 0}
     ],
     actions: [
       {
         name: "Hand Cannon",
         type: "Action",
         layout: "Attack",
-        range: { normal: 60, max: 180 },
+        range: {normal: 60, max: 180},
         toHit: 6,
         damage: [{
           amount: 1,
@@ -265,6 +285,12 @@ export function getCharacter(): CharacterStore {
         value: ["Gaming set", "Thieves' tools"]
       }
     ],
+    currency: {
+      gp: 85,
+      sp: 0,
+      cp: 0,
+      pp: 0
+    },
     inventory: [
       {
         id: "hand-cannon",
@@ -274,12 +300,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: ["ammunition", "kick", "loud", "reload"],
         description: "A powerful pistol that packs a serious punch",
-        value: { amount: 85, currency: "gp" },
+        value: {amount: 85, currency: "gp"},
         weight: 3,
         quantity: 1,
         equippable: true,
         equipped: true,
-        attunement: { required: false, attuned: false },
+        attunement: {required: false, attuned: false},
         properties: {
           damage: {
             amount: 1,
@@ -300,12 +326,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: ["light"],
         description: "A sturdy leather armor suit",
-        value: { amount: 10, currency: "gp" },
+        value: {amount: 10, currency: "gp"},
         weight: 10,
         quantity: 1,
         equippable: true,
         equipped: true,
-        attunement: { required: false, attuned: false },
+        attunement: {required: false, attuned: false},
         properties: {
           ac: {
             base: 11,
@@ -322,12 +348,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: [],
         description: "Rounds for firearms",
-        value: { amount: 3, currency: "gp" },
+        value: {amount: 3, currency: "gp"},
         weight: 1,
         quantity: 20,
         equippable: false,
         equipped: false,
-        attunement: { required: false, attuned: false }
+        attunement: {required: false, attuned: false}
       },
       {
         id: "explorers-pack",
@@ -336,12 +362,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: [],
         description: "Includes a backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days of rations, and a waterskin",
-        value: { amount: 10, currency: "gp" },
+        value: {amount: 10, currency: "gp"},
         weight: 59,
         quantity: 1,
         equippable: true,
         equipped: true,
-        attunement: { required: false, attuned: false },
+        attunement: {required: false, attuned: false},
         container: {
           capacity: {
             weight: 100,
@@ -357,12 +383,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: [],
         description: "A set of tools for picking locks and disarming traps",
-        value: { amount: 25, currency: "gp" },
+        value: {amount: 25, currency: "gp"},
         weight: 1,
         quantity: 1,
         equippable: false,
         equipped: false,
-        attunement: { required: false, attuned: false }
+        attunement: {required: false, attuned: false}
       },
       {
         id: "gaming-set",
@@ -371,12 +397,12 @@ export function getCharacter(): CharacterStore {
         rarity: "common",
         attributes: [],
         description: "A set of dice or cards for gaming",
-        value: { amount: 5, currency: "gp" },
+        value: {amount: 5, currency: "gp"},
         weight: 1,
         quantity: 1,
         equippable: false,
         equipped: false,
-        attunement: { required: false, attuned: false }
+        attunement: {required: false, attuned: false}
       }
     ]
   })

@@ -1,13 +1,14 @@
 <script lang="ts">
-    import type {CharacterProficiency} from "../lib/types";
+  import type {CharacterContext} from "../lib/types";
+  import {getContext} from "svelte";
 
-    let {proficients = $bindable()}: {proficients: CharacterProficiency[]} = $props()
+  const {proficients} = getContext<CharacterContext>('character')
 
 </script>
 
 <div class="root primary-border">
     <div class="proficients">
-        {#each proficients as proficiency}
+        {#each $proficients as proficiency}
             <span class="title">
                 {proficiency.title}
             </span>

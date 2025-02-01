@@ -1,8 +1,9 @@
 <script lang="ts">
-    import type {CharacterSkill} from "../lib/types";
+  import type {CharacterContext, CharacterSkill} from "../lib/types";
     import {rollSkill} from "../lib/engine";
+    import {getContext} from "svelte";
 
-    let {skills = $bindable()}: {skills: CharacterSkill[]} = $props()
+    const {skills} = getContext<CharacterContext>('character')
 
 </script>
 
@@ -12,7 +13,7 @@
         <span>Mod</span>
         <span>Skill</span>
         <span>Bonus</span>
-        {#each skills as skill}
+        {#each $skills as skill}
             <span>{skill.proficiency}</span>
             <span>{skill.ability}</span>
             <span class="name">{skill.name}</span>

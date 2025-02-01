@@ -1,9 +1,10 @@
 <script lang="ts">
-  import type {CharacterAction} from "../lib/types";
+  import type {CharacterAction, CharacterContext} from "../lib/types";
   import ActionAttack from "./ActionAttack.svelte";
   import ActionSpecial from "./ActionSpecial.svelte";
+  import {getContext} from "svelte";
 
-  let {actions = $bindable()}: { actions: CharacterAction[] } = $props()
+  const {actions} = getContext<CharacterContext>('character')
 
   const groupActions = (items: CharacterAction[]): { attack: CharacterAction[], special: CharacterAction[] } => {
     return items.reduce((prev, curr) => {
@@ -21,10 +22,10 @@
     }, {attack: [], special: []})
   }
 
-  let primary = $derived(groupActions(actions.filter(a => a.type === 'Action')))
-  let bonus = $derived(groupActions(actions.filter(a => a.type === 'Bonus')))
-  let reaction = $derived(groupActions(actions.filter(a => a.type === 'Reaction')))
-  let other = $derived(groupActions(actions.filter(a => a.type === 'Other')))
+  let primary = $derived(groupActions($actions.filter(a => a.type === 'Action')))
+  let bonus = $derived(groupActions($actions.filter(a => a.type === 'Bonus')))
+  let reaction = $derived(groupActions($actions.filter(a => a.type === 'Reaction')))
+  let other = $derived(groupActions($actions.filter(a => a.type === 'Other')))
 
   $inspect(primary, bonus)
 

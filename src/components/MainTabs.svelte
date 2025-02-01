@@ -54,6 +54,8 @@
         align-items: center;
         flex-direction: column;
         min-height: 500px;
+        max-height: 640px;
+        overflow: hidden;
 
         align-self: stretch;
         justify-self: stretch;

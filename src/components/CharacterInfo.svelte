@@ -1,19 +1,21 @@
 <script lang="ts">
-    import type {CharacterInfo} from "../lib/types";
-    let {info = $bindable()}: {info: CharacterInfo} = $props()
+  import type {CharacterContext, CharacterInfo} from "../lib/types";
+    import {getContext} from "svelte";
+
+    const {info} = getContext<CharacterContext>('character')
 
     let imageUrl = $derived.by(() => {
-      if (info.state?.image?.overlay === false) {
-        return info.state.image.url!!
+      if ($info.state?.image?.overlay === false) {
+        return $info.state.image.url!!
       }
 
-      for (let condition of info.conditions) {
+      for (let condition of $info.conditions) {
         if (condition?.image.overlay === false) {
           return condition.image.url!!
         }
       }
 
-      return info.imageUrl
+      return $info.imageUrl
     })
 
 </script>
@@ -21,14 +23,14 @@
 <div class="root">
     <div class="info">
         <div class="profile-picture">
-            <img src={imageUrl} alt={info.name} />
+            <img src={imageUrl} alt={$info.name} />
         </div>
-        <h3>{info.name}</h3>
-        <span>{info.gender} {info.race.name} {info.class.name}</span>
-        <span>Level {info.level}</span>
+        <h3>{$info.name}</h3>
+        <span>{$info.gender} {$info.race.name} {$info.class.name}</span>
+        <span>Level {$info.level}</span>
     </div>
     <div class="actions">
-        <button onclick={() => window.location.href = info.info}>Go to docs</button>
+        <button onclick={() => window.location.href = $info.info}>Go to docs</button>
     </div>
 </div>
 

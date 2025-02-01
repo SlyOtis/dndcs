@@ -1,14 +1,15 @@
 <script lang="ts">
-    import type {CharacterAbility} from "../lib/types";
-    import Ability from "./Ability.svelte";
+  import type {CharacterContext} from "../lib/types";
+  import Ability from "./Ability.svelte";
+  import {getContext} from "svelte";
 
-    let {abilities = $bindable()}: {abilities: CharacterAbility[]} = $props()
+  const {abilities} = getContext<CharacterContext>('character')
 
 </script>
 
 <div class="root">
-    {#each abilities as ability}
-        <Ability {ability} />
+    {#each $abilities as ability}
+        <Ability {ability}/>
     {/each}
 </div>
 

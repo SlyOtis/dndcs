@@ -6,7 +6,7 @@
   import ActionsTab from "./components/ActionsTab.svelte";
   import Senses from "./components/Senses.svelte";
   import Proficiencies from "./components/Proficiencies.svelte";
-  import type {CharacterStore} from "./lib/types";
+  import type {Character, CharacterContext, CharacterStore} from "./lib/types";
   import Initiative from "./components/Initiative.svelte";
   import HitPoints from "./components/HitPoints.svelte";
   import PlainBox from "./components/PlainBox.svelte";
@@ -15,23 +15,50 @@
   import Inventory from "./components/Inventory.svelte";
   import Inspiration from "./components/Inspiration.svelte";
   import DefensesNConditions from "./components/DefensesNConditions.svelte";
+  import {setContext} from "svelte";
+  import {derived, writable} from "svelte/store";
 
-  let {info, abilities, savingThrows, skills, senses, proficients, actions}: CharacterStore = getCharacter()
+  const character = getCharacter()
+  const chStore = Object.keys(character).reduce((prev, curr) => {
+    const prop = character[curr as keyof Character] as Character[keyof Character]
+    return {
+      ...prev,
+      [curr]: writable(prop, (start, update) => {
+        if (!start) {
+          const startObj = localStorage.getItem('ch_' + curr)
+          if (startObj) {
+            start(JSON.parse(startObj))
+          } else {
+            localStorage.setItem('ch_' + curr, JSON.stringify(prop))
+          }
+        }
+
+        update(up => {
+          localStorage.setItem('ch_' + curr, JSON.stringify(up))
+          return up
+        })
+      })
+    }
+  }, {}) as CharacterContext
+
+  setContext<CharacterContext>('character', chStore);
+
+  const {info} = chStore
 
 </script>
 
 <header>
-    <CharacterInfo bind:info={$info}/>
+    <CharacterInfo/>
 </header>
 
 <main>
     <div class="scroll">
         <div class="grid start">
-            <Abilities bind:abilities={$abilities}/>
-            <SavingThrows bind:savingThrows={$savingThrows}/>
-            <Skills bind:skills={$skills}/>
-            <Senses bind:senses={$senses}/>
-            <Proficiencies bind:proficients={$proficients}/>
+            <Abilities/>
+            <SavingThrows />
+            <Skills />
+            <Senses />
+            <Proficiencies />
         </div>
         <div class="grid end">
             <div style:grid-column="1">
@@ -64,9 +91,9 @@
                     bind:conditions={$info.conditions}
                     bind:defences={$info.defences}
             />
-            <MainTabs initialTab="actionsTab">
+            <MainTabs initialTab="inventoryTab">
                 {#snippet actionsTab()}
-                    <ActionsTab bind:actions={$actions} />
+                    <ActionsTab />
                 {/snippet}
                 {#snippet inventoryTab()}
                     <Inventory/>

@@ -1,16 +1,16 @@
 <script lang="ts">
-  import type {CharacterSavingThrow} from "../lib/types"
+  import type {CharacterContext, CharacterSavingThrow} from "../lib/types"
   import SavingThrow from './SavingThrow.svelte'
+  import {getContext} from "svelte";
 
-  let {savingThrows = $bindable()}: {savingThrows: CharacterSavingThrow[]} = $props()
-
+  const {savingThrows} = getContext<CharacterContext>('character')
 
 </script>
 
 
 <div class="root primary-border">
     <div class="saves">
-        {#each savingThrows as save}
+        {#each $savingThrows as save}
             <SavingThrow {save}/>
         {/each}
     </div>

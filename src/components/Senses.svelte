@@ -1,13 +1,14 @@
 <script lang="ts">
-  import type {CharacterSense} from "../lib/types";
+  import type {CharacterContext, CharacterSense} from "../lib/types";
+  import {getContext} from "svelte";
 
-  let {senses = $bindable()}: { senses: CharacterSense[] } = $props()
+  const {senses} = getContext<CharacterContext>('character')
 </script>
 
 
 <div class="root primary-border">
     <div class="senses">
-        {#each senses as sense}
+        {#each $senses as sense}
             <div class="sense primary-border">
                 <button class="value primary-border">{sense.score}</button>
                 <span class="title">{sense.title}</span>

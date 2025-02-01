@@ -1,6 +1,6 @@
 import type {Writable} from "svelte/store";
 
-type Currency = 'cp' | 'sp' | 'gp' | 'pp'
+type Currency = keyof CharacterCurrency
 type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'misc'
 type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
 
@@ -279,6 +279,8 @@ export interface CharacterInfo {
   initiative: number
   speed: string
   proficiencyBonus: number
+  weight: number
+  carry_capacity: number
   race: RaceInfo
   class: ClassInfo
   spells?: SpellsInfo
@@ -286,6 +288,13 @@ export interface CharacterInfo {
   conditions: ConditionInfo[]
   defences: DefenceInfo[]
   state: StateInfo
+}
+
+export interface CharacterCurrency {
+  gp?: number
+  sp?: number
+  cp?: number
+  pp?: number
 }
 
 export interface Character {
@@ -299,8 +308,12 @@ export interface Character {
   spells: CharacterSpell[]
   proficients: CharacterProficiency[]
   inventory: CharacterInventoryItem[]
+  currency: CharacterCurrency
 }
 
-export type CharacterStore = {
+export type CharacterStore = Writable<Character>
+
+//
+export type CharacterContext = {
   [K in keyof Character]: Writable<Character[K]>
 }
