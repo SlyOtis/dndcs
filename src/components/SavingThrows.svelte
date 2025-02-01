@@ -28,7 +28,7 @@
         width: auto;
         height: auto;
         padding: 4px 8px;
-        grid-area: st;
+        grid-column: 1;
     }
 
     .saves {

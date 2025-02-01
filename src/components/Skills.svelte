@@ -35,7 +35,12 @@
         align-items: center;
         gap: 12px;
         padding: 4px 8px;
-        grid-area: sk;
+
+        grid-column: 2;
+        grid-row: span 4;
+
+        align-self: stretch;
+        justify-self: stretch;
     }
 
     .skills {
@@ -44,6 +49,8 @@
         grid-template-columns: auto auto 1fr auto;
         gap: 4px;
         font-size: 0.8em;
+        width: 100%;
+        height: 100%;
     }
 
     span {

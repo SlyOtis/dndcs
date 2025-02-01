@@ -6,15 +6,15 @@
 
 
 <div class="root primary-border">
-    <div class="saves">
+    <div class="senses">
         {#each senses as sense}
-            <span class="primary-border">
-                {sense.title}
-            </span>
-            <span class="title">{sense.title}</span>
+            <div class="sense primary-border">
+                <button class="value primary-border">{sense.score}</button>
+                <span class="title">{sense.title}</span>
+            </div>
         {/each}
     </div>
-    <span>Saving Throws</span>
+    <span>Senses</span>
 </div>
 
 <style>
@@ -28,14 +28,46 @@
         width: auto;
         height: auto;
         padding: 4px 8px;
+        grid-column: 1;
     }
 
-    .saves {
+    .senses {
         position: relative;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
         gap: 8px;
-        width: auto;
+        width: 100%;
         height: auto;
+    }
+
+    .sense {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        width: 100%;
+        height: auto;
+    }
+
+    .title {
+        position: relative;
+        padding-left: 16px;
+    }
+
+    .value {
+        position: relative;
+        width: min-content;
+        height: calc(100% + 8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--color-content-text);
+        background: var(--color-content-main);
+        padding: 4px;
+        min-width: 64px;
+        cursor: pointer;
+        margin: -4px;
+        border-radius: 16px;
     }
 </style>

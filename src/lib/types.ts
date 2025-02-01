@@ -97,20 +97,17 @@ interface CharacterInventoryItem {
   customProperties?: Record<string, unknown>
 }
 
+type ActionType = 'Attack' | 'Bonus' | 'Reaction' | 'Other'
+
 export interface CharacterAction {
   name: string
-  type: string
+  type: ActionType
   range: string
   toHit: string
   damage: string
   notes: string
   isWeapon?: boolean
   description?: string
-}
-
-export interface ActionCategory {
-  title: string
-  actions: CharacterAction[]
 }
 
 export interface CharacterSavingThrow {
@@ -191,8 +188,14 @@ export interface StateImage {
 export interface ConditionInfo {
   title: string
   image?: StateImage
-  effects: string[]
+  effects?: string[]
   level?: number | null
+}
+
+export interface DefenceInfo {
+  title: string
+  image?: StateImage
+  effects?: string[]
 }
 
 type StateDetail = {
@@ -239,6 +242,7 @@ export interface CharacterInfo {
   class: ClassInfo
   spells: SpellsInfo
   conditions: ConditionInfo[]
+  defences: DefenceInfo[]
   state: StateInfo
 }
 

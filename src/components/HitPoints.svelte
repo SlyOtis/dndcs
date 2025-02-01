@@ -34,6 +34,11 @@
         height: auto;
         gap: 16px;
         padding: 8px 12px;
+
+        align-self: stretch;
+        justify-self: stretch;
+
+        grid-column: 4 / 6;
     }
 
     .health {

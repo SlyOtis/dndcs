@@ -22,6 +22,7 @@
         gap: 16px;
         width: auto;
         height: auto;
-        grid-area: ab;
+        grid-column: 1 / 3;
+        grid-row: 1;
     }
 </style>

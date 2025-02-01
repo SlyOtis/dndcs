@@ -27,6 +27,12 @@ export async function rollSave(name: string, modifier: number, proficiency: numb
   writeRollLog('save', `Rolled ${name} saving throw 1d20`, res, res + modifier);
 }
 
+
+export async function rollPassive(name: string, modifier: number) {
+  const res = await rollDie(20, 1);
+  writeRollLog('passive', `Rolled ${name} passive 1d20`, res, res + modifier);
+}
+
 export function writeRollLog(type: string, text: string, roll: number, total: number) {
   let log = localStorage.getItem('roll_log') || '[]'
   const logData = JSON.parse(log) as Array<{
@@ -65,6 +71,7 @@ export function getCharacter(): CharacterStore {
       imageUrl: 'https://d2qp0siotla746.cloudfront.net/img/use-cases/profile-picture/template_3.jpg',
       info: 'https://app.legendkeeper.com/a/worlds/cm1bx72zf0pg90jnf4a1ngvav/cm1i3rxox0014039b82idcchc/',
       conditions: [],
+      defences: [],
       level: 4,
       inspiration: false,
       hp: {

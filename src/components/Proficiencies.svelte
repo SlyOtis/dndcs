@@ -29,7 +29,8 @@
         align-items: center;
         flex-direction: column;
         padding: 4px 8px;
-        grid-area: pt;
+        grid-column: 1;
+        grid-row: span 2;
     }
 
     .proficients {
@@ -39,8 +40,8 @@
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
-        width: auto;
-        height: auto;
+        width: 100%;
+        height: 100%;
     }
 
     .title {

@@ -14,6 +14,7 @@
   import MainTabs from "./components/MainTabs.svelte";
   import Inventory from "./components/Inventory.svelte";
   import Inspiration from "./components/Inspiration.svelte";
+  import DefensesNConditions from "./components/DefensesNConditions.svelte";
 
   let {info, abilities, savingThrows, skills, senses, proficients}: CharacterStore = getCharacter()
 
@@ -24,62 +25,60 @@
 </header>
 
 <main>
-    <div class="scroll grid-template">
-        <Abilities bind:abilities={$abilities}/>
-        <div class="stats">
-            <div style:grid-area="pb">
+    <div class="scroll">
+        <div class="grid start">
+            <Abilities bind:abilities={$abilities}/>
+            <SavingThrows bind:savingThrows={$savingThrows}/>
+            <Skills bind:skills={$skills}/>
+            <Senses bind:senses={$senses}/>
+            <Proficiencies bind:proficients={$proficients}/>
+        </div>
+        <div class="grid end">
+            <div style:grid-column="1">
                 <PlainBox bind:value={$info.proficiencyBonus}
                           title="Proficiency"
                           subTitle="bonus"
                           prefix="+"
                 />
             </div>
-            <div style:grid-area="ws">
+            <div style:grid-column="2">
                 <PlainBox bind:value={$info.speed}
                           title="Walking"
                           subTitle="speed"
                 />
             </div>
-            <div style:grid-area="hp">
-                <HitPoints bind:hp={$info.hp}/>
-            </div>
-            <div style:grid-area="it">
-                <Initiative bind:initiative={$info.initiative}/>
-            </div>
-            <div style:grid-area="is">
+            <div style:grid-column="3">
                 <Inspiration bind:inspiration={$info.inspiration}/>
             </div>
-            <div style:grid-area="ac">
+            <HitPoints bind:hp={$info.hp}/>
+            <div style:grid-column="1" style:grid-row="2">
+                <Initiative bind:initiative={$info.initiative}/>
+            </div>
+            <div style:grid-column="2" style:grid-row="2">
                 <PlainBox bind:value={$info.ac}
                           title="Armor"
                           subTitle="class"
                 />
             </div>
-            <div style:grid-area="cd">
-                <PlainBox bind:value={$info.ac}
-                          title="Armor"
-                          subTitle="class"
-                />
-            </div>
+            <DefensesNConditions
+                    bind:conditions={$info.conditions}
+                    bind:defences={$info.defences}
+            />
+            <MainTabs initialTab="actions">
+                {#snippet background()}
+                    <Actions/>
+                {/snippet}
+                {#snippet inventory()}
+                    <Inventory/>
+                {/snippet}
+                {#snippet actions()}
+                    <Actions/>
+                {/snippet}
+                {#snippet feats()}
+                    <Actions/>
+                {/snippet}
+            </MainTabs>
         </div>
-        <SavingThrows bind:savingThrows={$savingThrows}/>
-        <Skills bind:skills={$skills}/>
-        <MainTabs initialTab="actions">
-            {#snippet background()}
-                <Actions/>
-            {/snippet}
-            {#snippet inventory()}
-                <Inventory/>
-            {/snippet}
-            {#snippet actions()}
-                <Actions/>
-            {/snippet}
-            {#snippet feats()}
-                <Actions/>
-            {/snippet}
-        </MainTabs>
-        <Senses bind:senses={$senses}/>
-        <Proficiencies bind:proficients={$proficients}/>
     </div>
 </main>
 
@@ -109,35 +108,22 @@
         overflow: hidden;
         padding: 16px;
         display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
 
-    .stats {
+    .grid {
         position: relative;
-        grid-area: s;
         display: grid;
-        grid-gap: 20px;
-        align-items: center;
-        justify-items: center;
-        grid-template:
-            "pb ws is hp hp hp"
-            "it ac cd cd cd cd";
-    }
 
-    .grid-template {
-        grid-gap: 20px;
         align-items: stretch;
         justify-items: stretch;
-        grid-template:
-            "ab ab s s"
-            "st sk s s"
-            "st sk a a"
-            "se sk a a"
-            "se sk a a"
-            "pt sk a a"
-            "pt sk a a"
-            "pt sk a a";
-        grid-template-rows: repeat(8, auto);
-        grid-template-columns: auto auto auto auto;
+
+        grid-auto-rows: min-content;
+        grid-auto-columns: min-content;
+        gap: 16px;
+        width: 100%;
+        height: 100%;
     }
 
     @media screen and (max-width: 1024px) {

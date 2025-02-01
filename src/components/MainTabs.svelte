@@ -48,12 +48,17 @@
         position: relative;
         width: 100%;
         height: 100%;
+
         display: flex;
         justify-content: start;
         align-items: center;
         flex-direction: column;
         min-height: 500px;
-        grid-area: a;
+
+        align-self: stretch;
+        justify-self: stretch;
+
+        grid-column: 1 / 6;
     }
 
     .header {
@@ -75,5 +80,14 @@
 
     .selected {
         background-color: var(--color-content-light);
+    }
+
+    .content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: stretch;
+        align-items: stretch;
     }
 </style>
