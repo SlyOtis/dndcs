@@ -21,20 +21,14 @@
   let totalValuables = $derived(addCurrencies(inventoryValue, $currency))
   let searchInput = $state('')
 
-  let filteredItems = $derived.by(() => {
-    if (searchInput.length) {
-      // Implement search
-      return $inventory.filter(val => val.attributes.find(attr => attr.includes(searchInput)) ||
-        val.description.includes(searchInput) ||
-        val.enchantments?.find(ench => ench.name.includes(searchInput) || ench.description.includes(searchInput)) ||
-        val.rarity?.includes(searchInput) ||
-        val.subtype?.includes(searchInput) ||
-        val.type?.includes(searchInput) ||
-        val.id?.includes(searchInput) ||
-        val.title?.includes(searchInput))
-    }
-    return $inventory
-  })
+  let filteredItems = $derived.by(() => $inventory.filter(val => val.attributes.find(attr => attr.includes(searchInput)) ||
+    val.description.includes(searchInput) ||
+    val.enchantments?.find(ench => ench.name.includes(searchInput) || ench.description.includes(searchInput)) ||
+    val.rarity?.includes(searchInput) ||
+    val.subtype?.includes(searchInput) ||
+    val.type?.includes(searchInput) ||
+    val.id?.includes(searchInput) ||
+    val.title?.includes(searchInput)))
 
 </script>
 
@@ -79,8 +73,8 @@
                     <div class="equippable center">
                         {#if item.equippable}
                             <button class="toggle"
-                                 class:equipped={item.equipped}
-                                 onclick={e => {
+                                    class:equipped={item.equipped}
+                                    onclick={e => {
                                     e.preventDefault()
                                     e.stopPropagation()
                                     inventory.update(curr => {
@@ -92,8 +86,10 @@
                                         }
                                         return curr
                                     })
+
                                 }}
-                            >-</button>
+                            >-
+                            </button>
                         {:else}
                             <span class="empty">-</span>
                         {/if}
