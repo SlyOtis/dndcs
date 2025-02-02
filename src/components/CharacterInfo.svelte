@@ -48,6 +48,7 @@
         flex-direction: row;
         padding: 8px 16px;
         overflow: hidden;
+        background-color: var(--color-content-dark);
     }
 
     .info {

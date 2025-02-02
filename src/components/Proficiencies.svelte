@@ -32,6 +32,7 @@
         padding: 4px 8px;
         grid-column: 1;
         grid-row: span 2;
+        background-color: var(--color-content-dark);
     }
 
     .proficients {

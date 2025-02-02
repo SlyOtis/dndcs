@@ -38,6 +38,7 @@
         padding: 4px 8px;
         border-radius: 16px;
         z-index: 1;
+        background-color: var(--color-content-dark);
     }
 
     button {

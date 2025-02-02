@@ -1,7 +1,8 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext, CharacterCurrency} from "../lib/types";
+  import type {CharacterContext} from "../lib/types";
   import {addCurrencies, asGold} from "../lib/engine";
+  import type {CharacterCurrency} from "../lib/character.types";
 
   const {inventory, info, currency} = getContext<CharacterContext>('character')
 
@@ -125,6 +126,7 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
+        background-color: var(--color-content-dark);
     }
 
     .header {

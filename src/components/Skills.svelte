@@ -42,6 +42,8 @@
 
         align-self: stretch;
         justify-self: stretch;
+
+        background-color: var(--color-content-dark);
     }
 
     .skills {

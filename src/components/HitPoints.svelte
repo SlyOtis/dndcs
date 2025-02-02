@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type {CharacterHitPoints} from "../lib/types";
+
+  import type {CharacterHitPoints} from "../lib/character.types";
 
   let {hp = $bindable()}: { hp: CharacterHitPoints } = $props()
 
@@ -35,10 +36,11 @@
         gap: 16px;
         padding: 8px 12px;
 
-        align-self: stretch;
+        align-self: center;
         justify-self: stretch;
 
         grid-column: 4 / 6;
+        background-color: var(--color-content-dark);
     }
 
     .health {
@@ -47,7 +49,7 @@
         justify-content: center;
         align-items: center;
         flex-direction: row;
-        gap: 12px;
+        gap: 16px;
     }
 
     .points {
@@ -64,6 +66,7 @@
 
     .value {
         font-weight: 600;
+        font-size: 1.5em;
     }
 </style>
 

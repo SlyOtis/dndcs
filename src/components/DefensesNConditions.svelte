@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type {ConditionInfo, DefenceInfo} from "../lib/types";
+
+  import type {ConditionInfo, DefenceInfo} from "../lib/character.types";
 
   let {defences = $bindable(), conditions = $bindable()}: {
     defences: DefenceInfo[],

@@ -152,6 +152,7 @@
         flex-direction: column;
         overflow-y: scroll;
         overflow-x: hidden;
+        background-color: var(--color-content-dark);
     }
 
     .actions {

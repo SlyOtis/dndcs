@@ -70,6 +70,7 @@
         justify-self: stretch;
 
         grid-column: 1 / 6;
+        background-color: var(--color-content-dark);
     }
 
     .header {

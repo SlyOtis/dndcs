@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type {CharacterAction, Damage} from "../lib/types";
   import {rollAttack, rollDamage} from "../lib/engine";
+  import type {CharacterAction, Damage} from "../lib/character.types";
 
   let {action}: { action: CharacterAction } = $props()
 

@@ -77,7 +77,7 @@
         height: 100%;
         overflow: hidden;
         border-left: 1px solid var(--color-primary-main);
-        background-color: var(--color-content-main);
+        background-color: var(--color-content-dark);
     }
 
     .inner {

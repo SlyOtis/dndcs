@@ -29,6 +29,7 @@
         height: auto;
         gap: 4px;
         border-radius: 8px;
+        background-color: var(--color-content-dark);
     }
 
     .title {

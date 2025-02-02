@@ -29,6 +29,7 @@
         height: auto;
         padding: 4px 8px;
         grid-column: 1;
+        background-color: var(--color-content-dark);
     }
 
     .saves {
