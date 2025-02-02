@@ -39,8 +39,10 @@
         left: 0;
         z-index: 0;
         background-color: var(--color-background-dark);
+
         user-select: none;
         pointer-events: none;
+        tab-index: -1;
     }
 
     .inner {
@@ -71,6 +73,9 @@
         border: none;
         outline: none;
         object-fit: cover;
+        user-select: none;
+        pointer-events: none;
+        tab-index: -1;
     }
 
     iframe {
