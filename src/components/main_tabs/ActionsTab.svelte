@@ -28,8 +28,6 @@
   let reaction = $derived(groupActions($actions.filter(a => a.type === 'Reaction')))
   let other = $derived(groupActions($actions.filter(a => a.type === 'Other')))
 
-  $inspect(primary, bonus)
-
 </script>
 
 <div class="root">

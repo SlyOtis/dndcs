@@ -1,10 +1,11 @@
 <script lang="ts">
   import CharacterInfo from "./components/CharacterInfo.svelte";
   import type {CharacterContext} from "./lib/types";
-  import {detectUrlType, getCharacterStore, getSidebar} from "./lib/engine";
+  import {getCharacterStore, getSidebar} from "./lib/engine";
   import {onDestroy, setContext} from "svelte";
   import CharacterSheet from "./pages/CharacterSheet.svelte";
   import AIChat from "./components/AIChat.svelte";
+  import Background from "./components/Background.svelte";
 
   const {unsubscribe, ...chStore} = getCharacterStore()
   const {unsubscribeSidebar, sidebarStore} = getSidebar()
@@ -25,10 +26,12 @@
 </header>
 
 <main style:--size-sidebar-curr={$sidebarStore ? 'var(--size-sidebar-max)' : '0'}>
-    <CharacterSheet />
+    <CharacterSheet/>
     <aside>
-        <AIChat />
+        <AIChat/>
     </aside>
+
+    <Background/>
 </main>
 
 <style>

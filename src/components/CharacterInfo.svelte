@@ -2,7 +2,7 @@
   import type {CharacterContext} from "../lib/types";
   import {getContext} from "svelte";
   import type {Writable} from "svelte/store";
-  import {detectUrlType} from "../lib/engine";
+  import {decryptMediaUrl} from "../lib/engine";
 
   const sidebarStore = getContext<Writable<boolean>>('sidebar')
   const {info} = getContext<CharacterContext>('character')

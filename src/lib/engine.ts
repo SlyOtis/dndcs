@@ -141,29 +141,49 @@ export function getCharacterStore(): CharacterStore {
   }
 }
 
-export async function detectUrlType(url: string) {
-  // Check file extension
-  const extension = url.split('.')?.pop()?.toLowerCase();
+export async function decryptMediaUrl(url: string): Promise<{type: 'video' | 'image' | 'unknown', url: string}> {
+  const youtubePatterns = [
+    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+    /youtube.com\/shorts\/([^"&?\/\s]{11})/
+  ];
+
+  for (const pattern of youtubePatterns) {
+    if (!pattern.test(url)) continue
+
+    // Extract video ID from various YouTube URL formats
+    const videoIdRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(videoIdRegex);
+
+    if (!match) continue;
+
+    const videoId = match[1];
+    const params = 'autoplay=1&mute=1&loop=1&playlist=' + videoId + '&controls=0&showinfo=0&rel=0';
+    return {
+      type: 'video',
+      url: `https://www.youtube-nocookie.com/embed/${videoId}?${params}`
+    };
+  }
+
+  const extension = url?.split('.')?.pop()?.toLowerCase();
 
   const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
   const videoExtensions = ['mp4', 'webm', 'ogg', 'mov'];
 
   if (extension) {
-    if (imageExtensions.includes(extension)) return 'image';
-    if (videoExtensions.includes(extension)) return 'video';
+    if (imageExtensions.includes(extension)) return {type: 'image', url};
+    if (videoExtensions.includes(extension)) return {type: 'video', url};
   }
 
-  // If no extension match, check content-type header
   try {
     const response = await fetch(url, { method: 'HEAD' });
     const contentType = response.headers.get('content-type');
 
-    if (contentType?.startsWith('image/')) return 'image';
-    if (contentType?.startsWith('video/')) return 'video';
+    if (contentType?.startsWith('image/')) return {type: 'image', url};
+    if (contentType?.startsWith('video/')) return {type: 'video', url};
 
-    return 'unknown';
+    return {type: 'unknown', url};
   } catch (error) {
     console.error('Error checking content-type:', error);
-    return 'unknown';
+    return {type: 'unknown', url};
   }
 }

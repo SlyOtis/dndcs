@@ -14,9 +14,11 @@
 }
 
 :root {
+  --color-background-dark: #151515;
+
   --color-primary-main: green;
   --color-primary-text: white;
-  --color-secondary-main: gray;
+  --color-secondary-main: #e6d837;
 
   --color-content-main: #373737;
   --color-content-light: #5c5c5c;
