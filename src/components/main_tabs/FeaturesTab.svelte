@@ -1,8 +1,10 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext} from "../lib/types";
+  import type {CharacterContext} from "../../lib/types";
 
   const {feats} = getContext<CharacterContext>('character')
+
+  let orderFeats = $derived($feats.sort((a, b) => a.level - b.level));
 
 
 </script>
@@ -10,9 +12,9 @@
 <div class="root">
     <div class="scroll">
         <ul>
-            {#each $feats as feat}
+            {#each orderFeats as feat}
                 <li class="feat">
-                    <h4>{feat.title} - lvl {feat.level}</h4>
+                    <h4>{feat.title} - <i>lvl {feat.level}</i></h4>
                     <span class="source">{feat.source}</span>
                     <p>{feat.description}</p>
                 </li>
@@ -67,6 +69,14 @@
     li:not(:last-child) {
         padding-bottom: 16px;
         border-bottom: 1px dashed var(--color-content-text);
+        margin-bottom: 16px;
+    }
+
+    .source {
+        font-size: 0.7em;
+        font-weight: 600;
+        opacity: 0.75;
+        text-transform: uppercase;
         margin-bottom: 16px;
     }
 

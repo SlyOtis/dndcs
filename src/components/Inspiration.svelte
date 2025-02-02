@@ -1,5 +1,9 @@
 <script lang="ts">
-  let {inspiration = $bindable()}: {inspiration: boolean} = $props()
+  import {getContext} from "svelte";
+  import type {CharacterContext} from "../lib/types";
+
+  const {info} = getContext<CharacterContext>('character')
+
 </script>
 
 <div class="root primary-border">
@@ -11,9 +15,13 @@
             onclick={(e) => {
                 e.stopPropagation()
                 e.preventDefault()
+                info.update(state => ({
+                    ...state,
+                    inspiration: !state.inspiration
+                }))
             }}
     >
-        {#if inspiration}+{:else}-{/if}
+        {#if $info.inspiration}1{:else}0{/if}
     </button>
 </div>
 

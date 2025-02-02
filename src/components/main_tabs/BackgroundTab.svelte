@@ -1,6 +1,6 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext} from "../lib/types";
+  import type {CharacterContext} from "../../lib/types";
 
   const {background} = getContext<CharacterContext>('character')
 
@@ -16,10 +16,10 @@
                 {/if}
                 <p>{$background.description}</p>
                 {#if $background?.additional?.length}
-                    <ul>
+                    <ul class="additional">
                         {#each $background?.additional as additional}
                             <li>
-                                <h6>{additional.title}</h6>
+                                <h5>{additional.title}</h5>
                                 <span>{additional.type}</span>
                                 {#if additional.description}
                                     <p>{additional.description}</p>
@@ -70,9 +70,22 @@
         margin-bottom: 12px;
     }
 
-    h4, p {
+    h4, p, h5 {
         padding: 0;
         margin: 0;
+    }
+
+    .sub-title {
+        font-size: 0.8em;
+        font-weight: 600;
+        opacity: 0.75;
+        margin-bottom: 8px;
+    }
+
+    .additional {
+        margin-top: 16px;
+        background-color: var(--color-content-main);
+        border-radius: 16px;
     }
 
 </style>

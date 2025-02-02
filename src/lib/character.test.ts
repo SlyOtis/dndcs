@@ -8,8 +8,8 @@ const character: Character = {
     imageUrl: "https://i.pinimg.com/736x/b5/45/fa/b545fa7ec2cae918bf35c90247b47fc1--cowboy-cowboy-cowgirl.jpg",
     infoUrl: "https://app.legendkeeper.com/a/worlds/cm1bx72zf0pg90jnf4a1ngvav/cm1i3rxox0014039b82idcchc/",
     backgroundUrl: "https://www.youtube.com/watch?v=RfBgmw_xCVY",
-    level: 4,
     inspiration: false,
+    level: 4,
     hp: {
       current: 34,
       max: 34,
@@ -17,13 +17,13 @@ const character: Character = {
     },
     ac: 15,
     initiative: 4,
-    speed: "30 ft.",
+    speed: "30 ft",
     proficiencyBonus: 2,
-    weight: 180,
-    carry_capacity: 165,
+    weight: 0,
+    carry_capacity: 165, // 11 STR x 15
     race: {
       name: "Custom Lineage",
-      type: "Humanoid"
+      type: "Human"
     },
     class: {
       name: "Gunslinger",
@@ -32,38 +32,28 @@ const character: Character = {
         die: 8
       }
     },
-    spells: {
-      modifier: "none",
-      slots: {}
-    },
-    slots: {
-      amount: 2,
-      title: "Grit Points",
-      description: "What are grit points?",
-      expended: 0,
-    },
     conditions: [],
     defences: [],
     state: {
-      type: "normal"
+      type: "Normal"
     }
   },
   spells: [],
   proficients: [
     {
-      id: "weapons",
-      title: "Weapon Proficiencies",
-      value: ["Simple weapons", "Firearms", "Whips"]
+      id: "armor",
+      title: "Armor",
+      value: ["Light Armor"]
     },
     {
-      id: "armor",
-      title: "Armor Proficiencies",
-      value: ["Light armor"]
+      id: "weapons",
+      title: "Weapons",
+      value: ["Simple Weapons", "Firearms", "Whips"]
     },
     {
       id: "tools",
-      title: "Tool Proficiencies",
-      value: ["Gaming set", "Thieves' tools"]
+      title: "Tools",
+      value: ["Thieves' Tools", "One Gaming Set"]
     },
     {
       id: "languages",
@@ -71,7 +61,71 @@ const character: Character = {
       value: ["Common"]
     }
   ],
-  feats: [],
+  feats: [
+    {
+      id: "deadeye",
+      level: 1,
+      source: "base",
+      title: "Deadeye",
+      description: "In combat, critical threshold reduces by 1 on hits. Resets on miss or end of turn without attack."
+    },
+    {
+      id: "bad-medicine",
+      level: 1,
+      source: "base",
+      title: "Bad Medicine",
+      description: "Roll one additional weapon damage die when determining critical hit damage with firearms."
+    },
+    {
+      id: "grit",
+      level: 2,
+      source: "base",
+      title: "Grit",
+      description: "3 grit points to fuel various features. Regain 1 point on critical hits or all points on rest."
+    },
+    {
+      id: "quickdraw",
+      level: 2,
+      source: "base",
+      title: "Quickdraw",
+      description: "Advantage on initiative rolls. Can draw/stow any number of weapons as part of the same action."
+    },
+    {
+      id: "bloodhound",
+      level: 3,
+      source: "subclass",
+      title: "Bloodhound",
+      description: "Gain proficiency in Insight. Double proficiency bonus for Insight checks on Humanoids."
+    },
+    {
+      id: "double-tough",
+      level: 3,
+      source: "subclass",
+      title: "Double Tough",
+      description: "When regaining HP in combat, gain equal temporary HP until end of next turn."
+    },
+    {
+      id: "unforgiven",
+      level: 3,
+      source: "subclass",
+      title: "Unforgiven",
+      description: "Extra damage die on first hit against creatures that attacked you since your last turn."
+    },
+    {
+      id: "bully",
+      level: 1,
+      source: "optional",
+      title: "Bully",
+      description: "No disadvantage on ranged attacks within 5ft. Can push and prone targets within 10ft (DC 14 STR save)."
+    },
+    {
+      id: "pistolero",
+      level: 4,
+      source: "optional",
+      title: "Pistolero",
+      description: "Bonus action attack with pistol when attacking with one-handed weapon. Can act normally if surprised when using pistol first."
+    }
+  ],
   abilities: [
     {
       id: "str",
@@ -118,7 +172,7 @@ const character: Character = {
     },
     {
       title: "Dexterity",
-      modifier: 6,
+      modifier: 6, // +4 DEX, +2 proficiency
       proficiency: 1
     },
     {
@@ -138,7 +192,7 @@ const character: Character = {
     },
     {
       title: "Charisma",
-      modifier: 3,
+      modifier: 3, // +1 CHA, +2 proficiency
       proficiency: 1
     }
   ],
@@ -255,55 +309,72 @@ const character: Character = {
   senses: [
     {
       title: "Passive Perception",
-      score: 14
+      score: 14 // 10 + 4 (proficiency)
+    },
+    {
+      title: "Passive Investigation",
+      score: 10 // 10 + 0 (no proficiency)
+    },
+    {
+      title: "Passive Insight",
+      score: 14 // 10 + 4 (proficiency)
     },
     {
       title: "Darkvision",
-      score: "60 ft"
+      score: "60 ft",
+      condition: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light."
     }
   ],
   actions: [
     {
-      name: "Hand Cannon",
-      description: "Ranged weapon attack with firearm",
+      name: "Hand Cannon Attack",
       layout: "Attack",
       type: "Action",
-      range: {
-        normal: 60,
-        max: 180
-      },
-      damage: [
-        {
-          amount: 1,
-          dice: 8,
-          type: "piercing",
-          bonus: 4
-        }
-      ]
+      range: { normal: 60, max: 180 },
+      damage: [{
+        amount: 1,
+        dice: 8,
+        type: "piercing",
+        bonus: 4
+      }],
+      toHit: 6,
+      properties: ["ammunition", "kick (12)", "loud", "reload (6)"]
     },
     {
       name: "Buck Up",
-      description: "Spend 1 grit point as a bonus action to spend Hit Dice to heal",
+      description: "Spend Hit Dice to heal (max 2 dice)",
       layout: "Special",
-      type: "Bonus"
+      type: "Bonus",
     },
     {
       name: "Bullet Time",
-      description: "Spend 1 grit point to impose disadvantage on ranged attack against you",
+      description: "Spend 1 grit to impose disadvantage on ranged attack against you",
       layout: "Special",
-      type: "Reaction"
+      type: "Other",
     },
     {
       name: "Covering Fire",
-      description: "While holding a firearm, spend 1 grit point as a reaction to impose disadvantage on an attack against another creature",
+      description: "Spend 1 grit to impose disadvantage on attack against ally within 60ft",
       layout: "Special",
-      type: "Reaction"
+      type: "Reaction",
     },
     {
       name: "Dodge Roll",
-      description: "Spend 1 grit point as a bonus action to move 10 feet without provoking opportunity attacks",
+      description: "Spend 1 grit to move 10ft without opportunity attacks",
+      layout: "Special",
+      type: "Bonus",
+    },
+    {
+      name: "Pistolero Extra Attack",
+      description: "When taking Attack action with one-handed weapon, bonus action attack with pistol",
       layout: "Special",
       type: "Bonus"
+    },
+    {
+      name: "Bully Shove",
+      description: "On hit with firearm within 10ft, force STR save (DC 14) or push 5ft and prone",
+      layout: "Special",
+      type: "Other"
     }
   ],
   inventory: [
@@ -313,52 +384,84 @@ const character: Character = {
       type: "weapon",
       subtype: "firearm",
       rarity: "common",
-      attunement: {
-        required: false,
-        attuned: false
-      },
-      value: {
-        amount: 85,
-        currency: "gp"
-      },
+      attributes: ["ammunition", "kick", "loud", "reload"],
+      description: "A heavy pistol that deals 1d8 piercing damage",
+      value: { amount: 85, currency: "gp" },
       weight: 3,
       quantity: 1,
-      attributes: ["ammunition", "loud", "reload"],
-      description: "1d8 piercing, range 60/180 ft, reload (6 shots)",
       equippable: true,
-      equipped: true
+      equipped: true,
+      properties: {
+        damage: {
+          amount: 1,
+          dice: 8,
+          type: "piercing",
+          bonus: 4
+        },
+        range: {
+          normal: 60,
+          max: 180
+        }
+      }
     },
     {
       id: "leather-armor",
       title: "Leather Armor",
       type: "armor",
-      subtype: "light",
       rarity: "common",
-      value: {
-        amount: 10,
-        currency: "gp"
-      },
+      attributes: ["light"],
+      description: "Light armor made of leather",
+      value: { amount: 10, currency: "gp" },
       weight: 10,
       quantity: 1,
-      attributes: [],
-      description: "11 + Dex modifier AC",
       equippable: true,
-      equipped: true
+      equipped: true,
+      properties: {
+        ac: {
+          base: 11,
+          bonus: 0,
+          dexModifier: true,
+          maxDexBonus: 0
+        }
+      }
     },
     {
       id: "ammunition",
-      title: "Firearm Ammunition",
+      title: "Ammunition",
       type: "consumable",
-      subtype: "ammunition",
+      subtype: "rounds",
       rarity: "common",
-      value: {
-        amount: 3,
-        currency: "gp"
-      },
+      attributes: [],
+      description: "Firearm ammunition",
+      value: { amount: 3, currency: "gp" },
       weight: 1,
       quantity: 20,
+      equippable: false,
+      equipped: false
+    },
+    {
+      id: "explorers-pack",
+      title: "Explorer's Pack",
+      type: "container",
+      rarity: "common",
       attributes: [],
-      description: "Bullets for firearms",
+      description: "Includes a backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days of rations, waterskin, 50 feet of hempen rope",
+      value: { amount: 10, currency: "gp" },
+      weight: 59,
+      quantity: 1,
+      equippable: false,
+      equipped: false
+    },
+    {
+      id: "thieves-tools",
+      title: "Thieves' Tools",
+      type: "tool",
+      rarity: "common",
+      attributes: [],
+      description: "Set of tools for picking locks and disarming traps",
+      value: { amount: 25, currency: "gp" },
+      weight: 1,
+      quantity: 1,
       equippable: false,
       equipped: false
     }
@@ -366,12 +469,30 @@ const character: Character = {
   currency: {
     cp: 0,
     sp: 0,
-    gp: 25,
+    gp: 31,
     pp: 0
   },
   background: {
-    title: "Criminal Enforcer",
-    description: "You made your living working for a criminal organization, using intimidation and force to collect debts and maintain order. Your experience has given you a keen eye for deception and a reputation for reliability in enforcing the will of your employers."
+    title: "Criminal",
+    subTitle: "Enforcer",
+    description: "As a ruthless enforcer, Lucky Lars made his name through intimidation and violence, working for various criminal organizations to collect debts and maintain order. His reputation for efficiency with a firearm preceded him in the underworld.",
+    additional: [
+      {
+        title: "Criminal Contact",
+        type: "feature",
+        description: "You have reliable criminal contacts who can provide information about the local underworld."
+      },
+      {
+        title: "Equipment",
+        type: "equipment",
+        description: "Dark common clothes with hood, gaming set, thieves' tools"
+      },
+      {
+        title: "Specialty",
+        type: "information",
+        description: "Enforcer - You serve as muscle for thieves' guilds and criminal organizations"
+      }
+    ]
   }
 }
 

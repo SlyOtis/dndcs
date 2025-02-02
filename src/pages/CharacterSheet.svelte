@@ -45,7 +45,7 @@
                 />
             </div>
             <div style:grid-column="3">
-                <Inspiration bind:inspiration={$info.inspiration}/>
+                <Inspiration />
             </div>
             <HitPoints bind:hp={$info.hp}/>
             <div style:grid-column="1" style:grid-row="2">

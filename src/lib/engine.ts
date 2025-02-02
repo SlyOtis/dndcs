@@ -73,15 +73,6 @@ export function writeRollLog(type: string, text: string, roll: number, total: nu
   })
 }
 
-function writeToCharacterStore(character: Character): Character {
-  return character
-  // const store = writable<Character>(character, (start) => {
-  //   localStorage.setItem('character', JSON.stringify(start));
-  // })
-
-  // return store
-}
-
 export function asGold(currency: CharacterCurrency): number {
   const totalGP =
     (currency?.pp || 0) * 10 +    // Convert platinum to gold (1pp = 10gp)
@@ -102,13 +93,8 @@ export function addCurrencies(currency: CharacterCurrency, currency2: CharacterC
 }
 
 export function getCharacter(): Character {
-  const character = localStorage.getItem('character')
-  // TODO:: Redirect on missing character??
-  if (character) {
-    return writeToCharacterStore(JSON.parse(character) as Character)
-  }
-
-  return writeToCharacterStore(testCharacter)
+  // Old test function
+  return testCharacter
 }
 
 export function getCharacterStore(): CharacterStore {
