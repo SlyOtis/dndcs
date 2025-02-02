@@ -1,10 +1,8 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext, CharacterCurrency} from "../lib/types";
-  import {addCurrencies, asGold} from "../lib/engine";
+  import type {CharacterContext} from "../lib/types";
 
   const {feats} = getContext<CharacterContext>('character')
-
 
 
 </script>
@@ -32,6 +30,8 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
+        color: var(--color-content-text);
+        background-color: var(--color-content-dark);
     }
 
     .scroll {
@@ -62,6 +62,12 @@
     h4, p {
         padding: 0;
         margin: 0;
+    }
+
+    li:not(:last-child) {
+        padding-bottom: 16px;
+        border-bottom: 1px dashed var(--color-content-text);
+        margin-bottom: 16px;
     }
 
 </style>

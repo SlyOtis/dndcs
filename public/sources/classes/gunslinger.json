@@ -1,0 +1,707 @@
+{
+  "id": "gunslinger",
+  "name": "Gunslinger",
+  "description": "A master of firearms who combines quick reflexes, deadly accuracy, and grit to survive in a hostile frontier",
+  "hitDie": 8,
+  "primaryAbility": [
+    "DEX",
+    "WIS"
+  ],
+  "savingThrows": [
+    "DEX",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "deadeye",
+      "name": "Deadeye",
+      "description": "In combat, find your flow with deadly efficiency. Whenever you hit with a ranged weapon attack, the threshold to score a critical hit decreases by 1, minimum 16. Lost on miss, incapacitation, or no attacks for a turn. At 14th level, gain this benefit twice per hit.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "bad-medicine",
+      "name": "Bad Medicine",
+      "description": "Roll additional weapon damage dice on critical hits with firearms. Number of dice increases with level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "grit",
+      "name": "Grit",
+      "description": "Gain grit points equal to 1 + Wisdom modifier (minimum 1). Regain 1 point on critical hits against hostile creatures or all points on rest. Use for various grit features.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "quickdraw",
+      "name": "Quickdraw",
+      "description": "Advantage on initiative rolls. Can draw/stow any number of weapons as part of same action.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "extra-attack",
+      "name": "Extra Attack",
+      "description": "Attack twice when taking the Attack action.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "lock-n-load",
+      "name": "Lock n' Load",
+      "description": "Can load/reload firearms as part of move or action.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "ace-in-the-hole",
+      "name": "Ace in the Hole",
+      "description": "Once per turn when missing an attack, spend 1 grit point to add Wisdom modifier to roll.",
+      "level": 7,
+      "source": "base"
+    },
+    {
+      "id": "born-lucky",
+      "name": "Born Lucky",
+      "description": "Spend 1 grit point to gain advantage on forced saving throws.",
+      "level": 9,
+      "source": "base"
+    },
+    {
+      "id": "frontier-justice",
+      "name": "Frontier Justice",
+      "description": "Make ranged attack as reaction when creature moves within 10 feet while wielding firearm.",
+      "level": 11,
+      "source": "base"
+    },
+    {
+      "id": "skullcracker",
+      "name": "Skullcracker",
+      "description": "Concentrating creatures have disadvantage on saves when hit. Auto-fail on critical hits.",
+      "level": 13,
+      "source": "base"
+    },
+    {
+      "id": "cheat-death",
+      "name": "Cheat Death",
+      "description": "When reduced to 0 HP, spend 1 grit point to drop to 1 HP instead and gain exhaustion.",
+      "level": 15,
+      "source": "base"
+    },
+    {
+      "id": "true-grit",
+      "name": "True Grit",
+      "description": "Regain 1 grit point at start of turn when at 0 points.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "golden-gun",
+      "name": "Golden Gun",
+      "description": "Advantage on ranged weapon attacks while critical threshold is 16 or lower.",
+      "level": 20,
+      "source": "base"
+    },
+    {
+      "id": "wild-card",
+      "name": "Wild Card",
+      "description": "Gain proficiency in Intimidation and double proficiency bonus for Intimidation checks while armed",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "snapshot",
+      "name": "Snapshot",
+      "description": "Use reaction and 1 grit point to draw and attack when rolling initiative",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "rough-and-tumble",
+      "name": "Rough and Tumble",
+      "description": "Use bonus action to dash object against creature within 5 feet, forcing Constitution save or be blinded until end of your turn",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "notorious",
+      "name": "Notorious",
+      "description": "Treat d20 rolls of 9 or lower as 10 on Charisma checks against creatures aware of your alias",
+      "level": 10,
+      "source": "subclass"
+    },
+    {
+      "id": "high-noon",
+      "name": "High Noon",
+      "description": "Target up to six creatures with Snapshot feature",
+      "level": 17,
+      "source": "subclass"
+    },
+    {
+      "id": "to-the-manor-born",
+      "name": "To the Manor Born",
+      "description": "Gain two skill proficiencies and expertise in one skill",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "broncbuster",
+      "name": "Broncbuster",
+      "description": "Charm beasts to serve as mounts with scaling CR limits",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "rough-rider",
+      "name": "Rough Rider",
+      "description": "Command mount to make weapon attack when forgoing one of your attacks",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "riders-reflexes",
+      "name": "Rider's Reflexes",
+      "description": "Spend 1 grit point as reaction to halve damage to mount",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "blazing-saddles",
+      "name": "Blazing Saddles",
+      "description": "Mount ignores difficult terrain and gains extra movement when dashing",
+      "level": 10,
+      "source": "subclass"
+    },
+    {
+      "id": "air-superiority",
+      "name": "Air Superiority",
+      "description": "Make ranged attack when using Covering Fire while flying",
+      "level": 17,
+      "source": "subclass"
+    },
+    {
+      "id": "bloodhound",
+      "name": "Bloodhound",
+      "description": "Gain Insight proficiency and expertise in detecting motives of humanoids",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "double-tough",
+      "name": "Double Tough",
+      "description": "Gain temporary HP equal to HP regained in combat until next turn",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "unforgiven",
+      "name": "Unforgiven",
+      "description": "Roll extra damage die on first hit against creature that attacked you since last turn",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "sharp-eye",
+      "name": "Sharp Eye",
+      "description": "Can Search as bonus action and remain alert while traveling",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "hard-case",
+      "name": "Hard Case",
+      "description": "Immune to charmed and frightened while having temporary HP",
+      "level": 10,
+      "source": "subclass"
+    },
+    {
+      "id": "king-of-the-hill",
+      "name": "King of the Hill",
+      "description": "Use Frontier Justice without reaction by spending 1 grit point",
+      "level": 17,
+      "source": "subclass"
+    },
+    {
+      "id": "man-of-the-cloth",
+      "name": "Man of the Cloth",
+      "description": "Gain Religion proficiency and two cleric cantrips using Wisdom",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "sacrifice",
+      "name": "Sacrifice",
+      "description": "Allow other creature to regain HP from your Buck Up feature",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "strength-of-spirit",
+      "name": "Strength of Spirit",
+      "description": "Regain all Hit Dice on long rest instead of half",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "cleanse",
+      "name": "Cleanse",
+      "description": "Buck Up and Sacrifice also end several conditions and cure diseases/poisons",
+      "level": 10,
+      "source": "subclass"
+    },
+    {
+      "id": "revitalize",
+      "name": "Revitalize",
+      "description": "Can use Sacrifice to restore recently dead creature to life",
+      "level": 17,
+      "source": "subclass"
+    },
+    {
+      "id": "path-of-the-righteous",
+      "name": "Path of the Righteous",
+      "description": "Gain proficiency and expertise in recalling information about fiends/undead",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "consecrate-arms",
+      "name": "Consecrate Arms",
+      "description": "Touch willing creature to convert weapon damage to radiant damage",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "baptism-of-fire",
+      "name": "Baptism of Fire",
+      "description": "Add radiant damage when hitting with Consecrate Arms active",
+      "level": 3,
+      "source": "subclass"
+    },
+    {
+      "id": "dead-reckoning",
+      "name": "Dead Reckoning",
+      "description": "Constantly detect evil and good, know when in supernatural creature's lair",
+      "level": 6,
+      "source": "subclass"
+    },
+    {
+      "id": "spirit-shackles",
+      "name": "Spirit Shackles",
+      "description": "Spend grit point to force save against teleportation effects",
+      "level": 10,
+      "source": "subclass"
+    },
+    {
+      "id": "ashes-to-ashes",
+      "name": "Ashes to Ashes",
+      "description": "Destroy fiends/undead reduced below 50 HP while using Consecrate Arms",
+      "level": 17,
+      "source": "subclass"
+    }
+  ],
+  "proficiencies": [
+    {
+      "type": "armor",
+      "items": [
+        "Light"
+      ]
+    },
+    {
+      "type": "weapon",
+      "items": [
+        "Simple",
+        "Firearms",
+        "Whips"
+      ]
+    },
+    {
+      "type": "tool",
+      "choose": {
+        "count": 1,
+        "from": [
+          "Thieves' Tools",
+          "Tinker's Tools",
+          "Gaming Set"
+        ]
+      }
+    },
+    {
+      "type": "skill",
+      "choose": {
+        "count": 2,
+        "from": [
+          "Animal Handling",
+          "Athletics",
+          "Insight",
+          "Intimidation",
+          "Perception",
+          "Sleight of Hand",
+          "Stealth",
+          "Survival"
+        ]
+      }
+    }
+  ],
+  "spellcasting": {
+    "type": "none",
+    "ability": "",
+    "focusTypes": [],
+    "ritual": false
+  },
+  "resources": [
+    {
+      "id": "grit-points",
+      "name": "Grit Points",
+      "description": "Points used to fuel various gunslinger abilities",
+      "type": "scaling",
+      "amount": "(level, wisdomMod)=> Math.max(1, 1+ wisdomMod)",
+      "rechargeOn": "short"
+    }
+  ],
+  "levelTable": [
+    {
+      "level": 1,
+      "proficiencyBonus": 2,
+      "features": [
+        "deadeye",
+        "bad-medicine"
+      ],
+      "classResources": {
+        "bad-medicine": 1
+      }
+    },
+    {
+      "level": 2,
+      "proficiencyBonus": 2,
+      "features": [
+        "grit",
+        "quickdraw"
+      ],
+      "classResources": {
+        "bad-medicine": 1
+      }
+    },
+    {
+      "level": 3,
+      "proficiencyBonus": 2,
+      "features": [
+        "gunslinger-trail"
+      ],
+      "classResources": {
+        "bad-medicine": 2
+      }
+    },
+    {
+      "level": 4,
+      "proficiencyBonus": 2,
+      "features": [
+        "ability-score-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 2
+      }
+    },
+    {
+      "level": 5,
+      "proficiencyBonus": 3,
+      "features": [
+        "extra-attack",
+        "lock-n-load"
+      ],
+      "classResources": {
+        "bad-medicine": 3
+      }
+    },
+    {
+      "level": 6,
+      "proficiencyBonus": 3,
+      "features": [
+        "gunslinger-trail-feature"
+      ],
+      "classResources": {
+        "bad-medicine": 3
+      }
+    },
+    {
+      "level": 7,
+      "proficiencyBonus": 3,
+      "features": [
+        "ace-in-the-hole"
+      ],
+      "classResources": {
+        "bad-medicine": 3
+      }
+    },
+    {
+      "level": 8,
+      "proficiencyBonus": 3,
+      "features": [
+        "ability-score-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 3
+      }
+    },
+    {
+      "level": 9,
+      "proficiencyBonus": 4,
+      "features": [
+        "born-lucky"
+      ],
+      "classResources": {
+        "bad-medicine": 4
+      }
+    },
+    {
+      "level": 10,
+      "proficiencyBonus": 4,
+      "features": [
+        "gunslinger-trail-feature"
+      ],
+      "classResources": {
+        "bad-medicine": 4
+      }
+    },
+    {
+      "level": 11,
+      "proficiencyBonus": 4,
+      "features": [
+        "frontier-justice"
+      ],
+      "classResources": {
+        "bad-medicine": 4
+      }
+    },
+    {
+      "level": 12,
+      "proficiencyBonus": 4,
+      "features": [
+        "ability-score-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 4
+      }
+    },
+    {
+      "level": 13,
+      "proficiencyBonus": 5,
+      "features": [
+        "skullcracker"
+      ],
+      "classResources": {
+        "bad-medicine": 5
+      }
+    },
+    {
+      "level": 14,
+      "proficiencyBonus": 5,
+      "features": [
+        "deadeye-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 5
+      }
+    },
+    {
+      "level": 15,
+      "proficiencyBonus": 5,
+      "features": [
+        "cheat-death"
+      ],
+      "classResources": {
+        "bad-medicine": 5
+      }
+    },
+    {
+      "level": 16,
+      "proficiencyBonus": 5,
+      "features": [
+        "ability-score-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 5
+      }
+    },
+    {
+      "level": 17,
+      "proficiencyBonus": 6,
+      "features": [
+        "gunslinger-trail-feature"
+      ],
+      "classResources": {
+        "bad-medicine": 6
+      }
+    },
+    {
+      "level": 18,
+      "proficiencyBonus": 6,
+      "features": [
+        "true-grit"
+      ],
+      "classResources": {
+        "bad-medicine": 6
+      }
+    },
+    {
+      "level": 19,
+      "proficiencyBonus": 6,
+      "features": [
+        "ability-score-improvement"
+      ],
+      "classResources": {
+        "bad-medicine": 6
+      }
+    },
+    {
+      "level": 20,
+      "proficiencyBonus": 6,
+      "features": [
+        "golden-gun"
+      ],
+      "classResources": {
+        "bad-medicine": 6
+      }
+    }
+  ],
+  "startingEquipment": {
+    "fixed": [
+      "Leather Armor"
+    ],
+    "options": [
+      {
+        "type": "choice",
+        "items": [
+          "Simple Weapon"
+        ],
+        "count": 1
+      },
+      {
+        "type": "fixed",
+        "items": [
+          "Sidearm",
+          "20 Rounds"
+        ]
+      },
+      {
+        "type": "choice",
+        "items": [
+          "Hand Cannon and 20 Rounds",
+          "Repeating Rifle and 20 Rounds",
+          "Sawed-off Shotgun and 20 Shotshells"
+        ],
+        "count": 1
+      },
+      {
+        "type": "choice",
+        "items": [
+          "Dungeoneer's Pack",
+          "Explorer's Pack"
+        ],
+        "count": 1
+      }
+    ]
+  },
+  "subclasses": [
+    {
+      "id": "maverick",
+      "name": "Maverick",
+      "description": "Rulebreakers, groundbreakers, and heartbreakers who dance on the razor's edge and live life like there's no tomorrow",
+      "features": [
+        "wild-card",
+        "snapshot",
+        "rough-and-tumble",
+        "notorious",
+        "high-noon"
+      ]
+    },
+    {
+      "id": "beastrider",
+      "name": "Beastrider",
+      "description": "Masters of mounted combat capable of taming any beast and riding any mount",
+      "features": [
+        "to-the-manor-born",
+        "broncbuster",
+        "rough-rider",
+        "riders-reflexes",
+        "blazing-saddles",
+        "air-superiority"
+      ]
+    },
+    {
+      "id": "enforcer",
+      "name": "Enforcer",
+      "description": "Tenacious warriors with keen insight for sniffing out the truth",
+      "features": [
+        "bloodhound",
+        "double-tough",
+        "unforgiven",
+        "sharp-eye",
+        "hard-case",
+        "king-of-the-hill"
+      ]
+    },
+    {
+      "id": "preacher",
+      "name": "Preacher",
+      "description": "Divine warriors who wield both faith and firearms as holy implements",
+      "features": [
+        "man-of-the-cloth",
+        "sacrifice",
+        "strength-of-spirit",
+        "cleanse",
+        "revitalize"
+      ]
+    },
+    {
+      "id": "revelator",
+      "name": "Revelator",
+      "description": "Holy hunters who seek to uphold the law and punish the wicked",
+      "features": [
+        "path-of-the-righteous",
+        "consecrate-arms",
+        "baptism-of-fire",
+        "dead-reckoning",
+        "spirit-shackles",
+        "ashes-to-ashes"
+      ]
+    }
+  ],
+  "customTables": [
+    {
+      "id": "bad-medicine-dice",
+      "name": "Bad Medicine Extra Dice",
+      "description": "Additional weapon damage dice on critical hits",
+      "columns": [
+        "Level",
+        "Extra Dice"
+      ],
+      "rows": [
+        {
+          "level": 1,
+          "extraDice": 1
+        },
+        {
+          "level": 3,
+          "extraDice": 2
+        },
+        {
+          "level": 5,
+          "extraDice": 3
+        },
+        {
+          "level": 9,
+          "extraDice": 4
+        },
+        {
+          "level": 13,
+          "extraDice": 5
+        },
+        {
+          "level": 17,
+          "extraDice": 6
+        }
+      ]
+    }
+  ]
+}

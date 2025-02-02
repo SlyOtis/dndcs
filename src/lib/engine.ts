@@ -1,6 +1,29 @@
-import type {Character, CharacterContext, CharacterCurrency, CharacterStore} from "./types";
-import testCharacter from './character2.test'
-import {writable, type Unsubscriber} from "svelte/store";
+import type {CharacterContext, CharacterStore, RollLog} from "./types";
+import testCharacter from './character.test'
+import {writable, type Unsubscriber, type Writable} from "svelte/store";
+import type {Character, CharacterCurrency} from "./character.types";
+
+const rollStore = writable<RollLog>(JSON.parse(localStorage.getItem('roll_log') || '[]'))
+const sidebarStore = writable(JSON.parse(localStorage.getItem('sidebar') || 'true'))
+
+export function getRollLog(): { rollStore: Writable<RollLog>, unsubscribe: Unsubscriber } {
+  return {
+    rollStore,
+    unsubscribe: rollStore.subscribe(value => {
+      localStorage.setItem('roll_log', JSON.stringify(value));
+    })
+  }
+}
+
+
+export function getSidebar() {
+  return {
+    sidebarStore,
+    unsubscribeSidebar: sidebarStore.subscribe(value => {
+      localStorage.setItem('sidebar', JSON.stringify(value))
+    })
+  }
+}
 
 export async function rollDie(die: number, amount: number) {
   const result = await fetch('https://www.random.org/integers/?format=plain&min=1&rnd=new&col=1&base=10&num=' + amount + '&max=' + die)
@@ -44,16 +67,10 @@ export async function rollDamage(name: string, die: number, amount: number, bonu
 }
 
 export function writeRollLog(type: string, text: string, roll: number, total: number) {
-  let log = localStorage.getItem('roll_log') || '[]'
-  const logData = JSON.parse(log) as Array<{
-    type: string,
-    text: string,
-    roll: number,
-    total: number,
-    rolledAt: string
-  }>
-  logData.push({type, text, roll, total, rolledAt: Date()})
-  localStorage.setItem('roll_log', JSON.stringify(logData));
+  rollStore.update(state => {
+    state.push({type, text, roll, total, rolledAt: Date()})
+    return state
+  })
 }
 
 function writeToCharacterStore(character: Character): Character {

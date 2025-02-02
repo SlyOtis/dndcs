@@ -1,6 +1,16 @@
 import type {Unsubscriber, Writable} from "svelte/store";
 import type {Character} from "./character.types";
 
+export type RollLog = Array<RollLogItem>
+
+export interface RollLogItem {
+  type: string
+  text: string
+  roll: number
+  total: number
+  rolledAt: string
+}
+
 /** Svelte store for Character type */
 export type CharacterStore = CharacterContext & { unsubscribe: Unsubscriber }
 

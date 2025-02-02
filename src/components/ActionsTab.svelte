@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type {CharacterAction, CharacterContext} from "../lib/types";
+  import type {CharacterContext} from "../lib/types";
+  import type {CharacterAction} from "../lib/character.types";
   import ActionAttack from "./ActionAttack.svelte";
   import ActionSpecial from "./ActionSpecial.svelte";
   import {getContext} from "svelte";
@@ -167,14 +168,17 @@
         position: relative;
         width: 100%;
         height: auto;
-        border-bottom: 1px solid var(--color-primary-main);
+
         padding: 4px 12px;
         font-size: 0.8em;
         font-weight: 600;
+
+        border-bottom: 1px dashed var(--color-primary-main);
     }
 
     .divider:not(:first-of-type) {
         margin-top: 16px;
+        border-top: 1px solid var(--color-primary-main);
     }
 
     ul {
@@ -211,5 +215,9 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
+    }
+
+    .attack, .special {
+        padding-top: 16px;
     }
 </style>

@@ -19,13 +19,16 @@ export interface ClassFeature {
   replaces?: string   // ID of feature this replaces
 }
 
+/** Function for calculating the number resource slots */
+export type ClassResourceCalc = (...args: any) => number
+
 /** Class resource definition such as Grit points, Ki, and so on */
 export interface ClassResource {
   id: string
   name: string
   description: string
   type: ResourceType
-  maxAmount: number | string  // Fixed number or formula
+  amount: ClassResourceCalc    // Fixed number or formula
   rechargeOn: 'short' | 'long' | 'dawn'
 }
 
@@ -81,7 +84,7 @@ export interface Subclass {
   id: string
   name: string
   description: string
-  features: ClassFeature[]
+  features: string[] // ID of features gained in this subclass from the shared features list
   spellList?: string[]  // Additional spells
 }
 

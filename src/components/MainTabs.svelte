@@ -1,5 +1,6 @@
 <script lang="ts">
-  import type {Snippet} from "svelte";
+  import {onDestroy, type Snippet} from "svelte";
+  import {writable} from "svelte/store";
 
   let {
     initialTab,
@@ -13,33 +14,41 @@
   } = $props();
 
   type Tabs = keyof typeof tabs
-  let selectedTab = $state(initialTab as Tabs);
+
+  initialTab = localStorage.getItem('selectedTab') || initialTab
+  const selectedTab = writable(initialTab as Tabs);
+
+  const unsubscribe = selectedTab.subscribe(state => {
+    localStorage.setItem('selectedTab', state)
+  })
+
+  onDestroy(() => unsubscribe())
 
   function selectTab(e, tab: Tabs) {
     e.stopPropagation()
     e.preventDefault()
-    selectedTab = tab;
+    selectedTab.set(tab)
   }
 
 </script>
 
 <div class="root primary-border">
     <div class="header">
-        <button onclick={e => selectTab(e, 'actionsTab')} class:selected={selectedTab === 'actionsTab'}>
+        <button onclick={e => selectTab(e, 'actionsTab')} class:selected={$selectedTab === 'actionsTab'}>
             Actions
         </button>
-        <button onclick={e => selectTab(e, 'inventoryTab')} class:selected={selectedTab === 'inventoryTab'}>
+        <button onclick={e => selectTab(e, 'inventoryTab')} class:selected={$selectedTab === 'inventoryTab'}>
             Inventory
         </button>
-        <button onclick={e => selectTab(e, 'featsTab')} class:selected={selectedTab === 'featsTab'}>
+        <button onclick={e => selectTab(e, 'featsTab')} class:selected={$selectedTab === 'featsTab'}>
             Feats
         </button>
-        <button onclick={e => selectTab(e, 'backgroundTab')} class:selected={selectedTab === 'backgroundTab'}>
+        <button onclick={e => selectTab(e, 'backgroundTab')} class:selected={$selectedTab === 'backgroundTab'}>
             Background
         </button>
     </div>
     <div class="content">
-        {@render tabs[selectedTab]()}
+        {@render tabs[$selectedTab]()}
     </div>
 </div>
 
@@ -54,7 +63,7 @@
         align-items: center;
         flex-direction: column;
         min-height: 500px;
-        max-height: 800px;
+        max-height: 600px;
         overflow: hidden;
 
         align-self: stretch;
@@ -92,5 +101,6 @@
         display: flex;
         justify-content: stretch;
         align-items: stretch;
+        overflow: hidden;
     }
 </style>

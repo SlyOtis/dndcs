@@ -1,29 +1,31 @@
 <script lang="ts">
-  import type {CharacterContext, CharacterInfo} from "../lib/types";
-    import {getContext} from "svelte";
+  import type {CharacterContext} from "../lib/types";
+  import {getContext} from "svelte";
+  import type {Writable} from "svelte/store";
 
-    const {info} = getContext<CharacterContext>('character')
+  const sidebarStore = getContext<Writable<boolean>>('sidebar')
+  const {info} = getContext<CharacterContext>('character')
 
-    let imageUrl = $derived.by(() => {
-      if ($info.state?.image?.overlay === false) {
-        return $info.state.image.url!!
+  let imageUrl = $derived.by(() => {
+    if ($info.state?.image?.overlay === false) {
+      return $info.state.image.url!!
+    }
+
+    for (let condition of $info.conditions) {
+      if (condition?.image.overlay === false) {
+        return condition.image.url!!
       }
+    }
 
-      for (let condition of $info.conditions) {
-        if (condition?.image.overlay === false) {
-          return condition.image.url!!
-        }
-      }
-
-      return $info.imageUrl
-    })
+    return $info.imageUrl
+  })
 
 </script>
 
 <div class="root">
     <div class="info">
         <div class="profile-picture">
-            <img src={imageUrl} alt={$info.name} />
+            <img src={imageUrl} alt={$info.name}/>
         </div>
         <h3>{$info.name}</h3>
         <span>{$info.gender} {$info.race.name} {$info.class.name}</span>
@@ -31,6 +33,7 @@
     </div>
     <div class="actions">
         <button onclick={() => window.location.href = $info.infoUrl}>Go to docs</button>
+        <button onclick={() => sidebarStore.update(curr => !curr)}>Toggle sidebar</button>
     </div>
 </div>
 
@@ -95,6 +98,18 @@
         font-size: 0.8em;
         margin: 0;
         padding: 0;
+    }
+
+    .actions {
+        position: relative;
+        display: flex;
+        width: auto;
+        height: 100%;
+        justify-content: center;
+        align-items: flex-end;
+        flex-direction: column;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     .actions > button {

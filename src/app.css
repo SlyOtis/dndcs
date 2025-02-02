@@ -17,9 +17,17 @@
   --color-primary-main: green;
   --color-primary-text: white;
   --color-secondary-main: gray;
+
   --color-content-main: #373737;
   --color-content-light: #5c5c5c;
+  --color-content-dark: #242424;
   --color-content-text: white;
+
+  --color-chat-bck: white;
+  --color-chat-text: black;
+
+  --size-sidebar-curr: 0;
+  --size-sidebar-max: 400px;
 }
 
 html, body, #app {
