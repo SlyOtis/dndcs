@@ -1,8 +1,8 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext} from "../lib/types";
-  import {addCurrencies, asGold} from "../lib/engine";
-  import type {CharacterCurrency} from "../lib/character.types";
+  import type {CharacterContext} from "../../lib/types";
+  import type {CharacterCurrency} from "../../lib/character.types";
+  import {addCurrencies, asGold} from "../../lib/engine";
 
   const {inventory, info, currency} = getContext<CharacterContext>('character')
 

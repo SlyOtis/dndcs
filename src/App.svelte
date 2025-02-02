@@ -1,7 +1,7 @@
 <script lang="ts">
   import CharacterInfo from "./components/CharacterInfo.svelte";
   import type {CharacterContext} from "./lib/types";
-  import {getCharacterStore, getSidebar} from "./lib/engine";
+  import {detectUrlType, getCharacterStore, getSidebar} from "./lib/engine";
   import {onDestroy, setContext} from "svelte";
   import CharacterSheet from "./pages/CharacterSheet.svelte";
   import AIChat from "./components/AIChat.svelte";
@@ -16,6 +16,7 @@
     unsubscribe()
     unsubscribeSidebar()
   })
+
 
 </script>
 
@@ -37,6 +38,7 @@
         height: 100px;
         display: flex;
         border-bottom: 1px solid var(--color-primary-main);
+        z-index: 10;
     }
 
     main {
@@ -55,6 +57,7 @@
         top: 0;
         bottom: 0;
         right: 0;
+        z-index: 10;
     }
 
     aside > button {

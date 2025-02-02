@@ -140,3 +140,30 @@ export function getCharacterStore(): CharacterStore {
     unsubscribe: () => unsubscribe.forEach(unsub => unsub())
   }
 }
+
+export async function detectUrlType(url: string) {
+  // Check file extension
+  const extension = url.split('.')?.pop()?.toLowerCase();
+
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+  const videoExtensions = ['mp4', 'webm', 'ogg', 'mov'];
+
+  if (extension) {
+    if (imageExtensions.includes(extension)) return 'image';
+    if (videoExtensions.includes(extension)) return 'video';
+  }
+
+  // If no extension match, check content-type header
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentType = response.headers.get('content-type');
+
+    if (contentType?.startsWith('image/')) return 'image';
+    if (contentType?.startsWith('video/')) return 'video';
+
+    return 'unknown';
+  } catch (error) {
+    console.error('Error checking content-type:', error);
+    return 'unknown';
+  }
+}

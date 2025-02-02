@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type {CharacterContext} from "../lib/types";
-  import type {CharacterAction} from "../lib/character.types";
+  import {getContext} from "svelte";
+  import type {CharacterContext} from "../../lib/types";
+  import type {CharacterAction} from "../../lib/character.types";
   import ActionAttack from "./ActionAttack.svelte";
   import ActionSpecial from "./ActionSpecial.svelte";
-  import {getContext} from "svelte";
 
   const {actions} = getContext<CharacterContext>('character')
 

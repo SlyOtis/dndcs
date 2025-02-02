@@ -1,21 +1,21 @@
 <script lang="ts">
   import Senses from "../components/Senses.svelte";
-  import Features from "../components/Features.svelte";
   import PlainBox from "../components/PlainBox.svelte";
   import Skills from "../components/Skills.svelte";
-  import MainTabs from "../components/MainTabs.svelte";
   import DefensesNConditions from "../components/DefensesNConditions.svelte";
   import Initiative from "../components/Initiative.svelte";
-  import Inventory from "../components/Inventory.svelte";
   import Inspiration from "../components/Inspiration.svelte";
   import SavingThrows from "../components/SavingThrows.svelte";
   import Abilities from "../components/Abilities.svelte";
   import Proficiencies from "../components/Proficiencies.svelte";
   import HitPoints from "../components/HitPoints.svelte";
-  import Background from "../components/Background.svelte";
-  import ActionsTab from "../components/ActionsTab.svelte";
   import {getContext} from "svelte";
   import type {CharacterContext} from "../lib/types";
+  import InventoryTab from "../components/main_tabs/InventoryTab.svelte";
+  import FeaturesTab from "../components/main_tabs/FeaturesTab.svelte";
+  import BackgroundTab from "../components/main_tabs/BackgroundTab.svelte";
+  import MainTabs from "../components/main_tabs/MainTabs.svelte";
+  import ActionsTab from "../components/main_tabs/ActionsTab.svelte";
 
   const {info} = getContext<CharacterContext>('character');
 
@@ -66,13 +66,13 @@
                     <ActionsTab/>
                 {/snippet}
                 {#snippet inventoryTab()}
-                    <Inventory/>
+                    <InventoryTab/>
                 {/snippet}
                 {#snippet featsTab()}
-                    <Features/>
+                    <FeaturesTab/>
                 {/snippet}
                 {#snippet backgroundTab()}
-                    <Background/>
+                    <BackgroundTab />
                 {/snippet}
             </MainTabs>
         </div>
@@ -89,6 +89,7 @@
         justify-content: center;
         align-items: start;
         overflow-y: auto;
+        z-index: 2;
     }
 
     .scroll {

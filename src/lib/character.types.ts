@@ -307,6 +307,7 @@ export interface CharacterInfo {
   gender: string
   imageUrl: string
   infoUrl: string
+  backgroundUrl?: string
   level: number
   inspiration: boolean
   hp: CharacterHitPoints

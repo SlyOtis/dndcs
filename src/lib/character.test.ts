@@ -7,6 +7,7 @@ const character: Character = {
     gender: "Male",
     imageUrl: "https://i.pinimg.com/736x/b5/45/fa/b545fa7ec2cae918bf35c90247b47fc1--cowboy-cowboy-cowgirl.jpg",
     infoUrl: "https://app.legendkeeper.com/a/worlds/cm1bx72zf0pg90jnf4a1ngvav/cm1i3rxox0014039b82idcchc/",
+    backgroundUrl: "https://youtu.be/ejqSTxm8Fws",
     level: 4,
     inspiration: false,
     hp: {
