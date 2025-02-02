@@ -48,7 +48,7 @@
         }}>{renderDamage(action.damage[0])}</button>
     </div>
     <div class="properties">
-        <span>{action.properties.join(', ')}</span>
+        <span>{(action.properties || ['None']).join(', ')}</span>
     </div>
 </li>
 

@@ -10,7 +10,7 @@
 
 <li class="root">
     <div class="title">
-        <h4>{action.name}</h4>
+        <h4>{action.name} {action?.level ? '- lvl ' + action.level : ''}</h4>
     </div>
     <div class="content">
         <p>{action.description}</p>

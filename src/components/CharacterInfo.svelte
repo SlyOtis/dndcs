@@ -30,7 +30,7 @@
         <span>Level {$info.level}</span>
     </div>
     <div class="actions">
-        <button onclick={() => window.location.href = $info.info}>Go to docs</button>
+        <button onclick={() => window.location.href = $info.infoUrl}>Go to docs</button>
     </div>
 </div>
 
@@ -71,6 +71,7 @@
         justify-content: center;
         grid-column: 1;
         grid-row: span 3;
+        max-height: 80px;
     }
 
     .profile-picture > img {
@@ -82,6 +83,7 @@
         border: 6px var(--color-primary-main) solid;
         width: 100%;
         height: 100%;
+        max-height: 100%;
     }
 
     h3 {

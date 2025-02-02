@@ -1,0 +1,495 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "D&D 5E Character",
+  "description": "Complete definition of a D&D 5th Edition character including all abilities, items, spells and features",
+  "type": "object",
+  "required": ["info", "abilities", "savingThrows", "skills", "senses", "actions", "spells", "proficients", "inventory", "currency", "background", "feats"],
+  "properties": {
+    "info": {
+      "type": "object",
+      "description": "Core character information and stats",
+      "required": ["name", "description", "gender", "imageUrl", "info", "level", "inspiration", "hp", "ac", "initiative", "speed", "proficiencyBonus", "weight", "carry_capacity", "race", "class", "conditions", "defences", "state"],
+      "properties": {
+        "name": { "type": "string", "description": "Character's full name" },
+        "description": { "type": "string", "description": "Physical description and notable characteristics" },
+        "gender": { "type": "string" },
+        "imageUrl": { "type": "string", "description": "URL to character portrait" },
+        "info": { "type": "string", "description": "Additional character details" },
+        "level": { "type": "number", "minimum": 1, "maximum": 20 },
+        "inspiration": { "type": "boolean" },
+        "hp": {
+          "type": "object",
+          "required": ["current", "max", "temporary"],
+          "properties": {
+            "current": { "type": "number", "description": "Current hit points" },
+            "max": { "type": "number", "description": "Maximum hit points" },
+            "temporary": { "type": "number", "description": "Temporary hit points" }
+          }
+        },
+        "ac": { "type": "number", "description": "Total Armor Class" },
+        "initiative": { "type": "number", "description": "Initiative modifier" },
+        "speed": { "type": "string", "description": "Movement speeds (walk, fly, swim, etc)" },
+        "proficiencyBonus": { "type": "number", "description": "Base proficiency bonus" },
+        "weight": { "type": "number", "description": "Character's weight in pounds" },
+        "carry_capacity": { "type": "number", "description": "Maximum carrying capacity" },
+        "race": {
+          "type": "object",
+          "required": ["name", "type"],
+          "properties": {
+            "name": { "type": "string", "description": "Base race name" },
+            "type": { "type": "string", "description": "Subrace or variant" }
+          }
+        },
+        "class": {
+          "type": "object",
+          "required": ["name", "hitDice"],
+          "properties": {
+            "name": { "type": "string", "description": "Class name" },
+            "hitDice": {
+              "type": "object",
+              "required": ["amount", "die"],
+              "properties": {
+                "amount": { "type": "number", "description": "Number of hit dice" },
+                "die": { "type": "number", "description": "Hit die size (6,8,10,12)" }
+              }
+            }
+          }
+        },
+        "spells": {
+          "type": "object",
+          "description": "Spellcasting information",
+          "properties": {
+            "modifier": { "type": "string", "description": "Spellcasting ability" },
+            "slots": {
+              "type": "object",
+              "description": "Available spell slots per level",
+              "patternProperties": {
+                "^[1-9]$": { "type": "number" }
+              }
+            }
+          }
+        },
+        "slots": {
+          "type": "object",
+          "description": "Class resource slots (Ki, Rage, etc)",
+          "required": ["title", "description", "amount", "expended"],
+          "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "amount": { "type": "number" },
+            "expended": { "type": "number" },
+            "regainedAt": { "type": "string", "description": "When resource refreshes" }
+          }
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Active conditions affecting the character",
+          "items": {
+            "type": "object",
+            "required": ["title"],
+            "properties": {
+              "title": { "type": "string" },
+              "image": {
+                "type": "object",
+                "properties": {
+                  "overlay": { "type": "boolean" },
+                  "url": { "type": "string" }
+                }
+              },
+              "effects": { "type": "array", "items": { "type": "string" } },
+              "level": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "defences": {
+          "type": "array",
+          "description": "Damage resistances, immunities, and vulnerabilities",
+          "items": {
+            "type": "object",
+            "required": ["title"],
+            "properties": {
+              "title": { "type": "string" },
+              "image": {
+                "type": "object",
+                "properties": {
+                  "overlay": { "type": "boolean" },
+                  "url": { "type": "string" }
+                }
+              },
+              "effects": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "state": {
+          "type": "object",
+          "description": "Current effects and conditions",
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string" },
+            "image": {
+              "type": "object",
+              "properties": {
+                "overlay": { "type": "boolean" },
+                "url": { "type": "string" }
+              }
+            },
+            "source": { "type": "string" },
+            "startTime": { "type": "number" },
+            "duration": { "type": "number" },
+            "details": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "description", "value"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "description": { "type": "string" },
+                  "value": { "type": ["string", "number", "boolean", "object"] },
+                  "duration": { "type": "number" },
+                  "savingThrow": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string" },
+                      "dc": { "type": "number" }
+                    }
+                  },
+                  "removeConditions": {
+                    "type": "object",
+                    "properties": {
+                      "onDamage": { "type": "boolean" },
+                      "onAction": { "type": "boolean" },
+                      "onTurnEnd": { "type": "boolean" },
+                      "onSave": { "type": "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            "effects": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "abilities": {
+      "type": "array",
+      "description": "The six ability scores: STR, DEX, CON, INT, WIS, CHA",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "score", "modifier"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "score": { "type": "number", "minimum": 1, "maximum": 30 },
+          "modifier": { "type": "number" }
+        }
+      },
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "savingThrows": {
+      "type": "array",
+      "description": "Saving throw modifiers for each ability",
+      "items": {
+        "type": "object",
+        "required": ["title", "modifier", "proficiency"],
+        "properties": {
+          "title": { "type": "string" },
+          "modifier": { "type": "number" },
+          "proficiency": { "type": "number", "enum": [0, 0.5, 1, 2] }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "description": "All 18 skills from the PHB dnd 5e",
+      "items": {
+        "type": "object",
+        "required": ["name", "ability", "modifier", "proficiency"],
+        "properties": {
+          "name": { "type": "string" },
+          "ability": { "type": "string" },
+          "modifier": { "type": "number" },
+          "proficiency": { "type": "number", "enum": [0, 0.5, 1, 2] }
+        }
+      }
+    },
+    "senses": {
+      "type": "array",
+      "description": "Passive abilities and special senses",
+      "items": {
+        "type": "object",
+        "required": ["title", "score"],
+        "properties": {
+          "title": { "type": "string" },
+          "score": { "type": ["number", "string"] },
+          "condition": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "description": "All possible actions, including attacks, spells, and features",
+      "items": {
+        "type": "object",
+        "required": ["name", "layout", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "layout": { "type": "string", "enum": ["Attack", "Special"] },
+          "type": { "type": "string", "enum": ["Action", "Bonus", "Reaction", "Other"] },
+          "range": {
+            "type": "object",
+            "properties": {
+              "normal": { "type": "number" },
+              "max": { "type": "number" }
+            }
+          },
+          "damage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["amount", "dice", "type", "bonus"],
+              "properties": {
+                "amount": { "type": "number" },
+                "dice": { "type": "number" },
+                "type": { "type": "string" },
+                "bonus": { "type": "number" }
+              }
+            }
+          },
+          "save": {
+            "type": "object",
+            "required": ["dc", "type", "onSuccess"],
+            "properties": {
+              "dc": { "type": "number" },
+              "type": { "type": "string" },
+              "onSuccess": { "type": "string" }
+            }
+          },
+          "aoe": {
+            "type": "object",
+            "required": ["type", "size"],
+            "properties": {
+              "type": { "type": "string" },
+              "size": { "type": "number" }
+            }
+          },
+          "toHit": { "type": "number" },
+          "properties": { "type": "array", "items": { "type": "string" } },
+          "itemId": { "type": "string" },
+          "spellId": { "type": "string" },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "value", "duration", "condition"],
+              "properties": {
+                "type": { "type": "string" },
+                "value": { "type": ["number", "string"] },
+                "duration": { "type": "string" },
+                "condition": { "type": "string" },
+                "target": { "type": "string" }
+              }
+            }
+          },
+          "usesSlots": { "type": "boolean" }
+        }
+      }
+    },
+    "spells": {
+      "type": "array",
+      "description": "Known/prepared spells",
+      "items": {
+        "type": "object",
+        "required": ["title", "score"],
+        "properties": {
+          "title": { "type": "string" },
+          "score": { "type": ["number", "string"] },
+          "condition": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "proficients": {
+      "type": "array",
+      "description": "Grouped proficiencies (weapons, tools, languages, etc)",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "value"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "value": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "description": "All possessed items",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "type", "rarity", "attributes", "description", "value", "weight", "quantity", "equippable", "equipped", "attunement"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["weapon", "armor", "consumable", "tool", "container", "treasure", "misc"]
+          },
+          "subtype": { "type": "string" },
+          "rarity": {
+            "type": "string",
+            "enum": ["common", "uncommon", "rare", "very rare", "legendary", "artifact"]
+          },
+          "attributes": { "type": "array", "items": { "type": "string" } },
+          "description": { "type": "string" },
+          "value": {
+            "type": "object",
+            "required": ["amount", "currency"],
+            "properties": {
+              "amount": { "type": "number" },
+              "currency": { "type": "string" }
+            }
+          },
+          "weight": { "type": "number" },
+          "quantity": { "type": "number" },
+          "equippable": { "type": "boolean" },
+          "equipped": { "type": "boolean" },
+          "attunement": {
+            "type": "object",
+            "required": ["required", "attuned"],
+            "properties": {
+              "required": { "type": "boolean" },
+              "attuned": { "type": "boolean" }
+            }
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "damage": {
+                "type": "object",
+                "required": ["amount", "dice", "type", "bonus"],
+                "properties": {
+                  "amount": { "type": "number" },
+                  "dice": { "type": "number" },
+                  "type": { "type": "string" },
+                  "bonus": { "type": "number" }
+                }
+              },
+              "range": {
+                "type": "object",
+                "properties": {
+                  "normal": { "type": "number" },
+                  "max": { "type": "number" }
+                }
+              },
+              "ac": {
+                "type": "object",
+                "required": ["base", "bonus", "dexModifier", "maxDexBonus"],
+                "properties": {
+                  "base": { "type": "number" },
+                  "bonus": { "type": "number" },
+                  "dexModifier": { "type": "boolean" },
+                  "maxDexBonus": { "type": "number" }
+                }
+              }
+            }
+          },
+          "requirements": {
+            "type": "object",
+            "properties": {
+              "strength": { "type": "number" },
+              "level": { "type": "number" },
+              "class": { "type": "array", "items": { "type": "string" } },
+              "race": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "enchantments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "description", "type", "effects"],
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "type": { "type": "string", "enum": ["passive", "active", "charge"] },
+                "charges": {
+                  "type": "object",
+                  "required": ["max", "current", "rechargeOn"],
+                  "properties": {
+                    "max": { "type": "number" },
+                    "current": { "type": "number" },
+                    "rechargeOn": { "type": "string" }
+                  }
+                },
+                "effects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["type", "value", "duration", "condition"],
+                    "properties": {
+                      "type": { "type": "string" },
+                      "value": { "type": ["number", "string"] },
+                      "duration": { "type": "string" },
+                      "condition": { "type": "string" },
+                      "target": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "container": {
+            "type": "object",
+            "properties": {
+              "capacity": {
+                "type": "object",
+                "required": ["weight", "items"],
+                "properties": {
+                  "weight": { "type": "number" },
+                  "items": { "type": "number" }
+                }
+              },
+              "contents": { "$ref": "#/properties/inventory" }
+            }
+          },
+          "customProperties": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "currency": {
+      "type": "object",
+      "description": "Character's money",
+      "properties": {
+        "cp": { "type": "number", "description": "Copper pieces" },
+        "sp": { "type": "number", "description": "Silver pieces" },
+        "gp": { "type": "number", "description": "Gold pieces" },
+        "pp": { "type": "number", "description": "Platinum pieces" }
+      }
+    },
+    "background": {
+      "type": "object",
+      "description": "Character's background choice and story",
+      "required": ["title", "description"],
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "feats": {
+      "type": "array",
+      "description": "All features including class features, racial traits, and selected feats",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}
