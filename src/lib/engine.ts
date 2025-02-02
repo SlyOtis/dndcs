@@ -63,7 +63,7 @@ export async function rollAttack(name: string, modifier: number) {
 
 export async function rollDamage(name: string, die: number, amount: number, bonus: number) {
   const res = await rollDie(die, amount);
-  writeRollLog('attack', `Rolled ${name} attack ${amount}d${die}`, res, res + bonus);
+  writeRollLog('damage', `Rolled ${name} damage ${amount}d${die}`, res, res + bonus);
 }
 
 export function writeRollLog(type: string, text: string, roll: number, total: number) {

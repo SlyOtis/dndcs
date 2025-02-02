@@ -23,7 +23,9 @@
   --color-content-dark: #242424;
   --color-content-text: white;
 
-  --color-chat-bck: white;
+  --color-chat-light: white;
+  --color-chat-main: #e4e4e4;
+  --color-chat-dark: #d6d6d6;
   --color-chat-text: black;
 
   --size-sidebar-curr: 0;

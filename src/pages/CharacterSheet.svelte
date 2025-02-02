@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import Senses from "../components/Senses.svelte";
   import Features from "../components/Features.svelte";
   import PlainBox from "../components/PlainBox.svelte";
@@ -82,7 +81,6 @@
 
 
 <style>
-
     .root {
         position: relative;
         width: 100%;
@@ -100,8 +98,11 @@
         overflow: hidden;
         padding: 16px;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: auto auto;
         gap: 16px;
+
+        align-content: stretch;
+        justify-content: stretch;
     }
 
     .grid {
