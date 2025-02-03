@@ -2,7 +2,7 @@
 
   import {getRollLog} from "../lib/engine";
   import {onDestroy} from "svelte";
-  import {format, getMilliseconds, parseISO} from 'date-fns'
+  import {differenceInMilliseconds, format} from 'date-fns'
   import {type ChatLog, detectAction, getReplicateLog} from "../lib/chat";
 
   const {unsubscribeRoll, rollStore} = getRollLog()
@@ -24,20 +24,21 @@
     }, [] as ChatLog) as ChatLog, ...$replicateStore.reduce((prev, curr) => {
       return [
         ...prev,
-        {createdAt: curr.returnedAt, type: 'chat', data: curr},
+        {createdAt: curr.sentAt, type: 'chat', data: curr},
       ]
     }, [] as ChatLog) as ChatLog].sort((a, b) => {
-      return getMilliseconds(a.createdAt) - getMilliseconds(b.createdAt)
+      return differenceInMilliseconds(a.createdAt, b.createdAt)
     })
   })
 
   let chatInput: string = $state("")
   let stateThinking = $state<string | undefined>(undefined)
+  let stateError = $state<string | undefined>(undefined)
   let showHidden = $state<boolean>(false)
   let scroller: HTMLElement
 
   $effect(() => {
-    chatLog.length || stateThinking;
+    chatLog.length || stateThinking?.length || stateError?.length || showHidden;
     scroller.scrollTo(0, scroller.scrollHeight)
   })
 
@@ -56,7 +57,10 @@
     }
 
     stateThinking = "Thinking about it"
-    detectAction(chatInput).then(() => stateThinking = undefined).catch(err => stateThinking = err)
+    detectAction(chatInput).then(() => stateThinking = undefined).catch(err => {
+      stateThinking = undefined
+      stateError = err
+    })
     document.activeElement?.blur();
     chatInput = ''
   }
@@ -108,7 +112,14 @@
                         {/if}
                     {:else }
                         <li class="roll">
-                            <h4>{logItem.data.text}</h4>
+                            <div class="chat-title">
+                                <h4>{logItem.data.text}</h4>
+                                <span class="date">{format(logItem.data.rolledAt, 'MMM d h:mm')}</span>
+                            </div>
+
+                            {#if logItem.data.details}
+                                <span>Rolls: {logItem.data.details}</span>
+                            {/if}
                             <div class="result">
                                 <span>On the die: <b>{logItem.data.roll}</b></span>
                                 <span>Total with modifiers: <b>{logItem.data.total}</b></span>
@@ -118,12 +129,12 @@
                 {/each}
             </ul>
         </div>
-        {#if stateThinking}
-            <div>
-                <span class="thinking">{stateThinking}</span>
+        {#if stateThinking || stateError}
+            <div class="status" class:error={stateError?.length}>
+                <span class="thinking">{stateThinking || stateError}</span>
             </div>
         {/if}
-        <div class="input" class:disabled={stateThinking!!}>
+        <div class="input" class:disabled={stateThinking?.length || stateError?.length}>
             <textarea bind:value={chatInput} onkeydown={onKeyDown}></textarea>
             <div class="actions">
                 <button onclick={() => showHidden = !showHidden}><span>Show</span></button>
@@ -227,13 +238,14 @@
 
     li {
         padding: 8px 12px;
-    }
-
-    li:nth-child(odd) {
         background-color: var(--color-chat-light);
     }
 
     li:nth-child(even) {
+        background-color: var(--color-chat-light);
+    }
+
+    li:nth-child(odd) {
         background-color: var(--color-chat-main);
     }
 
@@ -304,7 +316,7 @@
         position: relative;
         width: 100%;
         height: auto;
-        transition: max-height 250ms ease-in-out;
+        transition: all 250ms ease-in-out;
         overflow: hidden;
         display: flex;
         justify-content: center;
@@ -355,5 +367,21 @@
         align-items: center;
         flex-direction: column;
         flex: 0;
+    }
+
+    .status {
+        position: relative;
+        width: 100%;
+        height: auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        border-top: 1px solid var(--color-primary-main);
+    }
+
+    .status.error {
+        border-color: red;
+        color: red;
     }
 </style>
