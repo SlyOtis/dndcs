@@ -141,7 +141,8 @@ export async function detectAction(query: string) {
     prompt_template: `
       <|begin_of_text|><|start_header_id|>system<|end_header_id|>
       \n\nYou are a helpful action selecting assistant that always find the correct action the user wants. Figure out 
-      what data is most likely required, and what functions to call among the below options (include arguments if described):
+      what data is most likely required, and what functions to call among the below options (include arguments if described)
+      Try as best as possible to always resolve i to one of the actions and populate the arguments!
       
       Data sources: 
       1. info: All character general info
@@ -149,7 +150,7 @@ export async function detectAction(query: string) {
       3. abilities: All character abilities
       4. savingThrows: All character saving throws
       5. skills: All character skills 
-      6. senses: All character senses
+      6. senses: All character senses and passive abilities
       7. actions: All actions the character can take 
       8. spells: All player spells
       9. proficients: All character proficiencies
@@ -160,9 +161,21 @@ export async function detectAction(query: string) {
       14. external: External source
       
       Functions:
-      1. rollDie: rolls a specific set of dies [args; die: 4 | 6 | 8 | 10 | 12 | 20 | 100, amount: number]
-      2. lookupCharacterSource: Looks up details about the character [args; query: string]
-      3. lookupSource: Look up a dungeons and dragons related query [args; query: string]  
+      1. rollDie: rolls a specific set of dies [args; die: 4 | 6 | 8 | 10 | 12 | 20 | 100, amount: number].
+      2. lookupCharacterSource: Looks up details about the character (this is the user) [args; query: string].
+      3. lookupSource: Look up a dungeons and dragons related query [args; query: string].
+      4. updateInfo: Update general character information.
+      5. updateFeats: Updates character feats.
+      6. updateAbilities: Updates character abilities.
+      7. updateSavingThrows: Updates character saving throws.
+      8. updateSkills: Updates character skills.
+      9. updateSenses: Update character senses.
+      10. updateActions: Updates character actions.
+      11. updateSpells: Updates character spells.
+      12. updateProficients: Updates character proficients.
+      13. updateInventory: Updates character inventory.
+      14. updateCurrency: Updates character currency/money.
+      15. updateBackground: Updates character background and lore.
       
       Return:
       Always answer as a json after the below schema, omit all other output. No other output then the below json schema!!

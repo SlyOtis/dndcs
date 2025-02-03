@@ -20,86 +20,128 @@
       "source": "base"
     },
     {
-      "id": "bad-medicine",
+      "id": "bad_medicine",
       "name": "Bad Medicine",
-      "description": "Roll additional weapon damage dice on critical hits with firearms. Number of dice increases with level.",
+      "description": "Roll one additional weapon damage die when determining the extra damage for a critical hit with a firearm. The number of additional dice increases as you gain levels in this class.",
       "level": 1,
       "source": "base"
     },
     {
       "id": "grit",
       "name": "Grit",
-      "description": "Gain grit points equal to 1 + Wisdom modifier (minimum 1). Regain 1 point on critical hits against hostile creatures or all points on rest. Use for various grit features.",
+      "description": "Gain grit points equal to 1 + Wisdom modifier (minimum 1). Spend points on grit features. Regain 1 point on critical hits against hostile creatures, and all points on short/long rest. Start with Buck Up, Bullet Time, Covering Fire, and Dodge Roll features.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "buck_up",
+      "name": "Buck Up",
+      "description": "Spend 1 grit point as a bonus action to spend Hit Dice up to your proficiency bonus, following normal rules for regaining hit points.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "bullet_time",
+      "name": "Bullet Time",
+      "description": "When a creature you can see makes a ranged attack against you, spend 1 grit point to impose disadvantage on the attack roll.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "covering_fire",
+      "name": "Covering Fire",
+      "description": "While holding a firearm, when a creature you can see within 60 feet attacks another creature, spend 1 grit point as a reaction to impose disadvantage on the attack roll.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "dodge_roll",
+      "name": "Dodge Roll",
+      "description": "Spend 1 grit point as a bonus action to move up to 10 feet without provoking opportunity attacks. Cannot be used if speed is 0.",
       "level": 2,
       "source": "base"
     },
     {
       "id": "quickdraw",
       "name": "Quickdraw",
-      "description": "Advantage on initiative rolls. Can draw/stow any number of weapons as part of same action.",
+      "description": "Gain advantage on initiative rolls. When drawing or stowing a firearm, can draw or stow any number of weapons as part of the same move or action.",
       "level": 2,
       "source": "base"
     },
     {
-      "id": "extra-attack",
+      "id": "gunslinger_trail",
+      "name": "Gunslinger Trail",
+      "description": "Choose between Maverick, Beastrider, Enforcer, Preacher, or Revelator paths. Grants features at 3rd, 6th, 10th, and 17th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th, and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "extra_attack",
       "name": "Extra Attack",
-      "description": "Attack twice when taking the Attack action.",
+      "description": "Attack twice, instead of once, whenever you take the Attack action on your turn.",
       "level": 5,
       "source": "base"
     },
     {
-      "id": "lock-n-load",
+      "id": "lock_n_load",
       "name": "Lock n' Load",
-      "description": "Can load/reload firearms as part of move or action.",
+      "description": "Load or reload a firearm you are holding as part of your move or action.",
       "level": 5,
       "source": "base"
     },
     {
-      "id": "ace-in-the-hole",
+      "id": "ace_in_the_hole",
       "name": "Ace in the Hole",
-      "description": "Once per turn when missing an attack, spend 1 grit point to add Wisdom modifier to roll.",
+      "description": "Once per turn when you miss with an attack roll, spend 1 grit point to add your Wisdom modifier to the roll, potentially turning the miss into a hit.",
       "level": 7,
       "source": "base"
     },
     {
-      "id": "born-lucky",
+      "id": "born_lucky",
       "name": "Born Lucky",
-      "description": "Spend 1 grit point to gain advantage on forced saving throws.",
+      "description": "When forced to make a saving throw, spend 1 grit point to make it with advantage.",
       "level": 9,
       "source": "base"
     },
     {
-      "id": "frontier-justice",
+      "id": "frontier_justice",
       "name": "Frontier Justice",
-      "description": "Make ranged attack as reaction when creature moves within 10 feet while wielding firearm.",
+      "description": "When a creature you can see willingly moves within 10 feet of you while wielding a firearm, use your reaction to make one ranged weapon attack against that creature.",
       "level": 11,
       "source": "base"
     },
     {
       "id": "skullcracker",
       "name": "Skullcracker",
-      "description": "Concentrating creatures have disadvantage on saves when hit. Auto-fail on critical hits.",
+      "description": "When you damage a concentrating creature with a ranged weapon attack, they have disadvantage on the concentration save. On a critical hit, they automatically fail.",
       "level": 13,
       "source": "base"
     },
     {
-      "id": "cheat-death",
+      "id": "cheat_death",
       "name": "Cheat Death",
-      "description": "When reduced to 0 HP, spend 1 grit point to drop to 1 HP instead and gain exhaustion.",
+      "description": "When reduced to 0 hit points but not killed outright, spend 1 grit point to drop to 1 hit point instead. Gain 1 level of exhaustion each time.",
       "level": 15,
       "source": "base"
     },
     {
-      "id": "true-grit",
+      "id": "true_grit",
       "name": "True Grit",
-      "description": "Regain 1 grit point at start of turn when at 0 points.",
+      "description": "When you start your turn with no grit points remaining, regain 1 grit point.",
       "level": 18,
       "source": "base"
     },
     {
-      "id": "golden-gun",
+      "id": "golden_gun",
       "name": "Golden Gun",
-      "description": "Advantage on ranged weapon attacks while critical threshold is 16 or lower.",
+      "description": "Gain advantage on ranged weapon attack rolls while the threshold for scoring a critical hit is 16 or lower.",
       "level": 20,
       "source": "base"
     },

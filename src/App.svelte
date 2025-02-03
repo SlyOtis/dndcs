@@ -4,7 +4,7 @@
   import {getCharacterStore, getSidebar} from "./lib/engine";
   import {onDestroy, setContext} from "svelte";
   import CharacterSheet from "./pages/CharacterSheet.svelte";
-  import AIChat from "./components/AIChat.svelte";
+  import AIChat from "./components/chat/AIChat.svelte";
   import Background from "./components/Background.svelte";
 
   const {unsubscribe, ...chStore} = getCharacterStore()
