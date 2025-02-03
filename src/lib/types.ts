@@ -3,11 +3,17 @@ import type {Character} from "./character.types";
 
 export type RollLog = Array<RollLogItem>
 
+export interface RollResult {
+  sum: number;
+  rolls: Array<number>
+}
+
 export interface RollLogItem {
   type: string
   text: string
   roll: number
   total: number
+  details?: string
   rolledAt: string
 }
 

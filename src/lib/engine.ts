@@ -1,4 +1,4 @@
-import type {CharacterContext, CharacterStore, RollLog} from "./types";
+import type {CharacterContext, CharacterStore, RollLog, RollResult} from "./types";
 import testCharacter from './character.test'
 import {writable, type Unsubscriber, type Writable} from "svelte/store";
 import type {Character, CharacterCurrency} from "./character.types";
@@ -6,10 +6,10 @@ import type {Character, CharacterCurrency} from "./character.types";
 const rollStore = writable<RollLog>(JSON.parse(localStorage.getItem('roll_log') || '[]'))
 const sidebarStore = writable(JSON.parse(localStorage.getItem('sidebar') || 'true'))
 
-export function getRollLog(): { rollStore: Writable<RollLog>, unsubscribe: Unsubscriber } {
+export function getRollLog(): { rollStore: Writable<RollLog>, unsubscribeRoll: Unsubscriber } {
   return {
     rollStore,
-    unsubscribe: rollStore.subscribe(value => {
+    unsubscribeRoll: rollStore.subscribe(value => {
       localStorage.setItem('roll_log', JSON.stringify(value));
     })
   }
@@ -25,50 +25,59 @@ export function getSidebar() {
   }
 }
 
-export async function rollDie(die: number, amount: number) {
+export async function rollDie(die: number, amount: number): Promise<RollResult> {
   const result = await fetch('https://www.random.org/integers/?format=plain&min=1&rnd=new&col=1&base=10&num=' + amount + '&max=' + die)
     .then(res => res.text());
-  return Number(result);
+
+  const rolls = result.split('\n').reduce((prev, curr) => {
+    const res = parseInt(curr, 0)
+    return isNaN(res) ? prev : [...prev, res]
+  }, [] as number[])
+
+  return {
+    sum: rolls.reduce((prev, curr) => prev + curr, 0),
+    rolls
+  }
 }
 
 export async function rollAbility(name: string, modifier: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('ability', `Rolled ${name} 1d20`, res, res + modifier);
+  writeRollLog('ability', `Rolled ${name} 1d20`, res.sum, res.sum + modifier);
 }
 
 export async function rollSkill(name: string, modifier: number, proficiency: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('skill', `Rolled ${name} 1d20`, res, res + modifier)
+  writeRollLog('skill', `Rolled ${name} 1d20`, res.sum, res.sum + modifier)
 }
 
 export async function rollInitiative(modifier: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('initiative', `Rolled Initiative 1d20`, res, res + modifier);
+  writeRollLog('initiative', `Rolled Initiative 1d20`, res.sum, res.sum + modifier);
 }
 
 export async function rollSave(name: string, modifier: number, proficiency: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('save', `Rolled ${name} saving throw 1d20`, res, res + modifier);
+  writeRollLog('save', `Rolled ${name} saving throw 1d20`, res.sum, res.sum + modifier);
 }
 
 export async function rollPassive(name: string, modifier: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('passive', `Rolled ${name} passive 1d20`, res, res + modifier);
+  writeRollLog('passive', `Rolled ${name} passive 1d20`, res.sum, res.sum + modifier);
 }
 
 export async function rollAttack(name: string, modifier: number) {
   const res = await rollDie(20, 1);
-  writeRollLog('attack', `Rolled ${name} attack 1d20`, res, res + modifier);
+  writeRollLog('attack', `Rolled ${name} attack 1d20`, res.sum, res.sum + modifier);
 }
 
 export async function rollDamage(name: string, die: number, amount: number, bonus: number) {
   const res = await rollDie(die, amount);
-  writeRollLog('damage', `Rolled ${name} damage ${amount}d${die}`, res, res + bonus);
+  writeRollLog('damage', `Rolled ${name} damage ${amount}d${die}`, res.sum, res.sum + bonus, res.rolls.join(','));
 }
 
-export function writeRollLog(type: string, text: string, roll: number, total: number) {
+export function writeRollLog(type: string, text: string, roll: number, total: number, details?: string) {
   rollStore.update(state => {
-    state.push({type, text, roll, total, rolledAt: Date()})
+    state.push({type, text, roll, total, details, rolledAt: Date()})
     return state
   })
 }
@@ -127,7 +136,7 @@ export function getCharacterStore(): CharacterStore {
   }
 }
 
-export async function decryptMediaUrl(url: string): Promise<{type: 'video' | 'image' | 'unknown', url: string}> {
+export async function decryptMediaUrl(url: string): Promise<{ type: 'video' | 'image' | 'unknown', url: string }> {
   const youtubePatterns = [
     /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
     /youtube.com\/shorts\/([^"&?\/\s]{11})/
@@ -161,7 +170,7 @@ export async function decryptMediaUrl(url: string): Promise<{type: 'video' | 'im
   }
 
   try {
-    const response = await fetch(url, { method: 'HEAD' });
+    const response = await fetch(url, {method: 'HEAD'});
     const contentType = response.headers.get('content-type');
 
     if (contentType?.startsWith('image/')) return {type: 'image', url};

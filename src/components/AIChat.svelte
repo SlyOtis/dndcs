@@ -2,43 +2,64 @@
 
   import {getRollLog} from "../lib/engine";
   import {onDestroy} from "svelte";
-  import {getMilliseconds} from 'date-fns'
-  import type {RollLogItem} from "../lib/types";
+  import {format, getMilliseconds, parseISO} from 'date-fns'
+  import {type ChatLog, detectAction, getReplicateLog} from "../lib/chat";
 
-  const {unsubscribe, rollStore} = getRollLog()
+  const {unsubscribeRoll, rollStore} = getRollLog()
+  const {unsubscribeReplicate, replicateStore} = getReplicateLog()
 
-  onDestroy(() => unsubscribe())
-
-  type ChatLogItem = {returnedAt: Date, sentAt: Date, title: string, message: string, data: any, action: string}
-  type LogItem = {createdAt: Date} & ({type: 'roll', data: RollLogItem} | {type: 'chat', data: ChatLogItem})
-  type ChatLog = Array<LogItem>
-
-  function onSend(e) {
-    e.preventDefault()
-    e.stopPropagation()
-  }
+  onDestroy(() => {
+    unsubscribeRoll()
+    unsubscribeReplicate()
+  })
 
   let chatLog: ChatLog = $derived.by(() => {
-    if ($rollStore.length > 0 ) {
-      console.log('asd')
-    }
+    $rollStore.length > 0;
 
     return [...$rollStore.reduce((prev, curr) => {
       return [
         ...prev,
-        {createdAt: curr.rolledAt, type: 'roll', data: curr },
+        {createdAt: curr.rolledAt, type: 'roll', data: curr},
+      ]
+    }, [] as ChatLog) as ChatLog, ...$replicateStore.reduce((prev, curr) => {
+      return [
+        ...prev,
+        {createdAt: curr.returnedAt, type: 'chat', data: curr},
       ]
     }, [] as ChatLog) as ChatLog].sort((a, b) => {
       return getMilliseconds(a.createdAt) - getMilliseconds(b.createdAt)
     })
   })
 
+  let chatInput: string = $state("")
+  let stateThinking = $state<string | undefined>(undefined)
+  let showHidden = $state<boolean>(false)
   let scroller: HTMLElement
 
   $effect(() => {
-    chatLog.length;
+    chatLog.length || stateThinking;
     scroller.scrollTo(0, scroller.scrollHeight)
   })
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      onSend(e)
+    }
+  }
+
+  function onSend(e) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!chatInput.length) {
+      return
+    }
+
+    stateThinking = "Thinking about it"
+    detectAction(chatInput).then(() => stateThinking = undefined).catch(err => stateThinking = err)
+    document.activeElement?.blur();
+    chatInput = ''
+  }
 
 </script>
 
@@ -48,9 +69,43 @@
             <ul>
                 {#each chatLog as logItem}
                     {#if logItem.type === 'chat'}
-                        <li class="chat">
-                            <div>{logItem.data.title}</div>
-                        </li>
+                        {#if logItem.data.hidden}
+                            <li class="chat" class:hidden={!showHidden}>
+                                <div class="chat-title">
+                                    <span>Query:</span>
+                                    <span class="date">{format(logItem.data.sentAt, 'MMM d h:mm')}</span>
+                                </div>
+                                <span class="query">{logItem.data.query}</span>
+                                <div class="chat-title">
+                                    <span>Response:</span>
+                                    <span class="date">{format(logItem.data.returnedAt, 'MMM d h:mm')}</span>
+                                </div>
+                                <div class="response">
+                                    <span>{logItem.data.response}</span>
+                                </div>
+                            </li>
+                        {:else}
+                            <li class="chat">
+                                <div class="chat-title">
+                                    <span>Query:</span>
+                                    <span class="date">{format(logItem.data.sentAt, 'MMM d h:mm')}</span>
+                                </div>
+                                <span class="query">{logItem.data.query}</span>
+                                <div class="chat-title">
+                                    <span>Response:</span>
+                                    <span class="date">{format(logItem.data.returnedAt, 'MMM d h:mm')}</span>
+                                </div>
+                                {#if logItem.data.message}
+                                    <div class="message">
+                                        <span>{logItem.data.message}</span>
+                                    </div>
+                                {:else}
+                                    <div class="response">
+                                        <span>{logItem.data.message}</span>
+                                    </div>
+                                {/if}
+                            </li>
+                        {/if}
                     {:else }
                         <li class="roll">
                             <h4>{logItem.data.text}</h4>
@@ -63,9 +118,17 @@
                 {/each}
             </ul>
         </div>
-        <div class="input">
-            <textarea></textarea>
-            <button onclick={onSend}><span>Send</span></button>
+        {#if stateThinking}
+            <div>
+                <span class="thinking">{stateThinking}</span>
+            </div>
+        {/if}
+        <div class="input" class:disabled={stateThinking!!}>
+            <textarea bind:value={chatInput} onkeydown={onKeyDown}></textarea>
+            <div class="actions">
+                <button onclick={() => showHidden = !showHidden}><span>Show</span></button>
+                <button onclick={onSend}><span>Send</span></button>
+            </div>
         </div>
     </div>
 </div>
@@ -129,9 +192,9 @@
         padding: 8px;
     }
 
-    .input > button {
+    .actions > button {
         position: relative;
-        width: auto;
+        width: 100%;
         height: 100%;
         outline: none;
         border: none;
@@ -139,6 +202,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+
+    .actions > button:first-child {
+        background-color: var(--color-primary-main);
+        height: min-content;
+        padding: 8px;
     }
 
     ul, li {
@@ -163,6 +232,7 @@
     li:nth-child(odd) {
         background-color: var(--color-chat-light);
     }
+
     li:nth-child(even) {
         background-color: var(--color-chat-main);
     }
@@ -193,8 +263,97 @@
     }
 
     h4 {
-        margin: 0;
         padding: 0;
-        margin-bottom: 8px;
+        margin: 0 0 8px;
+    }
+
+    .disabled {
+        user-select: none;
+        pointer-events: none;
+        cursor: default;
+    }
+
+    .disabled > * {
+        user-select: none;
+        pointer-events: none;
+        cursor: default;
+        opacity: 0.65;
+    }
+
+    .date {
+        font-size: 0.7em;
+        opacity: 0.75;
+        font-weight: 500;
+    }
+
+    .chat-title {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: row;
+        margin-bottom: 4px;
+    }
+
+    .chat-title:not(:first-child) {
+        margin-top: 12px;
+    }
+
+    .chat {
+        position: relative;
+        width: 100%;
+        height: auto;
+        transition: max-height 250ms ease-in-out;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .query {
+        position: relative;
+        padding: 4px 8px;
+        width: 100%;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .response {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background-color: var(--color-chat-dark);
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    .response > span {
+        font-size: 0.7em;
+        opacity: 0.75;
+    }
+
+    .hidden {
+        display: none;
+        max-height: 0;
+    }
+
+    .message {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        font-size: 0.8em;
+    }
+
+    .actions {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: stretch;
+        align-items: center;
+        flex-direction: column;
+        flex: 0;
     }
 </style>
