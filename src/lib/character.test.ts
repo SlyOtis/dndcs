@@ -64,31 +64,59 @@ const character: Character = {
   feats: [
     {
       id: "deadeye",
-      level: 1,
-      source: "base",
       title: "Deadeye",
-      description: "In combat, critical threshold reduces by 1 on hits. Resets on miss or end of turn without attack."
+      description: "In combat, find your flow with deadly efficiency. Whenever you hit with a ranged weapon attack, the threshold to score a critical hit decreases by 1, minimum 16. Lost on miss, incapacitation, or no attacks for a turn. At 14th level, gain this benefit twice per hit.",
+      level: 1,
+      source: "base"
     },
     {
-      id: "bad-medicine",
-      level: 1,
-      source: "base",
+      id: "bad_medicine",
       title: "Bad Medicine",
-      description: "Roll one additional weapon damage die when determining critical hit damage with firearms."
+      description: "Roll one additional weapon damage die when determining the extra damage for a critical hit with a firearm. The number of additional dice increases as you gain levels in this class.",
+      level: 1,
+      source: "base"
     },
     {
       id: "grit",
-      level: 2,
-      source: "base",
       title: "Grit",
-      description: "3 grit points to fuel various features. Regain 1 point on critical hits or all points on rest."
+      description: "Gain grit points equal to 1 + Wisdom modifier (minimum 1). Spend points on grit features. Regain 1 point on critical hits against hostile creatures, and all points on short/long rest. Start with Buck Up, Bullet Time, Covering Fire, and Dodge Roll features.",
+      level: 2,
+      source: "base"
+    },
+    {
+      id: "buck_up",
+      title: "Buck Up",
+      description: "Spend 1 grit point as a bonus action to spend Hit Dice up to your proficiency bonus, following normal rules for regaining hit points.",
+      level: 2,
+      source: "base"
+    },
+    {
+      id: "bullet_time",
+      title: "Bullet Time",
+      description: "When a creature you can see makes a ranged attack against you, spend 1 grit point to impose disadvantage on the attack roll.",
+      level: 2,
+      source: "base"
+    },
+    {
+      id: "covering_fire",
+      title: "Covering Fire",
+      description: "While holding a firearm, when a creature you can see within 60 feet attacks another creature, spend 1 grit point as a reaction to impose disadvantage on the attack roll.",
+      level: 2,
+      source: "base"
+    },
+    {
+      id: "dodge_roll",
+      title: "Dodge Roll",
+      description: "Spend 1 grit point as a bonus action to move up to 10 feet without provoking opportunity attacks. Cannot be used if speed is 0.",
+      level: 2,
+      source: "base"
     },
     {
       id: "quickdraw",
-      level: 2,
-      source: "base",
       title: "Quickdraw",
-      description: "Advantage on initiative rolls. Can draw/stow any number of weapons as part of the same action."
+      description: "Gain advantage on initiative rolls. When drawing or stowing a firearm, can draw or stow any number of weapons as part of the same move or action.",
+      level: 2,
+      source: "base"
     },
     {
       id: "bloodhound",
@@ -130,8 +158,8 @@ const character: Character = {
     {
       id: "str",
       title: "Strength",
-      score: 11,
-      modifier: 0
+      score: 12,
+      modifier: 1
     },
     {
       id: "dex",

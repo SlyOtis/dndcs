@@ -213,6 +213,9 @@ export async function detectAction(query: string) {
     case 'rollDie': {
       return await aiRollDie(rest)
     }
+    case 'updateInventory': {
+      return aiUpdateInventory(rest)
+    }
     default:
       if (rest.next) {
         replicateStore.update(state => ([...state, {
@@ -229,6 +232,18 @@ export async function detectAction(query: string) {
 }
 
 async function aiRollDie(action: AiAction) {
+  try {
+    const die = parseInt(action.args.die, 0)
+    const amount = parseInt(action.args.amount, 0)
+
+    const res = await rollDie(die, amount)
+    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
+  } catch (e: any) {
+    throw new Error(e)
+  }
+}
+
+async function aiUpdateInventory(action: AiAction) {
   try {
     const die = parseInt(action.args.die, 0)
     const amount = parseInt(action.args.amount, 0)
