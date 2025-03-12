@@ -20,7 +20,10 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "i": "^0.3.7",
     "normalize.css": "^8.0.1",
-    "replicate": "^1.0.1"
+    "npm": "^11.2.0",
+    "replicate": "^1.0.1",
+    "sly-svelte-location-router": "^2.2.4"
   }
 }

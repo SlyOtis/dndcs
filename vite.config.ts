@@ -19,10 +19,6 @@ export default defineConfig({
         target: "https://api.replicate.com/v1",
         changeOrigin: true,
         secure: false,
-        headers: {
-          "Authorization": `Bearer ${process.env.REPLICATE_API_KEY}`,
-          "Content-Type": "application/json"
-        },
         rewrite: (p) => p.replace(/^\/replicate/, ""),
       },
     },
