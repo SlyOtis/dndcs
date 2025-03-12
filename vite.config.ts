@@ -1,5 +1,14 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { config } from 'dotenv'
+
+declare const process: {
+  env: {
+    REPLICATE_API_KEY: string | undefined
+  }
+}
+
+config()
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -10,6 +19,10 @@ export default defineConfig({
         target: "https://api.replicate.com/v1",
         changeOrigin: true,
         secure: false,
+        headers: {
+          "Authorization": `Bearer ${process.env.REPLICATE_API_KEY}`,
+          "Content-Type": "application/json"
+        },
         rewrite: (p) => p.replace(/^\/replicate/, ""),
       },
     },

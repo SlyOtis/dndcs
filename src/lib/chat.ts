@@ -63,10 +63,6 @@ async function callReplicate(input: ReplicateInput) {
 
   const req = await fetch("/replicate/models/" + decisionModel, {
     method: "POST",
-    headers: {
-      "Authorization": "Bearer REDACTED",
-      "Content-Type": "application/json"
-    },
     body: JSON.stringify({
       stream: false,
       input
@@ -94,10 +90,6 @@ async function callReplicate(input: ReplicateInput) {
     timeout = setTimeout(async () => {
       const res = await fetch(getUrl, {
         method: "GET",
-        headers: {
-          "Authorization": "Bearer REDACTED",
-          "Content-Type": "application/json"
-        }
       })
 
       if (!res.ok) {

@@ -195,7 +195,7 @@ const character: Character = {
   savingThrows: [
     {
       title: "Strength",
-      modifier: 0,
+      modifier: 1,
       proficiency: 0
     },
     {
@@ -246,7 +246,7 @@ const character: Character = {
     {
       name: "Athletics",
       ability: "Strength",
-      modifier: 0,
+      modifier: 1,
       proficiency: 0
     },
     {
