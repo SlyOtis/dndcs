@@ -6,6 +6,7 @@
   import CharacterSheet from "../components/CharacterSheet.svelte";
   import AIChat from "../components/chat/AIChat.svelte";
   import Background from "../components/Background.svelte";
+  import {navigate} from "sly-svelte-location-router";
 
   const {unsubscribe, ...chStore} = getCharacterStore()
   const {unsubscribeSidebar, sidebarStore} = getSidebar()
@@ -18,6 +19,9 @@
     unsubscribeSidebar()
   })
 
+  if (!localStorage.getItem("replicate_api_key")) {
+    navigate("/")
+  }
 
 </script>
 

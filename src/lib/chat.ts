@@ -61,11 +61,17 @@ const decisionModel = "meta/meta-llama-3-70b-instruct/predictions"
 
 async function callReplicate(input: ReplicateInput) {
 
+  const apiKey = localStorage.getItem("replicate_api_key")
+
+  if (!apiKey) {
+    throw new Error("Replicate api key is missing")
+  }
+
   const req = await fetch("/replicate/models/" + decisionModel, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + localStorage.getItem("replicate_api_key")
+      "Authorization": "Bearer " + apiKey
     },
     body: JSON.stringify({
       stream: false,
@@ -96,7 +102,7 @@ async function callReplicate(input: ReplicateInput) {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + localStorage.getItem("replicate_api_token")
+          "Authorization": "Bearer " + apiKey
         },
       })
 
@@ -189,6 +195,8 @@ export async function detectAction(query: string) {
         }},
         "next"?: "A prompt for the next AI call with what to do with the result, if the user has explicitly specified to do something with the result. Omit if not specified!"
       }}
+      
+      no other response than json, omit all other output but the json response!
      
       <|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n
     `,
