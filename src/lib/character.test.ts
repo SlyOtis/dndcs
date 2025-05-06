@@ -152,6 +152,25 @@ const character: Character = {
       source: "optional",
       title: "Pistolero",
       description: "Bonus action attack with pistol when attacking with one-handed weapon. Can act normally if surprised when using pistol first."
+    },
+    {
+      id: "threadweeving",
+      level: 4,
+      source: "optional",
+      title: "Thread of Metal Bending",
+      description: "*You can change the natural properties of metal in movement.*\n" +
+        "\n" +
+        "## Basic\n" +
+        "* You can change the natural gravitational properties of metal in movement, making you able to slightly change the direction or speed of moving metal (at your DM's discretion) a number of times equal to **your proficiency bonus.**\n" +
+        "* You feel when metal is near you, but can't detect what kind, where or the direction.\n" +
+        "\n" +
+        "## Advanced\n" +
+        "* You may now change the direction or speed of moving metal (under one pound) change its direction, increasing or decreasing the its speed, or bring it to a near stop (when it travels under a certain limit), you can also change the shape of a piece of metal (shape and size at you DM's discretion), the travel time and movement of the piece of metal, or the temperature of the piece of metal.\n" +
+        "* You also have a metallic sense being able to detect metal and what type of metal down to a certain certainty, the dice decide.\n" +
+        "\n" +
+        "## Mastery\n" +
+        "* You are in full control of metal and can change the shape of non moving metal (under one pund of metal), change the direction and speed of moving metal, or change its temperature in its entirety.\n" +
+        "* You can for a certainty detect the metals around within a set range, and determine the type of metal, its speed, and direction"
     }
   ],
   abilities: [

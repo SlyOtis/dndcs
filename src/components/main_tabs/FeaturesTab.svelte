@@ -1,6 +1,7 @@
 <script lang="ts">
   import {getContext} from "svelte";
   import type {CharacterContext} from "../../lib/types";
+  import Marked from "../Marked.svelte";
 
   const {feats} = getContext<CharacterContext>('character')
 
@@ -16,7 +17,7 @@
                 <li class="feat">
                     <h4>{feat.title} - <i>lvl {feat.level}</i></h4>
                     <span class="source">{feat.source}</span>
-                    <p>{feat.description}</p>
+                    <Marked content={feat.description} />
                 </li>
             {/each}
         </ul>
