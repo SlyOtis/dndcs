@@ -8,9 +8,11 @@
   let bckSource = $state({type: 'unknown', url: ''})
 
   $effect.pre(() => {
-    decryptMediaUrl($info.backgroundUrl).then(res => {
-      bckSource = res
-    })
+    if ($info.backgroundUrl) {
+      decryptMediaUrl($info.backgroundUrl).then(res => {
+        bckSource = res
+      })
+    }
   })
 
 </script>
@@ -38,7 +40,7 @@
         bottom: 0;
         left: 0;
         z-index: 0;
-        background-color: var(--color-background-dark);
+        background: var(--color-background, var(--color-background-dark));
 
         user-select: none;
         pointer-events: none;

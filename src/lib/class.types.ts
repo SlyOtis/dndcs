@@ -6,7 +6,7 @@ export type SpellcastingType = 'prepared' | 'known' | 'pact' | 'none'
 export type ResourceType = 'static' | 'scaling' | 'spellPoints'
 
 /** Feature source type */
-export type FeatureSource = 'base' | 'subclass' | 'optional'
+export type FeatureSource = 'base' | 'subclass' | 'optional' | 'class'
 
 /** Level-based class feature */
 export interface ClassFeature {

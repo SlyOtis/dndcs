@@ -29,20 +29,25 @@
         position: relative;
         width: 100%;
         height: 100%;
+        max-height: 100%;
         display: flex;
         justify-content: start;
         align-items: start;
         flex-direction: column;
         color: var(--color-content-text);
         background-color: var(--color-content-dark);
+        overflow: hidden;
     }
 
     .scroll {
         position: relative;
         width: 100%;
         height: 100%;
-        overflow: hidden;
-        overflow-y: scroll;
+        max-height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
     }
 
     ul, li {

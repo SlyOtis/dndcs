@@ -1,0 +1,285 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Character Instance Schema",
+  "description": "A specific character instance with their current level, features, and choices",
+  "type": "object",
+  "required": ["id", "name", "class", "level", "features"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for this character"
+    },
+    "name": {
+      "type": "string",
+      "description": "Character's name"
+    },
+    "class": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Class progression ID to reference"
+        },
+        "name": {
+          "type": "string",
+          "description": "Class display name"
+        },
+        "hitDie": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 12
+        }
+      }
+    },
+    "subclass": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Subclass progression ID to reference"
+        },
+        "name": {
+          "type": "string",
+          "description": "Subclass display name"
+        },
+        "levelChosen": {
+          "type": "integer",
+          "description": "Level at which subclass was chosen"
+        }
+      }
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 20,
+      "description": "Current character level"
+    },
+    "experience": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current experience points"
+    },
+    "race": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "subrace": { "type": "string" }
+      }
+    },
+    "background": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      }
+    },
+    "abilityScores": {
+      "type": "object",
+      "required": ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"],
+      "properties": {
+        "strength": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "dexterity": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "constitution": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "intelligence": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "wisdom": { "type": "integer", "minimum": 1, "maximum": 30 },
+        "charisma": { "type": "integer", "minimum": 1, "maximum": 30 }
+      }
+    },
+    "hitPoints": {
+      "type": "object",
+      "properties": {
+        "maximum": { "type": "integer" },
+        "current": { "type": "integer" },
+        "temporary": { "type": "integer" }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CharacterFeature"
+      },
+      "description": "All features this character currently has"
+    },
+    "levelProgression": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/LevelRecord"
+      },
+      "description": "Record of choices made at each level"
+    },
+    "spellcasting": {
+      "type": "object",
+      "properties": {
+        "ability": {
+          "type": "string",
+          "enum": ["Intelligence", "Wisdom", "Charisma"]
+        },
+        "spellSaveDC": { "type": "integer" },
+        "spellAttackBonus": { "type": "integer" },
+        "spellSlots": {
+          "type": "object",
+          "properties": {
+            "1": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "2": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "3": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "4": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "5": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "6": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "7": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "8": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } },
+            "9": { "type": "object", "properties": { "max": { "type": "integer" }, "used": { "type": "integer" } } }
+          }
+        },
+        "spellsKnown": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Feature IDs of known spells"
+          }
+        },
+        "spellsPrepared": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Feature IDs of prepared spells (subset of known)"
+          }
+        }
+      }
+    },
+    "inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "quantity": { "type": "integer" },
+          "equipped": { "type": "boolean" }
+        }
+      }
+    },
+    "proficiencies": {
+      "type": "object",
+      "properties": {
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "skill": { "type": "string" },
+              "proficient": { "type": "boolean" },
+              "expertise": { "type": "boolean" }
+            }
+          }
+        },
+        "savingThrows": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+          }
+        },
+        "weapons": { "type": "array", "items": { "type": "string" } },
+        "armor": { "type": "array", "items": { "type": "string" } },
+        "tools": { "type": "array", "items": { "type": "string" } },
+        "languages": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "definitions": {
+    "CharacterFeature": {
+      "type": "object",
+      "required": ["id", "source"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Feature ID from the feature database"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["class", "subclass", "race", "background", "feat", "multiclass"]
+            },
+            "level": {
+              "type": "integer",
+              "description": "Level at which this feature was gained"
+            },
+            "choiceId": {
+              "type": "string",
+              "description": "ID of the choice that granted this feature"
+            }
+          }
+        },
+        "customizations": {
+          "type": "object",
+          "description": "Any character-specific customizations to this feature"
+        },
+        "uses": {
+          "type": "object",
+          "properties": {
+            "max": { "type": "integer" },
+            "current": { "type": "integer" },
+            "type": { "type": "string", "enum": ["per_rest", "per_day", "charges"] },
+            "restType": { "type": "string", "enum": ["short", "long"] }
+          },
+          "description": "Usage tracking for limited-use features"
+        }
+      }
+    },
+    "LevelRecord": {
+      "type": "object",
+      "required": ["level"],
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "hitPointsGained": {
+          "type": "integer",
+          "description": "HP gained this level (including CON modifier)"
+        },
+        "choicesMade": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChoiceRecord"
+          },
+          "description": "Record of all choices made at this level"
+        },
+        "featuresGained": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Feature IDs of automatic features gained"
+        }
+      }
+    },
+    "ChoiceRecord": {
+      "type": "object",
+      "required": ["choiceId", "selected"],
+      "properties": {
+        "choiceId": {
+          "type": "string",
+          "description": "ID of the choice from level progression"
+        },
+        "selected": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Feature IDs or values selected for this choice"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this choice was made"
+        }
+      }
+    }
+  }
+}

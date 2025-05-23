@@ -16,22 +16,77 @@
 :root {
   --color-background-dark: #151515;
 
-  --color-primary-main: green;
+  --color-primary-main: #ffd700;
   --color-primary-text: white;
-  --color-secondary-main: #e6d837;
+  --color-secondary-main: #ff6b35;
 
   --color-content-main: #373737;
   --color-content-light: #5c5c5c;
   --color-content-dark: #242424;
   --color-content-text: white;
 
-  --color-chat-light: white;
-  --color-chat-main: #e4e4e4;
-  --color-chat-dark: #d6d6d6;
-  --color-chat-text: black;
+  --color-chat-light: rgba(60, 50, 40, 0.4);
+  --color-chat-main: rgba(40, 30, 20, 0.6);
+  --color-chat-dark: rgba(20, 15, 10, 0.8);
+  --color-chat-text: #e4e4e4;
 
   --size-sidebar-curr: 0;
   --size-sidebar-max: 400px;
+}
+
+/* Fantasy Medieval Theme (Default) */
+:root[data-theme="medieval"] {
+  --color-primary-main: #ffd700;
+  --color-secondary-main: #ff6b35;
+  --color-accent: #8b5a2b;
+  --color-background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --color-content-main: rgba(40, 30, 20, 0.9);
+  --color-content-light: rgba(60, 50, 40, 0.9);
+  --color-content-dark: rgba(20, 15, 10, 0.95);
+}
+
+/* Mystic Forest Theme */
+:root[data-theme="forest"] {
+  --color-primary-main: #00ff88;
+  --color-secondary-main: #66d9aa;
+  --color-accent: #2d5a3d;
+  --color-background: linear-gradient(135deg, #0d1b0f 0%, #1a2e1f 50%, #2a4a33 100%);
+  --color-content-main: rgba(20, 40, 25, 0.9);
+  --color-content-light: rgba(30, 60, 35, 0.9);
+  --color-content-dark: rgba(10, 20, 15, 0.95);
+}
+
+/* Dragon Fire Theme */
+:root[data-theme="fire"] {
+  --color-primary-main: #ff4444;
+  --color-secondary-main: #ffaa22;
+  --color-accent: #8b0000;
+  --color-background: linear-gradient(135deg, #2a0a0a 0%, #4a1515 50%, #6a2020 100%);
+  --color-content-main: rgba(60, 20, 20, 0.9);
+  --color-content-light: rgba(80, 30, 30, 0.9);
+  --color-content-dark: rgba(40, 10, 10, 0.95);
+}
+
+/* Arcane Magic Theme */
+:root[data-theme="arcane"] {
+  --color-primary-main: #aa44ff;
+  --color-secondary-main: #6644ff;
+  --color-accent: #2d1b69;
+  --color-background: linear-gradient(135deg, #0f0a2a 0%, #1f1545 50%, #2f2060 100%);
+  --color-content-main: rgba(30, 20, 60, 0.9);
+  --color-content-light: rgba(50, 40, 80, 0.9);
+  --color-content-dark: rgba(15, 10, 40, 0.95);
+}
+
+/* Ocean Depths Theme */
+:root[data-theme="ocean"] {
+  --color-primary-main: #00aaff;
+  --color-secondary-main: #00ffdd;
+  --color-accent: #1e3a8a;
+  --color-background: linear-gradient(135deg, #0a1a2a 0%, #153a4a 50%, #205a6a 100%);
+  --color-content-main: rgba(20, 40, 60, 0.9);
+  --color-content-light: rgba(30, 60, 80, 0.9);
+  --color-content-dark: rgba(10, 20, 40, 0.95);
 }
 
 html, body, #app {
@@ -59,4 +114,44 @@ html, body, #app {
 
 * {
   box-sizing: border-box;
+}
+
+
+.toggle {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  min-width: 32px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-self: center;
+  align-self: center;
+  text-align: center;
+  content: ' ';
+  background-color: var(--color-content-main);
+  border: 2px solid var(--color-primary-main);
+  border-radius: 8px;
+  color: transparent;
+}
+
+/* Dialog z-index fix - ensure all dialogs appear above everything */
+.dialog-overlay {
+  z-index: 10000 !important;
+}
+
+.modal-overlay {
+  z-index: 10000 !important;
+}
+
+/* Chat should be below dialogs */
+.ai-chat {
+  z-index: 1000 !important;
+}
+
+/* Main content below chat */
+.character-sheet {
+  z-index: 100;
 }

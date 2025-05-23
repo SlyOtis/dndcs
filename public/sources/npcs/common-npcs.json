@@ -1,0 +1,99 @@
+{
+  "npcs": {
+    "guard": {
+      "id": "guard",
+      "name": "Town Guard",
+      "type": "humanoid",
+      "size": "Medium",
+      "alignment": "Lawful Neutral",
+      "armorClass": 16,
+      "hitPoints": 11,
+      "speed": "30 ft",
+      "abilities": {
+        "strength": 13,
+        "dexterity": 12,
+        "constitution": 12,
+        "intelligence": 10,
+        "wisdom": 11,
+        "charisma": 10
+      },
+      "skills": ["Perception +2"],
+      "languages": ["Common"],
+      "challengeRating": "1/8",
+      "description": "Guards keep the peace in civilized lands. They are often found patrolling city walls, gates, and important buildings.",
+      "equipment": ["spear", "light-crossbow", "chain-shirt", "shield"],
+      "actions": [
+        {
+          "name": "Spear",
+          "description": "Melee or Ranged Weapon Attack: +3 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d6 + 1) piercing damage."
+        }
+      ],
+      "tags": ["humanoid", "guard", "city", "law"]
+    },
+    "goblin": {
+      "id": "goblin",
+      "name": "Goblin",
+      "type": "humanoid",
+      "size": "Small",
+      "alignment": "Neutral Evil",
+      "armorClass": 15,
+      "hitPoints": 7,
+      "speed": "30 ft",
+      "abilities": {
+        "strength": 8,
+        "dexterity": 14,
+        "constitution": 10,
+        "intelligence": 10,
+        "wisdom": 8,
+        "charisma": 8
+      },
+      "skills": ["Stealth +6"],
+      "senses": ["darkvision 60 ft"],
+      "languages": ["Common", "Goblin"],
+      "challengeRating": "1/4",
+      "description": "Small, cunning humanoids that live in dark places underground and venture out at night to raid for food and treasure.",
+      "equipment": ["scimitar", "shortbow", "leather-armor", "shield"],
+      "actions": [
+        {
+          "name": "Scimitar",
+          "description": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage."
+        },
+        {
+          "name": "Shortbow",
+          "description": "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage."
+        }
+      ],
+      "traits": [
+        {
+          "name": "Nimble Escape",
+          "description": "The goblin can take the Disengage or Hide action as a bonus action on each of its turns."
+        }
+      ],
+      "tags": ["humanoid", "goblin", "monster", "small"]
+    },
+    "merchant": {
+      "id": "merchant",
+      "name": "Traveling Merchant",
+      "type": "humanoid",
+      "size": "Medium",
+      "alignment": "Neutral",
+      "armorClass": 11,
+      "hitPoints": 9,
+      "speed": "30 ft",
+      "abilities": {
+        "strength": 10,
+        "dexterity": 12,
+        "constitution": 11,
+        "intelligence": 14,
+        "wisdom": 13,
+        "charisma": 15
+      },
+      "skills": ["Deception +4", "Insight +3", "Persuasion +4"],
+      "languages": ["Common", "one other language"],
+      "challengeRating": "0",
+      "description": "A well-dressed trader who travels between towns selling goods and gathering information. Always looking for a profitable deal.",
+      "equipment": ["dagger", "fine-clothes", "merchant-pack"],
+      "tags": ["humanoid", "merchant", "trader", "civilian"]
+    }
+  }
+}

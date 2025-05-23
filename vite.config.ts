@@ -21,7 +21,21 @@ export default defineConfig({
         secure: false,
         rewrite: (p) => p.replace(/^\/replicate/, ""),
       },
+      "/anthropic": {
+        target: "https://api.anthropic.com/v1",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/anthropic/, ""),
+      },
     },
     cors: false,
+  },
+  optimizeDeps: {
+    include: ['pdfjs-dist']
+  },
+  build: {
+    rollupOptions: {
+      external: []
+    }
   }
 })

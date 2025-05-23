@@ -1,0 +1,122 @@
+{
+  "characterId": "char-001",
+  "name": "Gareth Ironshield",
+  "race": "human",
+  "background": "soldier",
+  "classes": {
+    "fighter": {
+      "level": 5,
+      "hitDie": 10,
+      "progression": "fighter"
+    }
+  },
+  "totalLevel": 5,
+  "abilityScores": {
+    "strength": 16,
+    "dexterity": 14,
+    "constitution": 15,
+    "intelligence": 10,
+    "wisdom": 13,
+    "charisma": 12
+  },
+  "hitPoints": {
+    "maximum": 47,
+    "current": 47,
+    "temporary": 0
+  },
+  "armorClass": 18,
+  "proficiencyBonus": 3,
+  "savingThrowProficiencies": ["strength", "constitution"],
+  "skillProficiencies": ["athletics", "intimidation"],
+  "features": [
+    "fighting-style",
+    "archery",
+    "second-wind",
+    "action-surge-1",
+    "martial-archetype",
+    "champion",
+    "extra-attack-1"
+  ],
+  "levelHistory": {
+    "1": {
+      "hitPointsGained": 12,
+      "choicesMade": [
+        {
+          "type": "fighting_style",
+          "selection": "archery"
+        },
+        {
+          "type": "skill",
+          "selection": ["athletics", "intimidation"]
+        }
+      ],
+      "featuresGained": ["fighting-style", "archery", "second-wind"]
+    },
+    "2": {
+      "hitPointsGained": 8,
+      "choicesMade": [],
+      "featuresGained": ["action-surge-1"]
+    },
+    "3": {
+      "hitPointsGained": 7,
+      "choicesMade": [
+        {
+          "type": "subclass",
+          "selection": "champion"
+        }
+      ],
+      "featuresGained": ["martial-archetype", "champion"]
+    },
+    "4": {
+      "hitPointsGained": 9,
+      "choicesMade": [
+        {
+          "type": "ability_score_improvement",
+          "selection": {
+            "strength": 2
+          }
+        }
+      ],
+      "featuresGained": [],
+      "abilityScoreChanges": {
+        "strength": 2
+      }
+    },
+    "5": {
+      "hitPointsGained": 11,
+      "choicesMade": [],
+      "featuresGained": ["extra-attack-1"]
+    }
+  },
+  "equipment": {
+    "armor": {
+      "name": "Chain Mail",
+      "ac": 16,
+      "type": "heavy"
+    },
+    "shield": {
+      "name": "Shield",
+      "acBonus": 2
+    },
+    "weapons": [
+      {
+        "name": "Longbow",
+        "type": "ranged",
+        "damage": "1d8",
+        "damageType": "piercing",
+        "range": "150/600"
+      },
+      {
+        "name": "Longsword",
+        "type": "melee",
+        "damage": "1d8",
+        "damageType": "slashing",
+        "versatile": "1d10"
+      }
+    ]
+  },
+  "spellcasting": null,
+  "notes": "A veteran soldier turned adventurer, skilled with bow and blade.",
+  "createdAt": "2025-01-15T10:30:00Z",
+  "lastModified": "2025-01-15T14:22:00Z"
+}

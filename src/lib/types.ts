@@ -1,5 +1,5 @@
 import type {Unsubscriber, Writable} from "svelte/store";
-import type {Character} from "./character.types";
+import type {Character, CharacterAbility, CharacterSkill, CharacterSense, CharacterSavingThrow} from "./character.types";
 
 export type RollLog = Array<RollLogItem>
 
@@ -24,3 +24,6 @@ export type CharacterStore = CharacterContext & { unsubscribe: Unsubscriber }
 export type CharacterContext = {
   [K in keyof Character]: Writable<Character[K]>
 }
+
+// Re-export character types for convenience
+export type { CharacterAbility, CharacterSkill, CharacterSense, CharacterSavingThrow };

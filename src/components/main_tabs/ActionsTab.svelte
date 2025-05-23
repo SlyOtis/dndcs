@@ -20,7 +20,7 @@
         ...prev,
         special: [...prev.special, curr],
       }
-    }, {attack: [], special: []})
+    }, {attack: [] as CharacterAction[], special: [] as CharacterAction[]})
   }
 
   let primary = $derived(groupActions($actions.filter(a => a.type === 'Action')))
@@ -144,12 +144,12 @@
         position: relative;
         width: 100%;
         height: 100%;
+        max-height: 100%;
         display: flex;
         justify-content: start;
         align-items: start;
         flex-direction: column;
-        overflow-y: scroll;
-        overflow-x: hidden;
+        overflow: hidden;
         background-color: var(--color-content-dark);
     }
 
@@ -157,10 +157,13 @@
         position: relative;
         width: 100%;
         height: auto;
+        flex: 1;
+        min-height: 0;
         display: flex;
         justify-content: start;
         align-items: start;
         flex-direction: column;
+        overflow-y: auto;
     }
 
     .divider {

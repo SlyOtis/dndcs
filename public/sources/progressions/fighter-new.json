@@ -1,0 +1,85 @@
+{
+  "classId": "fighter",
+  "className": "Fighter",
+  "hitDie": 10,
+  "primaryAbilities": ["strength", "dexterity"],
+  "savingThrowProficiencies": ["strength", "constitution"],
+  "skillChoices": {
+    "count": 2,
+    "options": ["acrobatics", "animalHandling", "athletics", "history", "insight", "intimidation", "perception", "survival"]
+  },
+  "levels": {
+    "1": {
+      "proficiencyBonus": 2,
+      "automaticFeatures": ["fighting-style", "second-wind"],
+      "choices": [
+        {
+          "type": "fighting_style",
+          "count": 1,
+          "options": ["archery", "defense", "dueling", "great-weapon-fighting", "protection", "two-weapon-fighting"]
+        }
+      ]
+    },
+    "2": {
+      "proficiencyBonus": 2,
+      "automaticFeatures": ["action-surge-1"]
+    },
+    "3": {
+      "proficiencyBonus": 2,
+      "automaticFeatures": ["martial-archetype"],
+      "choices": [
+        {
+          "type": "subclass",
+          "count": 1,
+          "options": ["champion", "battle-master", "eldritch-knight"]
+        }
+      ]
+    },
+    "4": {
+      "proficiencyBonus": 2,
+      "choices": [
+        {
+          "type": "ability_score_improvement",
+          "count": 1,
+          "alternativeTypes": ["feat"]
+        }
+      ]
+    },
+    "5": {
+      "proficiencyBonus": 3,
+      "automaticFeatures": ["extra-attack-1"]
+    },
+    "6": {
+      "proficiencyBonus": 3,
+      "choices": [
+        {
+          "type": "ability_score_improvement",
+          "count": 1,
+          "alternativeTypes": ["feat"]
+        }
+      ]
+    },
+    "7": {
+      "proficiencyBonus": 3,
+      "automaticFeatures": ["martial-archetype-feature"]
+    },
+    "8": {
+      "proficiencyBonus": 3,
+      "choices": [
+        {
+          "type": "ability_score_improvement",
+          "count": 1,
+          "alternativeTypes": ["feat"]
+        }
+      ]
+    },
+    "9": {
+      "proficiencyBonus": 4,
+      "automaticFeatures": ["indomitable-1"]
+    },
+    "10": {
+      "proficiencyBonus": 4,
+      "automaticFeatures": ["martial-archetype-feature"]
+    }
+  }
+}

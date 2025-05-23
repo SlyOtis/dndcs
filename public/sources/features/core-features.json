@@ -1,0 +1,198 @@
+{
+  "features": {
+    "fighting-style": {
+      "id": "fighting-style",
+      "name": "Fighting Style",
+      "description": "You adopt a particular style of fighting as your specialty.",
+      "type": "class_feature",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter", "paladin", "ranger"]
+      },
+      "mechanics": {
+        "special": "Choose one fighting style option"
+      }
+    },
+    "archery": {
+      "id": "archery",
+      "name": "Archery",
+      "description": "You gain a +2 bonus to attack rolls you make with ranged weapons.",
+      "type": "fighting_style",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "features": ["fighting-style"]
+      },
+      "mechanics": {
+        "attackBonuses": [
+          {
+            "type": "ranged",
+            "bonus": 2
+          }
+        ]
+      }
+    },
+    "defense": {
+      "id": "defense",
+      "name": "Defense",
+      "description": "While you are wearing armor, you gain a +1 bonus to AC.",
+      "type": "fighting_style",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "features": ["fighting-style"]
+      },
+      "mechanics": {
+        "armorClass": {
+          "bonus": 1,
+          "condition": "wearing armor"
+        }
+      }
+    },
+    "dueling": {
+      "id": "dueling",
+      "name": "Dueling",
+      "description": "When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.",
+      "type": "fighting_style",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "features": ["fighting-style"]
+      },
+      "mechanics": {
+        "damageBonuses": [
+          {
+            "type": "melee",
+            "bonus": 2,
+            "condition": "one-handed weapon, no other weapons"
+          }
+        ]
+      }
+    },
+    "second-wind": {
+      "id": "second-wind",
+      "name": "Second Wind",
+      "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level.",
+      "type": "class_feature",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter"]
+      },
+      "mechanics": {
+        "actions": [
+          {
+            "type": "bonus_action",
+            "name": "Second Wind",
+            "effect": "Regain 1d10 + fighter level hit points",
+            "uses": {
+              "type": "short_rest",
+              "count": 1
+            }
+          }
+        ]
+      }
+    },
+    "action-surge-1": {
+      "id": "action-surge-1",
+      "name": "Action Surge",
+      "description": "Starting at 2nd level, you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action.",
+      "type": "class_feature",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter"],
+        "level": 2
+      },
+      "mechanics": {
+        "actions": [
+          {
+            "type": "free",
+            "name": "Action Surge",
+            "effect": "Take one additional action on your turn",
+            "uses": {
+              "type": "short_rest",
+              "count": 1
+            }
+          }
+        ]
+      }
+    },
+    "martial-archetype": {
+      "id": "martial-archetype",
+      "name": "Martial Archetype",
+      "description": "At 3rd level, you choose an archetype that you strive to emulate in your combat styles and techniques.",
+      "type": "class_feature",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter"],
+        "level": 3
+      },
+      "mechanics": {
+        "special": "Choose a martial archetype"
+      }
+    },
+    "champion": {
+      "id": "champion",
+      "name": "Champion",
+      "description": "The archetypal Champion focuses on the development of raw physical power honed to deadly perfection.",
+      "type": "subclass",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter"],
+        "features": ["martial-archetype"]
+      },
+      "mechanics": {
+        "special": "Improved Critical at 3rd level"
+      }
+    },
+    "extra-attack-1": {
+      "id": "extra-attack-1",
+      "name": "Extra Attack",
+      "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.",
+      "type": "class_feature",
+      "source": "Player's Handbook",
+      "prerequisites": {
+        "classes": ["fighter"],
+        "level": 5
+      },
+      "mechanics": {
+        "attacksPerAction": 2
+      }
+    },
+    "great-weapon-master": {
+      "id": "great-weapon-master",
+      "name": "Great Weapon Master",
+      "description": "You've learned to put the weight of a weapon to your advantage, letting its momentum empower your strikes.",
+      "type": "feat",
+      "source": "Player's Handbook",
+      "prerequisites": {},
+      "mechanics": {
+        "actions": [
+          {
+            "type": "choice",
+            "name": "Power Attack",
+            "effect": "Before making a melee attack with a heavy weapon, take -5 to attack roll for +10 damage"
+          }
+        ],
+        "special": "When you score a critical hit or reduce a creature to 0 hit points with a melee weapon attack, you can make one melee weapon attack as a bonus action."
+      }
+    },
+    "lucky": {
+      "id": "lucky",
+      "name": "Lucky",
+      "description": "You have inexplicable luck that seems to kick in at just the right moment.",
+      "type": "feat",
+      "source": "Player's Handbook",
+      "prerequisites": {},
+      "mechanics": {
+        "actions": [
+          {
+            "type": "reaction",
+            "name": "Lucky",
+            "effect": "Reroll an attack roll, ability check, or saving throw",
+            "uses": {
+              "type": "long_rest",
+              "count": 3
+            }
+          }
+        ]
+      }
+    }
+  }
+}

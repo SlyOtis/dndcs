@@ -1,0 +1,268 @@
+{
+  "className": "Fighter",
+  "hitDie": 10,
+  "primaryAbility": ["Strength", "Dexterity"],
+  "savingThrowProficiencies": ["Strength", "Constitution"],
+  "skillProficiencies": {
+    "count": 2,
+    "from": ["Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Perception", "Survival"]
+  },
+  "armorProficiencies": ["All armor", "Shields"],
+  "weaponProficiencies": ["Simple weapons", "Martial weapons"],
+  "toolProficiencies": [],
+  "startingEquipment": [
+    {
+      "id": "chain_mail",
+      "title": "Chain Mail",
+      "type": "armor",
+      "subtype": "heavy",
+      "rarity": "common",
+      "attributes": [],
+      "description": "Made of interlocking metal rings, chain mail includes a layer of quilted fabric worn underneath the mail to prevent chafing and to cushion the impact of blows. The suit includes gauntlets.",
+      "value": { "amount": 75, "currency": "gp" },
+      "weight": 55,
+      "quantity": 1,
+      "equippable": true,
+      "equipped": true,
+      "properties": {
+        "ac": {
+          "base": 16,
+          "bonus": 0,
+          "dexModifier": false,
+          "maxDexBonus": 0
+        }
+      }
+    }
+  ],
+  "levels": [
+    {
+      "level": 1,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "fighting_style",
+          "level": 1,
+          "source": "class",
+          "title": "Fighting Style",
+          "description": "You adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once, even if you later get to choose again."
+        },
+        {
+          "id": "second_wind",
+          "level": 1,
+          "source": "class",
+          "title": "Second Wind",
+          "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level. Once you use this feature, you must finish a short or long rest before you can use it again."
+        }
+      ],
+      "hitDie": { "amount": 1, "die": 10 },
+      "additionalChoices": [
+        {
+          "type": "fighting_style",
+          "count": 1,
+          "from": ["Archery", "Defense", "Dueling", "Great Weapon Fighting", "Protection", "Two-Weapon Fighting"],
+          "description": "Choose a fighting style that defines your combat approach"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "action_surge",
+          "level": 2,
+          "source": "class",
+          "title": "Action Surge",
+          "description": "Starting at 2nd level, you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action on top of your regular action and a possible bonus action. Once you use this feature, you must finish a short or long rest before you can use it again. Starting at 17th level, you can use it twice before a rest, but only once on the same turn."
+        }
+      ],
+      "hitDie": { "amount": 2, "die": 10 }
+    },
+    {
+      "level": 3,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "martial_archetype",
+          "level": 3,
+          "source": "class",
+          "title": "Martial Archetype",
+          "description": "At 3rd level, you choose an archetype that you strive to emulate in your combat styles and techniques."
+        }
+      ],
+      "subclassChoice": true,
+      "hitDie": { "amount": 3, "die": 10 }
+    },
+    {
+      "level": 4,
+      "proficiencyBonus": 2,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 4, "die": 10 }
+    },
+    {
+      "level": 5,
+      "proficiencyBonus": 3,
+      "features": [
+        {
+          "id": "extra_attack",
+          "level": 5,
+          "source": "class",
+          "title": "Extra Attack",
+          "description": "Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn. The number of attacks increases to three when you reach 11th level in this class and to four when you reach 20th level in this class."
+        }
+      ],
+      "hitDie": { "amount": 5, "die": 10 }
+    },
+    {
+      "level": 6,
+      "proficiencyBonus": 3,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 6, "die": 10 }
+    },
+    {
+      "level": 7,
+      "proficiencyBonus": 3,
+      "features": [],
+      "hitDie": { "amount": 7, "die": 10 }
+    },
+    {
+      "level": 8,
+      "proficiencyBonus": 3,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 8, "die": 10 }
+    },
+    {
+      "level": 9,
+      "proficiencyBonus": 4,
+      "features": [
+        {
+          "id": "indomitable",
+          "level": 9,
+          "source": "class",
+          "title": "Indomitable",
+          "description": "Beginning at 9th level, you can reroll a saving throw that you fail. If you do so, you must use the new roll, and you can't use this feature again until you finish a long rest. You can use this feature twice between long rests starting at 13th level and three times between long rests starting at 17th level."
+        }
+      ],
+      "hitDie": { "amount": 9, "die": 10 }
+    },
+    {
+      "level": 10,
+      "proficiencyBonus": 4,
+      "features": [],
+      "hitDie": { "amount": 10, "die": 10 }
+    },
+    {
+      "level": 11,
+      "proficiencyBonus": 4,
+      "features": [
+        {
+          "id": "extra_attack_2",
+          "level": 11,
+          "source": "class",
+          "title": "Extra Attack (2)",
+          "description": "At 11th level, you can attack three times whenever you take the Attack action on your turn."
+        }
+      ],
+      "hitDie": { "amount": 11, "die": 10 }
+    },
+    {
+      "level": 12,
+      "proficiencyBonus": 4,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 12, "die": 10 }
+    },
+    {
+      "level": 13,
+      "proficiencyBonus": 5,
+      "features": [
+        {
+          "id": "indomitable_2",
+          "level": 13,
+          "source": "class",
+          "title": "Indomitable (2 uses)",
+          "description": "At 13th level, you can use Indomitable twice between long rests."
+        }
+      ],
+      "hitDie": { "amount": 13, "die": 10 }
+    },
+    {
+      "level": 14,
+      "proficiencyBonus": 5,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 14, "die": 10 }
+    },
+    {
+      "level": 15,
+      "proficiencyBonus": 5,
+      "features": [],
+      "hitDie": { "amount": 15, "die": 10 }
+    },
+    {
+      "level": 16,
+      "proficiencyBonus": 5,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 16, "die": 10 }
+    },
+    {
+      "level": 17,
+      "proficiencyBonus": 6,
+      "features": [
+        {
+          "id": "action_surge_2",
+          "level": 17,
+          "source": "class",
+          "title": "Action Surge (2 uses)",
+          "description": "At 17th level, you can use Action Surge twice before a rest, but only once on the same turn."
+        },
+        {
+          "id": "indomitable_3",
+          "level": 17,
+          "source": "class",
+          "title": "Indomitable (3 uses)",
+          "description": "At 17th level, you can use Indomitable three times between long rests."
+        }
+      ],
+      "hitDie": { "amount": 17, "die": 10 }
+    },
+    {
+      "level": 18,
+      "proficiencyBonus": 6,
+      "features": [],
+      "hitDie": { "amount": 18, "die": 10 }
+    },
+    {
+      "level": 19,
+      "proficiencyBonus": 6,
+      "features": [],
+      "abilityScoreImprovement": true,
+      "featChoice": true,
+      "hitDie": { "amount": 19, "die": 10 }
+    },
+    {
+      "level": 20,
+      "proficiencyBonus": 6,
+      "features": [
+        {
+          "id": "extra_attack_3",
+          "level": 20,
+          "source": "class",
+          "title": "Extra Attack (3)",
+          "description": "At 20th level, you can attack four times whenever you take the Attack action on your turn."
+        }
+      ],
+      "hitDie": { "amount": 20, "die": 10 }
+    }
+  ]
+}

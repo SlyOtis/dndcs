@@ -19,7 +19,9 @@
         justify-content: center;
         align-items: center;
         width: auto;
-        height: auto;
+        height: 100px;
+        min-height: 100px;
+        max-height: 100px;
         gap: 6px;
         padding: 4px 8px;
         border-radius: 16px;

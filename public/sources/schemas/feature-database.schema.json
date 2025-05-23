@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Feature Database Schema",
+  "description": "Database of all possible features, feats, spells, and abilities that can be selected",
+  "type": "object",
+  "required": ["features"],
+  "properties": {
+    "features": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Feature"
+      },
+      "description": "Array of all available features"
+    },
+    "categories": {
+      "type": "object",
+      "description": "Feature categories for organization"
+    }
+  },
+  "definitions": {
+    "Feature": {
+      "type": "object",
+      "required": ["id", "name", "type", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this feature"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the feature"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "class_feature",
+            "subclass_feature", 
+            "feat",
+            "spell",
+            "cantrip",
+            "fighting_style",
+            "expertise",
+            "metamagic",
+            "invocation",
+            "maneuver",
+            "skill_proficiency",
+            "tool_proficiency",
+            "language",
+            "resistance",
+            "immunity",
+            "sense",
+            "movement",
+            "action",
+            "bonus_action",
+            "reaction",
+            "passive"
+          ],
+          "description": "Category of this feature"
+        },
+        "description": {
+          "type": "string",
+          "description": "Full description of what this feature does"
+        },
+        "shortDescription": {
+          "type": "string",
+          "description": "Brief summary for lists"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "book": {
+              "type": "string",
+              "description": "Source book abbreviation (PHB, XGE, etc.)"
+            },
+            "page": {
+              "type": "integer",
+              "description": "Page number in source book"
+            }
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Prerequisite"
+          },
+          "description": "Requirements to select this feature"
+        },
+        "mutuallyExclusive": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Feature IDs that cannot be taken with this feature"
+        },
+        "replaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Feature IDs that this feature replaces"
+        },
+        "mechanics": {
+          "$ref": "#/definitions/FeatureMechanics",
+          "description": "Mechanical effects of this feature"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for filtering and searching"
+        }
+      }
+    },
+    "Prerequisite": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["level", "ability_score", "feature", "class", "subclass", "skill", "spell"]
+        },
+        "value": {
+          "type": ["string", "integer"],
+          "description": "The required value (level number, ability score, feature ID, etc.)"
+        },
+        "ability": {
+          "type": "string",
+          "enum": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+          "description": "For ability score prerequisites"
+        },
+        "minimum": {
+          "type": "integer",
+          "description": "Minimum value required"
+        }
+      }
+    },
+    "FeatureMechanics": {
+      "type": "object",
+      "description": "Mechanical effects that can be applied automatically",
+      "properties": {
+        "abilityScoreIncrease": {
+          "type": "object",
+          "properties": {
+            "choices": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "abilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+                    }
+                  },
+                  "increase": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "skillProficiencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Skills granted by this feature"
+        },
+        "expertise": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Skills that gain expertise"
+        },
+        "savingThrows": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+          },
+          "description": "Saving throw proficiencies"
+        },
+        "armorClass": {
+          "type": "object",
+          "properties": {
+            "base": { "type": "integer" },
+            "dexModifier": { "type": "boolean" },
+            "maxDexBonus": { "type": "integer" },
+            "bonus": { "type": "integer" }
+          }
+        },
+        "hitPoints": {
+          "type": "object",
+          "properties": {
+            "increase": { "type": "integer" },
+            "perLevel": { "type": "boolean" }
+          }
+        },
+        "speed": {
+          "type": "object",
+          "properties": {
+            "walking": { "type": "integer" },
+            "flying": { "type": "integer" },
+            "swimming": { "type": "integer" },
+            "climbing": { "type": "integer" }
+          }
+        },
+        "resistance": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Damage resistances granted"
+        },
+        "immunity": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Damage immunities granted"
+        },
+        "senses": {
+          "type": "object",
+          "properties": {
+            "darkvision": { "type": "integer" },
+            "blindsight": { "type": "integer" },
+            "tremorsense": { "type": "integer" },
+            "truesight": { "type": "integer" }
+          }
+        },
+        "spellcasting": {
+          "type": "object",
+          "properties": {
+            "ability": {
+              "type": "string",
+              "enum": ["Intelligence", "Wisdom", "Charisma"]
+            },
+            "knownSpells": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Action"
+          },
+          "description": "Actions granted by this feature"
+        }
+      }
+    },
+    "Action": {
+      "type": "object",
+      "required": ["id", "name", "actionType"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "actionType": {
+          "type": "string",
+          "enum": ["action", "bonus_action", "reaction", "free"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "uses": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["unlimited", "per_rest", "per_day", "charges"]
+            },
+            "count": {
+              "type": "integer"
+            },
+            "restType": {
+              "type": "string",
+              "enum": ["short", "long"]
+            }
+          }
+        },
+        "damage": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dice": { "type": "integer" },
+              "sides": { "type": "integer" },
+              "bonus": { "type": "integer" },
+              "type": { "type": "string" }
+            }
+          }
+        },
+        "range": {
+          "type": "object",
+          "properties": {
+            "normal": { "type": "integer" },
+            "maximum": { "type": "integer" },
+            "reach": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@
   import BackgroundTab from "../components/main_tabs/BackgroundTab.svelte";
   import MainTabs from "../components/main_tabs/MainTabs.svelte";
   import ActionsTab from "../components/main_tabs/ActionsTab.svelte";
+  import Special from "./Special.svelte";
 
   const {info} = getContext<CharacterContext>('character');
 
@@ -27,6 +28,7 @@
             <Abilities/>
             <SavingThrows/>
             <Skills/>
+            <Special/>
             <Senses/>
             <Proficiencies/>
         </div>
@@ -118,6 +120,18 @@
         gap: 16px;
         width: 100%;
         height: 100%;
+    }
+
+    .grid.start {
+        /* Define height for the left grid */
+        max-height: fit-content;
+    }
+
+    .grid.end {
+        /* Constrain the right grid to match the left grid's height */
+        height: fit-content;
+        max-height: 100%;
+        align-content: start;
     }
 
     @media screen and (max-width: 1024px) {

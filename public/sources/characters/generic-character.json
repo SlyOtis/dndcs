@@ -1,0 +1,68 @@
+{
+  "characterId": "char-generic-001",
+  "name": "Sample Character",
+  "race": "human",
+  "background": "folk_hero",
+  "classes": {
+    "primary": {
+      "name": "fighter",
+      "level": 3,
+      "hitDie": 10,
+      "progression": "class-progression"
+    }
+  },
+  "totalLevel": 3,
+  "abilityScores": {
+    "strength": 15,
+    "dexterity": 14,
+    "constitution": 13,
+    "intelligence": 12,
+    "wisdom": 10,
+    "charisma": 8
+  },
+  "hitPoints": {
+    "maximum": 28,
+    "current": 28,
+    "temporary": 0
+  },
+  "armorClass": 16,
+  "proficiencyBonus": 2,
+  "savingThrowProficiencies": [],
+  "skillProficiencies": [],
+  "features": [],
+  "levelHistory": {
+    "1": {
+      "hitPointsGained": 10,
+      "choicesMade": [
+        {
+          "type": "subclass",
+          "selection": "fighter"
+        }
+      ],
+      "featuresGained": [],
+      "abilityScoreChanges": {}
+    },
+    "2": {
+      "hitPointsGained": 8,
+      "choicesMade": [],
+      "featuresGained": [],
+      "abilityScoreChanges": {}
+    },
+    "3": {
+      "hitPointsGained": 10,
+      "choicesMade": [],
+      "featuresGained": [],
+      "abilityScoreChanges": {}
+    }
+  },
+  "equipment": {
+    "armor": null,
+    "shield": null,
+    "weapons": [],
+    "items": []
+  },
+  "spellcasting": null,
+  "notes": "A generic character template that can be customized for any class or build.",
+  "createdAt": "2025-01-15T15:00:00Z",
+  "lastModified": "2025-01-15T15:00:00Z"
+}

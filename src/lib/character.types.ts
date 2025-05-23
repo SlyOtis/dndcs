@@ -4,7 +4,7 @@ import type {FeatureSource} from "./class.types";
 export type Currency = keyof CharacterCurrency
 
 /** Classification of items in the game world */
-export type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'misc'
+export type ItemType = 'weapon' | 'armor' | 'consumable' | 'tool' | 'container' | 'treasure' | 'ammunition' | 'misc'
 
 /** Standard D&D item rarity levels */
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
@@ -346,6 +346,91 @@ export interface CharacterBackground {
   }[] // List of additional notes or properties for the background, Default undefined,
 }
 
+export interface CharacterSpecial {
+  name: string
+  regain: string
+  current: number
+  max: number
+}
+
+/** Single equipped item */
+export interface EquippedItem {
+  id: string           // Item ID
+  title: string        // Item name
+  type: string         // Comma-separated types (e.g., "weapon,ammunition" or "armor,shield")
+}
+
+/** Array of equipped items */
+export type EquippedItems = EquippedItem[]
+
+/** Character level progression for each level */
+export interface LevelProgression {
+  level: number
+  proficiencyBonus: number
+  features: Feat[]
+  abilityScoreImprovement?: boolean
+  featChoice?: boolean
+  subclassChoice?: boolean
+  hitDie: HitDice
+  spellSlots?: {
+    [level: number]: number
+  }
+  cantripsKnown?: number
+  spellsKnown?: number
+  additionalChoices?: {
+    type: 'skill' | 'language' | 'tool' | 'fighting_style' | 'metamagic' | 'invocation' | 'maneuver' | 'spell'
+    count: number
+    from: string[]
+    description: string
+  }[]
+}
+
+/** Complete class progression from 1-20 */
+export interface ClassProgression {
+  className: string
+  hitDie: number
+  primaryAbility: string[]
+  savingThrowProficiencies: string[]
+  skillProficiencies: {
+    count: number
+    from: string[]
+  }
+  armorProficiencies: string[]
+  weaponProficiencies: string[]
+  toolProficiencies: string[]
+  startingEquipment: CharacterInventoryItem[]
+  levels: LevelProgression[]
+}
+
+/** Character source import data */
+export interface CharacterSourceData {
+  type: 'json' | 'text' | 'pdf' | 'image'
+  content: string | File
+  extractedData?: any
+}
+
+/** Level up choice options */
+export interface LevelUpChoice {
+  type: 'abilityScore' | 'feat' | 'skill' | 'spell' | 'subclass' | 'fighting_style'
+  title: string
+  description: string
+  options: string[]
+  maxSelections: number
+  selected?: string[]
+}
+
+/** Complete level up data for a specific level */
+export interface LevelUpData {
+  level: number
+  hitDiceGain: HitDice
+  proficiencyBonus: number
+  newFeatures: Feat[]
+  choices: LevelUpChoice[]
+  spellSlotChanges?: {
+    [level: number]: number
+  }
+}
+
 /** Complete character data structure */
 export interface Character {
   /** Core character information including name, race, class, HP, etc */
@@ -422,4 +507,10 @@ export interface Character {
 
   /** Character's background choice and story */
   background: CharacterBackground
+
+  /** Chi, sorcery points, grit points and so on */
+  special: CharacterSpecial
+
+  /** Currently equipped items by type */
+  equipped: EquippedItems
 }

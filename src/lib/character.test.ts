@@ -9,16 +9,16 @@ const character: Character = {
     infoUrl: "https://app.legendkeeper.com/a/worlds/cm1bx72zf0pg90jnf4a1ngvav/cm1i3rxox0014039b82idcchc/",
     backgroundUrl: "https://www.youtube.com/watch?v=RfBgmw_xCVY",
     inspiration: false,
-    level: 4,
+    level: 5,
     hp: {
-      current: 34,
-      max: 34,
+      current: 42,
+      max: 42,
       temporary: 0
     },
     ac: 15,
     initiative: 4,
     speed: "30 ft",
-    proficiencyBonus: 2,
+    proficiencyBonus: 3,
     weight: 0,
     carry_capacity: 165, // 11 STR x 15
     race: {
@@ -28,7 +28,7 @@ const character: Character = {
     class: {
       name: "Gunslinger",
       hitDice: {
-        amount: 4,
+        amount: 5,
         die: 8
       }
     },
@@ -171,6 +171,13 @@ const character: Character = {
         "## Mastery\n" +
         "* You are in full control of metal and can change the shape of non moving metal (under one pund of metal), change the direction and speed of moving metal, or change its temperature in its entirety.\n" +
         "* You can for a certainty detect the metals around within a set range, and determine the type of metal, its speed, and direction"
+    },
+    {
+      id: "extra_attack_5",
+      level: 5,
+      source: "class",
+      title: "Extra Attack",
+      description: "You can attack twice, instead of once, whenever you take the Attack action on your turn."
     }
   ],
   abilities: [
@@ -219,7 +226,7 @@ const character: Character = {
     },
     {
       title: "Dexterity",
-      modifier: 6, // +4 DEX, +2 proficiency
+      modifier: 7, // +4 DEX, +3 proficiency
       proficiency: 1
     },
     {
@@ -239,7 +246,7 @@ const character: Character = {
     },
     {
       title: "Charisma",
-      modifier: 3, // +1 CHA, +2 proficiency
+      modifier: 4, // +1 CHA, +3 proficiency
       proficiency: 1
     }
   ],
@@ -271,7 +278,7 @@ const character: Character = {
     {
       name: "Deception",
       ability: "Charisma",
-      modifier: 3,
+      modifier: 4,
       proficiency: 1
     },
     {
@@ -283,13 +290,13 @@ const character: Character = {
     {
       name: "Insight",
       ability: "Wisdom",
-      modifier: 4,
+      modifier: 5,
       proficiency: 1
     },
     {
       name: "Intimidation",
       ability: "Charisma",
-      modifier: 3,
+      modifier: 4,
       proficiency: 1
     },
     {
@@ -313,7 +320,7 @@ const character: Character = {
     {
       name: "Perception",
       ability: "Wisdom",
-      modifier: 4,
+      modifier: 5,
       proficiency: 1
     },
     {
@@ -337,13 +344,13 @@ const character: Character = {
     {
       name: "Sleight of Hand",
       ability: "Dexterity",
-      modifier: 6,
+      modifier: 7,
       proficiency: 1
     },
     {
       name: "Stealth",
       ability: "Dexterity",
-      modifier: 6,
+      modifier: 7,
       proficiency: 1
     },
     {
@@ -356,7 +363,7 @@ const character: Character = {
   senses: [
     {
       title: "Passive Perception",
-      score: 14 // 10 + 4 (proficiency)
+      score: 15 // 10 + 5 (proficiency)
     },
     {
       title: "Passive Investigation",
@@ -364,7 +371,7 @@ const character: Character = {
     },
     {
       title: "Passive Insight",
-      score: 14 // 10 + 4 (proficiency)
+      score: 15 // 10 + 5 (proficiency)
     },
     {
       title: "Darkvision",
@@ -384,7 +391,7 @@ const character: Character = {
         type: "piercing",
         bonus: 4
       }],
-      toHit: 6,
+      toHit: 7,
       properties: ["ammunition", "kick (12)", "loud", "reload (6)"]
     },
     {
@@ -475,7 +482,7 @@ const character: Character = {
     {
       id: "ammunition",
       title: "Ammunition",
-      type: "consumable",
+      type: "ammunition",
       subtype: "rounds",
       rarity: "common",
       attributes: [],
@@ -483,7 +490,7 @@ const character: Character = {
       value: { amount: 3, currency: "gp" },
       weight: 1,
       quantity: 20,
-      equippable: false,
+      equippable: true,
       equipped: false
     },
     {
@@ -540,7 +547,14 @@ const character: Character = {
         description: "Enforcer - You serve as muscle for thieves' guilds and criminal organizations"
       }
     ]
-  }
+  },
+  special: {
+    name: "Grit points",
+    regain: "Short rest",
+    max: 5,
+    current: 5
+  },
+  equipped: []
 }
 
 export default character

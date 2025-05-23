@@ -4,7 +4,7 @@
   import type {CharacterCurrency} from "../../lib/character.types";
   import {addCurrencies, asGold} from "../../lib/engine";
 
-  const {inventory, info, currency} = getContext<CharacterContext>('character')
+  const {inventory, info, currency, equipped} = getContext<CharacterContext>('character')
 
   let carriedWeight = $derived($inventory.reduce((prev, curr) => {
     return prev += curr.weight
@@ -15,9 +15,9 @@
   let inventoryValue = $derived($inventory.reduce((prev, curr) => {
     return {
       ...prev,
-      [curr.value.currency]: curr.value.amount + prev?.[curr.value.currency] || 0,
+      [curr.value.currency]: curr.value.amount + (prev as any)?.[curr.value.currency] || 0,
     }
-  }, {}) as CharacterCurrency)
+  }, {} as CharacterCurrency))
 
   let totalValuables = $derived(addCurrencies(inventoryValue, $currency))
   let searchInput = $state('')
@@ -30,6 +30,76 @@
     val.type?.includes(searchInput) ||
     val.id?.includes(searchInput) ||
     val.title?.includes(searchInput)))
+
+  function getEquipIcon(itemType: string): string {
+    const icons: {[key: string]: string} = {
+      weapon: '⚔️',
+      armor: '🛡️',
+      ammunition: '🏹',
+      tool: '🔨',
+      consumable: '🧪',
+      treasure: '💎',
+      container: '📦',
+      misc: '📄'
+    }
+    return icons[itemType] || '⚙️'
+  }
+
+  function isItemEquipped(itemId: string): boolean {
+    if (!$equipped || !Array.isArray($equipped)) {
+      console.warn('Equipped is not an array:', $equipped);
+      return false;
+    }
+    return $equipped.some(equippedItem => equippedItem.id === itemId);
+  }
+
+  function equipItem(item: any) {
+    equipped.update(curr => {
+      // Ensure curr is an array
+      if (!Array.isArray(curr)) {
+        console.warn('Current equipped is not an array, initializing as empty array:', curr);
+        curr = [];
+      }
+      
+      const isCurrentlyEquipped = curr.some(equippedItem => equippedItem.id === item.id);
+      
+      if (isCurrentlyEquipped) {
+        // Unequip the item
+        const newEquipped = curr.filter(equippedItem => equippedItem.id !== item.id);
+        console.log('Equipment change - UNEQUIPPED:', {
+          itemType: item.type,
+          itemId: item.id,
+          itemTitle: item.title,
+          newEquipped
+        });
+        return newEquipped;
+      } else {
+        // Equip the item - first remove any items of the same primary type
+        const primaryType = item.type; // Use the primary type to avoid conflicts
+        const newEquipped = curr.filter(equippedItem => {
+          // Remove items that have the same primary type
+          const equippedTypes = equippedItem.type.split(',').map(t => t.trim());
+          return !equippedTypes.includes(primaryType);
+        });
+        
+        // Add the new equipped item
+        newEquipped.push({
+          id: item.id,
+          title: item.title,
+          type: item.type // This could be comma-separated types
+        });
+        
+        console.log('Equipment change - EQUIPPED:', {
+          itemType: item.type,
+          itemId: item.id,
+          itemTitle: item.title,
+          newEquipped
+        });
+        
+        return newEquipped;
+      }
+    });
+  }
 
 </script>
 
@@ -72,28 +142,15 @@
             {#each filteredItems as item}
                 <li class="item">
                     <div class="equippable center">
-                        {#if item.equippable}
-                            <button class="toggle"
-                                    class:equipped={item.equipped}
-                                    onclick={e => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    inventory.update(curr => {
-                                        const i = curr.findIndex(val => val.id === item.id)
-                                        const currItem = curr[i]
-                                        curr[i] = {
-                                            ...curr[i],
-                                            equipped: !currItem.equipped
-                                        }
-                                        return curr
-                                    })
-
-                                }}
-                            >-
-                            </button>
-                        {:else}
-                            <span class="empty">-</span>
-                        {/if}
+                        <button class="toggle"
+                                class:equipped={isItemEquipped(item.id)}
+                                onclick={e => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                equipItem(item)
+                            }}
+                        >{getEquipIcon(item.type)}
+                        </button>
                     </div>
                     <div class="name">
                         <h4>{item.title}</h4>
@@ -122,10 +179,12 @@
         position: relative;
         width: 100%;
         height: 100%;
+        max-height: 100%;
         display: flex;
         justify-content: start;
         align-items: start;
         flex-direction: column;
+        overflow: hidden;
         background-color: var(--color-content-dark);
     }
 
@@ -216,9 +275,10 @@
     .scroll {
         position: relative;
         width: 100%;
-        height: 100%;
+        flex: 1;
+        min-height: 0;
         overflow: hidden;
-        overflow-y: scroll;
+        overflow-y: auto;
     }
 
     .center {
@@ -246,10 +306,10 @@
 
     .toggle, .empty {
         position: relative;
-        width: 32px;
-        height: 32px;
-        min-height: 32px;
-        min-width: 32px;
+        width: 24px;
+        height: 24px;
+        min-height: 24px;
+        min-width: 24px;
         cursor: pointer;
         display: flex;
         justify-content: center;
@@ -257,19 +317,65 @@
         justify-self: center;
         align-self: center;
         text-align: center;
-        background-color: transparent;
+        background: linear-gradient(145deg, var(--color-content-main), var(--color-content-dark));
+        border: 1px solid var(--color-primary-main);
+        border-radius: 6px;
+        font-size: 0.8em;
+        transition: all 0.2s ease;
+        box-shadow: 
+            inset 1px 1px 2px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
+            inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+            0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
-    .toggle {
-        content: ' ';
-        background-color: var(--color-content-main);
-        border: 2px solid var(--color-primary-main);
-        border-radius: 8px;
-        color: transparent;
+    .toggle:hover {
+        background: linear-gradient(145deg, var(--color-accent), var(--color-content-main));
+        border-color: var(--color-secondary-main);
+        transform: translateY(-1px);
+        box-shadow: 
+            inset 1px 1px 3px color-mix(in srgb, var(--color-primary-main) 30%, transparent),
+            inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+            0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .toggle:active {
+        transform: translateY(0);
+        box-shadow: 
+            inset 2px 2px 4px rgba(0, 0, 0, 0.4),
+            inset -1px -1px 2px color-mix(in srgb, var(--color-primary-main) 15%, transparent),
+            0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     .equipped {
-        background-color: var(--color-primary-main);
+        background: linear-gradient(145deg, var(--color-primary-main), var(--color-secondary-main));
+        border-color: var(--color-primary-text);
+        color: var(--color-content-main);
+        font-weight: bold;
+        box-shadow: 
+            inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 20%, transparent),
+            inset -1px -1px 3px rgba(0, 0, 0, 0.5),
+            0 0 8px color-mix(in srgb, var(--color-primary-main) 40%, transparent);
+        animation: equipped-glow 2s ease-in-out infinite;
+    }
+
+    .equipped:hover {
+        background: linear-gradient(145deg, var(--color-secondary-main), var(--color-primary-main));
+        transform: translateY(-1px);
+    }
+
+    @keyframes equipped-glow {
+        0%, 100% { 
+            box-shadow: 
+                inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 20%, transparent),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.5),
+                0 0 8px color-mix(in srgb, var(--color-primary-main) 40%, transparent);
+        }
+        50% { 
+            box-shadow: 
+                inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 30%, transparent),
+                inset -1px -1px 3px rgba(0, 0, 0, 0.6),
+                0 0 12px color-mix(in srgb, var(--color-primary-main) 60%, transparent);
+        }
     }
 
 </style>

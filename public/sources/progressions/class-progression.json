@@ -1,0 +1,176 @@
+[
+  {
+    "level": 1,
+    "proficiencyBonus": 2,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "class_choice",
+        "name": "Choose Class",
+        "description": "Select your character class",
+        "type": "subclass",
+        "count": 1,
+        "from": ["fighter", "wizard", "rogue", "cleric", "barbarian", "bard", "druid", "monk", "paladin", "ranger", "sorcerer", "warlock"]
+      }
+    ]
+  },
+  {
+    "level": 2,
+    "proficiencyBonus": 2,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 3,
+    "proficiencyBonus": 2,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 4,
+    "proficiencyBonus": 2,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "asi_or_feat_4",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Increase ability scores by 2 total points or choose a feat",
+        "type": "feature",
+        "count": 1,
+        "from": ["ability_score_improvement", "feat_choice"]
+      }
+    ]
+  },
+  {
+    "level": 5,
+    "proficiencyBonus": 3,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 6,
+    "proficiencyBonus": 3,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 7,
+    "proficiencyBonus": 3,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 8,
+    "proficiencyBonus": 3,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "asi_or_feat_8",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Increase ability scores by 2 total points or choose a feat",
+        "type": "feature",
+        "count": 1,
+        "from": ["ability_score_improvement", "feat_choice"]
+      }
+    ]
+  },
+  {
+    "level": 9,
+    "proficiencyBonus": 4,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 10,
+    "proficiencyBonus": 4,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 11,
+    "proficiencyBonus": 4,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 12,
+    "proficiencyBonus": 4,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "asi_or_feat_12",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Increase ability scores by 2 total points or choose a feat",
+        "type": "feature",
+        "count": 1,
+        "from": ["ability_score_improvement", "feat_choice"]
+      }
+    ]
+  },
+  {
+    "level": 13,
+    "proficiencyBonus": 5,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 14,
+    "proficiencyBonus": 5,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 15,
+    "proficiencyBonus": 5,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 16,
+    "proficiencyBonus": 5,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "asi_or_feat_16",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Increase ability scores by 2 total points or choose a feat",
+        "type": "feature",
+        "count": 1,
+        "from": ["ability_score_improvement", "feat_choice"]
+      }
+    ]
+  },
+  {
+    "level": 17,
+    "proficiencyBonus": 6,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 18,
+    "proficiencyBonus": 6,
+    "automaticFeatures": [],
+    "choices": []
+  },
+  {
+    "level": 19,
+    "proficiencyBonus": 6,
+    "automaticFeatures": [],
+    "choices": [
+      {
+        "id": "asi_or_feat_19",
+        "name": "Ability Score Improvement or Feat",
+        "description": "Increase ability scores by 2 total points or choose a feat",
+        "type": "feature",
+        "count": 1,
+        "from": ["ability_score_improvement", "feat_choice"]
+      }
+    ]
+  },
+  {
+    "level": 20,
+    "proficiencyBonus": 6,
+    "automaticFeatures": [],
+    "choices": []
+  }
+]

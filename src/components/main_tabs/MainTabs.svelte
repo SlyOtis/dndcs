@@ -24,7 +24,7 @@
 
   onDestroy(() => unsubscribe())
 
-  function selectTab(e, tab: Tabs) {
+  function selectTab(e: Event, tab: Tabs) {
     e.stopPropagation()
     e.preventDefault()
     selectedTab.set(tab)
@@ -55,21 +55,24 @@
 <style>
     .root {
         position: relative;
-        width: 100%;
-        height: 100%;
-
         display: flex;
+        flex-direction: column;
         justify-content: start;
         align-items: center;
-        flex-direction: column;
-        min-height: 500px;
-        max-height: 600px;
+        gap: 12px;
+        padding: 4px 8px;
         overflow: hidden;
+
+        grid-column: 1 / 6;
+        grid-row: span 4;
 
         align-self: stretch;
         justify-self: stretch;
+        
+        /* Fixed height constraint to prevent overflow */
+        max-height: 600px;
+        height: min-content;
 
-        grid-column: 1 / 6;
         background-color: var(--color-content-dark);
     }
 
@@ -98,10 +101,13 @@
     .content {
         position: relative;
         width: 100%;
-        height: 100%;
+        flex: 1;
         display: flex;
         justify-content: stretch;
         align-items: stretch;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
+        min-height: 0;
+        max-height: 540px; /* Reserve space for header */
     }
 </style>

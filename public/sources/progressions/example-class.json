@@ -1,0 +1,102 @@
+{
+  "className": "Example Warrior",
+  "hitDie": 10,
+  "primaryAbility": ["Strength", "Constitution"],
+  "savingThrowProficiencies": ["Strength", "Constitution"],
+  "skillProficiencies": {
+    "count": 2,
+    "from": ["Athletics", "Intimidation", "Survival", "Perception"]
+  },
+  "armorProficiencies": ["Light armor", "Medium armor", "Shields"],
+  "weaponProficiencies": ["Simple weapons", "Martial weapons"],
+  "levels": [
+    {
+      "level": 1,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "weapon_mastery",
+          "level": 1,
+          "source": "class",
+          "title": "Weapon Mastery",
+          "description": "You gain mastery over specific weapon types, allowing for enhanced combat techniques."
+        },
+        {
+          "id": "combat_stance",
+          "level": 1,
+          "source": "class",
+          "title": "Combat Stance",
+          "description": "You can adopt different combat stances that provide various tactical advantages."
+        }
+      ],
+      "hitDie": { "amount": 1, "die": 10 },
+      "additionalChoices": [
+        {
+          "type": "weapon_mastery",
+          "count": 2,
+          "from": ["Longsword", "Greatsword", "Battleaxe", "Warhammer", "Crossbow"],
+          "description": "Choose two weapons to master"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "tactical_mind",
+          "level": 2,
+          "source": "class",
+          "title": "Tactical Mind",
+          "description": "Your strategic thinking improves, allowing you to better assess battlefield conditions."
+        }
+      ],
+      "hitDie": { "amount": 2, "die": 10 }
+    },
+    {
+      "level": 3,
+      "proficiencyBonus": 2,
+      "features": [
+        {
+          "id": "warrior_path",
+          "level": 3,
+          "source": "class",
+          "title": "Warrior Path",
+          "description": "You choose a specialized path that defines your warrior's focus and abilities."
+        }
+      ],
+      "hitDie": { "amount": 3, "die": 10 },
+      "subclassChoice": true,
+      "additionalChoices": [
+        {
+          "type": "subclass",
+          "count": 1,
+          "from": ["Guardian", "Berserker", "Tactician", "Weaponmaster"],
+          "description": "Choose your warrior specialization"
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "proficiencyBonus": 2,
+      "features": [],
+      "hitDie": { "amount": 4, "die": 10 },
+      "abilityScoreImprovement": true,
+      "featChoice": true
+    },
+    {
+      "level": 5,
+      "proficiencyBonus": 3,
+      "features": [
+        {
+          "id": "extra_attack",
+          "level": 5,
+          "source": "class",
+          "title": "Extra Attack",
+          "description": "You can attack twice, instead of once, when you take the Attack action on your turn."
+        }
+      ],
+      "hitDie": { "amount": 5, "die": 10 }
+    }
+  ]
+}
