@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { config } from 'dotenv'
+import { resolve } from 'path'
 
 declare const process: {
   env: {
@@ -13,6 +14,16 @@ config()
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svelte()],
+  resolve: {
+    alias: {
+      '$lib': resolve(__dirname, 'src/lib'),
+      '$components': resolve(__dirname, 'src/components'),
+      '$character-sheet': resolve(__dirname, 'src/components/character_sheet'),
+      '$dialogs': resolve(__dirname, 'src/components/dialogs'),
+      '$chat': resolve(__dirname, 'src/components/chat'),
+      '$pages': resolve(__dirname, 'src/pages')
+    }
+  },
   server: {
     proxy: {
       "/replicate": {
@@ -20,13 +31,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (p) => p.replace(/^\/replicate/, ""),
-      },
-      "/anthropic": {
-        target: "https://api.anthropic.com/v1",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (p) => p.replace(/^\/anthropic/, ""),
-      },
+      }
     },
     cors: false,
   },

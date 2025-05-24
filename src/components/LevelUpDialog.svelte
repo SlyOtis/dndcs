@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { LevelUpData, LevelUpChoice } from '../lib/character.types';
-  import type {CharacterContext} from '../lib/types';
+  import type { LevelUpData, LevelUpChoice } from '$lib/character.types';
+  import type {CharacterContext} from '$lib/types';
   import {getContext} from 'svelte';
 
   let { isOpen = $bindable(false), levelUpData = $bindable() } = $props<{

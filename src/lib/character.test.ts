@@ -554,7 +554,12 @@ const character: Character = {
     max: 5,
     current: 5
   },
-  equipped: []
+  equipped: [],
+  soundBoard: {
+    id: "default_soundboard",
+    name: "My Sound Board",
+    clips: []
+  }
 }
 
 export default character

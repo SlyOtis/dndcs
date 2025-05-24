@@ -22,6 +22,42 @@ export type ReplicateLog = Array<ReplicateLogItem>
 
 const replicateStore = writable<ReplicateLog>(JSON.parse(localStorage.getItem('replicate_log') || '[]') as ReplicateLog);
 
+function checkIfNonsensical(input: string): boolean {
+  if (!input || input.length === 0) return false;
+  
+  // Check for extremely short gibberish
+  if (input.length <= 2) return true;
+  
+  // Check for keyboard mashing patterns
+  const keyboardMashPatterns = [
+    /^[qwertyuiop]+$/i,
+    /^[asdfghjkl]+$/i,
+    /^[zxcvbnm]+$/i,
+    /^[123456789]+$/,
+    /^[!@#$%^&*()]+$/,
+    /(.)\1{4,}/,  // Same character repeated 5+ times
+    /^[a-z]{1,3}$/, // Very short random letters
+  ];
+  
+  // Check for nonsensical patterns
+  const lowercaseInput = input.toLowerCase();
+  const isKeyboardMash = keyboardMashPatterns.some(pattern => pattern.test(lowercaseInput));
+  
+  // Check for lack of vowels in longer strings (common in gibberish)
+  const hasVowels = /[aeiou]/i.test(input);
+  const isLongWithoutVowels = input.length > 4 && !hasVowels;
+  
+  // Check for excessive consonant clusters
+  const hasExcessiveConsonants = /[bcdfghjklmnpqrstvwxyz]{5,}/i.test(input);
+  
+  // Check for random character sequences
+  const isRandomSequence = input.length > 3 && 
+    !/\b(roll|level|heal|rest|help|attack|damage|spell|skill|feat|item|weapon|armor|hp|health|magic|cast|use|equip|inventory|character|stats|ability|modifier|bonus|dice|d4|d6|d8|d10|d12|d20|d100)\b/i.test(input) &&
+    (isKeyboardMash || isLongWithoutVowels || hasExcessiveConsonants);
+  
+  return isRandomSequence;
+}
+
 export function getReplicateLog(): { replicateStore: Writable<ReplicateLog>, unsubscribeReplicate: Unsubscriber } {
   return {
     replicateStore,
@@ -198,21 +234,74 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
 }
 
 export async function detectAction(query: string, modelId?: string) {
-  // Simple pattern matching for common commands before AI processing
+  // Simple pattern matching for only the most basic commands, everything else goes to AI
   const lowercaseQuery = query.toLowerCase().trim();
   
-  // Direct command shortcuts
-  if (lowercaseQuery.includes('level up') || lowercaseQuery === 'level up' || lowercaseQuery === 'levelup') {
+  // Only keep the most direct commands, send everything else to AI for interpretation
+  if (lowercaseQuery === 'level up' || lowercaseQuery === 'levelup') {
     console.log('Direct level up command detected');
     return await aiLevelUp({ explanation: 'Direct level up command', sources: [], func: 'levelUp', args: {} });
   }
   
-  if (lowercaseQuery.includes('change theme') || lowercaseQuery.includes('theme')) {
-    console.log('Direct theme command detected');
-    return await aiChangeTheme({ explanation: 'Direct theme command', sources: [], func: 'changeTheme', args: {} });
+  // Direct /roll command bypass (doesn't go through AI)
+  if (query.startsWith('/roll ')) {
+    const rollCommand = query.substring(6).trim(); // Remove '/roll '
+    const diceMatch = rollCommand.match(/(\d+)?d(\d+)(?:\s*([+-])\s*(\d+))?/);
+    
+    if (diceMatch) {
+      const amount = parseInt(diceMatch[1] || '1', 10);
+      const die = parseInt(diceMatch[2], 10);
+      const modifier = diceMatch[3] && diceMatch[4] ? 
+        (diceMatch[3] === '+' ? parseInt(diceMatch[4], 10) : -parseInt(diceMatch[4], 10)) : 0;
+      const validDice = [4, 6, 8, 10, 12, 20, 100];
+      
+      if (validDice.includes(die) && amount > 0 && amount <= 20) {
+        console.log(`Direct /roll command: ${amount}d${die}${modifier ? (modifier > 0 ? '+' + modifier : modifier) : ''}`);
+        
+        // Use the rollDie function directly and format the response
+        const result = await rollDie(die, amount);
+        const total = result.sum + modifier;
+        const modifierText = modifier ? ` ${modifier > 0 ? '+' : ''}${modifier}` : '';
+        
+        writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
+        
+        return {
+          sentAt: new Date(),
+          returnedAt: new Date(),
+          explanation: `Direct /roll command: ${amount}d${die}${modifierText}`,
+          sources: [],
+          func: 'rollDie',
+          args: { die, amount, modifier }
+        } as ActionResponse;
+      }
+    }
+    
+    // If /roll command is malformed, still process through AI
+    console.log('Malformed /roll command, sending to AI');
   }
   
-  // Health/healing commands
+  // Check for nonsensical input before sending to AI
+  const isNonsensical = checkIfNonsensical(query.trim());
+  if (isNonsensical) {
+    console.log('Nonsensical input detected, showing intention message');
+    
+    replicateStore.update(state => ([...state, {
+      query,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `💭 **Intention detected**: "${query}"\n\nIt looks like you might be testing the input or typing randomly. If you have a specific question about your character or want to perform an action, please let me know!`,
+      hidden: false
+    }]));
+    
+    return Promise.resolve();
+  }
+  
+  // Everything else goes to AI for intelligent interpretation
+  console.log('Sending to AI for interpretation:', query);
+  
+  // All text commands now go through AI for intelligent interpretation
+  
+  /* DISABLED OLD PATTERN MATCHING - ALL GOES TO AI NOW
   if (lowercaseQuery.includes('refill health') || lowercaseQuery.includes('heal me') || lowercaseQuery.includes('restore health')) {
     console.log('Direct health refill command detected');
     return await aiRefillHealth({ explanation: 'Direct health refill command', sources: [], func: 'refillHealth', args: {} });
@@ -294,6 +383,13 @@ export async function detectAction(query: string, modelId?: string) {
     return await aiAddCondition({ explanation: 'Direct add condition command', sources: [], func: 'addCondition', args: { condition: conditionName } });
   }
   
+  // Remove all conditions
+  const removeAllConditionsMatch = lowercaseQuery.match(/(?:remove|clear|cure|end)\s+all\s+(?:conditions?|effects?|statuses?)/);
+  if (removeAllConditionsMatch) {
+    console.log(`Remove all conditions command detected`);
+    return await aiRemoveAllConditions({ explanation: 'Remove all conditions command', sources: [], func: 'removeAllConditions', args: {} });
+  }
+
   const removeConditionMatch = lowercaseQuery.match(/(?:remove|cure|clear|end)\s+(?:condition\s+)?(.+?)(?:\s+(?:condition|effect|status))?$/);
   if (removeConditionMatch) {
     const conditionName = removeConditionMatch[1].trim();
@@ -345,6 +441,14 @@ export async function detectAction(query: string, modelId?: string) {
     return await aiShowSpecificItem({ explanation: 'Direct show specific item command', sources: [], func: 'showSpecificItem', args: { itemQuery } });
   }
   
+  // Add ammunition (special case to increase existing ammo quantity)
+  const addAmmoMatch = lowercaseQuery.match(/(?:add|give me|create)\s+(\d+)?\s*(?:x\s+)?(?:ammo|ammunition)(?:\s+(?:to inventory|item|equipment))?$/);
+  if (addAmmoMatch) {
+    const quantity = parseInt(addAmmoMatch[1]) || 20; // Default to 20 if no number specified
+    console.log(`Direct add ammunition command detected: ${quantity}x ammunition`);
+    return await aiAddAmmunition({ explanation: 'Direct add ammunition command', sources: [], func: 'addAmmunition', args: { quantity } });
+  }
+
   // Add item/ammunition commands
   const addItemMatch = lowercaseQuery.match(/(?:add|give me|create)\s+(\d+)?\s*(?:x\s+)?(.+?)(?:\s+(?:to inventory|item|equipment))?$/);
   if (addItemMatch && (lowercaseQuery.includes('add') || lowercaseQuery.includes('give me') || lowercaseQuery.includes('create'))) {
@@ -362,6 +466,8 @@ export async function detectAction(query: string, modelId?: string) {
     console.log(`Direct remove item command detected: ${quantity}x ${itemName}`);
     return await aiRemoveItem({ explanation: 'Direct remove item command', sources: [], func: 'removeItem', args: { itemName, quantity } });
   }
+  END OF DISABLED PATTERN MATCHING */
+  
   const input = {
     top_k: 0,
     top_p: 0.9,
@@ -373,9 +479,17 @@ export async function detectAction(query: string, modelId?: string) {
     stop_sequences: "<|end_of_text|>,<|eot_id|>",
     prompt_template: `
       <|begin_of_text|><|start_header_id|>system<|end_header_id|>
-      \n\nYou are a helpful action selecting assistant that always find the correct action the user wants. Figure out 
-      what data is most likely required, and what functions to call among the below options (include arguments if described)
-      Try as best as possible to always resolve i to one of the actions and populate the arguments!
+      \n\nYou are a helpful action selecting assistant that always finds the correct action the user wants. Figure out 
+      what data is most likely required, and what functions to call among the below options (include arguments if described).
+      Try as best as possible to always resolve it to one of the actions and populate the arguments!
+      
+      SPECIAL INTERPRETATION RULES:
+      - For ammunition: "bullets", "ammo", "ammunition", "arrows", "bolts", "rounds" = use addAmmunition function
+      - For conditions: "poisoned", "stunned", "paralyzed", "charmed", etc. = use addCondition/removeCondition
+      - For "remove all", "clear all", "cure all" + conditions/effects = use removeAllConditions
+      - For "remove all", "clear all" + defenses/resistances/immunities = use removeAllDefenses
+      - For inventory items: weapons, armor, tools, consumables = use addItem/removeItem
+      - Always extract quantity numbers from user input (e.g., "20 bullets" = quantity: 20)
       
       Data sources: 
       1. info: All character general info
@@ -433,6 +547,18 @@ export async function detectAction(query: string, modelId?: string) {
       35. levelDown: Reduce character level and revert associated changes [args; targetLevel: number].
       36. undoLastChange: Undo the most recent character change (Ctrl+Z functionality).
       37. redoLastChange: Redo the most recently undone change.
+      38. addItem: Add items to inventory (weapons, armor, consumables) [args; itemName: string, quantity: number].
+      39. removeItem: Remove items from inventory [args; itemName: string, quantity: number].
+      40. addAmmunition: Add ammunition/bullets/arrows to existing ammo supply [args; quantity: number].
+      41. showItems: Display character's current inventory with details.
+      42. showSpecificItem: Display detailed information about a specific item [args; itemQuery: string].
+      43. addCondition: Apply a condition/status effect to character [args; condition: string].
+      44. removeCondition: Remove a specific condition from character [args; condition: string].
+      45. removeAllConditions: Clear all active conditions/effects from character.
+      46. listConditions: Show all currently active conditions and effects.
+      47. addDefense: Add damage resistance/immunity to character [args; defense: string].
+      48. removeDefense: Remove damage resistance/immunity from character [args; defense: string].
+      49. removeAllDefenses: Clear all damage resistances/immunities from character.
       
       Return:
       Always answer as a json after the below schema, omit all other output. No other output then the below json schema!!
@@ -549,11 +675,17 @@ export async function detectAction(query: string, modelId?: string) {
     case 'removeCondition': {
       return await aiRemoveCondition(rest)
     }
+    case 'removeAllConditions': {
+      return await aiRemoveAllConditions(rest)
+    }
     case 'addDefense': {
       return await aiAddDefense(rest)
     }
     case 'removeDefense': {
       return await aiRemoveDefense(rest)
+    }
+    case 'removeAllDefenses': {
+      return await aiRemoveAllDefenses(rest)
     }
     case 'listConditions': {
       return await aiListConditions(rest)
@@ -570,6 +702,9 @@ export async function detectAction(query: string, modelId?: string) {
     case 'addItem': {
       return await aiAddItem(rest)
     }
+    case 'addAmmunition': {
+      return await aiAddAmmunition(rest)
+    }
     case 'removeItem': {
       return await aiRemoveItem(rest)
     }
@@ -583,7 +718,14 @@ export async function detectAction(query: string, modelId?: string) {
           hidden: false
         }]))
       } else {
-        throw new Error(`Unknown action ${rest.func}`)
+        // Instead of throwing an error, show a "not recognized" message
+        replicateStore.update(state => ([...state, {
+          query,
+          sentAt,
+          returnedAt: new Date(),
+          message: `🤔 **Action not recognized**: "${query}"\n\nI didn't understand that command. Try:\n• Rolling dice: \`/roll 1d20\` or \`/roll 2d6+3\`\n• Character actions: \`level up\`, \`short rest\`, \`long rest\`\n• Health management: \`heal me\`, \`refill health\`\n• Or ask me questions about your character!`,
+          hidden: false
+        }]))
       }
   }
 }
@@ -2099,6 +2241,116 @@ async function aiRemoveCondition(action: AiAction) {
   }
 }
 
+async function aiRemoveAllConditions(action: AiAction) {
+  try {
+    const store = getCharacterStore();
+    
+    let conditions: any[] = [];
+    const unsubscribe = store.info.subscribe((info) => {
+      conditions = info.conditions;
+    });
+    unsubscribe();
+
+    if (conditions.length === 0) {
+      replicateStore.update(state => ([...state, {
+        query: `Remove All Conditions`,
+        sentAt: new Date(),
+        returnedAt: new Date(),
+        message: `🟢 **No Conditions to Remove**\n\nYou currently have no active conditions.\n\nYour character sheet is already clear of all effects.`,
+        hidden: false
+      }]));
+      return;
+    }
+
+    const removedConditions = conditions.map(c => c.title);
+    const conditionCount = conditions.length;
+
+    // Remove all conditions with change tracking
+    updateCharacterWithChangeLog(
+      'info',
+      (currentInfo) => ({
+        ...currentInfo,
+        conditions: []
+      }),
+      ChangeActions.CONDITION_REMOVE_ALL,
+      `Removed all ${conditionCount} conditions: ${removedConditions.join(', ')}`
+    );
+
+    replicateStore.update(state => ([...state, {
+      query: `Remove All Conditions`,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `✅ **All Conditions Cleared**\n\nRemoved **${conditionCount}** conditions:\n${removedConditions.map(name => `• ${name}`).join('\n')}\n\nYour character sheet is now clear of all effects.`,
+      hidden: false
+    }]));
+
+  } catch (error) {
+    console.error('Remove all conditions error:', error);
+    replicateStore.update(state => ([...state, {
+      query: `Remove All Conditions`,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `❌ **Error:** Unable to remove all conditions. Please try again.`,
+      hidden: false
+    }]));
+  }
+}
+
+async function aiRemoveAllDefenses(action: AiAction) {
+  try {
+    const store = getCharacterStore();
+    
+    let defenses: any[] = [];
+    const unsubscribe = store.info.subscribe((info) => {
+      defenses = info.defences;
+    });
+    unsubscribe();
+
+    if (defenses.length === 0) {
+      replicateStore.update(state => ([...state, {
+        query: `Remove All Defenses`,
+        sentAt: new Date(),
+        returnedAt: new Date(),
+        message: `🟢 **No Defenses to Remove**\n\nYou currently have no damage resistances or immunities.\n\nYour character has no defensive bonuses to clear.`,
+        hidden: false
+      }]));
+      return;
+    }
+
+    const removedDefenses = defenses.map(d => d.title);
+    const defenseCount = defenses.length;
+
+    // Remove all defenses with change tracking
+    updateCharacterWithChangeLog(
+      'info',
+      (currentInfo) => ({
+        ...currentInfo,
+        defences: []
+      }),
+      ChangeActions.DEFENSE_REMOVE,
+      `Removed all ${defenseCount} defenses: ${removedDefenses.join(', ')}`
+    );
+
+    replicateStore.update(state => ([...state, {
+      query: `Remove All Defenses`,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `✅ **All Defenses Cleared**\n\nRemoved **${defenseCount}** damage resistances/immunities:\n${removedDefenses.map(name => `• ${name}`).join('\n')}\n\nYour character no longer has any damage resistances or immunities.`,
+      hidden: false
+    }]));
+
+  } catch (error) {
+    console.error('Remove all defenses error:', error);
+    replicateStore.update(state => ([...state, {
+      query: `Remove All Defenses`,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `❌ **Error:** Unable to remove all defenses. Please try again.`,
+      hidden: false
+    }]));
+  }
+}
+
 async function aiListConditions(action: AiAction) {
   try {
     const store = getCharacterStore();
@@ -2819,6 +3071,93 @@ async function aiAddItem(action: AiAction) {
       sentAt: new Date(),
       returnedAt: new Date(),
       message: `❌ **Error:** Unable to add item. Please try again.`,
+      hidden: false
+    }]));
+  }
+}
+
+async function aiAddAmmunition(action: AiAction) {
+  try {
+    const quantity = action.args.quantity || 20;
+    const store = getCharacterStore();
+    
+    let inventory: any[] = [];
+    const unsubscribe = store.inventory.subscribe((inv) => {
+      inventory = inv;
+    });
+    unsubscribe();
+
+    // Find existing ammunition item
+    const ammoItem = inventory.find(item => item.id === 'ammunition' || item.title.toLowerCase().includes('ammunition'));
+
+    if (ammoItem) {
+      // Add to existing ammunition
+      const oldQuantity = ammoItem.quantity;
+      const newQuantity = oldQuantity + quantity;
+
+      updateCharacterWithChangeLog(
+        'inventory',
+        (currentInventory) => currentInventory.map(item => 
+          item.id === ammoItem.id ? { ...item, quantity: newQuantity } : item
+        ),
+        ChangeActions.ADD_ITEM,
+        `Added ${quantity} ammunition (${oldQuantity} → ${newQuantity})`
+      );
+
+      replicateStore.update(state => ([...state, {
+        query: `Add Ammunition: ${quantity}`,
+        sentAt: new Date(),
+        returnedAt: new Date(),
+        message: `🏹 **Ammunition Added**\n\nAdded **${quantity}x Ammunition** to your existing supply.\n\n**Total:** ${newQuantity} rounds\n*(was ${oldQuantity})*\n\n💡 **Tip:** Make sure ammunition is equipped to use ranged weapons!`,
+        hidden: false
+      }]));
+    } else {
+      // Create new ammunition item
+      const newAmmo = {
+        id: "ammunition-" + Date.now(),
+        title: "Ammunition",
+        type: "ammunition",
+        subtype: "rounds",
+        rarity: "common",
+        attributes: [],
+        description: "Firearm ammunition for ranged weapons",
+        value: { amount: 3, currency: "gp" },
+        weight: Math.ceil(quantity / 20), // 1 lb per 20 rounds
+        quantity: quantity,
+        equippable: true,
+        equipped: false
+      };
+
+      updateCharacterWithChangeLog(
+        'inventory',
+        (currentInventory) => [...currentInventory, newAmmo],
+        ChangeActions.ADD_ITEM,
+        `Added ${quantity} new ammunition`
+      );
+
+      replicateStore.update(state => ([...state, {
+        query: `Add Ammunition: ${quantity}`,
+        sentAt: new Date(),
+        returnedAt: new Date(),
+        message: `🏹 **New Ammunition Created**\n\nAdded **${quantity}x Ammunition** to your inventory.\n\n*Firearm ammunition for ranged weapons*\n\n💡 **Tip:** Use the inventory tab to equip ammunition!`,
+        hidden: false
+      }]));
+    }
+
+    // Play sound effect
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('showFunnyText', {
+        detail: { text: `+${quantity} Ammunition!`, category: 'treasure' }
+      }));
+    }
+
+  } catch (error) {
+    console.error('Add ammunition error:', error);
+    replicateStore.update(state => ([...state, {
+      query: `Add Ammunition`,
+      sentAt: new Date(),
+      returnedAt: new Date(),
+      message: `❌ **Error:** Unable to add ammunition. Please try again.`,
       hidden: false
     }]));
   }

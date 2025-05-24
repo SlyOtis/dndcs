@@ -1,0 +1,505 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "D&D Campaign Schema",
+  "description": "Schema for D&D campaign configuration and management",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Campaign name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Campaign description"
+        },
+        "version": {
+          "type": "string",
+          "default": "1.0.0"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "dmName": {
+          "type": "string",
+          "description": "Dungeon Master name"
+        },
+        "setting": {
+          "type": "string",
+          "description": "Campaign setting (e.g., Forgotten Realms, Homebrew)"
+        },
+        "startLevel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 1
+        },
+        "currentLevel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        }
+      },
+      "required": ["name", "description", "dmName"]
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "experienceMode": {
+          "type": "string",
+          "enum": ["standard", "milestone", "custom"],
+          "default": "standard",
+          "description": "How experience points are handled"
+        },
+        "hitPointCalculation": {
+          "type": "string",
+          "enum": ["rolled", "average", "maximum"],
+          "default": "rolled"
+        },
+        "abilityScoreGeneration": {
+          "type": "string",
+          "enum": ["4d6-drop-lowest", "point-buy", "standard-array", "custom"],
+          "default": "4d6-drop-lowest"
+        },
+        "allowedSources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of allowed source books",
+          "default": ["Player's Handbook"]
+        },
+        "encumbranceRules": {
+          "type": "boolean",
+          "default": false
+        },
+        "variantRules": {
+          "type": "object",
+          "properties": {
+            "flanking": {
+              "type": "boolean",
+              "default": false
+            },
+            "inspiration": {
+              "type": "boolean",
+              "default": true
+            },
+            "multiclassing": {
+              "type": "boolean",
+              "default": true
+            },
+            "feats": {
+              "type": "boolean",
+              "default": true
+            },
+            "restingVariant": {
+              "type": "string",
+              "enum": ["standard", "gritty", "epic"],
+              "default": "standard"
+            }
+          }
+        }
+      }
+    },
+    "world": {
+      "type": "object",
+      "properties": {
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["city", "town", "village", "dungeon", "wilderness", "plane", "other"]
+              },
+              "description": {
+                "type": "string"
+              },
+              "population": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "government": {
+                "type": "string"
+              },
+              "notableNPCs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "questHooks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["id", "name", "type"]
+          }
+        },
+        "npcs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "race": {
+                "type": "string"
+              },
+              "class": {
+                "type": "string"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 20
+              },
+              "alignment": {
+                "type": "string"
+              },
+              "occupation": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string",
+                "description": "Location ID where this NPC is found"
+              },
+              "personality": {
+                "type": "string"
+              },
+              "goals": {
+                "type": "string"
+              },
+              "secrets": {
+                "type": "string"
+              },
+              "relationships": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "npcId": {
+                      "type": "string"
+                    },
+                    "relationship": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "required": ["id", "name"]
+          }
+        }
+      }
+    },
+    "story": {
+      "type": "object",
+      "properties": {
+        "mainQuest": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["not-started", "in-progress", "completed", "failed"]
+            },
+            "chapters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["not-started", "in-progress", "completed"]
+                  },
+                  "objectives": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "completed": {
+                          "type": "boolean",
+                          "default": false
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "sideQuests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "giver": {
+                "type": "string",
+                "description": "NPC ID who gave the quest"
+              },
+              "reward": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["available", "active", "completed", "failed", "expired"]
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20,
+                "description": "Recommended level"
+              }
+            },
+            "required": ["id", "title", "status"]
+          }
+        }
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Session duration in minutes"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "experienceAwarded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "treasureFound": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Character IDs of attendees"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "date", "summary"]
+      }
+    },
+    "calendar": {
+      "type": "object",
+      "properties": {
+        "currentDate": {
+          "type": "object",
+          "properties": {
+            "day": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "month": {
+              "type": "string"
+            },
+            "year": {
+              "type": "integer"
+            },
+            "era": {
+              "type": "string"
+            }
+          }
+        },
+        "timeSystem": {
+          "type": "string",
+          "enum": ["forgotten-realms", "greyhawk", "custom"],
+          "default": "forgotten-realms"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "object",
+                "properties": {
+                  "day": {
+                    "type": "integer"
+                  },
+                  "month": {
+                    "type": "string"
+                  },
+                  "year": {
+                    "type": "integer"
+                  }
+                }
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["holiday", "historical", "quest", "personal", "other"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "homebrew": {
+      "type": "object",
+      "properties": {
+        "customRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string",
+                "enum": ["combat", "social", "exploration", "magic", "equipment", "other"]
+              }
+            }
+          }
+        },
+        "customItems": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "rarity": {
+                "type": "string",
+                "enum": ["common", "uncommon", "rare", "very-rare", "legendary", "artifact"]
+              },
+              "description": {
+                "type": "string"
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "customSpells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9
+              },
+              "school": {
+                "type": "string"
+              },
+              "castingTime": {
+                "type": "string"
+              },
+              "range": {
+                "type": "string"
+              },
+              "components": {
+                "type": "string"
+              },
+              "duration": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["metadata", "settings"]
+}

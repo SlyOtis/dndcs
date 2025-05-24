@@ -431,6 +431,23 @@ export interface LevelUpData {
   }
 }
 
+/** Individual sound clip for the sound board */
+export interface SoundClip {
+  id: string
+  name: string
+  audioData: string // base64 encoded audio data
+  volume: number
+  duration?: number
+  created_at: string
+}
+
+/** Collection of sound clips for quick access during gameplay */
+export interface SoundBoard {
+  id: string
+  name: string
+  clips: SoundClip[]
+}
+
 /** Complete character data structure */
 export interface Character {
   /** Core character information including name, race, class, HP, etc */
@@ -513,4 +530,7 @@ export interface Character {
 
   /** Currently equipped items by type */
   equipped: EquippedItems
+
+  /** Sound board for playing audio clips during gameplay */
+  soundBoard: SoundBoard
 }

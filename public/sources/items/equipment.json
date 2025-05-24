@@ -73,6 +73,30 @@
       "spell": "fireball",
       "description": "A scroll containing the fireball spell. When read, it casts the spell and then crumbles to ash.",
       "tags": ["magic", "consumable", "fire", "spell"]
+    },
+    "rounds": {
+      "id": "rounds",
+      "name": "Rounds",
+      "type": "ammunition",
+      "subtype": "firearm",
+      "rarity": "common",
+      "cost": {"amount": 3, "currency": "gp"},
+      "weight": 1,
+      "quantity": 20,
+      "description": "Standard firearm ammunition for pistols and rifles.",
+      "tags": ["ammunition", "firearm"]
+    },
+    "shotshells": {
+      "id": "shotshells",
+      "name": "Shotshells", 
+      "type": "ammunition",
+      "subtype": "firearm",
+      "rarity": "common",
+      "cost": {"amount": 3, "currency": "gp"},
+      "weight": 1,
+      "quantity": 20,
+      "description": "Specialized ammunition for shotguns and blunderbusses.",
+      "tags": ["ammunition", "firearm", "shotgun"]
     }
   }
 }

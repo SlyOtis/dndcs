@@ -178,6 +178,7 @@ export const ChangeActions = {
   LONG_REST: 'long_rest',
   CONDITION_ADD: 'condition_add',
   CONDITION_REMOVE: 'condition_remove',
+  CONDITION_REMOVE_ALL: 'condition_remove_all',
   DEFENSE_ADD: 'defense_add',
   DEFENSE_REMOVE: 'defense_remove'
 } as const;

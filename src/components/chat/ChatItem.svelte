@@ -2,7 +2,7 @@
     import {format} from "date-fns";
     import {marked} from 'marked';
     import type {LogItem} from "../../lib/chat";
-    let {logItem, showHidden, scrollTheme = false}: {logItem: LogItem, showHidden: boolean, scrollTheme?: boolean} = $props()
+    let {logItem, showHidden}: {logItem: LogItem, showHidden: boolean} = $props()
 
     // Configure marked for better formatting
     marked.setOptions({
@@ -17,55 +17,55 @@
 
 {#if logItem.type === 'chat'}
     {#if logItem.data.hidden}
-        <li class="chat" class:hidden={!showHidden} class:scroll-theme={scrollTheme}>
-            <div class="chat-title" class:scroll-theme={scrollTheme}>
+        <li class="chat" class:hidden={!showHidden}>
+            <div class="chat-title">
                 <span>Query:</span>
                 <span class="date">{format(logItem.data.sentAt, 'MMM d h:mm')}</span>
             </div>
-            <span class="query" class:scroll-theme={scrollTheme}>{logItem.data.query}</span>
-            <div class="chat-title" class:scroll-theme={scrollTheme}>
+            <span class="query">{logItem.data.query}</span>
+            <div class="chat-title">
                 <span>Response:</span>
                 <span class="date">{format(logItem.data.returnedAt, 'MMM d h:mm')}</span>
             </div>
-            <div class="response" class:scroll-theme={scrollTheme}>
+            <div class="response">
                 <span>{logItem.data.response}</span>
             </div>
         </li>
     {:else}
-        <li class="chat" class:scroll-theme={scrollTheme}>
-            <div class="chat-title" class:scroll-theme={scrollTheme}>
-                <span>{scrollTheme ? '📜 Query:' : 'Query:'}</span>
+        <li class="chat">
+            <div class="chat-title">
+                <span>Query:</span>
                 <span class="date">{format(logItem.data.sentAt, 'MMM d h:mm')}</span>
             </div>
-            <span class="query" class:scroll-theme={scrollTheme}>{logItem.data.query}</span>
-            <div class="chat-title" class:scroll-theme={scrollTheme}>
-                <span>{scrollTheme ? '✒️ Response:' : 'Response:'}</span>
+            <span class="query">{logItem.data.query}</span>
+            <div class="chat-title">
+                <span>Response:</span>
                 <span class="date">{format(logItem.data.returnedAt, 'MMM d h:mm')}</span>
             </div>
             {#if logItem.data.message}
-                <div class="message" class:card={logItem.data.data?.type === 'item_card' || logItem.data.data?.type === 'npc_card'} class:scroll-theme={scrollTheme}>
-                    <div class="formatted-content" class:scroll-theme={scrollTheme}>
+                <div class="message" class:card={logItem.data.data?.type === 'item_card' || logItem.data.data?.type === 'npc_card'}>
+                    <div class="formatted-content">
                         {@html renderMarkdown(logItem.data.message)}
                     </div>
                 </div>
             {:else}
-                <div class="response" class:scroll-theme={scrollTheme}>
+                <div class="response">
                     <span>{logItem.data.message}</span>
                 </div>
             {/if}
         </li>
     {/if}
 {:else }
-    <li class="roll" class:scroll-theme={scrollTheme}>
-        <div class="chat-title" class:scroll-theme={scrollTheme}>
-            <h4>{scrollTheme ? '🎲 ' + logItem.data.text : logItem.data.text}</h4>
+    <li class="roll">
+        <div class="chat-title">
+            <h4>{logItem.data.text}</h4>
             <span class="date">{format(logItem.data.rolledAt, 'MMM d h:mm')}</span>
         </div>
 
         {#if logItem.data.details}
-            <span class:scroll-theme={scrollTheme}>Rolls: {logItem.data.details}</span>
+            <span>Rolls: {logItem.data.details}</span>
         {/if}
-        <div class="result" class:scroll-theme={scrollTheme}>
+        <div class="result">
             <span>On the die: <b>{logItem.data.roll}</b></span>
             <span>Total with modifiers: <b>{logItem.data.total}</b></span>
         </div>
@@ -275,142 +275,6 @@
         padding-left: 1rem;
         margin: 1rem 0;
         color: #b8b5b2;
-        font-style: italic;
-    }
-    
-    /* Scroll Theme Styles */
-    li.scroll-theme {
-        background: rgba(244, 241, 232, 0.05);
-        border-bottom: 1px solid rgba(139, 69, 19, 0.3);
-        color: #2c1810;
-        font-family: 'Cinzel', 'UnifrakturMaguntia', serif;
-        border-radius: 8px;
-        margin: 8px 0;
-        box-shadow: 0 2px 4px rgba(139, 69, 19, 0.1);
-    }
-    
-    li.scroll-theme:nth-child(even) {
-        background: rgba(244, 241, 232, 0.1);
-    }
-    
-    li.scroll-theme:nth-child(odd) {
-        background: rgba(232, 220, 198, 0.1);
-    }
-    
-    .chat-title.scroll-theme {
-        color: #8b4513;
-        font-weight: 700;
-        text-shadow: 1px 1px 2px rgba(244, 241, 232, 0.8);
-    }
-    
-    .query.scroll-theme {
-        background: rgba(139, 69, 19, 0.15);
-        border: 2px solid rgba(139, 69, 19, 0.3);
-        color: #2c1810;
-        font-style: italic;
-        border-radius: 12px;
-        position: relative;
-    }
-    
-    .query.scroll-theme::before {
-        content: '📜';
-        position: absolute;
-        left: -25px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 18px;
-    }
-    
-    .response.scroll-theme {
-        background: rgba(244, 241, 232, 0.2);
-        border: 2px solid rgba(139, 69, 19, 0.2);
-        color: #2c1810;
-        box-shadow: inset 0 2px 4px rgba(139, 69, 19, 0.1);
-    }
-    
-    .response.scroll-theme > span {
-        color: #2c1810;
-        opacity: 1;
-    }
-    
-    .message.scroll-theme {
-        color: #2c1810;
-        font-family: 'Cinzel', serif;
-        line-height: 1.8;
-    }
-    
-    .message.scroll-theme.card {
-        background: linear-gradient(145deg, rgba(244, 241, 232, 0.95), rgba(232, 220, 198, 0.9));
-        border: 3px solid #8b4513;
-        color: #2c1810;
-        box-shadow: 
-            0 4px 12px rgba(139, 69, 19, 0.3),
-            inset 0 1px 0 rgba(244, 241, 232, 0.8);
-    }
-    
-    .formatted-content.scroll-theme {
-        color: #2c1810;
-        font-family: 'Cinzel', serif;
-    }
-    
-    .formatted-content.scroll-theme :global(h1),
-    .formatted-content.scroll-theme :global(h2),
-    .formatted-content.scroll-theme :global(h3),
-    .formatted-content.scroll-theme :global(h4) {
-        color: #8b4513;
-        text-shadow: 1px 1px 2px rgba(244, 241, 232, 0.8);
-    }
-    
-    .formatted-content.scroll-theme :global(strong) {
-        color: #8b4513;
-        text-shadow: 1px 1px 1px rgba(244, 241, 232, 0.8);
-    }
-    
-    .formatted-content.scroll-theme :global(em) {
-        color: #654321;
-        font-style: italic;
-    }
-    
-    .formatted-content.scroll-theme :global(p),
-    .formatted-content.scroll-theme :global(li) {
-        color: #2c1810;
-    }
-    
-    .formatted-content.scroll-theme :global(code) {
-        background: rgba(139, 69, 19, 0.15);
-        color: #8b4513;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-    }
-    
-    .formatted-content.scroll-theme :global(blockquote) {
-        border-left: 3px solid #8b4513;
-        color: #654321;
-        background: rgba(244, 241, 232, 0.3);
-        padding: 12px;
-        border-radius: 0 8px 8px 0;
-    }
-    
-    .result.scroll-theme {
-        background: rgba(139, 69, 19, 0.1);
-        border-radius: 12px;
-        padding: 8px;
-        border: 2px solid rgba(139, 69, 19, 0.2);
-    }
-    
-    .result.scroll-theme > span {
-        color: #2c1810;
-        font-weight: 600;
-    }
-    
-    .result.scroll-theme > *:last-child {
-        background: rgba(139, 69, 19, 0.2);
-        color: #8b4513;
-        border: 1px solid rgba(139, 69, 19, 0.3);
-    }
-    
-    .date.scroll-theme {
-        color: #8b4513;
-        opacity: 0.8;
         font-style: italic;
     }
 </style>
