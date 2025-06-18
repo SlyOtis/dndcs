@@ -1,6 +1,5 @@
 <script lang="ts">
   import {Marked, Renderer, type TokenizerExtension, type TokenizerThis} from "marked";
-  import markedCodeFormat from 'marked-code-format';
   import {onMount} from "svelte";
   import {Octokit} from "@octokit/rest";
   import {markedEmoji} from "marked-emoji";
@@ -65,9 +64,6 @@
       renderer: (token: any) => `<img alt="${token.name}" src="${token.emoji}" class="marked-emoji-img">`
     };
     marked.use(markedEmoji(emojiOptions));
-
-    // Prettier code support
-    marked.use(markedCodeFormat())
 
     // Fix closing tags
     marked.use(markedXhtml());

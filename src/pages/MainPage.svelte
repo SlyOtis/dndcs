@@ -35,8 +35,9 @@
     "/main/campaign/create": {
       name: "campaign-create",
       component: () => import("./CampaignCreatePage.svelte")
-    }
-  };
+    },
+    "/main": "/main/character",
+  }
   
   $effect(() => {
     // Get current path to check if we're on a create page

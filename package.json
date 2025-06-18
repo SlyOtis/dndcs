@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -24,7 +24,6 @@
     "firebase": "^11.1.0",
     "i": "^0.3.7",
     "marked": "^15.0.11",
-    "marked-code-format": "^1.1.6",
     "marked-emoji": "^2.0.0",
     "marked-gfm-heading-id": "^4.1.1",
     "marked-xhtml": "^1.0.12",

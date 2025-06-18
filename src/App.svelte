@@ -1,12 +1,14 @@
 <script lang="ts">
   import {Router, type Routes} from "sly-svelte-location-router";
   import {onMount, onDestroy} from "svelte";
-  import SoundManager from "./components/SoundManager.svelte";
-  import { initializeAuth } from "./lib/auth.init";
-  import { isLoading, isAuthenticated } from "./lib/stores/auth.store";
+  import { initializeAuth } from "$lib/auth.init";
+  import { isLoading, isAuthenticated } from "$lib/stores/auth.store";
 
   const routes: Routes = {
-    "/": "/main",
+    "/": {
+      name: "home",
+      component: () => import("./pages/MainPage.svelte"),
+    },
     "/login": {
       name: "login",
       component: () => import("./pages/LoginPage.svelte"),
@@ -15,7 +17,10 @@
       name: "main",
       component: () => import("./pages/MainPage.svelte"),
     },
-    "/*": "/main"
+    "/*": {
+      name: "fallback",
+      component: () => import("./pages/MainPage.svelte"),
+    }
   }
 
   let unsubscribeAuth: (() => void) | null = null;
@@ -40,7 +45,7 @@
     </div>
   </div>
 {:else}
-  <Router {routes} fallback={"/main/character"} />
+  <Router {routes} fallback="/main/character" />
 {/if}
 
 <style>

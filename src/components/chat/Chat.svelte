@@ -1,9 +1,8 @@
 <script lang="ts">
-
-  import {getRollLog} from "../../lib/engine";
+  import {getRollLog} from "$lib/engine";
   import {onDestroy, getContext} from "svelte";
   import {differenceInMilliseconds, format} from 'date-fns'
-  import {type ChatLog, detectAction, getReplicateLog} from "../../lib/chat";
+  import {type ChatLog, detectAction, getReplicateLog} from "$lib/chat";
   import ChatItem from "./ChatItem.svelte";
 
   const {unsubscribeRoll, rollStore} = getRollLog()
