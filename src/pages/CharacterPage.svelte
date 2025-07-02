@@ -18,8 +18,18 @@
   import ActionsTab from "$character-sheet/main_tabs/ActionsTab.svelte";
   import Special from "$character-sheet/Special.svelte";
   import Background from "$components/Background.svelte";
+  import { getCharacterStore } from "$lib/engine";
+  import { setContext, onDestroy } from "svelte";
 
-  const {info} = getContext<CharacterContext>('character');
+  // Create character store and context
+  const {unsubscribe, ...chStore} = getCharacterStore()
+  setContext<CharacterContext>('character', chStore);
+  
+  const {info} = chStore;
+  
+  onDestroy(() => {
+    unsubscribe();
+  });
 
   // Character image logic
   let imageUrl = $derived.by(() => {
