@@ -20,9 +20,9 @@ import type {
   Campaign,
   CharacterDocument,
   ChatSession,
-  COLLECTIONS,
   UserPreferences
 } from './firestore.types';
+import { COLLECTIONS } from './firestore.types';
 import type { Character } from './character.types';
 
 // Auth helper
@@ -43,6 +43,7 @@ export const userService = {
       email: userData.email || '',
       displayName: userData.displayName || '',
       photoURL: userData.photoURL,
+      replicateApiKey: userData.replicateApiKey || '',
       createdAt: serverTimestamp() as any,
       updatedAt: serverTimestamp() as any,
       preferences: {

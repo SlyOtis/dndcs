@@ -7,19 +7,31 @@
   const routes: Routes = {
     "/": {
       name: "home",
-      component: () => import("./pages/MainPage.svelte"),
+      component: () => import("./pages/LoginPage.svelte"),
     },
     "/login": {
       name: "login",
       component: () => import("./pages/LoginPage.svelte"),
     },
-    "/main/*": {
-      name: "main",
-      component: () => import("./pages/MainPage.svelte"),
+    "/signup": {
+      name: "signup",
+      component: () => import("./pages/SignupPage.svelte"),
     },
-    "/*": {
-      name: "fallback",
-      component: () => import("./pages/MainPage.svelte"),
+    "/main/character": {
+      name: "character",
+      component: () => import("./pages/CharacterPage.svelte")
+    },
+    "/main/character/create": {
+      name: "character-create",
+      component: () => import("./pages/CharacterCreatePage.svelte")
+    },
+    "/main/campaign": {
+      name: "campaign",
+      component: () => import("./pages/CampaignPage.svelte")
+    },
+    "/main/campaign/create": {
+      name: "campaign-create",
+      component: () => import("./pages/CampaignCreatePage.svelte")
     }
   }
 

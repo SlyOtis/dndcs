@@ -39,20 +39,31 @@
     "/main": "/main/character",
   }
   
-  $effect(() => {
-    // Get current path to check if we're on a create page
-    const {path} = $currentRoute;
-    if (path.includes('/create')) {
-      return;
-    }
-    
-    // Navigate to create pages if no content exists
-    if (path.includes('/character') && $userCharacters.length === 0) {
-      navigate('/main/character/create');
-    } else if (path.includes('/campaign') && $userCampaigns.length === 0) {
-      navigate('/main/campaign/create');
-    }
-  });
+  // Temporarily disabled auto-navigation to prevent redirect loop
+  // $effect(() => {
+  //   // Get current path to check if we're on a create page
+  //   const {path} = $currentRoute;
+  //   if (path.includes('/create')) {
+  //     return;
+  //   }
+  //   
+  //   // Only navigate if we're authenticated and not loading
+  //   if (!$isAuthenticated) {
+  //     return;
+  //   }
+  //   
+  //   // Add a small delay to allow data to load
+  //   setTimeout(() => {
+  //     // Navigate to create pages if no content exists
+  //     if (path.includes('/character') && $userCharacters.length === 0) {
+  //       console.log('Navigating to character create - no characters found');
+  //       navigate('/main/character/create');
+  //     } else if (path.includes('/campaign') && $userCampaigns.length === 0) {
+  //       console.log('Navigating to campaign create - no campaigns found');
+  //       navigate('/main/campaign/create');
+  //     }
+  //   }, 1000);
+  // });
   
 
   setContext<CharacterContext>('character', chStore);

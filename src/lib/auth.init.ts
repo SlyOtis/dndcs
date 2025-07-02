@@ -17,6 +17,7 @@ import {
   currentCampaign, 
   currentCampaignId
 } from './stores/campaign.store';
+import { userService, characterService, campaignService } from './firestore.service';
 
 export function initializeAuth() {
   return onAuthStateChanged(auth, async (firebaseUser: User | null) => {
@@ -27,14 +28,6 @@ export function initializeAuth() {
         // User is signed in
         user.set(firebaseUser);
         isAuthenticated.set(true);
-        
-        // Initialize user profile
-        userProfile.set({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || '',
-          photoURL: firebaseUser.photoURL || undefined
-        });
         
       } else {
         // User is signed out

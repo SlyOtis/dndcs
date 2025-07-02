@@ -15,7 +15,7 @@ const googleProvider = new GoogleAuthProvider();
 
 export const authService = {
   // Sign up with email and password
-  async signUp(email: string, password: string, displayName: string): Promise<User> {
+  async signUp(email: string, password: string, displayName: string, replicateApiKey: string): Promise<User> {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
@@ -23,7 +23,8 @@ export const authService = {
     await userService.createProfile({
       email,
       displayName,
-      photoURL: user.photoURL || undefined
+      photoURL: user.photoURL || undefined,
+      replicateApiKey
     });
     
     return user;

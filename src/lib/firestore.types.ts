@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
+  replicateApiKey: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   preferences: UserPreferences;
