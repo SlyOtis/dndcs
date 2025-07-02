@@ -7,7 +7,7 @@
   import Chat from "$chat/Chat.svelte";
   import Overlay from "$components/Overlay.svelte";
   import Search from "$components/search/Search.svelte";
-  import {navigate, routeParams, Router, type Routes, currentRoute} from "sly-svelte-location-router";
+  import {navigate, Router, type Routes, currentRoute} from "sly-svelte-location-router";
   import { sidebarStore } from "$lib/navigation";
   import { initializeGlobalEvents } from "$lib/globalEvents";
   import { userCharacters } from "$lib/stores/character.store";
@@ -41,7 +41,7 @@
   
   $effect(() => {
     // Get current path to check if we're on a create page
-    const path = $currentRoute;
+    const {path} = $currentRoute;
     if (path.includes('/create')) {
       return;
     }
