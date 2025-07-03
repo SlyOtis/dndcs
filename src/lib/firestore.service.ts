@@ -41,17 +41,17 @@ export const userService = {
     const profile: UserProfile = {
       uid: userId,
       email: userData.email || '',
-      displayName: userData.displayName || '',
-      photoURL: userData.photoURL,
-      replicateApiKey: userData.replicateApiKey || '',
-      createdAt: serverTimestamp() as any,
-      updatedAt: serverTimestamp() as any,
+      display_name: userData.display_name || '',
+      photo_url: userData.photo_url,
+      replicate_api_key: userData.replicate_api_key || '',
+      created_at: serverTimestamp() as any,
+      updated_at: serverTimestamp() as any,
       preferences: {
         theme: 'medieval',
-        soundEnabled: true,
-        animationsEnabled: true,
-        autoSave: true,
-        recentCharacters: []
+        sound_enabled: true,
+        animations_enabled: true,
+        auto_save: true,
+        recent_characters: []
       }
     };
     
@@ -72,7 +72,7 @@ export const userService = {
     
     await updateDoc(userRef, {
       ...updates,
-      updatedAt: serverTimestamp()
+      updated_at: serverTimestamp()
     });
   },
 
@@ -82,7 +82,7 @@ export const userService = {
     
     await updateDoc(userRef, {
       preferences,
-      updatedAt: serverTimestamp()
+      updated_at: serverTimestamp()
     });
   },
 
@@ -93,6 +93,40 @@ export const userService = {
     return onSnapshot(userRef, (doc) => {
       callback(doc.exists() ? doc.data() as UserProfile : null);
     });
+  },
+
+  async setUserDetails(userId: string, details: any): Promise<void> {
+    const detailsRef = doc(db, COLLECTIONS.USERS, userId, 'data', 'details');
+    
+    console.log('Firestore Service: Setting user details for userId:', userId);
+    console.log('Firestore Service: Details path:', `users/${userId}/data/details`);
+    console.log('Firestore Service: Details to store:', details);
+    
+    const dataToStore = {
+      ...details,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    };
+    
+    await setDoc(detailsRef, dataToStore);
+    console.log('Firestore Service: User details stored successfully');
+  },
+
+  async getUserDetails(userId?: string): Promise<any> {
+    const uid = userId || getCurrentUserId();
+    const detailsRef = doc(db, COLLECTIONS.USERS, uid, 'data', 'details');
+    
+    console.log('Firestore Service: Getting user details for userId:', uid);
+    console.log('Firestore Service: Details path:', `users/${uid}/data/details`);
+    
+    const detailsSnap = await getDoc(detailsRef);
+    const exists = detailsSnap.exists();
+    const data = exists ? detailsSnap.data() : null;
+    
+    console.log('Firestore Service: Details document exists:', exists);
+    console.log('Firestore Service: Retrieved data:', data);
+    
+    return data;
   }
 };
 
@@ -104,25 +138,25 @@ export const characterService = {
     
     const characterDoc: CharacterDocument = {
       id: characterRef.id,
-      ownerId: userId,
+      owner_id: userId,
       character,
       metadata: {
         name: character.name || 'Unnamed Character',
         level: character.level || 1,
         class: character.class?.name || 'Unknown',
         race: character.race?.name || 'Unknown',
-        createdAt: serverTimestamp() as any,
-        updatedAt: serverTimestamp() as any,
+        created_at: serverTimestamp() as any,
+        updated_at: serverTimestamp() as any,
         version: '1.0.0',
         tags: [],
-        isTemplate: false,
-        isPublic: false,
+        is_template: false,
+        is_public: false,
         ...metadata
       },
       permissions: {
         viewers: [],
         editors: [],
-        dmOverride: true
+        dm_override: true
       }
     };
     
@@ -142,8 +176,8 @@ export const characterService = {
     
     await updateDoc(characterRef, {
       character,
-      'metadata.updatedAt': serverTimestamp(),
-      'metadata.lastPlayedAt': serverTimestamp()
+      'metadata.updated_at': serverTimestamp(),
+      'metadata.last_played_at': serverTimestamp()
     });
   },
 
@@ -157,8 +191,8 @@ export const characterService = {
     const charactersRef = collection(db, COLLECTIONS.CHARACTERS);
     const q = query(
       charactersRef,
-      where('ownerId', '==', uid),
-      orderBy('metadata.updatedAt', 'desc')
+      where('owner_id', '==', uid),
+      orderBy('metadata.updated_at', 'desc')
     );
     
     const querySnapshot = await getDocs(q);
@@ -178,27 +212,61 @@ export const characterService = {
     const charactersRef = collection(db, COLLECTIONS.CHARACTERS);
     const q = query(
       charactersRef,
-      where('ownerId', '==', uid),
-      orderBy('metadata.updatedAt', 'desc')
+      where('owner_id', '==', uid),
+      orderBy('metadata.updated_at', 'desc')
     );
     
     return onSnapshot(q, (querySnapshot) => {
       const characters = querySnapshot.docs.map(doc => doc.data() as CharacterDocument);
       callback(characters);
     });
+  },
+
+  async setCharacterSources(characterId: string, sources: string[]): Promise<void> {
+    const sourcesRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'sources');
+    
+    await setDoc(sourcesRef, {
+      sources,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    });
+  },
+
+  async getCharacterSources(characterId: string): Promise<string[]> {
+    const sourcesRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'sources');
+    const sourcesSnap = await getDoc(sourcesRef);
+    
+    return sourcesSnap.exists() ? sourcesSnap.data().sources || [] : [];
+  },
+
+  async setCharacterDetails(characterId: string, details: any): Promise<void> {
+    const detailsRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'details');
+    
+    await setDoc(detailsRef, {
+      details,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp()
+    });
+  },
+
+  async getCharacterDetails(characterId: string): Promise<any> {
+    const detailsRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'details');
+    const detailsSnap = await getDoc(detailsRef);
+    
+    return detailsSnap.exists() ? detailsSnap.data().details : null;
   }
 };
 
 // Campaign Operations
 export const campaignService = {
-  async createCampaign(campaignData: Omit<Campaign, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async createCampaign(campaignData: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
     const campaignRef = doc(collection(db, COLLECTIONS.CAMPAIGNS));
     
     const campaign: Campaign = {
       ...campaignData,
       id: campaignRef.id,
-      createdAt: serverTimestamp() as any,
-      updatedAt: serverTimestamp() as any
+      created_at: serverTimestamp() as any,
+      updated_at: serverTimestamp() as any
     };
     
     await setDoc(campaignRef, campaign);
@@ -217,8 +285,8 @@ export const campaignService = {
     const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
     
     // Get campaigns where user is DM or player
-    const dmQuery = query(campaignsRef, where('dmId', '==', userId));
-    const playerQuery = query(campaignsRef, where('playerIds', 'array-contains', userId));
+    const dmQuery = query(campaignsRef, where('dm_id', '==', userId));
+    const playerQuery = query(campaignsRef, where('player_ids', 'array-contains', userId));
     
     const [dmSnap, playerSnap] = await Promise.all([
       getDocs(dmQuery),
@@ -236,7 +304,7 @@ export const campaignService = {
     });
     
     return Array.from(campaigns.values()).sort((a, b) => 
-      b.updatedAt.toMillis() - a.updatedAt.toMillis()
+      b.updated_at.toMillis() - a.updated_at.toMillis()
     );
   },
 
@@ -248,8 +316,8 @@ export const campaignService = {
     // In production, you might want to use a compound query or multiple subscriptions
     const q = query(
       campaignsRef,
-      where('dmId', '==', userId),
-      orderBy('updatedAt', 'desc')
+      where('dm_id', '==', userId),
+      orderBy('updated_at', 'desc')
     );
     
     return onSnapshot(q, (querySnapshot) => {
@@ -267,12 +335,12 @@ export const chatService = {
     
     const session: ChatSession = {
       id: chatRef.id,
-      userId,
-      characterId,
-      campaignId,
+      user_id: userId,
+      character_id: characterId,
+      campaign_id: campaignId,
       messages: [],
-      createdAt: serverTimestamp() as any,
-      updatedAt: serverTimestamp() as any
+      created_at: serverTimestamp() as any,
+      updated_at: serverTimestamp() as any
     };
     
     await setDoc(chatRef, session);
@@ -291,8 +359,8 @@ export const chatService = {
     const chatRef = collection(db, COLLECTIONS.CHAT_SESSIONS);
     const q = query(
       chatRef,
-      where('userId', '==', userId),
-      orderBy('updatedAt', 'desc'),
+      where('user_id', '==', userId),
+      orderBy('updated_at', 'desc'),
       limit(limit_count)
     );
     

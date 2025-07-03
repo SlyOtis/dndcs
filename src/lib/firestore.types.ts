@@ -5,22 +5,22 @@ import type { Character } from './character.types';
 export interface UserProfile {
   uid: string;
   email: string;
-  displayName: string;
-  photoURL?: string;
-  replicateApiKey: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  display_name: string;
+  photo_url?: string;
+  replicate_api_key: string;
+  created_at: Timestamp;
+  updated_at: Timestamp;
   preferences: UserPreferences;
 }
 
 // User preferences
 export interface UserPreferences {
   theme: string;
-  defaultCharacterId?: string;
-  soundEnabled: boolean;
-  animationsEnabled: boolean;
-  autoSave: boolean;
-  recentCharacters: string[]; // Array of character IDs
+  default_character_id?: string;
+  sound_enabled: boolean;
+  animations_enabled: boolean;
+  auto_save: boolean;
+  recent_characters: string[];
 }
 
 // Campaign stored in Firestore
@@ -28,28 +28,28 @@ export interface Campaign {
   id: string;
   name: string;
   description: string;
-  dmId: string; // User ID of the Dungeon Master
-  playerIds: string[]; // Array of user IDs
-  characterIds: string[]; // Array of character IDs in this campaign
-  isActive: boolean;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  dm_id: string;
+  player_ids: string[];
+  character_ids: string[];
+  is_active: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
   settings: CampaignSettings;
 }
 
 export interface CampaignSettings {
-  allowCharacterEditing: boolean;
-  shareCharacterSheets: boolean;
-  privateNotes: boolean;
-  experienceMode: 'individual' | 'milestone' | 'shared';
+  allow_character_editing: boolean;
+  share_character_sheets: boolean;
+  private_notes: boolean;
+  experience_mode: 'individual' | 'milestone' | 'shared';
 }
 
 // Character document stored in Firestore
 export interface CharacterDocument {
   id: string;
-  ownerId: string; // User ID of the character owner
-  campaignId?: string; // Optional campaign association
-  character: Character; // The actual character data
+  owner_id: string;
+  campaign_id?: string;
+  character: Character;
   metadata: CharacterMetadata;
   permissions: CharacterPermissions;
 }
@@ -59,30 +59,30 @@ export interface CharacterMetadata {
   level: number;
   class: string;
   race: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  lastPlayedAt?: Timestamp;
-  version: string; // For data migration
+  created_at: Timestamp;
+  updated_at: Timestamp;
+  last_played_at?: Timestamp;
+  version: string;
   tags: string[];
-  isTemplate: boolean;
-  isPublic: boolean;
+  is_template: boolean;
+  is_public: boolean;
 }
 
 export interface CharacterPermissions {
-  viewers: string[]; // User IDs who can view
-  editors: string[]; // User IDs who can edit
-  dmOverride: boolean; // Allow DM to override permissions in campaigns
+  viewers: string[];
+  editors: string[];
+  dm_override: boolean;
 }
 
 // Chat/Session data
 export interface ChatSession {
   id: string;
-  userId: string;
-  characterId?: string;
-  campaignId?: string;
+  user_id: string;
+  character_id?: string;
+  campaign_id?: string;
   messages: ChatMessage[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 export interface ChatMessage {
@@ -91,9 +91,9 @@ export interface ChatMessage {
   content: string;
   timestamp: Timestamp;
   metadata?: {
-    characterAction?: boolean;
-    diceRoll?: boolean;
-    spellCast?: boolean;
+    character_action?: boolean;
+    dice_roll?: boolean;
+    spell_cast?: boolean;
   };
 }
 

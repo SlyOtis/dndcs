@@ -5,9 +5,10 @@
   import { isLoading, isAuthenticated } from "$lib/stores/auth.store";
 
   const routes: Routes = {
-    "/": {
-      name: "home",
-      component: () => import("./pages/LoginPage.svelte"),
+    "/": "/main",
+    "/main": {
+      name: "main",
+      component: () => import("./pages/MainPage.svelte")
     },
     "/login": {
       name: "login",
@@ -17,21 +18,25 @@
       name: "signup",
       component: () => import("./pages/SignupPage.svelte"),
     },
-    "/main/character": {
-      name: "character",
-      component: () => import("./pages/CharacterPage.svelte")
-    },
-    "/main/character/create": {
+    "/main/create/character": {
       name: "character-create",
       component: () => import("./pages/CharacterCreatePage.svelte")
     },
-    "/main/campaign": {
-      name: "campaign",
-      component: () => import("./pages/CampaignPage.svelte")
+    "/main/create/character/class": {
+      name: "character-class",
+      component: () => import("./pages/CharacterClassPage.svelte")
     },
-    "/main/campaign/create": {
+    "/main/create/campaign": {
       name: "campaign-create",
       component: () => import("./pages/CampaignCreatePage.svelte")
+    },
+    "/character/:id": {
+      name: "character-view",
+      component: () => import("./pages/CharacterPage.svelte")
+    },
+    "/campaign/:id": {
+      name: "campaign-view",
+      component: () => import("./pages/CampaignPage.svelte")
     }
   }
 

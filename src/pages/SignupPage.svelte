@@ -14,7 +14,7 @@
   // Redirect if already authenticated
   $effect(() => {
     if ($isAuthenticated) {
-      navigate("/main/character/create");
+      navigate("/");
     }
   });
 

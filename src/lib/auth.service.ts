@@ -3,7 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  signOut,
+  signOut as firebaseSignOut,
   onAuthStateChanged,
   type User,
   type Unsubscribe
@@ -19,13 +19,42 @@ export const authService = {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Create user profile in Firestore
-    await userService.createProfile({
-      email,
-      displayName,
-      photoURL: user.photoURL || undefined,
-      replicateApiKey
-    });
+    try {
+      await userService.createProfile({
+        email,
+        display_name: '',
+        photo_url: user.photoURL || undefined,
+        replicate_api_key: ''
+      });
+
+      console.log('Auth Service: Storing user details:', {
+        display_name: displayName,
+        replicate_api_key: replicateApiKey
+      });
+      
+      await userService.setUserDetails(user.uid, {
+        display_name: displayName,
+        replicate_api_key: replicateApiKey
+      });
+      
+      console.log('Auth Service: User details stored successfully');
+      
+      const savedDetails = await userService.getUserDetails(user.uid);
+      if (!savedDetails || !savedDetails.display_name) {
+        throw new Error('Failed to save user details - verification failed');
+      }
+      
+      console.log('Auth Service: Verified user details:', savedDetails);
+      
+    } catch (error) {
+      console.error('Auth Service: Failed to save user data, deleting auth user:', error);
+      try {
+        await user.delete();
+      } catch (deleteError) {
+        console.error('Auth Service: Failed to delete user after data save failure:', deleteError);
+      }
+      throw new Error(`Account creation failed: ${error instanceof Error ? error.message : 'Failed to save user details'}`);
+    }
     
     return user;
   },
@@ -46,17 +75,16 @@ export const authService = {
     if (!existingProfile) {
       await userService.createProfile({
         email: user.email || '',
-        displayName: user.displayName || '',
-        photoURL: user.photoURL || undefined
+        display_name: user.displayName || '',
+        photo_url: user.photoURL || undefined
       });
     }
     
     return user;
   },
 
-  // Sign out
   async signOut(): Promise<void> {
-    await signOut(auth);
+    await firebaseSignOut(auth);
   },
 
   // Get current user

@@ -1,8 +1,9 @@
-import {type Unsubscriber, type Writable, writable} from "svelte/store";
+import {type Unsubscriber, type Writable, writable, get} from "svelte/store";
 import type {RollLog, RollLogItem} from "./types";
 import {rollDie, writeRollLog, getCharacterStore, updateCharacterWithChangeLog} from "./engine";
 import type {Character} from "./character.types";
 import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
+import { userProfile } from "./stores/auth.store";
 
 export type ReplicateLogItem = {
   returnedAt: Date,
@@ -127,7 +128,8 @@ export const availableModels = {
 
 async function callReplicate(input: ReplicateInput, modelId?: string) {
   const model = modelId || defaultModel;
-  const apiKey = localStorage.getItem("replicate_api_key")
+  const profile = get(userProfile);
+  const apiKey = profile?.replicateApiKey
 
   if (!apiKey) {
     throw new Error("Replicate api key is missing")
@@ -2733,7 +2735,8 @@ async function aiShowSpecificItem(action: AiAction) {
     }
 
     // Use AI to find the best matching item
-    const apiKey = localStorage.getItem('replicate_api_key');
+    const profile = get(userProfile);
+    const apiKey = profile?.replicateApiKey;
     if (!apiKey) {
       // Fallback to simple text matching if no API key
       const matchedItem = findItemBySimpleMatch(inventory, itemQuery);
@@ -2864,7 +2867,8 @@ Return only the index number of the best match, or -1 if no good match exists.`;
 }
 
 async function generateItemImage(item: any): Promise<string> {
-  const apiKey = localStorage.getItem('replicate_api_key');
+  const profile = get(userProfile);
+  const apiKey = profile?.replicateApiKey;
   if (!apiKey) {
     return getDefaultItemImage(item.type);
   }

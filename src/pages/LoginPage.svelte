@@ -12,7 +12,7 @@
   // Redirect if already authenticated
   $effect(() => {
     if ($isAuthenticated) {
-      navigate("/main/character/create");
+      navigate("/");
     }
   });
 
@@ -27,12 +27,11 @@
 
     try {
       await authService.signIn(email, password);
-      // Navigation will happen automatically via the auth state change
     } catch (error) {
+      console.error('Login error:', error);
       if (error instanceof Error) {
-        // Handle specific Firebase auth errors
-        if (error.message.includes('auth/user-not-found')) {
-          localError = 'No account found with this email. Please sign up first.';
+        if (error.message.includes('auth/user-not-found') || error.message.includes('auth/invalid-credential')) {
+          localError = 'Invalid email or password. Please check your credentials.';
         } else if (error.message.includes('auth/wrong-password')) {
           localError = 'Incorrect password. Please try again.';
         } else if (error.message.includes('auth/invalid-email')) {
@@ -41,6 +40,8 @@
           localError = 'This account has been disabled. Please contact support.';
         } else if (error.message.includes('auth/too-many-requests')) {
           localError = 'Too many failed attempts. Please try again later.';
+        } else if (error.message.includes('400')) {
+          localError = 'Invalid email or password. Please check your credentials.';
         } else {
           localError = error.message;
         }

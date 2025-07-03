@@ -1,477 +1,915 @@
 <script lang="ts">
   import { navigate } from "sly-svelte-location-router";
   import { characterService } from "../lib/firestore.service";
+  import { aiService } from "../lib/ai";
   import type { Character } from "../lib/character.types";
   import Background from "$components/Background.svelte";
+  import * as pdfjsLib from 'pdfjs-dist';
   
-  interface CharacterConcept {
-    name?: string;
-    race?: string;
-    class?: string;
-    background?: string;
-    personality?: string;
-    backstory?: string;
-    goals?: string;
-    stats?: {
-      strength?: number;
-      dexterity?: number;
-      constitution?: number;
-      intelligence?: number;
-      wisdom?: number;
-      charisma?: number;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+
+  interface CharacterCreationData {
+    name: string;
+    level: number;
+    backgroundUrl?: string;
+    abilityScores: {
+      strength: number;
+      dexterity: number;
+      constitution: number;
+      intelligence: number;
+      wisdom: number;
+      charisma: number;
     };
+    sources: string[];
+    imageUrl?: string;
+    aiAnalysis?: any;
   }
 
-  let prompt = $state("");
-  let isGenerating = $state(false);
-  let generatedConcept: CharacterConcept | null = $state(null);
-  let error: string | null = $state(null);
-  let isCreating = $state(false);
+  let creationData = $state<CharacterCreationData>({
+    name: '',
+    level: 1,
+    abilityScores: {
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10
+    },
+    sources: []
+  });
+  let isProcessing = $state(false);
+  let error = $state<string | null>(null);
+  let dragActive = $state(false);
+  let imagePreview = $state<string | null>(null);
+  let imageUrl = $state('');
+  let backgroundDragActive = $state(false);
 
-  const examplePrompts = [
-    "A brave human fighter who was a soldier before becoming an adventurer",
-    "An elven wizard obsessed with ancient magical artifacts",
-    "A halfling rogue with a criminal background who steals from the rich",
-    "A dragonborn paladin devoted to justice and protecting the innocent",
-    "A dwarven cleric of the forge domain who crafts magical weapons"
-  ];
+  let canContinue = $derived(
+    creationData.name.trim().length > 0
+  );
 
-  function useExamplePrompt(example: string) {
-    prompt = example;
-  }
-
-  async function generateCharacter() {
-    if (!prompt.trim()) {
-      error = "Please enter a character concept";
-      return;
+  function handleImageUrlChange() {
+    if (imageUrl.trim()) {
+      imagePreview = imageUrl;
+      creationData.imageUrl = imageUrl;
     }
+  }
 
-    isGenerating = true;
+  function handleBackgroundDragOver(event: DragEvent) {
+    event.preventDefault();
+    backgroundDragActive = true;
+  }
+
+  function handleBackgroundDragLeave() {
+    backgroundDragActive = false;
+  }
+
+  async function handleBackgroundDrop(event: DragEvent) {
+    event.preventDefault();
+    backgroundDragActive = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files) {
+      await processBackgroundFiles(Array.from(files));
+    }
+  }
+
+  async function handleBackgroundFileInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      await processBackgroundFiles(Array.from(input.files));
+    }
+  }
+
+  async function processBackgroundFiles(files: File[]) {
+    for (const file of files) {
+      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+        const url = URL.createObjectURL(file);
+        creationData.backgroundUrl = url;
+        break;
+      }
+    }
+  }
+
+  function handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    dragActive = true;
+  }
+
+  function handleDragLeave() {
+    dragActive = false;
+  }
+
+  async function handleDrop(event: DragEvent) {
+    event.preventDefault();
+    dragActive = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files) {
+      await processFiles(Array.from(files));
+    }
+  }
+
+  async function handleFileInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      await processFiles(Array.from(input.files));
+    }
+  }
+
+  async function processFiles(files: File[]) {
+    isProcessing = true;
     error = null;
 
     try {
-      // Simulate AI generation for now
-      // In a real implementation, this would call an AI service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Mock generated character concept
-      generatedConcept = {
-        name: "Generated Name",
-        race: "Human",
-        class: "Fighter",
-        background: "Soldier",
-        personality: "Brave and determined, always stands up for what's right",
-        backstory: "A former soldier who left the army to become an adventurer",
-        goals: "To protect the innocent and find purpose beyond war",
-        stats: {
-          strength: 16,
-          dexterity: 13,
-          constitution: 15,
-          intelligence: 10,
-          wisdom: 12,
-          charisma: 14
+      for (const file of files) {
+        if (file.type === 'application/pdf') {
+          const text = await extractTextFromPDF(file);
+          creationData.sources.push(text);
+        } else if (file.type.startsWith('image/')) {
+          const url = URL.createObjectURL(file);
+          imagePreview = url;
+          creationData.imageUrl = url;
+          imageUrl = '';
         }
-      };
+      }
     } catch (err) {
-      error = "Failed to generate character. Please try again.";
-      generatedConcept = null;
+      error = 'Failed to process files';
     } finally {
-      isGenerating = false;
+      isProcessing = false;
+    }
+  }
+
+  async function extractTextFromPDF(file: File): Promise<string> {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
+
+    return fullText;
+  }
+
+  function removeSource(index: number) {
+    creationData.sources.splice(index, 1);
+  }
+
+  async function analyzeAndContinue() {
+    if (!canContinue) {
+      error = 'Please provide character name';
+      return;
+    }
+
+    isProcessing = true;
+    error = null;
+
+    try {
+      sessionStorage.setItem('characterCreationData', JSON.stringify(creationData));
+      navigate('/main/create/character/class');
+    } catch (err) {
+      error = 'Failed to continue character creation';
+      isProcessing = false;
     }
   }
 
   async function createCharacter() {
-    if (!generatedConcept) return;
-    
-    isCreating = true;
-    error = null;
-    
-    try {
-      // Convert CharacterConcept to Character format for Firebase
-      const character: Partial<Character> = {
-        name: generatedConcept.name || "Unnamed Character",
-        level: 1,
-        race: {
-          name: generatedConcept.race || "Human",
-          subrace: ""
-        },
-        class: {
-          name: generatedConcept.class || "Fighter",
-          level: 1,
-          hitDie: 10,
-          primaryAbility: ["Strength", "Dexterity"]
-        },
-        background: {
-          name: generatedConcept.background || "Folk Hero",
-          skillProficiencies: [],
-          languages: [],
-          equipment: []
-        },
-        abilities: {
-          strength: generatedConcept.stats?.strength || 10,
-          dexterity: generatedConcept.stats?.dexterity || 10,
-          constitution: generatedConcept.stats?.constitution || 10,
-          intelligence: generatedConcept.stats?.intelligence || 10,
-          wisdom: generatedConcept.stats?.wisdom || 10,
-          charisma: generatedConcept.stats?.charisma || 10
-        },
-        hitPoints: {
-          current: 10,
-          maximum: 10,
-          temporary: 0
-        },
-        armorClass: 10,
-        speed: 30,
-        proficiencyBonus: 2,
-        savingThrows: {
-          strength: { proficient: false, value: 0 },
-          dexterity: { proficient: false, value: 0 },
-          constitution: { proficient: false, value: 0 },
-          intelligence: { proficient: false, value: 0 },
-          wisdom: { proficient: false, value: 0 },
-          charisma: { proficient: false, value: 0 }
-        },
-        skills: {},
-        features: [],
-        spells: [],
-        equipment: [],
-        personality: {
-          traits: generatedConcept.personality ? [generatedConcept.personality] : [],
-          ideals: [],
-          bonds: generatedConcept.backstory ? [generatedConcept.backstory] : [],
-          flaws: [],
-          goals: generatedConcept.goals ? [generatedConcept.goals] : []
-        }
-      };
-      
-      // Save character to Firebase
-      const characterId = await characterService.createCharacter(character as Character, {
-        name: character.name || "Unnamed Character",
-        level: 1,
-        class: character.class?.name || "Unknown",
-        race: character.race?.name || "Unknown",
-        tags: ["ai-generated"]
-      });
-      
-      console.log("Character created successfully with ID:", characterId);
-      
-      // Navigate to character sheet with the new character ID
-      navigate(`/main/character/${characterId}`);
-    } catch (err) {
-      console.error("Failed to create character:", err);
-      error = "Failed to create character. Please try again.";
-    } finally {
-      isCreating = false;
+    if (!creationData.aiAnalysis) {
+      error = 'No character analysis available';
+      return;
     }
-  }
 
-  function regenerateCharacter() {
-    generateCharacter();
-  }
+    try {
+      const character: Partial<Character> = {
+        ...creationData.aiAnalysis.character,
+        abilityScores: creationData.abilityScores,
+        imageUrl: creationData.imageUrl,
+        sources: creationData.sources
+      };
 
-  function editPrompt() {
-    generatedConcept = null;
-    error = null;
+      const characterId = await characterService.createCharacter(character as Character, {
+        name: character.name || creationData.name,
+        level: 1,
+        class: character.class || "Unknown",
+        race: character.race || "Unknown",
+        tags: ["ai-generated", "sources-uploaded"]
+      });
+
+      navigate(`/character/${characterId}`);
+    } catch (err) {
+      error = 'Failed to create character';
+    } finally {
+      isProcessing = false;
+    }
   }
 </script>
 
 <Background />
 
+<div class="page-wrapper">
 <div class="create-character">
+  <button class="back-btn" on:click={() => navigate('/main')}>
+    ← Back
+  </button>
+  
   <div class="header">
     <h1>Create New Character</h1>
-    <p>Describe your character concept and let AI help you build it</p>
   </div>
 
-  {#if !generatedConcept}
-    <div class="input-section">
-      <div class="prompt-input">
-        <label for="character-prompt">Character Concept</label>
-        <textarea
-          id="character-prompt"
-          bind:value={prompt}
-          placeholder="Describe your character idea... (e.g., 'A brave knight seeking redemption' or 'A cunning rogue with a mysterious past')"
-          rows="4"
-          disabled={isGenerating}
-        ></textarea>
+  <div class="form-content">
+    <div class="top-section">
+      <div class="image-section">
+        <div class="image-upload-area {dragActive ? 'drag-active' : ''}"
+             on:dragover={handleDragOver}
+             on:dragleave={handleDragLeave}
+             on:drop={handleDrop}>
+          {#if imagePreview}
+            <img src={imagePreview} alt="Character" class="character-image-preview" />
+            <div class="image-overlay">
+              <span>Drop image to change</span>
+            </div>
+          {:else}
+            <div class="image-placeholder">
+              <div class="upload-icon">🖼️</div>
+              <p>Drop image here or click to upload character image</p>
+            </div>
+          {/if}
+          <input
+            type="file"
+            accept="image/*"
+            on:change={handleFileInput}
+            class="file-input"
+          />
+        </div>
       </div>
 
-      <div class="examples">
-        <h3>Need inspiration? Try these examples:</h3>
-        <div class="example-grid">
-          {#each examplePrompts as example}
-            <button 
-              class="example-btn" 
-              onclick={() => useExamplePrompt(example)}
-              disabled={isGenerating}
-            >
-              {example}
-            </button>
+      <div class="info-section">
+        <div class="form-group">
+          <label for="character-name">Character Name</label>
+          <input
+            type="text"
+            id="character-name"
+            bind:value={creationData.name}
+            placeholder="Enter character name"
+            class="text-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="level">Starting Level</label>
+          <input
+            type="number"
+            id="level"
+            bind:value={creationData.level}
+            min="1"
+            max="20"
+            placeholder="1"
+            class="text-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="background-section">
+      <h3>Character Background</h3>
+      <div class="background-upload-box {backgroundDragActive ? 'drag-active' : ''}"
+           on:dragover={handleBackgroundDragOver}
+           on:dragleave={handleBackgroundDragLeave}
+           on:drop={handleBackgroundDrop}>
+        <input
+          type="url"
+          bind:value={creationData.backgroundUrl}
+          placeholder="Enter image or video URL for character page background"
+          class="background-url-input"
+        />
+        <button class="background-upload-btn" on:click={() => document.getElementById('background-file-input')?.click()}>
+          Upload Image
+        </button>
+        <input
+          id="background-file-input"
+          type="file"
+          accept="image/*,video/*"
+          on:change={handleBackgroundFileInput}
+          class="file-input"
+        />
+      </div>
+    </div>
+
+    <div class="ability-scores">
+      <h3>Ability Scores</h3>
+      <div class="scores-container">
+        <div class="score-box">
+          <div class="score-label">STR</div>
+          <input type="number" bind:value={creationData.abilityScores.strength} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.strength - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.strength - 10) / 2)}</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">DEX</div>
+          <input type="number" bind:value={creationData.abilityScores.dexterity} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.dexterity - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.dexterity - 10) / 2)}</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">CON</div>
+          <input type="number" bind:value={creationData.abilityScores.constitution} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.constitution - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.constitution - 10) / 2)}</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">INT</div>
+          <input type="number" bind:value={creationData.abilityScores.intelligence} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.intelligence - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.intelligence - 10) / 2)}</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">WIS</div>
+          <input type="number" bind:value={creationData.abilityScores.wisdom} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.wisdom - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.wisdom - 10) / 2)}</div>
+        </div>
+        <div class="score-box">
+          <div class="score-label">CHA</div>
+          <input type="number" bind:value={creationData.abilityScores.charisma} min="1" max="20" class="score-value" />
+          <div class="score-modifier">{Math.floor((creationData.abilityScores.charisma - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.charisma - 10) / 2)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="source-upload">
+      <h3>Source Materials</h3>
+      <div 
+        class="upload-area {dragActive ? 'drag-active' : ''}"
+        on:dragover={handleDragOver}
+        on:dragleave={handleDragLeave}
+        on:drop={handleDrop}
+      >
+        <div class="upload-content">
+          <div class="upload-icon">📄</div>
+          <h4>Drop PDFs here or click to select</h4>
+          <p>Upload character sheets, class guides, or source materials</p>
+          <input
+            type="file"
+            multiple
+            accept=".pdf"
+            on:change={handleFileInput}
+            class="file-input"
+          />
+        </div>
+      </div>
+
+      {#if creationData.sources.length > 0}
+        <div class="sources-list">
+          <h4>Uploaded Sources:</h4>
+          {#each creationData.sources as source, index}
+            <div class="source-item">
+              <span class="source-preview">{source.substring(0, 100)}...</span>
+              <button class="remove-btn" on:click={() => removeSource(index)}>×</button>
+            </div>
           {/each}
         </div>
-      </div>
-
-      {#if error}
-        <div class="error">{error}</div>
       {/if}
-
-      <div class="actions">
-        <button 
-          class="btn-primary" 
-          onclick={generateCharacter}
-          disabled={isGenerating || !prompt.trim()}
-        >
-          {#if isGenerating}
-            <span class="spinner"></span>
-            Generating Character...
-          {:else}
-            Generate Character
-          {/if}
-        </button>
-        <button class="btn-secondary" onclick={() => navigate('/main/character')}>
-          Cancel
-        </button>
-      </div>
     </div>
-  {:else}
-    <div class="concept-display">
-      <div class="concept-header">
-        <h2>Generated Character Concept</h2>
-        <div class="concept-actions">
-          <button class="btn-secondary" onclick={editPrompt}>Edit Prompt</button>
-          <button class="btn-secondary" onclick={regenerateCharacter} disabled={isGenerating}>
-            {#if isGenerating}
-              <span class="spinner"></span>
-              Regenerating...
-            {:else}
-              Regenerate
-            {/if}
-          </button>
-        </div>
-      </div>
 
-      <div class="concept-grid">
-        <div class="concept-section">
-          <h3>Basic Information</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <label>Name:</label>
-              <span>{generatedConcept.name || "Not specified"}</span>
-            </div>
-            <div class="info-item">
-              <label>Race:</label>
-              <span>{generatedConcept.race || "Not specified"}</span>
-            </div>
-            <div class="info-item">
-              <label>Class:</label>
-              <span>{generatedConcept.class || "Not specified"}</span>
-            </div>
-            <div class="info-item">
-              <label>Background:</label>
-              <span>{generatedConcept.background || "Not specified"}</span>
-            </div>
-          </div>
-        </div>
+    {#if error}
+      <div class="error">{error}</div>
+    {/if}
 
-        <div class="concept-section">
-          <h3>Character Traits</h3>
-          <div class="trait-item">
-            <label>Personality:</label>
-            <p>{generatedConcept.personality || "Not specified"}</p>
-          </div>
-          <div class="trait-item">
-            <label>Backstory:</label>
-            <p>{generatedConcept.backstory || "Not specified"}</p>
-          </div>
-          <div class="trait-item">
-            <label>Goals:</label>
-            <p>{generatedConcept.goals || "Not specified"}</p>
-          </div>
-        </div>
-
-        {#if generatedConcept.stats}
-          <div class="concept-section">
-            <h3>Ability Scores</h3>
-            <div class="stats-grid">
-              <div class="stat-item">
-                <label>STR</label>
-                <span>{generatedConcept.stats.strength || 10}</span>
-              </div>
-              <div class="stat-item">
-                <label>DEX</label>
-                <span>{generatedConcept.stats.dexterity || 10}</span>
-              </div>
-              <div class="stat-item">
-                <label>CON</label>
-                <span>{generatedConcept.stats.constitution || 10}</span>
-              </div>
-              <div class="stat-item">
-                <label>INT</label>
-                <span>{generatedConcept.stats.intelligence || 10}</span>
-              </div>
-              <div class="stat-item">
-                <label>WIS</label>
-                <span>{generatedConcept.stats.wisdom || 10}</span>
-              </div>
-              <div class="stat-item">
-                <label>CHA</label>
-                <span>{generatedConcept.stats.charisma || 10}</span>
-              </div>
-            </div>
-          </div>
+    <div class="form-actions">
+      <button class="btn-secondary" on:click={() => navigate('/main')}>Cancel</button>
+      <button class="btn-primary" on:click={analyzeAndContinue} disabled={!canContinue || isProcessing}>
+        {#if isProcessing}
+          <span class="spinner"></span>
+          Continuing...
+        {:else}
+          Continue
         {/if}
-      </div>
-
-      <div class="original-prompt">
-        <h4>Original Prompt:</h4>
-        <p>"{prompt}"</p>
-      </div>
-
-      <div class="final-actions">
-        <button class="btn-primary" onclick={createCharacter} disabled={isCreating}>
-          {#if isCreating}
-            <span class="spinner"></span>
-            Creating Character...
-          {:else}
-            Create This Character
-          {/if}
-        </button>
-        <button class="btn-secondary" onclick={editPrompt} disabled={isCreating}>
-          Start Over
-        </button>
-      </div>
+      </button>
     </div>
-  {/if}
+  </div>
+</div>
 </div>
 
 <style>
-  .create-character {
-    height: 100%;
+  .page-wrapper {
+    min-height: 100vh;
+    width: 100%;
     overflow-y: auto;
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+  }
+
+  .create-character {
+    padding: 4rem 2rem 4rem 2rem;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .back-btn {
+    position: fixed;
+    top: 2rem;
+    left: 2rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-content-dark);
+    border: 1px solid var(--color-primary-main);
+    border-radius: 6px;
+    color: var(--color-primary-text);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .back-btn:hover {
+    background: var(--color-primary-main);
+    transform: translateX(-2px);
   }
 
   .header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
   }
 
   .header h1 {
-    margin: 0 0 0.5rem 0;
+    margin: 0;
     color: var(--color-primary-main);
     font-size: 2.5rem;
   }
 
-  .header p {
-    margin: 0;
-    color: var(--color-secondary-text);
-    font-size: 1.1rem;
-  }
-
-  .input-section {
-    max-width: 800px;
+  .form-content {
+    background: var(--color-content-dark);
+    border: 2px solid var(--color-primary-main);
+    border-radius: 12px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1024px;
     margin: 0 auto;
   }
 
-  .prompt-input {
-    margin-bottom: 2rem;
+  .top-section {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2rem;
+    align-items: start;
   }
 
-  .prompt-input label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
+  .image-section {
+    position: relative;
+  }
+
+  .image-upload-area {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed var(--color-primary-main);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .image-upload-area.drag-active {
+    border-color: var(--color-primary-light);
+    background: rgba(255, 215, 0, 0.1);
+  }
+
+  .character-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
     color: var(--color-primary-text);
   }
 
-  .prompt-input textarea {
-    width: 100%;
+  .image-upload-area:hover .image-overlay {
+    opacity: 1;
+  }
+
+  .image-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     padding: 1rem;
-    border: 2px solid var(--color-primary-main);
-    border-radius: 0.5rem;
-    background: var(--color-content-main);
+  }
+
+  .image-placeholder .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .image-placeholder p {
+    margin: 0;
+    color: var(--color-secondary-text);
+  }
+
+  .info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--color-primary-text);
+  }
+
+  .text-input, .select-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-primary-main);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
     color: var(--color-primary-text);
     font-size: 1rem;
-    line-height: 1.5;
-    resize: vertical;
-    min-height: 120px;
   }
 
-  .prompt-input textarea:focus {
+  .text-input:focus, .select-input:focus {
     outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
   }
 
-  .prompt-input textarea:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  .background-section {
+    position: relative;
+    z-index: 1;
   }
 
-  .examples {
-    margin-bottom: 2rem;
-  }
-
-  .examples h3 {
+  .background-section h3 {
     margin: 0 0 1rem 0;
+    color: var(--color-primary-main);
+    font-size: 1.5rem;
+  }
+
+  .background-upload-box {
+    border: 2px dashed var(--color-primary-main);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+  }
+
+  .background-upload-box.drag-active {
+    border-color: var(--color-primary-light);
+    background: rgba(255, 215, 0, 0.1);
+  }
+
+  .background-url-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--color-primary-main);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
     color: var(--color-primary-text);
-    font-size: 1.2rem;
+    font-size: 1rem;
+    position: relative;
+    z-index: 2;
   }
 
-  .example-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 0.75rem;
+  .background-url-input:focus {
+    outline: none;
+    border-color: var(--color-primary-light);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
   }
 
-  .example-btn {
-    padding: 0.75rem 1rem;
+  .background-upload-btn {
+    width: 100%;
+    padding: 0.75rem;
     background: var(--color-content-dark);
     border: 1px solid var(--color-primary-main);
-    border-radius: 0.375rem;
+    border-radius: 6px;
     color: var(--color-primary-text);
     cursor: pointer;
+    font-size: 1rem;
     transition: all 0.2s ease;
-    text-align: left;
-    font-size: 0.9rem;
-    line-height: 1.4;
   }
 
-  .example-btn:hover:not(:disabled) {
+  .background-upload-btn:hover {
     background: var(--color-primary-main);
     transform: translateY(-1px);
   }
 
-  .example-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+
+  .ability-scores {
+    position: relative;
+    z-index: 1;
   }
 
-  .error {
-    background: rgba(220, 53, 69, 0.1);
-    border: 1px solid #dc3545;
-    border-radius: 0.375rem;
+  .ability-scores h3 {
+    margin: 0 0 1rem 0;
+    color: var(--color-primary-main);
+    font-size: 1.5rem;
+  }
+
+  .scores-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .scores-container {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  .score-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--color-primary-main);
+    border-radius: 12px;
     padding: 1rem;
-    margin-bottom: 1rem;
-    color: #dc3545;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .score-box:hover {
+    border-color: var(--color-primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  }
+
+  .score-label {
+    font-weight: bold;
+    color: var(--color-primary-main);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .score-value {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    text-align: center;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary-main), var(--color-primary-light));
+    color: var(--color-primary-text);
+    font-size: 1.5rem;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .score-value:focus {
+    outline: none;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+  }
+
+  .score-modifier {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-secondary-text);
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    min-width: 30px;
     text-align: center;
   }
 
-  .actions {
+  .source-upload h3 {
+    margin: 0 0 1rem 0;
+    color: var(--color-primary-main);
+    font-size: 1.5rem;
+  }
+
+  .upload-area {
+    border: 2px dashed var(--color-primary-main);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .upload-area.drag-active {
+    border-color: var(--color-primary-light);
+    background: rgba(255, 215, 0, 0.1);
+  }
+
+  .upload-content h3 {
+    margin: 0.5rem 0;
+    color: var(--color-primary-main);
+  }
+
+  .upload-content p {
+    margin: 0;
+    color: var(--color-secondary-text);
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .sources-list {
+    margin-bottom: 2rem;
+  }
+
+  .sources-list h4 {
+    margin: 0 0 1rem 0;
+    color: var(--color-primary-text);
+  }
+
+  .source-item {
     display: flex;
-    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .source-preview {
+    color: var(--color-primary-text);
+    font-size: 0.9rem;
+    flex: 1;
+  }
+
+  .remove-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
     justify-content: center;
   }
 
+  .image-preview {
+    margin-bottom: 2rem;
+  }
+
+  .image-preview h4 {
+    margin: 0 0 1rem 0;
+    color: var(--color-primary-text);
+  }
+
+  .image-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 2px solid var(--color-primary-main);
+  }
+
+  .config-grid {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-primary-text);
+    cursor: pointer;
+  }
+
+  .radio-option input {
+    accent-color: var(--color-primary-main);
+  }
+
+  .analysis-result {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .character-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .character-summary h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--color-primary-main);
+    font-size: 1.5rem;
+  }
+
+  .character-summary p {
+    margin: 0.25rem 0;
+    color: var(--color-primary-text);
+  }
+
+  .ability-scores h4, .features-list h4, .pending-choices h4, .notes h4 {
+    margin: 0 0 1rem 0;
+    color: var(--color-primary-main);
+  }
+
+  .scores-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .score {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.75rem;
+    border-radius: 6px;
+    text-align: center;
+    color: var(--color-primary-text);
+    font-weight: 600;
+  }
+
+  .features-list ul, .pending-choices ul {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: var(--color-primary-text);
+  }
+
+  .features-list li, .pending-choices li {
+    margin-bottom: 0.5rem;
+  }
+
+  .notes p {
+    margin: 0;
+    color: var(--color-primary-text);
+    line-height: 1.5;
+  }
+
+  .error {
+    background: rgba(220, 53, 69, 0.2);
+    border: 1px solid #dc3545;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #ff6b6b;
+    text-align: center;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+
   .btn-primary, .btn-secondary {
-    padding: 0.875rem 1.75rem;
+    padding: 0.75rem 1.5rem;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -485,13 +923,12 @@
 
   .btn-primary:hover:not(:disabled) {
     background: var(--color-primary-light);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 
   .btn-primary:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none;
   }
 
   .btn-secondary {
@@ -500,9 +937,8 @@
     border: 1px solid var(--color-primary-main);
   }
 
-  .btn-secondary:hover:not(:disabled) {
+  .btn-secondary:hover {
     background: var(--color-content-light);
-    transform: translateY(-1px);
   }
 
   .spinner {
@@ -515,152 +951,8 @@
   }
 
   @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .concept-display {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-
-  .concept-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .concept-header h2 {
-    margin: 0;
-    color: var(--color-primary-main);
-    font-size: 2rem;
-  }
-
-  .concept-actions {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .concept-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .concept-section {
-    background: var(--color-content-main);
-    border: 1px solid var(--color-primary-main);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-  }
-
-  .concept-section h3 {
-    margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
-    font-size: 1.3rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.5rem;
-  }
-
-  .info-grid {
-    display: grid;
-    gap: 0.75rem;
-  }
-
-  .info-item {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .info-item label {
-    font-weight: bold;
-    color: var(--color-secondary-text);
-    min-width: 80px;
-  }
-
-  .info-item span {
-    color: var(--color-primary-text);
-  }
-
-  .trait-item {
-    margin-bottom: 1rem;
-  }
-
-  .trait-item:last-child {
-    margin-bottom: 0;
-  }
-
-  .trait-item label {
-    display: block;
-    font-weight: bold;
-    color: var(--color-secondary-text);
-    margin-bottom: 0.25rem;
-  }
-
-  .trait-item p {
-    margin: 0;
-    color: var(--color-primary-text);
-    line-height: 1.5;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .stat-item {
-    text-align: center;
-    background: var(--color-content-dark);
-    border-radius: 0.375rem;
-    padding: 0.75rem;
-  }
-
-  .stat-item label {
-    display: block;
-    font-weight: bold;
-    color: var(--color-secondary-text);
-    font-size: 0.875rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .stat-item span {
-    display: block;
-    color: var(--color-primary-text);
-    font-size: 1.25rem;
-    font-weight: bold;
-  }
-
-  .original-prompt {
-    background: var(--color-content-dark);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .original-prompt h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--color-secondary-text);
-    font-size: 1rem;
-  }
-
-  .original-prompt p {
-    margin: 0;
-    color: var(--color-primary-text);
-    font-style: italic;
-    line-height: 1.5;
-  }
-
-  .final-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    padding-top: 1rem;
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   @media (max-width: 768px) {
@@ -668,24 +960,21 @@
       padding: 1rem;
     }
 
-    .header h1 {
-      font-size: 2rem;
+    .top-section {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
     }
 
-    .concept-header {
-      flex-direction: column;
-      align-items: stretch;
+    .image-upload-area {
+      width: 100%;
+      height: 250px;
     }
 
-    .concept-actions {
-      justify-content: center;
-    }
-
-    .actions, .final-actions {
+    .form-actions {
       flex-direction: column;
     }
 
-    .stats-grid {
+    .scores-container {
       grid-template-columns: repeat(2, 1fr);
     }
   }

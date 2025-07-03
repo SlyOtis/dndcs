@@ -3,12 +3,13 @@
   import type {CharacterContext} from "../lib/types";
   import {decryptMediaUrl} from "../lib/engine.js";
 
-  const {info} = getContext<CharacterContext>('character')
+  const characterContext = getContext<CharacterContext>('character')
+  const info = characterContext?.info
 
   let bckSource = $state({type: 'unknown', url: ''})
 
   $effect.pre(() => {
-    if ($info.backgroundUrl) {
+    if (info && $info.backgroundUrl) {
       decryptMediaUrl($info.backgroundUrl).then(res => {
         bckSource = res
       })

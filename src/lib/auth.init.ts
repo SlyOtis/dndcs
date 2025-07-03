@@ -2,7 +2,8 @@ import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from './firebase';
 import { 
   user, 
-  userProfile, 
+  userProfile,
+  userDetails, 
   isLoading, 
   authError, 
   isAuthenticated 
@@ -25,17 +26,35 @@ export function initializeAuth() {
     
     try {
       if (firebaseUser) {
-        // User is signed in
         user.set(firebaseUser);
         isAuthenticated.set(true);
         
+        try {
+          const [profile, details] = await Promise.all([
+            userService.getProfile(firebaseUser.uid),
+            userService.getUserDetails(firebaseUser.uid)
+          ]);
+          
+          if (profile) {
+            userProfile.set(profile);
+          }
+          
+          if (details) {
+            userDetails.set(details);
+            console.log('Auth init: User details loaded:', details);
+          } else {
+            console.error('Auth init: No user details found for user:', firebaseUser.uid);
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
+        
       } else {
-        // User is signed out
         user.set(null);
         userProfile.set(null);
+        userDetails.set(null);
         isAuthenticated.set(false);
         
-        // Clear all user data
         userCharacters.set([]);
         userCampaigns.set([]);
         currentCharacter.set(null);

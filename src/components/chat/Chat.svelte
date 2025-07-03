@@ -4,6 +4,7 @@
   import {differenceInMilliseconds, format} from 'date-fns'
   import {type ChatLog, detectAction, getReplicateLog} from "$lib/chat";
   import ChatItem from "./ChatItem.svelte";
+  import { userProfile } from "$lib/stores/auth.store";
 
   const {unsubscribeRoll, rollStore} = getRollLog()
   const {unsubscribeReplicate, replicateStore} = getReplicateLog()
@@ -115,7 +116,7 @@
     try {
       stateThinking = "Converting speech to text..."
       
-      const apiKey = localStorage.getItem('replicate_api_key')
+      const apiKey = $userProfile?.replicateApiKey
       if (!apiKey) {
         throw new Error("Replicate API key is missing")
       }

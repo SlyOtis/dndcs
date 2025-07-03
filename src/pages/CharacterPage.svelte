@@ -18,17 +18,54 @@
   import ActionsTab from "$character-sheet/main_tabs/ActionsTab.svelte";
   import Special from "$character-sheet/Special.svelte";
   import Background from "$components/Background.svelte";
-  import { getCharacterStore } from "$lib/engine";
-  import { setContext, onDestroy } from "svelte";
+  import { getCharacterStore, getSidebar } from "$lib/engine";
+  import { setContext, onDestroy, onMount } from "svelte";
+  import MenuPanel from "$components/MenuPanel.svelte";
+  import Chat from "$chat/Chat.svelte";
+  import Overlay from "$components/Overlay.svelte";
+  import Search from "$components/search/Search.svelte";
+  import Dialogs from "$dialogs/Dialogs.svelte";
+  import SoundManager from "$components/SoundManager.svelte";
+  import { sidebarStore } from "$lib/navigation";
+  import { uiStore, isSearchDialogOpen, anyDialogOpen } from "$lib/stores/ui.store";
+  import { initializeGlobalEvents } from "$lib/globalEvents";
 
   // Create character store and context
   const {unsubscribe, ...chStore} = getCharacterStore()
+  const unsubscribeSidebar = sidebarStore.subscribe(() => {});
+  
   setContext<CharacterContext>('character', chStore);
+  setContext('sidebar', sidebarStore)
+  setContext('dialogState', {
+    get isAnyDialogOpen() {
+      return $anyDialogOpen;
+    },
+    setDialogState: uiStore.setDialogState
+  });
   
   const {info} = chStore;
+
+  onMount(() => {
+    const savedTheme = localStorage.getItem('dnd_theme') || 'medieval';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    const cleanupGlobalEvents = initializeGlobalEvents({
+      anyDialogOpen: $anyDialogOpen,
+      setDialogState: uiStore.setDialogState,
+      toggleChat: () => {},
+      openSearchDialog: uiStore.openSearchDialog,
+      isSearchDialogOpen: $isSearchDialogOpen,
+      closeSearchDialog: uiStore.closeSearchDialog
+    });
+    
+    return () => {
+      cleanupGlobalEvents();
+    };
+  });
   
   onDestroy(() => {
     unsubscribe();
+    unsubscribeSidebar();
   });
 
   // Character image logic
@@ -47,6 +84,10 @@
   })
 </script>
 
+<SoundManager />
+<Overlay />
+<Dialogs />
+<Search />
 <Background />
 
 <div class="root">

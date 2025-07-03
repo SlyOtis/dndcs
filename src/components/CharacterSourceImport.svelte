@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { CharacterSourceData } from '../lib/character.types';
   import * as pdfjsLib from 'pdfjs-dist';
+  import { userProfile } from '../lib/stores/auth.store';
   
   // Configure PDF.js worker - use local copy
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
@@ -820,7 +821,7 @@
   }
   
   async function processWithReplicate(content: string, fileName: string, type: 'pdf' | 'image'): Promise<any> {
-    const apiKey = localStorage.getItem('replicate_api_key');
+    const apiKey = $userProfile?.replicateApiKey;
     if (!apiKey) {
       throw new Error('Replicate API key is required. Please set your API key in the login page.');
     }
