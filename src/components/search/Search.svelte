@@ -127,13 +127,13 @@
     display: flex;
     align-items: center;
     padding: 16px;
-    border-bottom: 1px solid var(--color-primary-main);
+    border-bottom: 1px solid var(--metal);
     gap: 12px;
   }
   
   .search-icon {
     font-size: 1.2rem;
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
   
   .search-input {
@@ -141,13 +141,13 @@
     background: transparent;
     border: none;
     outline: none;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.1rem;
     padding: 8px 0;
   }
   
   .search-input::placeholder {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
   
   .results {
@@ -161,12 +161,12 @@
     padding: 12px 16px;
     cursor: pointer;
     transition: background 0.2s ease;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--sheen-soft);
   }
   
   .result-item:hover,
   .result-item.selected {
-    background: var(--color-content-light);
+    background: var(--ground-lift);
   }
   
   .command-info {
@@ -177,24 +177,24 @@
   }
   
   .command-name {
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-weight: 500;
   }
   
   .command-shortcut {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 0.9rem;
-    font-family: 'Courier New', monospace;
-    background: var(--color-content-main);
+    font-family: var(--font-mono);
+    background: var(--ground-raised);
     padding: 2px 6px;
     border-radius: 4px;
-    border: 1px solid var(--color-primary-main);
+    border: 1px solid var(--metal);
   }
   
   .no-results {
     padding: 24px 16px;
     text-align: center;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-style: italic;
   }
 </style>

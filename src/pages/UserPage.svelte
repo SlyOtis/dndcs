@@ -9,6 +9,8 @@
   import Background from '$components/Background.svelte'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import Aura from '$components/ui/Aura.svelte'
+  import Ornament from '$components/ui/Ornament.svelte'
 
   let displayName = $state('')
   let keys = $state<Record<string, string>>({})
@@ -83,8 +85,10 @@
 
 <Background />
 
+<Aura variant="motes" tone="ember" density="sparse" />
+
 <main class="dnd-user">
-  <header class="dnd-user-header primary-border">
+  <header class="dnd-user-header dnd-panel dnd-keyline">
     {#if $userProfile?.photo_url}
       <img class="dnd-user-avatar" src={$userProfile.photo_url} alt="" />
     {:else}
@@ -94,13 +98,14 @@
       <h1>{displayName || 'Adventurer'}</h1>
       <p>{$userProfile?.email ?? ''}</p>
     </div>
-    <Button variant="secondary" onclick={() => navigate('/main')}>Back to the table</Button>
+    <span class="dnd-user-crest"><Ornament name="rosette" size="sm" tone="metal" /></span>
+    <Button variant="secondary" onclick={() => navigate("/main")}>Back to the table</Button>
   </header>
 
   {#if error}<p class="dnd-user-error">{error}</p>{/if}
   {#if saved}<p class="dnd-user-note">{saved}</p>{/if}
 
-  <section class="dnd-user-panel primary-border">
+  <section class="dnd-user-panel dnd-panel dnd-keyline">
     <h2>Profile</h2>
     <Field label="Display name" id="user-name">
       <input id="user-name" bind:value={displayName} />
@@ -111,7 +116,7 @@
     </label>
   </section>
 
-  <section class="dnd-user-panel primary-border">
+  <section class="dnd-user-panel dnd-panel dnd-keyline">
     <h2>Integrations</h2>
     <p class="dnd-user-note">Every service this app talks to. A key you enter stays on your own user document.</p>
 
@@ -163,7 +168,7 @@
   .dnd-user-panel {
     padding: var(--space-4);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
   }
 
   .dnd-user-header {
@@ -172,23 +177,28 @@
     gap: var(--space-4);
   }
 
+  .dnd-user-crest {
+    margin-inline-start: auto;
+    opacity: 0.7;
+  }
+
   .dnd-user-header h1 {
     margin: 0;
     font-size: var(--text-xl);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-user-header p {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-user-avatar {
     width: 64px;
     height: 64px;
     border-radius: var(--radius-pill);
-    border: var(--border-width) solid var(--color-primary-main);
+    border: var(--border-width) solid var(--metal);
     object-fit: cover;
   }
 
@@ -196,8 +206,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-content-main);
-    color: var(--color-primary-main);
+    background: var(--ground-raised);
+    color: var(--metal);
     font-size: var(--text-xl);
   }
 
@@ -210,7 +220,7 @@
   .dnd-user-panel h2 {
     margin: 0;
     font-size: var(--text-lg);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-user-list {
@@ -227,7 +237,7 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-3);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
   }
 
@@ -241,7 +251,7 @@
   .dnd-user-row h3 {
     margin: 0;
     font-size: var(--text-md);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-user-status {
@@ -251,24 +261,24 @@
   }
 
   .dnd-user-status-live {
-    background: color-mix(in srgb, var(--color-success) 25%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-good) 25%, transparent);
+    color: var(--ink);
   }
 
   .dnd-user-status-planned {
-    background: color-mix(in srgb, var(--color-warning) 25%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-warn) 25%, transparent);
+    color: var(--ink);
   }
 
   .dnd-user-status-blocked {
-    background: color-mix(in srgb, var(--color-danger) 25%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 25%, transparent);
+    color: var(--ink);
   }
 
   .dnd-user-purpose {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-user-links {
@@ -278,7 +288,7 @@
 
   .dnd-user-links a {
     font-size: var(--text-sm);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-user-upload {
@@ -286,21 +296,21 @@
     flex-direction: column;
     gap: var(--space-2);
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-user-note {
     margin: 0;
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-user-error {
     margin: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

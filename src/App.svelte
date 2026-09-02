@@ -3,6 +3,10 @@
   import {onMount, onDestroy} from "svelte";
   import { initializeAuth } from "$lib/auth.init";
   import { isAuthenticated, isLoading } from "$lib/stores/auth.store";
+  import EffectDefs from "$components/ui/EffectDefs.svelte";
+  import Aura from "$components/ui/Aura.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
+  import Flame from "$components/ui/Flame.svelte";
 
   const PUBLIC_PATHS = ["/login", "/signup"];
 
@@ -65,12 +69,22 @@
   });
 </script>
 
+<EffectDefs />
+
 {#if $isLoading}
   <div class="loading-screen">
+    <Aura variant="motes" tone="ember" density="thick" />
+    <Aura variant="runes" tone="verdigris" />
+
     <div class="loading-content">
-      <div class="spinner"></div>
-      <h2>D&D Character Sheet</h2>
-      <p>Loading your adventure...</p>
+      <span class="loading-flame">
+        <Flame size="lg" intensity="steady" />
+      </span>
+      <h2 class="dnd-heading dnd-heading-hero">D&amp;D Character Sheet</h2>
+      <span class="loading-rule">
+        <Ornament name="divider" tone="metal" />
+      </span>
+      <p class="dnd-label loading-note">Lighting the braziers</p>
     </div>
   </div>
 {:else}
@@ -80,46 +94,38 @@
 <style>
   .loading-screen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: var(--color-content-dark, #1a1a1a);
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    background: var(--backdrop);
     z-index: 9999;
   }
 
   .loading-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
     text-align: center;
-    color: var(--color-primary-text, #ffffff);
+    padding: var(--space-7);
   }
 
-  .loading-content h2 {
-    margin: 1rem 0 0.5rem 0;
-    color: var(--color-primary-main, #d4af37);
-    font-size: 2rem;
+  .loading-flame {
+    display: block;
+    margin-bottom: var(--space-2);
   }
 
-  .loading-content p {
+  .loading-rule {
+    display: block;
+    width: min(340px, 70vw);
+  }
+
+  .loading-note {
     margin: 0;
-    color: var(--color-secondary-text, #cccccc);
-    font-size: 1.1rem;
-  }
-
-  .spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid rgba(212, 175, 55, 0.3);
-    border-left: 4px solid var(--color-primary-main, #d4af37);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    color: var(--ink-dim);
   }
 </style>

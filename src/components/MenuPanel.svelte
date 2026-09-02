@@ -104,7 +104,7 @@
     border: none;
     cursor: pointer;
     padding: 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: visible;
   }
@@ -113,13 +113,13 @@
     width: 20px;
     height: 20px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 1px 2px var(--shade-soft));
   }
 
   .toggle-menu:hover .morphing-icon {
     transform: scale(1.1);
-    color: #ff6b35;
-    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.8)) drop-shadow(0 0 16px rgba(255, 165, 0, 0.4));
+    color: var(--ember);
+    filter: drop-shadow(0 0 8px var(--ember-glow)) drop-shadow(0 0 16px var(--ember-glow));
   }
 
   .toggle-menu:hover {
@@ -128,8 +128,8 @@
 
   .toggle-menu:active .morphing-icon {
     transform: scale(1.3) rotate(10deg);
-    color: #ff4500;
-    filter: drop-shadow(0 0 12px #ff4500) drop-shadow(0 0 24px #ff6b35);
+    color: var(--ember);
+    filter: drop-shadow(0 0 12px var(--ember)) drop-shadow(0 0 24px var(--ember));
   }
 
   .fire-particles {
@@ -144,7 +144,7 @@
     position: absolute;
     width: 4px;
     height: 4px;
-    background: radial-gradient(circle, #ff6b35 0%, #ff4500 50%, transparent 100%);
+    background: radial-gradient(circle, var(--ember) 0%, var(--ember) 50%, transparent 100%);
     border-radius: 50%;
     opacity: 0;
     transform: translateY(-50%);
@@ -181,18 +181,18 @@
 
   .soundboard-header {
     padding: 1rem;
-    border-bottom: 1px solid var(--color-primary-main);
-    background: var(--color-content-main);
+    border-bottom: 1px solid var(--metal);
+    background: var(--ground-raised);
   }
 
   .close-button {
-    background: var(--color-content-dark);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 1px solid var(--metal);
     border-radius: 6px;
     padding: 0.5rem 0.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: var(--color-primary-text);
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -200,7 +200,7 @@
   }
 
   .close-button:hover {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: scale(1.05);
   }
 

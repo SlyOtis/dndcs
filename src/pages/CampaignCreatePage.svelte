@@ -2,6 +2,8 @@
   import { navigate } from "sly-svelte-location-router";
   import { campaignService } from "../lib/firestore.service";
   import { authService } from "../lib/auth.service";
+  import Aura from "$components/ui/Aura.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
   
   interface CampaignConcept {
     name?: string;
@@ -175,8 +177,12 @@
   }
 </script>
 
+<Aura variant="veil" tone="verdigris" />
+<Aura variant="motes" tone="ember" density="sparse" />
+
 <div class="create-campaign">
   <div class="header">
+    <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
     <h1>Create New Campaign</h1>
     <p>Describe your campaign idea and let AI help you build a complete adventure</p>
   </div>
@@ -358,6 +364,12 @@
 </div>
 
 <style>
+  .header-crest {
+    display: block;
+    margin: 0 auto var(--space-2);
+    filter: drop-shadow(0 4px 10px var(--shade-hard));
+  }
+
   .create-campaign {
     height: 100%;
     overflow-y: auto;
@@ -373,13 +385,13 @@
 
   .header h1 {
     margin: 0 0 0.5rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 2.5rem;
   }
 
   .header p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 1.1rem;
   }
 
@@ -396,16 +408,16 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: bold;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .prompt-input textarea {
     width: 100%;
     padding: 1rem;
-    border: 2px solid var(--color-primary-main);
+    border: 2px solid var(--metal);
     border-radius: 0.5rem;
-    background: var(--color-content-main);
-    color: var(--color-primary-text);
+    background: var(--ground-raised);
+    color: var(--ink);
     font-size: 1rem;
     line-height: 1.5;
     resize: vertical;
@@ -414,8 +426,8 @@
 
   .prompt-input textarea:focus {
     outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    border-color: var(--metal-dim);
+    box-shadow: 0 0 0 2px var(--sheen-soft);
   }
 
   .prompt-input textarea:disabled {
@@ -429,7 +441,7 @@
 
   .examples h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.2rem;
   }
 
@@ -441,10 +453,10 @@
 
   .example-btn {
     padding: 1rem;
-    background: var(--color-content-dark);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 1px solid var(--metal);
     border-radius: 0.375rem;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
@@ -453,7 +465,7 @@
   }
 
   .example-btn:hover:not(:disabled) {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: translateY(-1px);
   }
 
@@ -463,12 +475,12 @@
   }
 
   .error {
-    background: rgba(220, 53, 69, 0.1);
-    border: 1px solid #dc3545;
+    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
+    border: 1px solid var(--state-bad);
     border-radius: 0.375rem;
     padding: 1rem;
     margin-bottom: 1rem;
-    color: #dc3545;
+    color: var(--state-bad);
     text-align: center;
   }
 
@@ -492,12 +504,12 @@
   }
 
   .btn-primary {
-    background: var(--color-primary-main);
-    color: var(--color-primary-text);
+    background: var(--metal);
+    color: var(--ink);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-primary-light);
+    background: var(--metal-bright);
     transform: translateY(-2px);
   }
 
@@ -508,13 +520,13 @@
   }
 
   .btn-secondary {
-    background: var(--color-content-dark);
-    color: var(--color-primary-text);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    color: var(--ink);
+    border: 1px solid var(--metal);
   }
 
   .btn-secondary:hover:not(:disabled) {
-    background: var(--color-content-light);
+    background: var(--ground-lift);
     transform: translateY(-1px);
   }
 
@@ -549,7 +561,7 @@
 
   .concept-header h2 {
     margin: 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 2rem;
   }
 
@@ -559,8 +571,8 @@
   }
 
   .concept-overview {
-    background: var(--color-content-main);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground-raised);
+    border: 1px solid var(--metal);
     border-radius: 0.5rem;
     padding: 2rem;
     margin-bottom: 2rem;
@@ -572,13 +584,13 @@
 
   .title-section h3 {
     margin: 0 0 0.5rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.8rem;
   }
 
   .description {
     margin: 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.1rem;
     line-height: 1.6;
   }
@@ -596,12 +608,12 @@
 
   .info-item .info-label {
     font-weight: bold;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     min-width: 100px;
   }
 
   .info-item span {
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .concept-grid {
@@ -612,36 +624,36 @@
   }
 
   .concept-section {
-    background: var(--color-content-main);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground-raised);
+    border: 1px solid var(--metal);
     border-radius: 0.5rem;
     padding: 1.5rem;
   }
 
   .concept-section h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.3rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--sheen-soft);
     padding-bottom: 0.5rem;
   }
 
   .quest-content h4 {
     margin: 0 0 0.5rem 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.1rem;
   }
 
   .quest-content p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     line-height: 1.5;
   }
 
   .location-item, .npc-item {
     margin-bottom: 1rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--sheen-soft);
   }
 
   .location-item:last-child, .npc-item:last-child {
@@ -656,18 +668,18 @@
 
   .location-name, .npc-name {
     font-weight: bold;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .location-type, .npc-role {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-style: italic;
     margin-left: 0.5rem;
   }
 
   .location-description, .npc-description {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     line-height: 1.5;
     font-size: 0.95rem;
   }
@@ -675,7 +687,7 @@
   .hooks-list {
     margin: 0;
     padding-left: 1.5rem;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .hooks-list li {
@@ -684,7 +696,7 @@
   }
 
   .original-prompt {
-    background: var(--color-content-dark);
+    background: var(--ground);
     border-radius: 0.5rem;
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -692,13 +704,13 @@
 
   .original-prompt h4 {
     margin: 0 0 0.5rem 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 1rem;
   }
 
   .original-prompt p {
     margin: 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-style: italic;
     line-height: 1.5;
   }

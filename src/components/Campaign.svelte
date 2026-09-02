@@ -176,7 +176,7 @@
   }
 
   .error {
-    color: #dc3545;
+    color: var(--state-bad);
   }
 
   .no-campaign {
@@ -186,12 +186,12 @@
 
   .no-campaign h2 {
     margin-bottom: 1rem;
-    color: #333;
+    color: var(--ink);
   }
 
   .no-campaign p {
     margin-bottom: 2rem;
-    color: #666;
+    color: var(--ink-dim);
   }
 
   .actions {
@@ -210,32 +210,32 @@
   }
 
   .btn-primary {
-    background-color: #007bff;
+    background-color: var(--verdigris);
     color: white;
   }
 
   .btn-primary:hover {
-    background-color: #0056b3;
+    background-color: var(--verdigris-dim);
   }
 
   .btn-secondary {
-    background-color: #6c757d;
+    background-color: var(--ink-faint);
     color: white;
   }
 
   .btn-secondary:hover {
-    background-color: #545b62;
+    background-color: var(--ground-lift);
   }
 
   .campaign-header {
     margin-bottom: 2rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--ink);
     padding-bottom: 1rem;
   }
 
   .campaign-header h1 {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: var(--ink);
   }
 
   .campaign-info {
@@ -252,11 +252,11 @@
 
   .info-label {
     font-weight: bold;
-    color: #666;
+    color: var(--ink-dim);
   }
 
   .description {
-    color: #666;
+    color: var(--ink-dim);
     line-height: 1.5;
   }
 
@@ -264,7 +264,7 @@
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--ink);
   }
 
   .tab {
@@ -277,12 +277,12 @@
   }
 
   .tab:hover {
-    background-color: #f8f9fa;
+    background-color: var(--ink);
   }
 
   .tab.active {
-    border-bottom-color: #007bff;
-    color: #007bff;
+    border-bottom-color: var(--verdigris);
+    color: var(--verdigris);
     font-weight: bold;
   }
 
@@ -294,22 +294,22 @@
 
   .card {
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--ink);
     border-radius: 0.5rem;
     padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shade-soft);
   }
 
   .card h3 {
     margin: 0 0 1rem 0;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
+    color: var(--ink);
+    border-bottom: 1px solid var(--ink);
     padding-bottom: 0.5rem;
   }
 
   .session-item, .quest-item, .location-item, .npc-item {
     padding: 0.5rem 0;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1px solid var(--ink);
   }
 
   .session-item:last-child, .quest-item:last-child, 
@@ -319,16 +319,16 @@
 
   .session-date, .quest-level, .location-type, .npc-info {
     font-size: 0.875rem;
-    color: #666;
+    color: var(--ink-dim);
   }
 
   .session-summary, .quest-title, .location-name, .npc-name {
     font-weight: 500;
-    color: #333;
+    color: var(--ink);
   }
 
   .empty {
-    color: #999;
+    color: var(--ink-faint);
     font-style: italic;
     text-align: center;
     padding: 1rem;

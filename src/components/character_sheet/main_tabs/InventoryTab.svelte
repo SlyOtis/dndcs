@@ -295,7 +295,6 @@
         align-items: start;
         flex-direction: column;
         overflow: hidden;
-        background-color: var(--color-content-dark);
     }
 
     .header {
@@ -415,68 +414,68 @@
     }
 
     .toggle:hover, .consume:hover {
-        background: linear-gradient(145deg, var(--color-accent), var(--color-content-main));
-        border-color: var(--color-secondary-main);
+        background: linear-gradient(145deg, var(--metal-dim), var(--ground-raised));
+        border-color: var(--ember);
         transform: translateY(-1px);
         box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--color-primary-main) 30%, transparent),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-            0 2px 4px rgba(0, 0, 0, 0.3);
+            inset 1px 1px 3px color-mix(in srgb, var(--metal) 30%, transparent),
+            inset -1px -1px 3px var(--shade-soft),
+            0 2px 4px var(--shade-soft);
     }
 
     .toggle:active, .consume:active {
         transform: translateY(0);
         box-shadow: 
-            inset 2px 2px 4px rgba(0, 0, 0, 0.4),
-            inset -1px -1px 2px color-mix(in srgb, var(--color-primary-main) 15%, transparent),
-            0 1px 2px rgba(0, 0, 0, 0.2);
+            inset 2px 2px 4px var(--shade-soft),
+            inset -1px -1px 2px color-mix(in srgb, var(--metal) 15%, transparent),
+            0 1px 2px var(--shade-soft);
     }
 
     .equipped {
-        background: linear-gradient(145deg, var(--color-primary-main), var(--color-secondary-main));
-        border-color: var(--color-primary-text);
-        color: var(--color-content-main);
+        background: linear-gradient(145deg, var(--metal), var(--ember));
+        border-color: var(--ink);
+        color: var(--ground-raised);
         font-weight: bold;
         box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 20%, transparent),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.5),
-            0 0 8px color-mix(in srgb, var(--color-primary-main) 40%, transparent);
+            inset 1px 1px 3px color-mix(in srgb, var(--ink) 20%, transparent),
+            inset -1px -1px 3px var(--shade),
+            0 0 8px color-mix(in srgb, var(--metal) 40%, transparent);
         animation: equipped-glow 2s ease-in-out infinite;
     }
 
     .equipped:hover {
-        background: linear-gradient(145deg, var(--color-secondary-main), var(--color-primary-main));
+        background: linear-gradient(145deg, var(--ember), var(--metal));
         transform: translateY(-1px);
     }
 
     .consume {
-        background: linear-gradient(145deg, #8B4513, #A0522D);
-        border-color: #CD853F;
+        background: linear-gradient(145deg, var(--metal-dim), var(--metal-dim));
+        border-color: var(--metal-dim);
         color: white;
     }
 
     .consume:hover {
-        background: linear-gradient(145deg, #A0522D, #8B4513);
-        border-color: #DEB887;
+        background: linear-gradient(145deg, var(--metal-dim), var(--metal-dim));
+        border-color: var(--metal);
         transform: translateY(-1px);
         box-shadow: 
-            inset 1px 1px 3px rgba(222, 184, 135, 0.3),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-            0 2px 4px rgba(0, 0, 0, 0.3);
+            inset 1px 1px 3px color-mix(in srgb, var(--metal) 32%, transparent),
+            inset -1px -1px 3px var(--shade-soft),
+            0 2px 4px var(--shade-soft);
     }
 
     @keyframes equipped-glow {
         0%, 100% { 
             box-shadow: 
-                inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 20%, transparent),
-                inset -1px -1px 3px rgba(0, 0, 0, 0.5),
-                0 0 8px color-mix(in srgb, var(--color-primary-main) 40%, transparent);
+                inset 1px 1px 3px color-mix(in srgb, var(--ink) 20%, transparent),
+                inset -1px -1px 3px var(--shade),
+                0 0 8px color-mix(in srgb, var(--metal) 40%, transparent);
         }
         50% { 
             box-shadow: 
-                inset 1px 1px 3px color-mix(in srgb, var(--color-primary-text) 30%, transparent),
-                inset -1px -1px 3px rgba(0, 0, 0, 0.6),
-                0 0 12px color-mix(in srgb, var(--color-primary-main) 60%, transparent);
+                inset 1px 1px 3px color-mix(in srgb, var(--ink) 30%, transparent),
+                inset -1px -1px 3px var(--shade),
+                0 0 12px color-mix(in srgb, var(--metal) 60%, transparent);
         }
     }
 

@@ -45,13 +45,13 @@
   <div class="dnd-rule-panels-error">{$rules.error}</div>
 {:else if $rules.resolved}
   {#each panels as panel (panel.id)}
-    <section class="dnd-rule-panel primary-border">
+    <section class="dnd-rule-panel dnd-panel dnd-keyline">
       <h3 class="dnd-rule-panel-title">{panel.title}</h3>
       <div class="dnd-rule-panel-body dnd-rule-panel-{panel.layout}">
         {#each panel.fields as field (field.source + field.id)}
           {@const entry = getEntry($rules.resolved, field)}
           {#if entry}
-            <div class="dnd-rule-panel-entry primary-border">
+            <div class="dnd-rule-panel-entry dnd-panel dnd-keyline">
               <span class="dnd-rule-panel-value">{entry.value}</span>
               <span class="dnd-rule-panel-label">{entry.title}</span>
               {#if entry.note}<span class="dnd-rule-panel-note">{entry.note}</span>{/if}
@@ -69,13 +69,12 @@
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-3);
-    background-color: var(--color-content-dark);
   }
 
   .dnd-rule-panel-title {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-rule-panel-body {
@@ -103,31 +102,30 @@
     justify-content: center;
     gap: var(--space-1);
     padding: var(--space-2);
-    background-color: var(--color-content-main);
   }
 
   .dnd-rule-panel-value {
     font-size: var(--text-lg);
     font-weight: 700;
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-rule-panel-label {
     font-size: var(--text-xs);
-    color: var(--color-content-text);
+    color: var(--ink);
     text-align: center;
   }
 
   .dnd-rule-panel-note {
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-rule-panels-error {
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

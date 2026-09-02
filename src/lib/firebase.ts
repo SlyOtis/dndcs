@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { initializeFirestore, type Firestore } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
 
 // Firebase configuration - these should be set in environment variables
@@ -16,7 +16,7 @@ const firebaseConfig = {
 const app: FirebaseApp = initializeApp(firebaseConfig);
 
 // Initialize services
-export const db: Firestore = getFirestore(app);
+export const db: Firestore = initializeFirestore(app, { ignoreUndefinedProperties: true });
 export const auth: Auth = getAuth(app);
 
 export { app };

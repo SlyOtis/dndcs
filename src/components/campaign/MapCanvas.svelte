@@ -183,9 +183,9 @@
     height: 60vh;
     min-height: 320px;
     overflow: hidden;
-    border: var(--border-width) solid var(--color-primary-main);
+    border: var(--border-width) solid var(--metal);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
     cursor: grab;
     touch-action: none;
   }
@@ -222,10 +222,10 @@
     align-items: center;
     gap: 2px;
     padding: var(--space-1) var(--space-2);
-    border: var(--border-width) solid var(--color-primary-main);
+    border: var(--border-width) solid var(--metal);
     border-radius: var(--radius-md);
-    background: var(--color-content-dark);
-    color: var(--color-primary-main);
+    background: var(--ground);
+    color: var(--metal);
     cursor: pointer;
     white-space: nowrap;
   }
@@ -242,26 +242,26 @@
 
   .dnd-map-pin-label {
     font-size: var(--text-xs);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-map-pin-danger {
-    color: var(--color-danger);
-    border-color: var(--color-danger);
+    color: var(--state-bad);
+    border-color: var(--state-bad);
   }
 
   .dnd-map-pin-quest {
-    color: var(--color-warning);
-    border-color: var(--color-warning);
+    color: var(--state-warn);
+    border-color: var(--state-warn);
   }
 
   .dnd-map-pin-treasure {
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-map-pin-npc {
-    color: var(--color-secondary-main);
-    border-color: var(--color-secondary-main);
+    color: var(--ember);
+    border-color: var(--ember);
   }
 
   .dnd-map-catcher {
@@ -287,10 +287,10 @@
   .dnd-map-step {
     min-width: 32px;
     padding: var(--space-1) var(--space-2);
-    border: var(--border-width) solid var(--color-primary-main);
+    border: var(--border-width) solid var(--metal);
     border-radius: var(--radius-md);
-    background: var(--color-content-main);
-    color: var(--color-content-text);
+    background: var(--ground-raised);
+    color: var(--ink);
     font-family: inherit;
     font-size: var(--text-sm);
     cursor: pointer;
@@ -304,12 +304,12 @@
   .dnd-map-slider {
     flex: 1;
     min-width: 120px;
-    accent-color: var(--color-primary-main);
+    accent-color: var(--metal);
   }
 
   .dnd-map-level,
   .dnd-map-layer {
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 </style>

@@ -63,7 +63,7 @@
   }
 </script>
 
-<section class="dnd-cast primary-border">
+<section class="dnd-cast dnd-panel dnd-keyline">
   {#if error}<p class="dnd-cast-error">{error}</p>{/if}
 
   <div class="dnd-cast-head">
@@ -138,7 +138,7 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
   }
 
   .dnd-cast-head {
@@ -151,7 +151,7 @@
   .dnd-cast h2 {
     margin: 0;
     font-size: var(--text-lg);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-cast-list {
@@ -167,7 +167,7 @@
     display: flex;
     gap: var(--space-3);
     padding: var(--space-3);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
   }
 
@@ -179,8 +179,8 @@
     width: 72px;
     height: 72px;
     border-radius: var(--radius-md);
-    border: var(--border-width) solid var(--color-primary-main);
-    background: var(--color-content-main);
+    border: var(--border-width) solid var(--metal);
+    background: var(--ground-raised);
     overflow: hidden;
   }
 
@@ -192,7 +192,7 @@
 
   .dnd-cast-initial {
     font-size: var(--text-xl);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-cast-body {
@@ -205,13 +205,13 @@
   .dnd-cast-body h3 {
     margin: 0;
     font-size: var(--text-md);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-cast-body p {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-cast-row {
@@ -225,21 +225,21 @@
     flex-direction: column;
     gap: var(--space-1);
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-cast-note {
     margin: 0;
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-cast-error {
     margin: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

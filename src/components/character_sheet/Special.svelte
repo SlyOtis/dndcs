@@ -13,128 +13,123 @@
       };
     });
   }
-
 </script>
 
-<div class="root primary-border">
-    <div class="header">
-        <div class="title">
-            <span>{$special.name}</span>
-            <span>{$special.regain}</span>
-        </div>
-        <div class="counter">
-            {$special.current}/{$special.max}
-        </div>
-    </div>
-    <div class="points">
-        {#each Array.from({ length: $special.max }, (_, i) => i) as index}
-            <button 
-                class="point-toggle"
-                class:used={index >= $special.current}
-                onclick={() => togglePoint(index)}
-                aria-label={`Toggle ${$special.name} point ${index + 1}`}
-            >
-                {index >= $special.current ? '○' : '●'}
-            </button>
-        {/each}
-    </div>
+<div class="pool">
+  <header class="pool-head">
+    <span class="pool-title">
+      <span class="dnd-label">{$special.name}</span>
+      <span class="pool-regain">{$special.regain}</span>
+    </span>
+    <span class="pool-count">{$special.current}<span class="pool-slash">/</span>{$special.max}</span>
+  </header>
+
+  <div class="pool-pips">
+    {#each Array.from({ length: $special.max }, (_, i) => i) as index (index)}
+      <button
+        type="button"
+        class="pool-pip"
+        class:pool-pip-spent={index >= $special.current}
+        onclick={() => togglePoint(index)}
+        aria-label={`Toggle ${$special.name} point ${index + 1}`}
+      >
+        ◆
+      </button>
+    {/each}
+  </div>
 </div>
 
 <style>
-    .root {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        padding: 4px 8px;
+  .pool {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    grid-column: 1 / 3;
+    grid-row: 2;
+    align-self: stretch;
+    justify-self: stretch;
+    background:
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    background-blend-mode: overlay, normal;
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+  }
 
-        grid-column: 1 / 3;
-        grid-row: 2;
+  .pool-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
 
-        align-self: stretch;
-        justify-self: stretch;
+  .pool-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
 
-        background-color: var(--color-content-dark);
-    }
+  .pool-regain {
+    font-size: var(--text-xs);
+    font-style: italic;
+    color: var(--ink-faint);
+  }
 
-    .header {
-        position: relative;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        width: 100%;
-    }
+  .pool-count {
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--metal-bright);
+  }
 
-    .title {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-start;
-        font-weight: 600;
-        color: var(--color-primary-text);
-    }
+  .pool-slash {
+    color: var(--ink-faint);
+    padding: 0 2px;
+  }
 
-    .title span:first-child {
-        font-size: 0.9rem;
-        color: var(--color-primary-text);
-    }
+  .pool-pips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+  }
 
-    .title span:last-child {
-        font-size: 0.7rem;
-        font-style: italic;
-        opacity: 0.8;
-        color: var(--color-primary-text);
-    }
+  .pool-pip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--radius-pill);
+    color: var(--ember);
+    font-size: var(--text-md);
+    line-height: 1;
+    cursor: pointer;
+    text-shadow: 0 0 8px var(--ember-glow);
+    transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease;
+  }
 
-    .points {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 6px;
-        width: auto;
-    }
+  .pool-pip:hover {
+    transform: scale(1.15);
+  }
 
-    .point-toggle {
-        background: none;
-        border: none;
-        color: var(--color-primary-main);
-        font-size: 1.2rem;
-        cursor: pointer;
-        padding: 2px;
-        margin: 0 2px;
-        transition: all 0.2s ease;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+  .pool-pip:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
 
-    .point-toggle:hover {
-        background: rgba(255, 215, 0, 0.2);
-        transform: scale(1.1);
-    }
-
-    .point-toggle.used {
-        color: var(--color-content-light);
-        opacity: 0.5;
-    }
-
-    .counter {
-        font-size: 0.8rem;
-        color: var(--color-primary-text);
-        font-weight: 600;
-        text-align: right;
-        opacity: 0.9;
-    }
+  .pool-pip-spent {
+    color: var(--ink-faint);
+    text-shadow: none;
+    opacity: 0.55;
+  }
 </style>
-

@@ -6,7 +6,7 @@
 
 </script>
 
-<div class="root primary-border">
+<div class="root dnd-panel dnd-keyline">
     <div class="proficients">
         {#each $proficients as proficiency}
             <span class="title">
@@ -15,7 +15,7 @@
             <span class="proficiency">{proficiency.value.join(', ')}</span>
         {/each}
     </div>
-    <span>Proficients</span>
+    <span class="dnd-caption">Proficients</span>
 </div>
 
 <style>
@@ -32,7 +32,6 @@
         padding: 4px 8px;
         grid-column: 1;
         grid-row: span 2;
-        background-color: var(--color-content-dark);
     }
 
     .proficients {

@@ -162,8 +162,8 @@
   }
 
   .clips-grid.dragged-over {
-    border-color: var(--color-secondary-main);
-    background: color-mix(in srgb, var(--color-secondary-main) 10%, transparent);
+    border-color: var(--ember);
+    background: color-mix(in srgb, var(--ember) 10%, transparent);
   }
 
   .clip-tile {
@@ -212,17 +212,17 @@
 
   .add-button {
     border-style: dashed;
-    background: color-mix(in srgb, var(--color-accent) 50%, transparent);
+    background: color-mix(in srgb, var(--metal-dim) 50%, transparent);
   }
 
   .add-button:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-secondary-main) 50%, transparent);
+    background: color-mix(in srgb, var(--ember) 50%, transparent);
   }
 
   .clip-button.playing {
-    background: var(--color-secondary-main);
+    background: var(--ember);
     transform: scale(0.95);
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0 0 10px var(--shade-soft);
   }
 
   .remove-btn {
@@ -232,7 +232,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #dc3545;
+    background: var(--state-bad);
     color: white;
     border: 2px solid white;
     font-size: 14px;
@@ -243,33 +243,33 @@
     cursor: pointer;
     line-height: 1;
     z-index: 10;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 4px var(--shade-soft);
   }
 
   .remove-btn:hover {
-    background: #c82333;
+    background: var(--state-bad);
     transform: scale(1.15);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 3px 6px var(--shade-soft);
   }
 
 
   .medieval-button {
     position: relative;
     cursor: pointer;
-    background: linear-gradient(145deg, var(--color-accent), var(--color-content-main));
-    border: 2px solid var(--color-primary-main);
+    background: linear-gradient(145deg, var(--metal-dim), var(--ground-raised));
+    border: 2px solid var(--metal);
     border-radius: 8px;
     padding: 8px 12px;
     min-height: 40px;
     transition: all 0.15s ease;
     box-shadow: 
-      inset 1px 1px 3px color-mix(in srgb, var(--color-primary-main) 30%, transparent),
-      inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-      0 2px 4px rgba(0, 0, 0, 0.3);
-    font-family: 'Cinzel', serif;
+      inset 1px 1px 3px color-mix(in srgb, var(--metal) 30%, transparent),
+      inset -1px -1px 3px var(--shade-soft),
+      0 2px 4px var(--shade-soft);
+    font-family: var(--font-display);
     font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    color: var(--color-primary-text);
+    text-shadow: 1px 1px 2px var(--shade-hard);
+    color: var(--ink);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -277,23 +277,23 @@
   }
   
   .medieval-button:hover:not(:disabled) {
-    background: linear-gradient(145deg, var(--color-secondary-main), var(--color-accent));
-    border-color: var(--color-primary-main);
+    background: linear-gradient(145deg, var(--ember), var(--metal-dim));
+    border-color: var(--metal);
     box-shadow: 
-      inset 1px 1px 4px color-mix(in srgb, var(--color-primary-main) 40%, transparent),
-      inset -1px -1px 4px rgba(0, 0, 0, 0.5),
-      0 3px 6px rgba(0, 0, 0, 0.4);
+      inset 1px 1px 4px color-mix(in srgb, var(--metal) 40%, transparent),
+      inset -1px -1px 4px var(--shade),
+      0 3px 6px var(--shade-soft);
     transform: translateY(-1px);
     filter: brightness(1.1);
   }
   
   .medieval-button:active:not(:disabled) {
-    background: linear-gradient(145deg, var(--color-content-dark), var(--color-content-main));
-    border-color: color-mix(in srgb, var(--color-primary-main) 70%, transparent);
+    background: linear-gradient(145deg, var(--ground), var(--ground-raised));
+    border-color: color-mix(in srgb, var(--metal) 70%, transparent);
     box-shadow: 
-      inset 2px 2px 6px rgba(0, 0, 0, 0.6),
-      inset -1px -1px 3px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
-      0 1px 2px rgba(0, 0, 0, 0.2);
+      inset 2px 2px 6px var(--shade),
+      inset -1px -1px 3px color-mix(in srgb, var(--metal) 20%, transparent),
+      0 1px 2px var(--shade-soft);
     transform: translateY(1px);
   }
 

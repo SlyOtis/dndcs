@@ -18,16 +18,16 @@
 </script>
 
 
-<div class="root primary-border">
+<div class="root dnd-panel dnd-keyline">
     <div class="senses">
         {#each resolved as sense}
-            <div class="sense primary-border">
-                <button class="value primary-border">{sense.score}</button>
+            <div class="sense dnd-panel dnd-keyline">
+                <button class="value dnd-plate dnd-plate-chamfer">{sense.score}</button>
                 <span class="title">{sense.title}</span>
             </div>
         {/each}
     </div>
-    <span>Senses</span>
+    <span class="dnd-caption">Senses</span>
 </div>
 
 <style>
@@ -42,7 +42,6 @@
         height: auto;
         padding: 4px 8px;
         grid-column: 1;
-        background-color: var(--color-content-dark);
     }
 
     .senses {
@@ -76,8 +75,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        color: var(--color-content-text);
-        background: var(--color-content-main);
+        color: var(--ink);
+        background: var(--ground-raised);
         padding: 4px;
         min-width: 64px;
         cursor: pointer;

@@ -105,10 +105,10 @@
     width: 350px;
     height: 100vh;
     background: linear-gradient(135deg, 
-      var(--color-content-main) 0%, 
-      color-mix(in srgb, var(--color-content-main) 95%, var(--color-primary-main)) 100%);
-    border-right: 2px solid var(--color-primary-main);
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+      var(--ground-raised) 0%, 
+      color-mix(in srgb, var(--ground-raised) 95%, var(--metal)) 100%);
+    border-right: 2px solid var(--metal);
+    box-shadow: 2px 0 8px var(--shade-soft);
     transition: left 0.3s ease;
     z-index: 1001;
     overflow-y: auto;
@@ -132,20 +132,20 @@
     gap: 16px;
     padding: 20px;
     background: linear-gradient(135deg, 
-      color-mix(in srgb, var(--color-content-main) 95%, var(--color-primary-main)) 0%, 
-      var(--color-content-main) 100%);
-    border: 2px solid var(--color-primary-main);
+      color-mix(in srgb, var(--ground-raised) 95%, var(--metal)) 0%, 
+      var(--ground-raised) 100%);
+    border: 2px solid var(--metal);
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 8px var(--shade-soft);
   }
 
   .profile-picture img {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 3px solid var(--color-primary-main);
+    border: 3px solid var(--metal);
     object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px var(--shade-soft);
   }
 
   .character-details {
@@ -154,11 +154,11 @@
 
   .character-name {
     margin: 0 0 8px 0;
-    color: var(--color-primary-text);
-    font-family: 'Cinzel', serif;
+    color: var(--ink);
+    font-family: var(--font-display);
     font-size: 1.4rem;
     font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 2px var(--shade-soft);
   }
 
   .character-meta {
@@ -168,13 +168,13 @@
   }
 
   .race-class {
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 0.9rem;
     opacity: 0.9;
   }
 
   .level {
-    color: var(--color-secondary-main);
+    color: var(--ember);
     font-weight: 600;
     font-size: 0.9rem;
   }
@@ -191,38 +191,38 @@
     gap: 12px;
     padding: 12px 16px;
     background: linear-gradient(145deg, 
-      var(--color-accent), 
-      color-mix(in srgb, var(--color-accent) 85%, black));
-    color: var(--color-primary-text);
-    border: 2px solid color-mix(in srgb, var(--color-primary-main) 60%, transparent);
+      var(--metal-dim), 
+      color-mix(in srgb, var(--metal-dim) 85%, black));
+    color: var(--ink);
+    border: 2px solid color-mix(in srgb, var(--metal) 60%, transparent);
     border-radius: 8px;
     cursor: pointer;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-weight: 600;
     font-size: 0.9rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 2px var(--shade);
     box-shadow: 
-      0 2px 6px rgba(0, 0, 0, 0.2),
-      inset 0 1px 3px rgba(255, 255, 255, 0.1);
+      0 2px 6px var(--shade-soft),
+      inset 0 1px 3px var(--sheen-soft);
     transition: all 0.2s ease;
   }
 
   .action-btn:hover {
     background: linear-gradient(145deg, 
-      var(--color-secondary-main), 
-      color-mix(in srgb, var(--color-secondary-main) 85%, black));
-    border-color: var(--color-secondary-main);
+      var(--ember), 
+      color-mix(in srgb, var(--ember) 85%, black));
+    border-color: var(--ember);
     box-shadow: 
-      0 4px 8px rgba(0, 0, 0, 0.3),
-      inset 0 1px 3px rgba(255, 255, 255, 0.2);
+      0 4px 8px var(--shade-soft),
+      inset 0 1px 3px var(--sheen);
     transform: translateY(-1px);
   }
 
   .action-btn:active {
     transform: translateY(0);
     box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.2),
-      inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      0 1px 3px var(--shade-soft),
+      inset 0 2px 4px var(--shade-soft);
   }
 
   .btn-icon {
@@ -235,7 +235,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--shade);
     z-index: 1000;
   }
 

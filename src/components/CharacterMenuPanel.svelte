@@ -70,8 +70,8 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border-right: 1px solid var(--color-primary-main);
-    background: var(--color-content-dark);
+    border-right: 1px solid var(--metal);
+    background: var(--ground);
     z-index: 100;
   }
 
@@ -109,9 +109,9 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: var(--color-surface-dark);
-    color: var(--color-primary-text);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    color: var(--ink);
+    border: 1px solid var(--metal);
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
@@ -119,8 +119,8 @@
   }
 
   .action-btn:hover {
-    background: var(--color-primary-main);
-    color: var(--color-surface-dark);
+    background: var(--metal);
+    color: var(--ground);
   }
 
   .btn-icon {

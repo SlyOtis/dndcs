@@ -5,6 +5,7 @@
     label,
     help,
     error,
+    valid = false,
     required = false,
     id,
     children
@@ -15,6 +16,8 @@
     help?: string
     /** Replaces the help line and marks the field as invalid. */
     error?: string
+    /** Marks the field as accepted and lights the rim green. */
+    valid?: boolean
     /** Adds the required marker after the label. */
     required?: boolean
     /** Id of the control this label points at. */
@@ -24,13 +27,20 @@
   } = $props()
 </script>
 
-<div class="dnd-field" class:dnd-field-invalid={Boolean(error)}>
+<div
+  class="dnd-field"
+  class:dnd-field-invalid={Boolean(error)}
+  class:dnd-field-valid={valid && !error}
+>
   <label class="dnd-field-label" for={id}>
     {label}
     {#if required}<span class="dnd-field-required" aria-hidden="true">*</span>{/if}
   </label>
 
-  {@render children?.()}
+  <div class="dnd-field-well">
+    {@render children?.()}
+    <span class="dnd-field-mark" aria-hidden="true"></span>
+  </div>
 
   {#if error}
     <p class="dnd-field-message dnd-field-error">{error}</p>
@@ -43,54 +53,100 @@
   .dnd-field {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
+    --field-rim: var(--metal-dim);
+    --field-light: transparent;
   }
 
   .dnd-field-label {
-    font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-primary-main);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal);
   }
 
   .dnd-field-required {
-    color: var(--color-danger);
+    color: var(--state-bad);
     margin-inline-start: var(--space-1);
+  }
+
+  .dnd-field-well {
+    position: relative;
+    display: flex;
+  }
+
+  .dnd-field-mark {
+    position: absolute;
+    top: 50%;
+    right: var(--space-3);
+    width: 10px;
+    height: 10px;
+    transform: translateY(-50%) rotate(45deg);
+    background: var(--field-light);
+    box-shadow: 0 0 8px var(--field-light);
+    pointer-events: none;
+    transition: background 0.15s ease;
   }
 
   .dnd-field-message {
     margin: 0;
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-faint);
   }
 
   .dnd-field-error {
-    color: var(--color-danger);
+    color: var(--state-bad);
+  }
+
+  .dnd-field-valid {
+    --field-rim: var(--state-good);
+    --field-light: var(--state-good);
+  }
+
+  .dnd-field-invalid {
+    --field-rim: var(--state-bad);
+    --field-light: var(--state-bad);
   }
 
   .dnd-field :global(input),
   .dnd-field :global(textarea),
   .dnd-field :global(select) {
     width: 100%;
-    padding: var(--space-2) var(--space-3);
-    background: var(--color-content-dark);
-    border: var(--border-width) solid var(--color-content-light);
-    border-radius: var(--radius-md);
-    color: var(--color-content-text);
-    font-family: inherit;
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--field-rim);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 2px 6px var(--shade-hard);
+    color: var(--ink);
+    font-family: var(--font-body);
     font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .dnd-field :global(textarea) {
+    resize: vertical;
+    min-height: 96px;
+  }
+
+  .dnd-field :global(input::placeholder),
+  .dnd-field :global(textarea::placeholder) {
+    color: var(--ink-faint);
+  }
+
+  .dnd-field :global(input:hover),
+  .dnd-field :global(textarea:hover),
+  .dnd-field :global(select:hover) {
+    border-color: var(--metal);
   }
 
   .dnd-field :global(input:focus),
   .dnd-field :global(textarea:focus),
   .dnd-field :global(select:focus) {
     outline: none;
-    border-color: var(--color-primary-main);
-    box-shadow: var(--focus-ring);
-  }
-
-  .dnd-field-invalid :global(input),
-  .dnd-field-invalid :global(textarea),
-  .dnd-field-invalid :global(select) {
-    border-color: var(--color-danger);
+    border-color: var(--metal-bright);
+    box-shadow: inset 0 2px 6px var(--shade-hard), var(--glow-metal);
   }
 </style>

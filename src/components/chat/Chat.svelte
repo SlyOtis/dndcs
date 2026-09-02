@@ -369,8 +369,8 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        border-left: 1px solid var(--color-primary-main);
-        background-color: var(--color-content-dark);
+        border-left: 1px solid var(--metal);
+        background-color: var(--ground);
         z-index: 100;
     }
 
@@ -388,7 +388,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--color-primary-text);
+        color: var(--ink);
         padding: 0;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         overflow: visible;
@@ -398,13 +398,13 @@
         width: 24px;
         height: 24px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        filter: drop-shadow(0 2px 4px var(--shade-soft));
     }
 
     .toggle-chat:hover .morphing-chat-icon {
         transform: scale(1.1);
-        color: #00bcd4;
-        filter: drop-shadow(0 0 8px rgba(0, 188, 212, 0.8)) drop-shadow(0 0 16px rgba(0, 255, 255, 0.4));
+        color: var(--verdigris);
+        filter: drop-shadow(0 0 8px color-mix(in srgb, var(--verdigris) 62%, transparent)) drop-shadow(0 0 16px color-mix(in srgb, var(--verdigris) 42%, transparent));
     }
 
     .toggle-chat:hover {
@@ -413,8 +413,8 @@
 
     .toggle-chat:active .morphing-chat-icon {
         transform: scale(1.3) rotate(10deg);
-        color: #00acc1;
-        filter: drop-shadow(0 0 12px #00acc1) drop-shadow(0 0 24px #00bcd4);
+        color: var(--verdigris);
+        filter: drop-shadow(0 0 12px var(--verdigris)) drop-shadow(0 0 24px var(--verdigris));
     }
 
     .mip-particles {
@@ -429,11 +429,11 @@
         position: absolute;
         font-size: 12px;
         font-weight: bold;
-        color: #00bcd4;
+        color: var(--verdigris);
         opacity: 0;
         transform: translateX(0);
-        text-shadow: 0 0 4px rgba(0, 188, 212, 0.5);
-        font-family: 'Courier New', monospace;
+        text-shadow: 0 0 4px color-mix(in srgb, var(--verdigris) 62%, transparent);
+        font-family: var(--font-mono);
         white-space: nowrap;
     }
 
@@ -508,15 +508,15 @@
         justify-content: stretch;
         align-items: center;
         flex-direction: row;
-        border-top: 2px solid var(--color-primary-main);
+        border-top: 2px solid var(--metal);
         overflow: hidden;
         background: linear-gradient(135deg, 
-            var(--color-content-main) 0%, 
-            color-mix(in srgb, var(--color-content-main) 95%, var(--color-secondary-main)) 50%,
-            var(--color-content-main) 100%);
+            var(--ground-raised) 0%, 
+            color-mix(in srgb, var(--ground-raised) 95%, var(--ember)) 50%,
+            var(--ground-raised) 100%);
         box-shadow: 
-            inset 0 2px 4px rgba(0, 0, 0, 0.1),
-            0 -2px 8px rgba(0, 0, 0, 0.2);
+            inset 0 2px 4px var(--shade-soft),
+            0 -2px 8px var(--shade-soft);
         border-radius: 12px 12px 0 0;
     }
 
@@ -528,36 +528,36 @@
         overflow: auto;
         resize: none;
         background: linear-gradient(145deg, 
-            color-mix(in srgb, var(--color-content-main) 98%, var(--color-secondary-main)) 0%,
-            var(--color-content-main) 100%);
-        color: var(--color-primary-text);
+            color-mix(in srgb, var(--ground-raised) 98%, var(--ember)) 0%,
+            var(--ground-raised) 100%);
+        color: var(--ink);
         padding: 20px;
         margin: 8px;
         outline: none;
-        font-family: 'Cinzel', serif;
+        font-family: var(--font-display);
         font-size: 16px;
         line-height: 1.5;
         border-radius: 12px;
         border: 2px solid transparent;
         box-shadow: 
-            inset 0 2px 6px rgba(0, 0, 0, 0.1),
-            0 1px 3px rgba(0, 0, 0, 0.1);
+            inset 0 2px 6px var(--shade-soft),
+            0 1px 3px var(--shade-soft);
         transition: all 0.3s ease;
     }
 
     .input > textarea:focus {
-        border-color: var(--color-secondary-main);
+        border-color: var(--ember);
         box-shadow: 
-            inset 0 2px 6px rgba(0, 0, 0, 0.1),
-            0 0 0 3px color-mix(in srgb, var(--color-secondary-main) 30%, transparent),
-            0 2px 8px rgba(0, 0, 0, 0.15);
+            inset 0 2px 6px var(--shade-soft),
+            0 0 0 3px color-mix(in srgb, var(--ember) 30%, transparent),
+            0 2px 8px var(--shade-soft);
         background: linear-gradient(145deg, 
-            color-mix(in srgb, var(--color-content-main) 95%, var(--color-secondary-main)) 0%,
-            var(--color-content-main) 100%);
+            color-mix(in srgb, var(--ground-raised) 95%, var(--ember)) 0%,
+            var(--ground-raised) 100%);
     }
 
     .input > textarea::placeholder {
-        color: color-mix(in srgb, var(--color-primary-text) 60%, transparent);
+        color: color-mix(in srgb, var(--ink) 60%, transparent);
         font-style: italic;
     }
 
@@ -571,61 +571,61 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(145deg, var(--color-accent), color-mix(in srgb, var(--color-accent) 85%, black));
-        color: var(--color-primary-text);
+        background: linear-gradient(145deg, var(--metal-dim), color-mix(in srgb, var(--metal-dim) 85%, black));
+        color: var(--ink);
         border-radius: 8px;
-        border: 2px solid color-mix(in srgb, var(--color-primary-main) 60%, transparent);
+        border: 2px solid color-mix(in srgb, var(--metal) 60%, transparent);
         box-shadow: 
-            0 2px 6px rgba(0, 0, 0, 0.2),
-            inset 0 1px 3px rgba(255, 255, 255, 0.1);
+            0 2px 6px var(--shade-soft),
+            inset 0 1px 3px var(--sheen-soft);
         transition: all 0.2s ease;
-        font-family: 'Cinzel', serif;
+        font-family: var(--font-display);
         font-weight: 600;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 2px var(--shade);
         margin: 4px;
     }
 
     .actions > button:hover {
-        background: linear-gradient(145deg, var(--color-secondary-main), color-mix(in srgb, var(--color-secondary-main) 85%, black));
-        border-color: var(--color-secondary-main);
+        background: linear-gradient(145deg, var(--ember), color-mix(in srgb, var(--ember) 85%, black));
+        border-color: var(--ember);
         box-shadow: 
-            0 4px 8px rgba(0, 0, 0, 0.3),
-            inset 0 1px 3px rgba(255, 255, 255, 0.2);
+            0 4px 8px var(--shade-soft),
+            inset 0 1px 3px var(--sheen);
         transform: translateY(-1px);
     }
 
     .actions > button:active {
         transform: translateY(0);
         box-shadow: 
-            0 1px 3px rgba(0, 0, 0, 0.2),
-            inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            0 1px 3px var(--shade-soft),
+            inset 0 2px 4px var(--shade-soft);
     }
 
     .actions > button:first-child {
-        background-color: var(--color-primary-main);
+        background-color: var(--metal);
         height: min-content;
         padding: 8px;
     }
 
     .audio-btn {
-        background: linear-gradient(145deg, var(--color-secondary-main), color-mix(in srgb, var(--color-secondary-main) 85%, black)) !important;
-        border-color: var(--color-secondary-main) !important;
+        background: linear-gradient(145deg, var(--ember), color-mix(in srgb, var(--ember) 85%, black)) !important;
+        border-color: var(--ember) !important;
     }
 
     .audio-btn:hover {
-        background: linear-gradient(145deg, var(--color-secondary-light), var(--color-secondary-main)) !important;
-        border-color: var(--color-secondary-light) !important;
+        background: linear-gradient(145deg, var(--ember-glow), var(--ember)) !important;
+        border-color: var(--ember-glow) !important;
         transform: translateY(-1px) scale(1.02);
     }
 
     .audio-btn.recording {
-        background: linear-gradient(145deg, #dc3545, #c82333) !important;
-        border-color: #dc3545 !important;
+        background: linear-gradient(145deg, var(--state-bad), var(--state-bad)) !important;
+        border-color: var(--state-bad) !important;
         animation: pulse 1s infinite;
         box-shadow: 
-            0 0 10px rgba(220, 53, 69, 0.5),
-            0 2px 6px rgba(0, 0, 0, 0.2),
-            inset 0 1px 3px rgba(255, 255, 255, 0.1);
+            0 0 10px color-mix(in srgb, var(--state-bad) 22%, transparent),
+            0 2px 6px var(--shade-soft),
+            inset 0 1px 3px var(--sheen-soft);
     }
 
     @keyframes pulse {
@@ -641,8 +641,8 @@
         margin: 0;
         padding: 0;
         list-style: none;
-        background-color: var(--color-chat-light);
-        color: var(--color-chat-text);
+        background-color: var(--ground-lift);
+        color: var(--ink);
     }
 
     .disabled {
@@ -684,7 +684,7 @@
         justify-content: center;
         align-items: center;
         flex-direction: row;
-        border-top: 1px solid var(--color-primary-main);
+        border-top: 1px solid var(--metal);
     }
 
     .status.error {

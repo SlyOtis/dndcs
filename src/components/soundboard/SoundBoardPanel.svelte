@@ -31,8 +31,8 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border-right: 1px solid var(--color-primary-main);
-    background: var(--color-content-dark);
+    border-right: 1px solid var(--metal);
+    background: var(--ground);
     z-index: 100;
   }
 

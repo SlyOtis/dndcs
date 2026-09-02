@@ -227,9 +227,9 @@
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: var(--color-content-main);
+    background: var(--ground-raised);
     border-radius: 8px;
-    border: 1px solid var(--color-primary-main);
+    border: 1px solid var(--metal);
   }
 
   .user-avatar {
@@ -249,11 +249,11 @@
   .avatar-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--color-primary-main);
+    background: var(--metal);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-surface-dark);
+    color: var(--ground);
     font-weight: bold;
     font-size: 1.2rem;
   }
@@ -265,7 +265,7 @@
 
   .user-details h3 {
     margin: 0 0 0.25rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.1rem;
     white-space: nowrap;
     overflow: hidden;
@@ -274,7 +274,7 @@
 
   .user-details p {
     margin: 0 0 0.5rem 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
@@ -289,8 +289,8 @@
 
   .sign-out-btn {
     background: transparent;
-    border: 1px solid var(--color-secondary-main);
-    color: var(--color-secondary-text);
+    border: 1px solid var(--ember);
+    color: var(--ink-dim);
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
     font-size: 0.8rem;
@@ -299,12 +299,12 @@
   }
 
   .sign-out-btn:hover {
-    background: var(--color-secondary-main);
-    color: var(--color-primary-text);
+    background: var(--ember);
+    color: var(--ink);
   }
 
   .user-loading {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-style: italic;
     text-align: center;
     padding: 1rem;
@@ -320,25 +320,25 @@
   }
 
   .menu-section {
-    background: var(--color-content-dark);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--ground);
+    border: 1px solid var(--sheen-soft);
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.2s ease;
   }
 
   .menu-section.active {
-    border-color: var(--color-primary-main);
-    background: var(--color-content-main);
-    box-shadow: 0 0 0 1px var(--color-primary-main);
+    border-color: var(--metal);
+    background: var(--ground-raised);
+    box-shadow: 0 0 0 1px var(--metal);
   }
 
   .section-header {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: var(--color-content-main);
+    background: var(--ground-raised);
     border: none;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -349,7 +349,7 @@
   }
 
   .section-header:hover {
-    background: var(--color-content-light);
+    background: var(--ground-lift);
   }
 
   .expand-icon {
@@ -365,7 +365,7 @@
   .section-icon {
     width: 18px;
     height: 18px;
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .section-content {
@@ -383,7 +383,7 @@
     background: transparent;
     border: 1px solid transparent;
     border-radius: 6px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -393,8 +393,8 @@
   }
 
   .item-button:hover {
-    background: var(--color-content-light);
-    border-color: var(--color-primary-main);
+    background: var(--ground-lift);
+    border-color: var(--metal);
     transform: translateX(2px);
   }
 
@@ -402,7 +402,7 @@
     width: 14px;
     height: 14px;
     flex-shrink: 0;
-    color: var(--color-secondary-main);
+    color: var(--ember);
   }
 
   .item-details {
@@ -422,7 +422,7 @@
   .item-meta {
     display: block;
     font-size: 0.8rem;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -431,7 +431,7 @@
   .empty-state {
     padding: 1rem;
     text-align: center;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-style: italic;
     font-size: 0.9rem;
   }
@@ -439,10 +439,10 @@
   .create-button {
     width: 100%;
     padding: 0.75rem 1rem;
-    background: var(--color-primary-main);
-    border: 1px solid var(--color-primary-light);
+    background: var(--metal);
+    border: 1px solid var(--metal-bright);
     border-radius: 6px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
@@ -454,9 +454,9 @@
   }
 
   .create-button:hover {
-    background: var(--color-primary-light);
+    background: var(--metal-bright);
     transform: translateX(2px);
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 2px 8px var(--shade-soft);
   }
 
   .create-button svg {
@@ -472,15 +472,15 @@
     gap: 0.5rem;
     margin-top: auto;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--sheen-soft);
   }
 
   .menu-button {
     padding: 0.75rem 1rem;
-    background: var(--color-content-main);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground-raised);
+    border: 1px solid var(--metal);
     border-radius: 8px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
@@ -491,9 +491,9 @@
   }
 
   .menu-button:hover {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: translateX(4px);
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 2px 8px var(--shade-soft);
   }
 
   .menu-button svg {

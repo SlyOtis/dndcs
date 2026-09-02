@@ -5,6 +5,8 @@
   import type { Character } from "../lib/character.types";
   import Background from "$components/Background.svelte";
   import * as pdfjsLib from 'pdfjs-dist';
+  import Aura from "$components/ui/Aura.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
   
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
@@ -212,6 +214,8 @@
 </script>
 
 <Background />
+<Aura variant="veil" tone="verdigris" />
+<Aura variant="motes" tone="ember" density="sparse" />
 
 <div class="page-wrapper">
 <div class="create-character">
@@ -220,6 +224,7 @@
   </button>
   
   <div class="header">
+    <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
     <h1>Create New Character</h1>
   </div>
 
@@ -399,6 +404,12 @@
 </div>
 
 <style>
+  .header-crest {
+    display: block;
+    margin: 0 auto var(--space-2);
+    filter: drop-shadow(0 4px 10px var(--shade-hard));
+  }
+
   .page-wrapper {
     min-height: 100vh;
     width: 100%;
@@ -417,10 +428,10 @@
     top: 2rem;
     left: 2rem;
     padding: 0.5rem 1rem;
-    background: var(--color-content-dark);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 1px solid var(--metal);
     border-radius: 6px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.2s ease;
@@ -428,7 +439,7 @@
   }
 
   .back-btn:hover {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: translateX(-2px);
   }
 
@@ -439,13 +450,13 @@
 
   .header h1 {
     margin: 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 2.5rem;
   }
 
   .form-content {
-    background: var(--color-content-dark);
-    border: 2px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 2px solid var(--metal);
     border-radius: 12px;
     padding: 2rem;
     display: flex;
@@ -469,7 +480,7 @@
   .image-upload-area {
     width: 200px;
     height: 200px;
-    border: 2px dashed var(--color-primary-main);
+    border: 2px dashed var(--metal);
     border-radius: 12px;
     position: relative;
     cursor: pointer;
@@ -479,8 +490,8 @@
   }
 
   .image-upload-area.drag-active {
-    border-color: var(--color-primary-light);
-    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--metal-bright);
+    background: color-mix(in srgb, var(--metal) 12%, transparent);
   }
 
   .character-image-preview {
@@ -495,13 +506,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--shade-hard);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .image-upload-area:hover .image-overlay {
@@ -525,7 +536,7 @@
 
   .image-placeholder p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .info-section {
@@ -544,7 +555,7 @@
   .form-group label {
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .background-section {
@@ -554,12 +565,12 @@
 
   .background-section h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.5rem;
   }
 
   .background-upload-box {
-    border: 2px dashed var(--color-primary-main);
+    border: 2px dashed var(--metal);
     border-radius: 8px;
     padding: 1rem;
     transition: all 0.3s ease;
@@ -570,17 +581,17 @@
   }
 
   .background-upload-box.drag-active {
-    border-color: var(--color-primary-light);
-    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--metal-bright);
+    background: color-mix(in srgb, var(--metal) 12%, transparent);
   }
 
   .background-url-input {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--color-primary-main);
+    border: 1px solid var(--metal);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    color: var(--color-primary-text);
+    background: var(--shade-soft);
+    color: var(--ink);
     font-size: 1rem;
     position: relative;
     z-index: 2;
@@ -588,24 +599,24 @@
 
   .background-url-input:focus {
     outline: none;
-    border-color: var(--color-primary-light);
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    border-color: var(--metal-bright);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--metal) 32%, transparent);
   }
 
   .background-upload-btn {
     width: 100%;
     padding: 0.75rem;
-    background: var(--color-content-dark);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 1px solid var(--metal);
     border-radius: 6px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.2s ease;
   }
 
   .background-upload-btn:hover {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: translateY(-1px);
   }
 
@@ -617,7 +628,7 @@
 
   .ability-scores h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.5rem;
   }
 
@@ -634,8 +645,8 @@
   }
 
   .score-box {
-    background: rgba(0, 0, 0, 0.4);
-    border: 2px solid var(--color-primary-main);
+    background: var(--shade-soft);
+    border: 2px solid var(--metal);
     border-radius: 12px;
     padding: 1rem;
     display: flex;
@@ -647,14 +658,14 @@
   }
 
   .score-box:hover {
-    border-color: var(--color-primary-light);
+    border-color: var(--metal-bright);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
   }
 
   .score-label {
     font-weight: bold;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -667,21 +678,21 @@
     text-align: center;
     border: none;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--color-primary-main), var(--color-primary-light));
-    color: var(--color-primary-text);
+    background: linear-gradient(135deg, var(--metal), var(--metal-bright));
+    color: var(--ink);
     font-size: 1.5rem;
     font-weight: bold;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px var(--shade-soft);
   }
 
   .score-value:focus {
     outline: none;
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--metal) 62%, transparent);
   }
 
   .score-modifier {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-secondary-text);
+    background: var(--sheen-soft);
+    color: var(--ink-dim);
     font-size: 0.8rem;
     font-weight: bold;
     padding: 0.2rem 0.5rem;
@@ -692,12 +703,12 @@
 
   .source-upload h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.5rem;
   }
 
   .upload-area {
-    border: 2px dashed var(--color-primary-main);
+    border: 2px dashed var(--metal);
     border-radius: 12px;
     padding: 3rem 2rem;
     text-align: center;
@@ -708,13 +719,13 @@
   }
 
   .upload-area.drag-active {
-    border-color: var(--color-primary-light);
-    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--metal-bright);
+    background: color-mix(in srgb, var(--metal) 12%, transparent);
   }
 
   .upload-content p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .upload-icon {
@@ -738,28 +749,28 @@
 
   .sources-list h4 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
   }
 
   .source-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    background: var(--shade-soft);
+    border: 1px solid color-mix(in srgb, var(--metal) 22%, transparent);
     border-radius: 6px;
     padding: 0.75rem;
     margin-bottom: 0.5rem;
   }
 
   .source-preview {
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 0.9rem;
     flex: 1;
   }
 
   .remove-btn {
-    background: #dc3545;
+    background: var(--state-bad);
     color: white;
     border: none;
     border-radius: 50%;
@@ -773,12 +784,12 @@
   }
 
   .error {
-    background: rgba(220, 53, 69, 0.2);
-    border: 1px solid #dc3545;
+    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
+    border: 1px solid var(--state-bad);
     border-radius: 6px;
     padding: 1rem;
     margin-bottom: 1rem;
-    color: #ff6b6b;
+    color: var(--state-bad);
     text-align: center;
   }
 
@@ -803,12 +814,12 @@
   }
 
   .btn-primary {
-    background: var(--color-primary-main);
-    color: var(--color-primary-text);
+    background: var(--metal);
+    color: var(--ink);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-primary-light);
+    background: var(--metal-bright);
     transform: translateY(-1px);
   }
 
@@ -818,13 +829,13 @@
   }
 
   .btn-secondary {
-    background: var(--color-content-dark);
-    color: var(--color-primary-text);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    color: var(--ink);
+    border: 1px solid var(--metal);
   }
 
   .btn-secondary:hover {
-    background: var(--color-content-light);
+    background: var(--ground-lift);
   }
 
   .spinner {

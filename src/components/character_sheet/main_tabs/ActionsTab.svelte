@@ -150,7 +150,6 @@
         align-items: start;
         flex-direction: column;
         overflow: hidden;
-        background-color: var(--color-content-dark);
     }
 
     .actions {
@@ -175,12 +174,12 @@
         font-size: 0.8em;
         font-weight: 600;
 
-        border-bottom: 1px dashed var(--color-primary-main);
+        border-bottom: 1px dashed var(--metal);
     }
 
     .divider:not(:first-of-type) {
         margin-top: 16px;
-        border-top: 1px solid var(--color-primary-main);
+        border-top: 1px solid var(--metal);
     }
 
     ul {

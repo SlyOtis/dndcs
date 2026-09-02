@@ -81,16 +81,16 @@
         height: auto;
         margin: 0;
         list-style: none;
-        color: var(--color-chat-text);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--ink);
+        border-bottom: 1px solid var(--sheen-soft);
     }
 
     li:nth-child(even) {
-        background-color: var(--color-chat-light);
+        background-color: var(--ground-lift);
     }
 
     li:nth-child(odd) {
-        background-color: var(--color-chat-main);
+        background-color: var(--ground-raised);
     }
 
     .result {
@@ -113,7 +113,7 @@
     }
 
     .result > *:last-child {
-        background-color: var(--color-chat-dark);
+        background-color: var(--ground);
         border-radius: 8px;
         overflow: hidden;
     }
@@ -128,7 +128,7 @@
         font-size: 0.7em;
         opacity: 0.8;
         font-weight: 500;
-        color: #c0c0c0;
+        color: var(--ink-dim);
     }
 
     .chat-title {
@@ -163,26 +163,26 @@
         width: 100%;
         text-align: center;
         overflow: hidden;
-        background-color: rgba(255, 215, 0, 0.1);
+        background-color: color-mix(in srgb, var(--metal) 12%, transparent);
         border-radius: 6px;
         font-weight: 500;
-        color: var(--color-primary-main);
+        color: var(--metal);
     }
 
     .response {
         position: relative;
         width: 100%;
         height: 100%;
-        background-color: var(--color-chat-dark);
+        background-color: var(--ground);
         border-radius: 8px;
         padding: 12px;
-        border: 1px solid rgba(255, 215, 0, 0.2);
+        border: 1px solid color-mix(in srgb, var(--metal) 22%, transparent);
     }
 
     .response > span {
         font-size: 0.8em;
         opacity: 0.85;
-        color: #e0e0e0;
+        color: var(--ink);
     }
 
     .hidden {
@@ -199,19 +199,19 @@
     }
 
     .message.card {
-        background: linear-gradient(145deg, rgba(20, 15, 10, 0.95), rgba(40, 30, 20, 0.9));
-        border: 2px solid var(--color-primary-main);
+        background: linear-gradient(145deg, var(--ground-deep), var(--ground-raised));
+        border: 2px solid var(--metal);
         border-radius: 12px;
         padding: 1.2rem;
         margin: 0.8rem 0;
         box-shadow: 
-            0 4px 12px rgba(0, 0, 0, 0.4),
-            inset 0 1px 0 rgba(255, 215, 0, 0.1);
+            0 4px 12px var(--shade-soft),
+            inset 0 1px 0 color-mix(in srgb, var(--metal) 12%, transparent);
         backdrop-filter: blur(10px);
     }
 
     .formatted-content {
-        color: #f5f5f5;
+        color: var(--ink);
         font-size: 0.95em;
         line-height: 1.6;
     }
@@ -220,20 +220,20 @@
     .formatted-content :global(h2),
     .formatted-content :global(h3),
     .formatted-content :global(h4) {
-        color: var(--color-primary-main);
+        color: var(--metal);
         margin: 0.8rem 0 0.4rem 0;
         font-weight: 700;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: 0 1px 2px var(--shade);
     }
 
     .formatted-content :global(strong) {
-        color: var(--color-primary-main);
+        color: var(--metal);
         font-weight: 600;
-        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 1px 1px var(--shade-soft);
     }
 
     .formatted-content :global(em) {
-        color: #d4d1ce;
+        color: var(--ink-dim);
         font-style: italic;
     }
 
@@ -245,12 +245,12 @@
 
     .formatted-content :global(li) {
         margin: 0.3rem 0;
-        color: #f0f0f0;
+        color: var(--ink);
     }
 
     .formatted-content :global(p) {
         margin: 0.6rem 0;
-        color: #f0f0f0;
+        color: var(--ink);
     }
 
     .formatted-content :global(img) {
@@ -258,23 +258,24 @@
         height: auto;
         border-radius: 8px;
         margin: 0.5rem 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 2px 8px var(--shade-soft);
     }
 
     .formatted-content :global(code) {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--sheen-soft);
         padding: 0.1rem 0.3rem;
         border-radius: 3px;
-        color: var(--color-primary-main);
-        font-family: 'Courier New', monospace;
+        color: var(--metal);
+        font-family: var(--font-mono);
         font-size: 0.9em;
     }
 
     .formatted-content :global(blockquote) {
-        border-left: 3px solid var(--color-primary-main);
-        padding-left: 1rem;
+        border-block: var(--border-hair) solid var(--metal-dim);
+        background: linear-gradient(180deg, var(--sheen-soft), transparent);
+        padding: var(--space-2) var(--space-4);
         margin: 1rem 0;
-        color: #b8b5b2;
+        color: var(--ink-dim);
         font-style: italic;
     }
 </style>

@@ -55,7 +55,7 @@
 
   .description {
     text-align: center;
-    color: #b8b5b2;
+    color: var(--ink-dim);
     margin: 0 0 2rem 0;
     font-style: italic;
     font-size: 1.1rem;
@@ -69,8 +69,8 @@
 
   .theme-card {
     position: relative;
-    background: linear-gradient(145deg, rgba(40, 40, 60, 0.6), rgba(30, 30, 45, 0.8));
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(145deg, var(--ground-lift), var(--ground-raised));
+    border: 2px solid var(--sheen-soft);
     border-radius: 15px;
     padding: 1.5rem;
     cursor: pointer;
@@ -80,15 +80,15 @@
   }
 
   .theme-card:hover {
-    border-color: var(--color-primary-main);
+    border-color: var(--metal);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 25px var(--shade-soft);
   }
 
   .theme-card.selected {
-    border-color: var(--color-primary-main);
-    background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    border-color: var(--metal);
+    background: linear-gradient(145deg, color-mix(in srgb, var(--metal) 12%, transparent), color-mix(in srgb, var(--metal) 6%, transparent));
+    box-shadow: 0 0 20px color-mix(in srgb, var(--metal) 32%, transparent);
   }
 
   .theme-preview {
@@ -101,20 +101,20 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--sheen-strong);
+    box-shadow: 0 2px 8px var(--shade-soft);
   }
 
   .theme-info h3 {
     margin: 0 0 0.5rem 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.3rem;
     font-weight: 600;
   }
 
   .theme-info p {
     margin: 0;
-    color: #888;
+    color: var(--ink-faint);
     font-size: 0.9rem;
     line-height: 1.4;
   }
@@ -123,7 +123,7 @@
     position: absolute;
     top: 15px;
     right: 15px;
-    background: var(--color-primary-main);
+    background: var(--metal);
     color: black;
     width: 25px;
     height: 25px;

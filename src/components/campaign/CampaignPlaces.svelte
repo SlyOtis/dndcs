@@ -55,7 +55,7 @@
   }
 </script>
 
-<section class="dnd-places primary-border">
+<section class="dnd-places dnd-panel dnd-keyline">
   {#if error}<p class="dnd-places-error">{error}</p>{/if}
 
   <div class="dnd-places-head">
@@ -121,7 +121,7 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
   }
 
   .dnd-places-head {
@@ -134,7 +134,7 @@
   .dnd-places h2 {
     margin: 0;
     font-size: var(--text-lg);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-places-list {
@@ -150,7 +150,7 @@
     display: flex;
     gap: var(--space-3);
     padding: var(--space-3);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
   }
 
@@ -162,8 +162,8 @@
     width: 40px;
     height: 40px;
     border-radius: var(--radius-md);
-    border: var(--border-width) solid var(--color-primary-main);
-    color: var(--color-primary-main);
+    border: var(--border-width) solid var(--metal);
+    color: var(--metal);
   }
 
   .dnd-places-body {
@@ -176,13 +176,13 @@
   .dnd-places-body h3 {
     margin: 0;
     font-size: var(--text-md);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-places-body p {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-places-row {
@@ -194,15 +194,15 @@
   .dnd-places-note {
     margin: 0;
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-places-error {
     margin: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

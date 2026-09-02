@@ -83,20 +83,20 @@
       return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
     };
     
-    const primaryColor = getThemeColor('--color-primary-main') || '#FFD700';
-    const secondaryColor = getThemeColor('--color-secondary-main') || '#FF6B6B';
-    const accentColor = getThemeColor('--color-accent') || '#8b5a2b';
+    const primaryColor = getThemeColor('--metal') || 'var(--metal)';
+    const secondaryColor = getThemeColor('--ember') || 'var(--state-bad)';
+    const accentColor = getThemeColor('--metal-dim') || 'var(--metal-dim)';
     
     const colors = [
       primaryColor,
       secondaryColor, 
       accentColor,
-      '#4ECDC4', 
-      '#45B7D1', 
-      '#96CEB4', 
-      '#FFEAA7', 
-      '#DDA0DD', 
-      '#98D8C8'
+      'var(--verdigris)', 
+      'var(--verdigris)', 
+      'var(--state-good)', 
+      'var(--ember-core)', 
+      'var(--metal-bright)', 
+      'var(--verdigris)'
     ];
     
     for (let i = 0; i < count; i++) {
@@ -125,10 +125,10 @@
       return getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || fallback;
     };
     
-    const primaryColor = getThemeColor('--color-primary-main', '#FFD700');
-    const secondaryColor = getThemeColor('--color-secondary-main', '#FF6B35');
+    const primaryColor = getThemeColor('--metal', 'var(--metal)');
+    const secondaryColor = getThemeColor('--ember', 'var(--ember)');
     
-    const colors = [primaryColor, secondaryColor, '#00ff88', '#ff69b4', '#aa44ff', '#4ECDC4'];
+    const colors = [primaryColor, secondaryColor, 'var(--state-good)', 'var(--ember-core)', 'var(--metal-bright)', 'var(--verdigris)'];
     
     // Ring explosion from center
     for (let i = 0; i < 50; i++) {
@@ -255,10 +255,10 @@
     };
     
     const colors = {
-      damage: getThemeColor('--color-secondary-main', '#FF4444'),
-      heal: '#44FF44',
-      critical: getThemeColor('--color-primary-main', '#FFD700'),
-      miss: '#CCCCCC'
+      damage: getThemeColor('--ember', 'var(--state-bad)'),
+      heal: 'var(--state-good)',
+      critical: getThemeColor('--metal', 'var(--metal)'),
+      miss: 'var(--ink-dim)'
     };
     
     const targetX = x ?? window.innerWidth / 2 + (Math.random() - 0.5) * 200;
@@ -380,9 +380,9 @@
     ctx.textBaseline = 'middle';
     
     const fontSize = (text.type === 'critical' ? 48 : 36) * text.scale;
-    ctx.font = `bold ${fontSize}px 'Cinzel', serif`;
+    ctx.font = `bold ${fontSize}px var(--font-display)`;
     
-    ctx.strokeStyle = '#000000';
+    ctx.strokeStyle = 'var(--ground-deep)';
     ctx.lineWidth = 4;
     ctx.strokeText(text.text, text.x, text.y);
     
@@ -624,13 +624,13 @@
   .overlay-text {
     position: absolute;
     color: white;
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
     font-size: 1.4em;
     font-weight: 700;
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      -1px -1px 2px rgba(0, 0, 0, 0.7),
-      1px 1px 3px rgba(0, 0, 0, 0.8);
+      2px 2px 4px var(--shade-hard),
+      -1px -1px 2px var(--shade),
+      1px 1px 3px var(--shade-hard);
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     transform-origin: center;
     white-space: nowrap;
@@ -639,71 +639,71 @@
   }
   
   .overlay-text.criticalHit {
-    color: #ffd700;
+    color: var(--metal);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 10px #ffd700,
-      0 0 20px #ffd700,
-      0 0 30px #ffd700;
+      2px 2px 4px var(--shade-hard),
+      0 0 10px var(--metal),
+      0 0 20px var(--metal),
+      0 0 30px var(--metal);
     animation: criticalPulse 0.6s ease-in-out;
   }
   
   .overlay-text.criticalFail {
-    color: #ff4444;
+    color: var(--state-bad);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 10px #ff4444,
-      0 0 20px #ff4444;
+      2px 2px 4px var(--shade-hard),
+      0 0 10px var(--state-bad),
+      0 0 20px var(--state-bad);
     animation: shakeFail 0.6s ease-in-out;
   }
   
   .overlay-text.levelUp {
-    color: #00ff88;
+    color: var(--state-good);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 15px #00ff88,
-      0 0 25px #00ff88,
-      0 0 35px #00ff88;
+      2px 2px 4px var(--shade-hard),
+      0 0 15px var(--state-good),
+      0 0 25px var(--state-good),
+      0 0 35px var(--state-good);
     animation: levelUpGlow 1.2s ease-in-out;
     font-size: 1.6em;
   }
   
   .overlay-text.healing {
-    color: #20c997;
+    color: var(--state-good);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 12px #20c997,
-      0 0 22px #20c997;
+      2px 2px 4px var(--shade-hard),
+      0 0 12px var(--state-good),
+      0 0 22px var(--state-good);
     animation: healingPulse 0.8s ease-in-out;
   }
   
   .overlay-text.spellCast {
-    color: #aa44ff;
+    color: var(--metal-bright);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 12px #aa44ff,
-      0 0 22px #aa44ff,
-      0 0 32px #aa44ff;
+      2px 2px 4px var(--shade-hard),
+      0 0 12px var(--metal-bright),
+      0 0 22px var(--metal-bright),
+      0 0 32px var(--metal-bright);
     animation: magicSparkle 1s ease-in-out;
   }
   
   .overlay-text.treasure {
-    color: #ffc107;
+    color: var(--state-warn);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 12px #ffc107,
-      0 0 22px #ffc107,
-      0 0 32px #ffc107;
+      2px 2px 4px var(--shade-hard),
+      0 0 12px var(--state-warn),
+      0 0 22px var(--state-warn),
+      0 0 32px var(--state-warn);
     animation: treasureShine 1s ease-in-out;
   }
   
   .overlay-text.inspiration {
-    color: #ff69b4;
+    color: var(--ember-core);
     text-shadow: 
-      2px 2px 4px rgba(0, 0, 0, 0.9),
-      0 0 15px #ff69b4,
-      0 0 25px #ff69b4,
-      0 0 35px #ff69b4;
+      2px 2px 4px var(--shade-hard),
+      0 0 15px var(--ember-core),
+      0 0 25px var(--ember-core),
+      0 0 35px var(--ember-core);
     animation: inspirationBlast 1.2s ease-in-out;
     font-size: 1.6em;
     font-weight: 800;

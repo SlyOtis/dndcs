@@ -19,13 +19,13 @@
 </script>
 
 
-<div class="root primary-border">
+<div class="root dnd-panel dnd-keyline">
     <div class="saves">
         {#each resolved as save}
             <SavingThrow {save}/>
         {/each}
     </div>
-    <span>Saving Throws</span>
+    <span class="dnd-caption">Saving Throws</span>
 </div>
 
 <style>
@@ -40,7 +40,6 @@
         height: auto;
         padding: 4px 8px;
         grid-column: 1;
-        background-color: var(--color-content-dark);
     }
 
     .saves {

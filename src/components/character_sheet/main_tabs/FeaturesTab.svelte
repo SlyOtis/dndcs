@@ -34,8 +34,7 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
-        color: var(--color-content-text);
-        background-color: var(--color-content-dark);
+        color: var(--ink);
         overflow: hidden;
     }
 
@@ -69,7 +68,7 @@
 
     li:not(:last-child) {
         padding-bottom: 16px;
-        border-bottom: 1px dashed var(--color-content-text);
+        border-bottom: 1px dashed var(--ink);
         margin-bottom: 16px;
     }
 

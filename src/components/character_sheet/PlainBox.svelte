@@ -1,36 +1,7 @@
 <script lang="ts">
-  let {value = $bindable(), title, subTitle, prefix}: { value: any, title: string, subTitle?: string, prefix?: string} = $props()
+  import Stat from "$components/ui/Stat.svelte";
 
+  let {value = $bindable(), title, subTitle, prefix}: { value: string | number, title: string, subTitle?: string, prefix?: string } = $props()
 </script>
 
-<div class="root primary-border">
-    <span>{title}</span>
-    <span class="value">{#if prefix}{prefix}{/if}{value}</span>
-    {#if subTitle}
-        <span>{subTitle}</span>
-    {/if}
-</div>
-
-<style>
-    .root {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: auto;
-        height: 100px;
-        min-height: 100px;
-        max-height: 100px;
-        gap: 6px;
-        padding: 4px 8px;
-        border-radius: 16px;
-        z-index: 1;
-        background-color: var(--color-content-dark);
-    }
-
-    .value {
-        font-size: 1.2em;
-        font-weight: 500;
-    }
-</style>
+<Stat label={title} value="{prefix ?? ''}{value}" sub={subTitle} tone="metal" />

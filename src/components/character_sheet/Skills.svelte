@@ -41,7 +41,7 @@
 
 </script>
 
-<div class="root primary-border">
+<div class="root dnd-panel dnd-keyline">
     <div class="skills">
         <span>Prof</span>
         <span>Mod</span>
@@ -76,7 +76,6 @@
         align-self: stretch;
         justify-self: stretch;
 
-        background-color: var(--color-content-dark);
     }
 
     .skills {
@@ -102,31 +101,31 @@
     .medieval-button {
         position: relative;
         cursor: pointer;
-        background: linear-gradient(145deg, var(--color-accent), var(--color-content-main));
-        border: 2px solid var(--color-primary-main);
+        background: linear-gradient(145deg, var(--metal-dim), var(--ground-raised));
+        border: 2px solid var(--metal);
         border-radius: 8px;
         padding: 6px 12px;
         min-width: 40px;
         min-height: 32px;
         transition: all 0.15s ease;
         box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--color-primary-main) 30%, transparent),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.4),
-            0 2px 4px rgba(0, 0, 0, 0.3);
-        font-family: 'Cinzel', serif;
+            inset 1px 1px 3px color-mix(in srgb, var(--metal) 30%, transparent),
+            inset -1px -1px 3px var(--shade-soft),
+            0 2px 4px var(--shade-soft);
+        font-family: var(--font-display);
         font-weight: 600;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-        color: var(--color-primary-text);
+        text-shadow: 1px 1px 2px var(--shade-hard);
+        color: var(--ink);
         overflow: hidden;
     }
     
     .medieval-button:hover {
-        background: linear-gradient(145deg, var(--color-secondary-main), var(--color-accent));
-        border-color: var(--color-primary-main);
+        background: linear-gradient(145deg, var(--ember), var(--metal-dim));
+        border-color: var(--metal);
         box-shadow: 
-            inset 1px 1px 4px color-mix(in srgb, var(--color-primary-main) 40%, transparent),
-            inset -1px -1px 4px rgba(0, 0, 0, 0.5),
-            0 3px 6px rgba(0, 0, 0, 0.4);
+            inset 1px 1px 4px color-mix(in srgb, var(--metal) 40%, transparent),
+            inset -1px -1px 4px var(--shade),
+            0 3px 6px var(--shade-soft);
         transform: translateY(-1px);
         filter: brightness(1.1);
     }
@@ -150,17 +149,17 @@
         height: 100%;
         background: 
             radial-gradient(ellipse at center, 
-                color-mix(in srgb, var(--color-primary-main) 10%, transparent) 0%, 
+                color-mix(in srgb, var(--metal) 10%, transparent) 0%, 
                 transparent 60%),
             conic-gradient(from 0deg at center,
                 transparent 0deg,
-                color-mix(in srgb, var(--color-primary-main) 5%, transparent) 45deg,
+                color-mix(in srgb, var(--metal) 5%, transparent) 45deg,
                 transparent 90deg,
-                color-mix(in srgb, var(--color-primary-main) 5%, transparent) 135deg,
+                color-mix(in srgb, var(--metal) 5%, transparent) 135deg,
                 transparent 180deg,
-                color-mix(in srgb, var(--color-primary-main) 5%, transparent) 225deg,
+                color-mix(in srgb, var(--metal) 5%, transparent) 225deg,
                 transparent 270deg,
-                color-mix(in srgb, var(--color-primary-main) 5%, transparent) 315deg,
+                color-mix(in srgb, var(--metal) 5%, transparent) 315deg,
                 transparent 360deg);
         pointer-events: none;
         opacity: 0.6;
@@ -174,9 +173,9 @@
         right: 2px;
         bottom: 2px;
         background: linear-gradient(45deg, 
-            color-mix(in srgb, var(--color-primary-main) 10%, transparent) 0%,
+            color-mix(in srgb, var(--metal) 10%, transparent) 0%,
             transparent 50%,
-            color-mix(in srgb, var(--color-primary-main) 5%, transparent) 100%);
+            color-mix(in srgb, var(--metal) 5%, transparent) 100%);
         border-radius: 6px;
         pointer-events: none;
         z-index: 1;
@@ -190,7 +189,7 @@
         right: 0;
         bottom: 0;
         background: 
-            linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--color-primary-main) 10%, transparent) 50%, transparent 100%);
+            linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--metal) 10%, transparent) 50%, transparent 100%);
         opacity: 0;
         transition: opacity 0.3s ease;
         pointer-events: none;

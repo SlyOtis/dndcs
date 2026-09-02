@@ -214,7 +214,7 @@
       {/if}
 
       {#if marker}
-        <div class="dnd-maps-editor primary-border">
+        <div class="dnd-maps-editor dnd-panel dnd-keyline">
           <h4>{marker.title}</h4>
           <Field label="Title" id="pin-title">
             <input id="pin-title" value={marker.title} onchange={(e) => putMarker(marker.id, { title: e.currentTarget.value })} />
@@ -269,7 +269,7 @@
         </div>
       {/if}
 
-      <div class="dnd-maps-panel primary-border">
+      <div class="dnd-maps-panel dnd-panel dnd-keyline">
         <h4>Detail layers</h4>
         <p class="dnd-maps-note">A layer replaces the picture once the zoom passes its threshold.</p>
         {#each selected.layers as entry (entry.id)}
@@ -301,7 +301,7 @@
   {/if}
 
   {#if isDm}
-    <div class="dnd-maps-panel primary-border">
+    <div class="dnd-maps-panel dnd-panel dnd-keyline">
       <h4>Add a map</h4>
       <Field label="Title" id="map-title" help="Left blank, the file name is used.">
         <input id="map-title" bind:value={title} placeholder="The Sword Coast" />
@@ -335,18 +335,18 @@
     align-items: center;
     gap: var(--space-1);
     padding: var(--space-1) var(--space-2);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
-    background: var(--color-content-main);
-    color: var(--color-content-text);
+    background: var(--ground-raised);
+    color: var(--ink);
     font-family: inherit;
     font-size: var(--text-xs);
     cursor: pointer;
   }
 
   .dnd-maps-kind-active {
-    border-color: var(--color-primary-main);
-    color: var(--color-primary-main);
+    border-color: var(--metal);
+    color: var(--metal);
   }
 
   .dnd-maps-kind:focus-visible {
@@ -361,14 +361,14 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
   }
 
   .dnd-maps-panel h4,
   .dnd-maps-editor h4 {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-maps-pair {
@@ -380,10 +380,10 @@
   .dnd-maps-input,
   .dnd-maps-number {
     padding: var(--space-2);
-    background: var(--color-content-main);
-    border: var(--border-width) solid var(--color-content-light);
+    background: var(--ground-raised);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
-    color: var(--color-content-text);
+    color: var(--ink);
     font-family: inherit;
     font-size: var(--text-sm);
   }
@@ -401,7 +401,7 @@
     align-items: center;
     gap: var(--space-1);
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-maps-upload {
@@ -409,19 +409,19 @@
     flex-direction: column;
     gap: var(--space-2);
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-maps-upload input {
     font-family: inherit;
     font-size: var(--text-sm);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-maps-flag,
   .dnd-maps-note {
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-maps-note {
@@ -433,8 +433,8 @@
     margin: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

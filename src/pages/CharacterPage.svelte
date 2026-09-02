@@ -33,6 +33,9 @@
   import { sidebarStore } from "$lib/navigation";
   import { uiStore, isSearchDialogOpen, anyDialogOpen } from "$lib/stores/ui.store";
   import { initializeGlobalEvents } from "$lib/globalEvents";
+  import Ornament from "$components/ui/Ornament.svelte";
+  import Aura from "$components/ui/Aura.svelte";
+  import Flame from "$components/ui/Flame.svelte";
 
   const { route }: { route?: { params?: Record<string, string> } } = $props();
   const characterId = untrack(() => route?.params?.id) ?? "local";
@@ -83,7 +86,6 @@
     unsubscribeSidebar();
   });
 
-  // Character image logic
   let imageUrl = $derived.by(() => {
     if ($info.state?.image?.overlay === false) {
       return $info.state.image.url!!
@@ -104,11 +106,17 @@
 <Dialogs />
 <Search />
 <Background />
+<Aura variant="motes" tone="ember" density="sparse" />
 
 <div class="root">
     <div class="scroll">
-        <!-- Character Profile Header -->
         <div class="character-profile">
+            <span class="character-profile-corner character-profile-corner-start">
+                <Ornament name="corner" size="sm" tone="metal" />
+            </span>
+            <span class="character-profile-corner character-profile-corner-end">
+                <Ornament name="corner" size="sm" tone="metal" flip />
+            </span>
             <div class="character-image">
                 {#if imageUrl}
                     <img src={imageUrl} alt={$info.name || 'Character'} />
@@ -125,9 +133,9 @@
                     <span class="class-race">{$info.class?.name || 'Unknown'} {$info.race?.name || 'Unknown'}</span>
                 </div>
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
         </div>
         
-        <!-- Character Sheet Content -->
         <div class="content-grid">
             <div class="grid start">
                 <Abilities/>
@@ -138,6 +146,7 @@
                 <Proficiencies/>
                 <RulePanels skip={['abilities', 'defence', 'saves', 'senses']}/>
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <div class="grid end">
             <div style:grid-column="1">
                 <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
@@ -146,25 +155,30 @@
                           prefix="+"
                 />
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <div style:grid-column="2">
                 <PlainBox bind:value={$info.speed}
                           title="Walking"
                           subTitle="speed"
                 />
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <div style:grid-column="3">
                 <Inspiration />
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <HitPoints bind:hp={$info.hp}/>
             <div style:grid-column="1" style:grid-row="2">
                 <Initiative bind:initiative={$info.initiative}/>
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <div style:grid-column="2" style:grid-row="2">
                 <PlainBox bind:value={$info.ac}
                           title="Armor"
                           subTitle="class"
                 />
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             <DefensesNConditions
                     bind:conditions={$info.conditions}
                     bind:defences={$info.defences}
@@ -185,7 +199,9 @@
                     {/snippet}
                 </MainTabs>
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
             </div>
+            <span class="character-profile-flame"><Flame size="sm" intensity="calm" /></span>
         </div>
     </div>
 </div>
@@ -203,16 +219,43 @@
     }
 
     .character-profile {
+        position: relative;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        background: var(--color-content-dark);
-        border-radius: 12px;
-        border: 2px solid var(--color-primary-main);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
-        margin-bottom: 0.5rem;
+        gap: var(--space-5);
+        padding: var(--space-4) var(--space-5);
+        background:
+            var(--texture-noise),
+            linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+        background-blend-mode: overlay, normal;
+        border: var(--border-hair) solid var(--metal-dim);
+        border-radius: var(--radius-lg);
+        box-shadow:
+            var(--shadow-md),
+            inset 0 0 0 var(--border-hair) var(--metal-edge),
+            inset 0 0 40px -14px var(--ember-glow);
+        margin-bottom: var(--space-2);
+    }
+
+    .character-profile-corner {
+        position: absolute;
+        top: -3px;
+        z-index: 2;
+        opacity: 0.8;
+        pointer-events: none;
+    }
+
+    .character-profile-corner-start {
+        left: -3px;
+    }
+
+    .character-profile-corner-end {
+        right: -3px;
+    }
+
+    .character-profile-flame {
+        margin-inline-start: auto;
+        padding-inline-end: var(--space-4);
     }
 
     .content-grid {
@@ -232,15 +275,15 @@
         position: relative;
         padding: 4px;
         background: conic-gradient(from 0deg, 
-            var(--color-primary-main) 0%, 
-            var(--color-accent) 25%, 
-            var(--color-secondary-main) 50%, 
-            var(--color-primary-main) 75%, 
-            var(--color-accent) 100%);
+            var(--metal) 0%, 
+            var(--metal-dim) 25%, 
+            var(--ember) 50%, 
+            var(--metal) 75%, 
+            var(--metal-dim) 100%);
         animation: border-rotate 3s linear infinite;
         box-shadow: 
-            0 0 20px rgba(255, 215, 0, 0.3),
-            inset 0 0 20px rgba(255, 215, 0, 0.1);
+            0 0 20px color-mix(in srgb, var(--metal) 32%, transparent),
+            inset 0 0 20px color-mix(in srgb, var(--metal) 12%, transparent);
     }
 
     .character-image::before {
@@ -250,7 +293,7 @@
         left: 2px;
         right: 2px;
         bottom: 2px;
-        background: var(--color-content-dark);
+        background: var(--ground);
         border-radius: 50%;
         z-index: 1;
     }
@@ -267,11 +310,11 @@
     .placeholder-image {
         width: 100%;
         height: 100%;
-        background: var(--color-primary-main);
+        background: var(--metal);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--color-surface-dark);
+        color: var(--ground);
         font-size: 2rem;
         font-weight: bold;
         border-radius: 50%;
@@ -286,19 +329,19 @@
     .character-name {
         font-size: 1.5rem;
         font-weight: bold;
-        color: var(--color-primary-text);
+        color: var(--ink);
         margin: 0 0 0.5rem 0;
     }
 
     .character-meta {
         display: flex;
         gap: 1rem;
-        color: var(--color-secondary-text);
+        color: var(--ink-dim);
     }
 
     .level {
         font-weight: 600;
-        color: var(--color-primary-main);
+        color: var(--metal);
     }
 
     .class-race {
@@ -335,12 +378,12 @@
     }
 
     .grid.start {
-        /* Define height for the left grid */
+
         max-height: fit-content;
     }
 
     .grid.end {
-        /* Constrain the right grid to match the left grid's height */
+
         height: fit-content;
         max-height: 100%;
         align-content: start;
@@ -359,22 +402,20 @@
     @keyframes border-rotate {
         0% {
             background: conic-gradient(from 0deg, 
-                var(--color-primary-main) 0%, 
-                var(--color-accent) 25%, 
-                var(--color-secondary-main) 50%, 
-                var(--color-primary-main) 75%, 
-                var(--color-accent) 100%);
+                var(--metal) 0%, 
+                var(--metal-dim) 25%, 
+                var(--ember) 50%, 
+                var(--metal) 75%, 
+                var(--metal-dim) 100%);
         }
         100% {
             background: conic-gradient(from 360deg, 
-                var(--color-primary-main) 0%, 
-                var(--color-accent) 25%, 
-                var(--color-secondary-main) 50%, 
-                var(--color-primary-main) 75%, 
-                var(--color-accent) 100%);
+                var(--metal) 0%, 
+                var(--metal-dim) 25%, 
+                var(--ember) 50%, 
+                var(--metal) 75%, 
+                var(--metal-dim) 100%);
         }
     }
 
-    @media screen and (max-width: 1024px) {
-    }
 </style>

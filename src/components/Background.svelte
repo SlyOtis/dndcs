@@ -41,7 +41,7 @@
         bottom: 0;
         left: 0;
         z-index: 0;
-        background: var(--color-background, var(--color-background-dark));
+        background: var(--backdrop, var(--ground-deep));
 
         user-select: none;
         pointer-events: none;
@@ -64,7 +64,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: var(--color-secondary-main);
+        background: var(--ember);
         opacity: 0.2;
     }
 

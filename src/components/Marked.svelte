@@ -103,7 +103,7 @@
     :global(.marked-link) {
         display: inline-block;
         width: max-content;
-        color: var(--color-secondary);
+        color: var(--ember);
         text-decoration: underline;
     }
 
@@ -113,8 +113,9 @@
 
     :global(.marked-callout) {
         display: inline-block;
-        border-left: 0.5em solid var(--color-primary);
-        padding: 0 2em;
+        border-block: var(--border-hair) solid var(--metal-dim);
+        background: linear-gradient(180deg, var(--sheen-soft), transparent);
+        padding: var(--space-2) var(--space-5);
         margin: 0;
     }
 

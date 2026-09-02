@@ -268,7 +268,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--shade-hard);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -277,16 +277,16 @@
   }
 
   .dialog {
-    background: linear-gradient(145deg, rgba(30, 30, 50, 0.95), rgba(20, 20, 35, 0.98));
-    border: 2px solid var(--color-primary-main);
+    background: linear-gradient(145deg, var(--ground-raised), var(--ground-deep));
+    border: 2px solid var(--metal);
     border-radius: 20px;
     max-width: 700px;
     max-height: 90vh;
     width: 95%;
     overflow: hidden;
     box-shadow: 
-      0 25px 50px rgba(0, 0, 0, 0.8),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      0 25px 50px var(--shade-hard),
+      inset 0 1px 0 var(--sheen-soft);
   }
 
   .header {
@@ -294,22 +294,22 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--metal) 32%, transparent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--metal) 12%, transparent), transparent);
   }
 
   .header h2 {
     margin: 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.8rem;
     font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 2px 4px var(--shade);
   }
 
   .close-btn {
     background: none;
     border: none;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 2rem;
     cursor: pointer;
     padding: 0;
@@ -323,7 +323,7 @@
   }
 
   .close-btn:hover {
-    background: rgba(255, 215, 0, 0.2);
+    background: color-mix(in srgb, var(--metal) 22%, transparent);
     transform: scale(1.1);
   }
 
@@ -342,9 +342,9 @@
     gap: 2rem;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--shade-soft);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--sheen-soft);
   }
 
   .stat-item {
@@ -356,25 +356,25 @@
 
   .stat-item .label {
     font-size: 0.9rem;
-    color: #b8b5b2;
+    color: var(--ink-dim);
   }
 
   .stat-item .value {
     font-size: 1.2rem;
     font-weight: 700;
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .new-features {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--shade-soft);
     border-radius: 8px;
     padding: 1.5rem;
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    border: 1px solid color-mix(in srgb, var(--state-good) 26%, transparent);
   }
 
   .new-features h3 {
     margin: 0 0 1rem 0;
-    color: #00ff88;
+    color: var(--state-good);
     font-size: 1.2rem;
   }
 
@@ -387,9 +387,9 @@
   .new-features li {
     margin-bottom: 1rem;
     padding: 1rem;
-    background: rgba(0, 255, 136, 0.1);
+    background: color-mix(in srgb, var(--state-good) 26%, transparent);
     border-radius: 6px;
-    border-left: 3px solid #00ff88;
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-good) 50%, transparent);
   }
 
   .new-features li:last-child {
@@ -397,14 +397,14 @@
   }
 
   .new-features strong {
-    color: var(--color-primary-text);
+    color: var(--ink);
     display: block;
     margin-bottom: 0.5rem;
   }
 
   .new-features p {
     margin: 0;
-    color: #b8b5b2;
+    color: var(--ink-dim);
     font-size: 0.9rem;
     line-height: 1.4;
   }
@@ -415,16 +415,16 @@
 
   .choices-section > h3 {
     margin: 0 0 1.5rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.3rem;
   }
 
   .choice-group {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--shade-soft);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--sheen-soft);
   }
 
   .choice-header {
@@ -436,19 +436,19 @@
 
   .choice-header h4 {
     margin: 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-size: 1.1rem;
   }
 
   .selection-count {
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-weight: 600;
     font-size: 0.9rem;
   }
 
   .choice-description {
     margin: 0 0 1.5rem 0;
-    color: #b8b5b2;
+    color: var(--ink-dim);
     font-style: italic;
     font-size: 0.9rem;
   }
@@ -464,23 +464,23 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: rgba(40, 40, 60, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    background: var(--ground-lift);
+    border: 2px solid var(--sheen-soft);
     border-radius: 8px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     transition: all 0.2s ease;
     text-align: left;
   }
 
   .option-button:hover:not(.disabled) {
-    border-color: var(--color-primary-main);
-    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--metal);
+    background: color-mix(in srgb, var(--metal) 12%, transparent);
   }
 
   .option-button.selected {
-    border-color: var(--color-primary-main);
-    background: rgba(255, 215, 0, 0.2);
+    border-color: var(--metal);
+    background: color-mix(in srgb, var(--metal) 22%, transparent);
   }
 
   .option-button.disabled {
@@ -489,7 +489,7 @@
   }
 
   .option-check {
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-weight: 600;
     font-size: 1.1rem;
   }
@@ -500,8 +500,8 @@
   }
 
   .errors {
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid rgba(255, 68, 68, 0.3);
+    background: color-mix(in srgb, var(--state-bad) 32%, transparent);
+    border: 1px solid color-mix(in srgb, var(--state-bad) 32%, transparent);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 2rem;
@@ -509,7 +509,7 @@
 
   .errors h4 {
     margin: 0 0 0.5rem 0;
-    color: #ff6b6b;
+    color: var(--state-bad);
     font-size: 1rem;
   }
 
@@ -519,22 +519,22 @@
   }
 
   .errors li {
-    color: #ff6b6b;
+    color: var(--state-bad);
     font-size: 0.9rem;
     margin-bottom: 0.25rem;
   }
 
   .spell-slots {
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--shade-soft);
     border-radius: 8px;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--sheen-soft);
     margin-bottom: 1.5rem;
   }
 
   .spell-slots h4 {
     margin: 0 0 0.75rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.1rem;
   }
 
@@ -549,19 +549,19 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--sheen-soft);
     border-radius: 4px;
-    border: 1px solid rgba(255, 215, 0, 0.2);
+    border: 1px solid color-mix(in srgb, var(--metal) 22%, transparent);
   }
 
   .slot-level {
     font-size: 0.85rem;
-    color: #b8b5b2;
+    color: var(--ink-dim);
   }
 
   .slot-count {
     font-weight: 600;
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .actions {
@@ -569,7 +569,7 @@
     gap: 1rem;
     justify-content: flex-end;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--sheen-soft);
   }
 
   .cancel-btn,
@@ -583,17 +583,17 @@
   }
 
   .cancel-btn {
-    background: rgba(100, 100, 100, 0.6);
-    color: var(--color-primary-text);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: var(--ground-lift);
+    color: var(--ink);
+    border: 1px solid var(--sheen-strong);
   }
 
   .cancel-btn:hover {
-    background: rgba(120, 120, 120, 0.8);
+    background: var(--ground-lift);
   }
 
   .confirm-btn {
-    background: linear-gradient(45deg, #ff6b35, #f7931e);
+    background: linear-gradient(45deg, var(--ember), var(--ember));
     color: white;
     font-size: 1rem;
     text-transform: uppercase;
@@ -601,9 +601,9 @@
   }
 
   .confirm-btn:hover {
-    background: linear-gradient(45deg, #ff7b45, #f8a32e);
+    background: linear-gradient(45deg, var(--ember), var(--ember));
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 8px 25px var(--ember-glow);
   }
 
   @media (max-width: 640px) {

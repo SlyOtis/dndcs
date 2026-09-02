@@ -16,8 +16,11 @@
   import CharactersPanel from "./main/CharactersPanel.svelte";
   import CampaignsPanel from "./main/CampaignsPanel.svelte";
   import UsersPanel from "./main/UsersPanel.svelte";
+  import Banner from "$components/ui/Banner.svelte";
+  import Button from "$components/ui/Button.svelte";
+  import Aura from "$components/ui/Aura.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
 
-  // Create character store and context for any components that need it
   const {unsubscribe, ...chStore} = getCharacterStore()
   const unsubscribeSidebar = sidebarStore.subscribe(() => {});
   
@@ -61,160 +64,170 @@
   }
 </script>
 
-<main>
-  <div class="topbar">
-    <div class="user-info">
-      <span class="display-name">{$userDetails?.display_name}</span>
-      <span class="email">{$user?.email || ''}</span>
-    </div>
-    <button class="sign-out-btn" onclick={handleSignOut}>
-      Sign Out
-    </button>
-  </div>
-  
-  <aside class="menu-aside">
+
+<main class="hall">
+  <header class="hall-bar">
+    <span class="hall-bar-crest"><Ornament name="rosette" size="sm" tone="metal" /></span>
+
+    <Banner text={$userDetails?.display_name ?? 'Adventurer'} sub={$user?.email ?? ''} size="md" />
+
+    <span class="hall-bar-run"><Ornament name="vine" tone="metal" /></span>
+
+    <Button variant="ghost" size="sm" onclick={handleSignOut}>Sign Out</Button>
+  </header>
+
+  <aside class="hall-aside hall-aside-menu">
     <MenuPanel />
   </aside>
-  
-  <div class="main-content">
-    <div class="panels-grid">
+
+  <div class="hall-content">
+    <Aura variant="veil" tone="verdigris" />
+    <Aura variant="motes" tone="ember" density="sparse" />
+
+    {#if error}
+      <p class="hall-error" role="alert">{error}</p>
+    {/if}
+
+    <div class="hall-grid">
       <CharactersPanel {loading} />
       <CampaignsPanel {loading} />
       <UsersPanel {loading} />
     </div>
   </div>
-  
-  <aside class="chat-aside">
+
+  <aside class="hall-aside hall-aside-chat">
     <Chat />
   </aside>
 </main>
 
 <style>
-  main {
+  .hall {
     position: relative;
     width: 100vw;
     height: 100vh;
     display: grid;
     grid-template-columns: var(--size-menu-curr, 0) 1fr var(--size-chat-curr, 0);
-    grid-template-rows: 64px 1fr;
-    grid-template-areas: 
-      "topbar topbar topbar"
-      "menu content chat";
+    grid-template-rows: 68px 1fr;
+    grid-template-areas:
+      'topbar topbar topbar'
+      'menu content chat';
     overflow: hidden;
     transition: grid-template-columns 250ms ease-in-out;
+    background: var(--backdrop);
     --size-menu-max: 400px;
     --size-chat-max: 400px;
   }
 
-  .topbar {
+  .hall-bar {
     grid-area: topbar;
-    height: 64px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 2rem;
-    background: var(--color-content-dark);
-    border-bottom: 2px solid var(--color-primary-main);
+    gap: var(--space-4);
+    height: 68px;
+    padding: 0 var(--space-5);
+    background:
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-lift) 0%, var(--ground) 70%, var(--ground-deep) 100%);
+    background-blend-mode: overlay, normal;
+    border-bottom: var(--border-hair) solid var(--metal-dim);
+    box-shadow: 0 4px 18px var(--shade), inset 0 1px 0 var(--metal-edge);
     z-index: 20;
   }
 
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  .hall-bar-crest {
+    flex: none;
   }
 
-  .display-name {
-    color: var(--color-primary-text);
-    font-weight: 600;
-    font-size: 1rem;
+  .hall-bar-run {
+    flex: 1;
+    min-width: 0;
+    opacity: 0.4;
   }
 
-  .email {
-    color: var(--color-primary-text);
-    opacity: 0.7;
-    font-size: 0.9rem;
-  }
-
-  .sign-out-btn {
-    padding: 0.5rem 1rem;
-    background: transparent;
-    border: 2px solid var(--color-primary-main);
-    border-radius: 6px;
-    color: var(--color-primary-main);
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-
-  .sign-out-btn:hover {
-    background: var(--color-primary-main);
-    color: var(--color-content-dark);
-  }
-
-  .main-content {
+  .hall-content {
     grid-area: content;
     position: relative;
-    height: calc(100vh - 64px);
+    height: calc(100vh - 68px);
     overflow: hidden;
-    background: 
-      linear-gradient(135deg, rgba(20, 15, 10, 0.95) 0%, rgba(40, 25, 15, 0.9) 50%, rgba(15, 10, 5, 0.98) 100%),
-      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffd700' fill-opacity='0.05'%3E%3Ccircle cx='6' cy='6' r='1.5'/%3E%3Ccircle cx='18' cy='18' r='1'/%3E%3Ccircle cx='42' cy='12' r='1.5'/%3E%3Ccircle cx='54' cy='30' r='1'/%3E%3Ccircle cx='30' cy='48' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background:
+      var(--texture-motes),
+      radial-gradient(ellipse at 50% -10%, var(--verdigris-dim) 0%, transparent 60%),
+      linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
   }
 
-  .menu-aside,
-  .chat-aside {
+  .hall-error {
+    position: relative;
+    z-index: 2;
+    margin: var(--space-4) var(--space-4) 0;
+    padding: var(--space-3) var(--space-4);
+    border-block: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--state-bad) 24%, transparent),
+      color-mix(in srgb, var(--state-bad) 6%, transparent)
+    );
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .hall-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-4);
+  }
+
+  .hall-aside {
     position: relative;
     overflow: hidden;
     z-index: 10;
-    background: var(--color-content-dark);
-    border: 2px solid var(--color-primary-main);
-    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: 0 0 24px var(--shade-hard);
     transform: translateX(var(--translate-x, 0));
     transition: transform 250ms ease-in-out;
   }
 
-  .menu-aside {
+  .hall-aside-menu {
     grid-area: menu;
+    border-right: var(--border-width) solid var(--metal-dim);
     --translate-x: calc(-100% - 2px);
   }
 
-  .chat-aside {
+  .hall-aside-chat {
     grid-area: chat;
-    border-left: 2px solid var(--color-primary-main);
-    border-right: none;
-    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.3);
+    border-left: var(--border-width) solid var(--metal-dim);
     --translate-x: calc(100% + 2px);
   }
 
-  :root[style*="--size-menu-curr: var(--size-menu-max)"] .menu-aside {
+  :root[style*='--size-menu-curr: var(--size-menu-max)'] .hall-aside-menu {
     --translate-x: 0;
   }
 
-  :root[style*="--size-chat-curr: var(--size-chat-max)"] .chat-aside {
+  :root[style*='--size-chat-curr: var(--size-chat-max)'] .hall-aside-chat {
     --translate-x: 0;
-  }
-
-  .panels-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-    height: calc(100vh - 64px);
-    padding: 1rem;
   }
 
   @media (max-width: 1200px) {
-    .panels-grid {
+    .hall-grid {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
     }
   }
 
   @media (max-width: 768px) {
-    .panels-grid {
+    .hall-bar-run {
+      display: none;
+    }
+
+    .hall-grid {
       grid-template-columns: 1fr;
-      grid-template-rows: 1fr 1fr 1fr;
+      grid-template-rows: repeat(3, minmax(240px, 1fr));
+      overflow-y: auto;
     }
   }
 </style>

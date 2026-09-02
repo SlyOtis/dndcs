@@ -307,19 +307,19 @@
   }
   
   .sound-panel {
-    background: rgba(20, 15, 10, 0.95);
-    border: 2px solid var(--color-primary-main);
+    background: var(--ground-deep);
+    border: 2px solid var(--metal);
     border-radius: 12px;
     padding: 16px;
-    color: var(--color-primary-text);
-    font-family: 'Cinzel', serif;
+    color: var(--ink);
+    font-family: var(--font-display);
     min-width: 200px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px var(--shade-soft);
   }
   
   .sound-panel h4 {
     margin: 0 0 12px 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     text-align: center;
   }
   
@@ -346,8 +346,8 @@
   }
   
   .test-sounds button {
-    background: var(--color-primary-main);
-    border: 1px solid var(--color-accent);
+    background: var(--metal);
+    border: 1px solid var(--metal-dim);
     border-radius: 6px;
     padding: 6px 8px;
     cursor: pointer;

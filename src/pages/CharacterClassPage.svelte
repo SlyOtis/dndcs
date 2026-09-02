@@ -6,6 +6,8 @@
   import type { Character } from "$lib/character.types";
   import { getAbilities, getEmptyCharacterInfo } from "$lib/engine";
   import Background from "$components/Background.svelte";
+  import Aura from "$components/ui/Aura.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
 
   interface CharacterData {
     name: string;
@@ -241,6 +243,8 @@
 </script>
 
 <Background />
+<Aura variant="veil" tone="verdigris" />
+<Aura variant="motes" tone="ember" density="sparse" />
 
 <div class="page-wrapper">
   <div class="class-selection">
@@ -249,6 +253,7 @@
     </button>
     
     <div class="header">
+      <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
       <h1>Choose Your Class</h1>
       {#if characterData}
         <p>Select a class for {characterData.name}</p>
@@ -300,6 +305,12 @@
 </div>
 
 <style>
+  .header-crest {
+    display: block;
+    margin: 0 auto var(--space-2);
+    filter: drop-shadow(0 4px 10px var(--shade-hard));
+  }
+
   .page-wrapper {
     min-height: 100vh;
     width: 100%;
@@ -318,10 +329,10 @@
     top: 2rem;
     left: 2rem;
     padding: 0.5rem 1rem;
-    background: var(--color-content-dark);
-    border: 1px solid var(--color-primary-main);
+    background: var(--ground);
+    border: 1px solid var(--metal);
     border-radius: 6px;
-    color: var(--color-primary-text);
+    color: var(--ink);
     cursor: pointer;
     font-size: 1rem;
     transition: all 0.2s ease;
@@ -329,7 +340,7 @@
   }
 
   .back-btn:hover {
-    background: var(--color-primary-main);
+    background: var(--metal);
     transform: translateX(-2px);
   }
 
@@ -343,13 +354,13 @@
 
   .header h1 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 2.5rem;
   }
 
   .header p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 1.2rem;
   }
 
@@ -363,8 +374,8 @@
   .spinner {
     width: 60px;
     height: 60px;
-    border: 4px solid rgba(255, 215, 0, 0.3);
-    border-top: 4px solid var(--color-primary-main);
+    border: 4px solid color-mix(in srgb, var(--metal) 32%, transparent);
+    border-top: 4px solid var(--metal);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin: 0 auto 2rem auto;
@@ -377,24 +388,24 @@
 
   .loading-container h2 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.8rem;
   }
 
   .loading-container p {
     margin: 0;
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     line-height: 1.5;
   }
 
   .error {
-    background: rgba(220, 53, 69, 0.2);
-    border: 1px solid #dc3545;
+    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
+    border: 1px solid var(--state-bad);
     border-radius: 6px;
     padding: 1rem;
     margin: 2rem auto;
     max-width: 600px;
-    color: #ff6b6b;
+    color: var(--state-bad);
     text-align: center;
   }
 
@@ -407,8 +418,8 @@
   }
 
   .class-card {
-    background: var(--color-content-dark);
-    border: 2px solid rgba(255, 215, 0, 0.3);
+    background: var(--ground);
+    border: 2px solid color-mix(in srgb, var(--metal) 32%, transparent);
     border-radius: 12px;
     padding: 1.5rem;
     cursor: pointer;
@@ -417,27 +428,27 @@
   }
 
   .class-card:hover {
-    border-color: var(--color-primary-main);
+    border-color: var(--metal);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
   }
 
   .class-card.selected {
-    border-color: var(--color-primary-light);
-    background: rgba(255, 215, 0, 0.1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    border-color: var(--metal-bright);
+    background: color-mix(in srgb, var(--metal) 12%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--metal) 42%, transparent);
   }
 
   .class-card h3 {
     margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
+    color: var(--metal);
     font-size: 1.5rem;
     font-weight: 700;
   }
 
   .class-description {
     margin: 0 0 1.5rem 0;
-    color: var(--color-primary-text);
+    color: var(--ink);
     line-height: 1.4;
     font-size: 0.95rem;
   }
@@ -455,12 +466,12 @@
   }
 
   .label {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
     font-size: 0.9rem;
   }
 
   .value {
-    color: var(--color-primary-text);
+    color: var(--ink);
     font-weight: 600;
     font-size: 0.9rem;
   }
@@ -472,8 +483,8 @@
 
   .btn-primary {
     padding: 1rem 2rem;
-    background: var(--color-primary-main);
-    color: var(--color-primary-text);
+    background: var(--metal);
+    color: var(--ink);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -483,9 +494,9 @@
   }
 
   .btn-primary:hover {
-    background: var(--color-primary-light);
+    background: var(--metal-bright);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
   }
 
   @media (max-width: 768px) {

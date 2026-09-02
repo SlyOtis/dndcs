@@ -19,6 +19,8 @@
   import CampaignStory from '$components/campaign/CampaignStory.svelte'
   import CampaignCast from '$components/campaign/CampaignCast.svelte'
   import CampaignPlaces from '$components/campaign/CampaignPlaces.svelte'
+  import Aura from '$components/ui/Aura.svelte'
+  import Ornament from '$components/ui/Ornament.svelte'
 
   const { route }: { route?: { params?: Record<string, string> } } = $props()
 
@@ -92,6 +94,9 @@
 
 <Background />
 
+<Aura variant="veil" tone="verdigris" />
+<Aura variant="motes" tone="ember" density="sparse" />
+
 <main class="dnd-campaign">
   {#if loading}
     <p class="dnd-campaign-note">Loading the campaign...</p>
@@ -99,8 +104,10 @@
     <p class="dnd-campaign-error">{error}</p>
     <Button onclick={() => navigate('/main')}>Back to the table</Button>
   {:else if campaign}
-    <header class="dnd-campaign-header primary-border">
+    <header class="dnd-campaign-header dnd-panel dnd-keyline">
+      <span class="dnd-campaign-crest"><Ornament name="crest" size="md" tone="metal" /></span>
       <h1>{campaign.name}</h1>
+      <span class="dnd-campaign-rule"><Ornament name="divider" tone="metal" /></span>
       <p>{campaign.description}</p>
       <div class="dnd-campaign-meta">
         <span>{campaign.player_ids.length} players</span>
@@ -122,7 +129,7 @@
 
     {#if tab === 'overview'}
       <div class="dnd-campaign-outline">
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>The party</h2>
           {#if characters.length === 0}
             <p class="dnd-campaign-note">No character has joined yet.</p>
@@ -136,7 +143,7 @@
           {/if}
         </section>
 
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>The world</h2>
           {#if maps.length === 0}
             <p class="dnd-campaign-note">No map has been drawn yet.</p>
@@ -150,7 +157,7 @@
           {/if}
         </section>
 
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>The story</h2>
           {#if sessions.length === 0 && openQuests.length === 0}
             <p class="dnd-campaign-note">Nothing has been written down yet.</p>
@@ -168,7 +175,7 @@
           {/if}
         </section>
 
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>Met along the way</h2>
           {#if knownNpcs.length === 0}
             <p class="dnd-campaign-note">Nobody has been met yet.</p>
@@ -182,7 +189,7 @@
           {/if}
         </section>
 
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>House rules</h2>
           <dl class="dnd-campaign-facts">
             <dt>Experience</dt>
@@ -196,7 +203,7 @@
           </dl>
         </section>
 
-        <section class="dnd-campaign-panel primary-border">
+        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
           <h2>At the table</h2>
           <dl class="dnd-campaign-facts">
             <dt>Players</dt>
@@ -219,7 +226,7 @@
     {:else if tab === 'places'}
       <CampaignPlaces {campaignId} {isDm} locations={places} {npcs} {maps} onChange={reload} />
     {:else if tab === 'party'}
-      <section class="dnd-campaign-panel primary-border">
+      <section class="dnd-campaign-panel dnd-panel dnd-keyline">
         <h2>Party</h2>
         {#if characters.length === 0}
           <p class="dnd-campaign-note">No character has joined this campaign yet.</p>
@@ -236,7 +243,7 @@
         {/if}
       </section>
     {:else}
-      <section class="dnd-campaign-panel primary-border">
+      <section class="dnd-campaign-panel dnd-panel dnd-keyline">
         <h2>Maps</h2>
         <CampaignMaps {campaignId} {isDm} locations={places} {npcs} {quests} />
       </section>
@@ -260,19 +267,43 @@
 
   .dnd-campaign-header,
   .dnd-campaign-panel {
-    padding: var(--space-4);
+    padding: var(--space-5);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+  }
+
+  .dnd-campaign-header {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: var(--space-6);
+  }
+
+  .dnd-campaign-crest {
+    display: block;
+    margin-top: calc(var(--space-6) * -1.2);
+    filter: drop-shadow(0 4px 10px var(--shade-hard));
+  }
+
+  .dnd-campaign-rule {
+    display: block;
+    width: min(420px, 80%);
+    margin-bottom: var(--space-3);
   }
 
   .dnd-campaign-header h1 {
-    margin: 0 0 var(--space-2);
-    color: var(--color-primary-main);
+    margin: var(--space-2) 0;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    letter-spacing: var(--tracking-wide);
+    color: var(--metal-bright);
+    text-shadow: 0 2px 10px var(--ember-glow);
   }
 
   .dnd-campaign-header p {
     margin: 0 0 var(--space-3);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-campaign-meta {
@@ -280,11 +311,11 @@
     flex-wrap: wrap;
     gap: var(--space-3);
     font-size: var(--text-sm);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-campaign-dm {
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-campaign-tabs {
@@ -296,7 +327,7 @@
   .dnd-campaign-panel h2 {
     margin: 0 0 var(--space-3);
     font-size: var(--text-lg);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-campaign-facts {
@@ -305,11 +336,11 @@
     gap: var(--space-2) var(--space-4);
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-campaign-facts dt {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-campaign-facts dd {
@@ -330,7 +361,7 @@
     padding: 0;
     list-style: none;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-campaign-tally li {
@@ -340,19 +371,19 @@
   }
 
   .dnd-campaign-tally li span:last-child {
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-campaign-lead {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-campaign-summary {
     margin: 0 0 var(--space-2);
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     line-clamp: 3;
@@ -373,13 +404,13 @@
   .dnd-campaign-error {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-campaign-error {
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
   }
 </style>

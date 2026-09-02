@@ -1,5 +1,6 @@
 <script lang="ts">
   import { getContext, type Snippet } from 'svelte';
+  import Ornament from '$components/ui/Ornament.svelte';
   
   let { 
     isOpen = $bindable(false),
@@ -31,7 +32,6 @@
 
   let dialogElement = $state<HTMLDivElement>();
   
-  // Context for dialog state management
   const dialogContext = getContext('dialogState') as {
     setDialogState: (isOpen: boolean) => void;
   } | undefined;
@@ -57,14 +57,12 @@
     }
   }
   
-  // Update global dialog state
   $effect(() => {
     if (dialogContext) {
       dialogContext.setDialogState(isOpen);
     }
   });
   
-  // Focus trap - focus the dialog when it opens
   $effect(() => {
     if (isOpen && dialogElement) {
       dialogElement.focus();
@@ -76,7 +74,6 @@
 
 {#if isOpen}
   {#if backdrop}
-    <!-- Backdrop -->
     <button
       type="button"
       class="backdrop"
@@ -85,9 +82,8 @@
       style="z-index: {zIndex};"
     ></button>
   {/if}
-  
-  <!-- Dialog -->
-  <div 
+
+  <div
     bind:this={dialogElement}
     class="dialog"
     style="width: {width}; max-width: {maxWidth}; max-height: {maxHeight}; z-index: {zIndex + 1};"
@@ -96,6 +92,13 @@
     aria-modal="true"
     aria-labelledby={title ? 'dialog-title' : undefined}
   >
+    <span class="dialog-corner dialog-corner-start">
+      <Ornament name="corner" size="sm" tone="metal" />
+    </span>
+    <span class="dialog-corner dialog-corner-end">
+      <Ornament name="corner" size="sm" tone="metal" flip />
+    </span>
+
     {#if title || showCloseButton}
       <div class="dialog-header">
         {#if title}
@@ -120,76 +123,147 @@
 <style>
   .backdrop {
     position: fixed;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    border: none;
+    padding: 0;
+    background: radial-gradient(ellipse at 50% 50%, var(--shade) 0%, var(--shade-hard) 100%);
+    backdrop-filter: blur(5px) saturate(0.6);
+    cursor: default;
+    animation: dialog-veil 0.2s ease-out;
   }
-  
+
   .dialog {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: var(--color-content-dark);
-    border: 2px solid var(--color-primary-main);
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 60%, var(--ground-deep) 100%);
+    border: var(--border-width) solid var(--metal-dim);
+    border-radius: var(--radius-lg);
+    box-shadow:
+      var(--shadow-lg),
+      inset 0 0 0 var(--border-hair) var(--metal-edge),
+      inset 0 0 50px -18px var(--ember-glow);
     overflow: hidden;
     outline: none;
-    animation: dialog-enter 0.2s ease-out;
+    animation: dialog-enter 0.22s ease-out;
   }
-  
+
+  .dialog-corner {
+    position: absolute;
+    top: -3px;
+    z-index: 3;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  .dialog-corner-start {
+    left: -3px;
+  }
+
+  .dialog-corner-end {
+    right: -3px;
+  }
+
   .dialog-header {
+    position: relative;
+    z-index: 2;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--color-primary-main);
-    background: var(--color-content-main);
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
+    border-bottom: var(--border-hair) solid var(--metal-dim);
+    box-shadow: inset 0 1px 0 var(--metal-edge), 0 3px 12px var(--shade);
   }
-  
+
   .dialog-title {
     margin: 0;
-    color: var(--color-primary-text);
-    font-size: 1.25rem;
-    font-weight: 600;
+    padding-inline-start: var(--space-5);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal-bright);
+    text-shadow: 0 1px 2px var(--shade-hard);
   }
-  
+
   .close-button {
-    background: none;
-    border: none;
-    color: var(--color-secondary-text);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-pill);
+    color: var(--metal);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   }
-  
+
   .close-button:hover {
-    background: var(--color-content-light);
-    color: var(--color-primary-text);
+    color: var(--state-bad);
+    border-color: var(--state-bad);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--state-bad) 45%, transparent);
   }
-  
+
+  .close-button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
   .close-button svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
-  
+
   .dialog-content {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    max-height: calc(80vh - 80px); /* Account for header */
+    scrollbar-width: thin;
+    scrollbar-color: var(--metal-dim) transparent;
   }
-  
+
+  .dialog-content::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .dialog-content::-webkit-scrollbar-track {
+    background: var(--ground-deep);
+  }
+
+  .dialog-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--metal-dim), var(--ground-lift));
+    border-radius: var(--radius-pill);
+  }
+
+  @keyframes dialog-veil {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   @keyframes dialog-enter {
     from {
       opacity: 0;
-      transform: translate(-50%, -50%) scale(0.95);
+      transform: translate(-50%, -46%) scale(0.96);
     }
     to {
       opacity: 1;

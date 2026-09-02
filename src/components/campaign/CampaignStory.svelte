@@ -68,7 +68,7 @@
 <div class="dnd-story">
   {#if error}<p class="dnd-story-error">{error}</p>{/if}
 
-  <section class="dnd-story-panel primary-border">
+  <section class="dnd-story-panel dnd-panel dnd-keyline">
     <div class="dnd-story-head">
       <h2>Quests</h2>
       {#if isDm}<Button onclick={() => run(campaignService.postQuest(campaignId, {}))}>Add quest</Button>{/if}
@@ -122,7 +122,7 @@
     {/if}
   </section>
 
-  <section class="dnd-story-panel primary-border">
+  <section class="dnd-story-panel dnd-panel dnd-keyline">
     <div class="dnd-story-head">
       <h2>Session log</h2>
       {#if isDm}<Button onclick={addSession}>Add session</Button>{/if}
@@ -188,7 +188,7 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border-radius: var(--radius-lg);
-    background: var(--color-content-dark);
+    background: var(--ground);
   }
 
   .dnd-story-head {
@@ -201,13 +201,13 @@
   .dnd-story-panel h2 {
     margin: 0;
     font-size: var(--text-lg);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-story-group {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-story-list {
@@ -224,20 +224,20 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-3);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
   }
 
   .dnd-story-record h4 {
     margin: 0;
     font-size: var(--text-md);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-story-record p {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-story-row {
@@ -254,7 +254,7 @@
     padding: 0;
     border: 0;
     background: transparent;
-    color: var(--color-content-text);
+    color: var(--ink);
     font-family: inherit;
     font-size: var(--text-sm);
     text-align: left;
@@ -272,29 +272,29 @@
     gap: var(--space-3);
     margin: 0;
     padding: var(--space-2);
-    border: var(--border-width) solid var(--color-content-light);
+    border: var(--border-width) solid var(--ground-lift);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
-    color: var(--color-content-text);
+    color: var(--ink);
   }
 
   .dnd-story-present legend {
     font-size: var(--text-xs);
-    color: var(--color-primary-main);
+    color: var(--metal);
   }
 
   .dnd-story-note {
     margin: 0;
     font-size: var(--text-xs);
-    color: var(--color-secondary-text);
+    color: var(--ink-dim);
   }
 
   .dnd-story-error {
     margin: 0;
     padding: var(--space-3);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-danger) 20%, transparent);
-    color: var(--color-content-text);
+    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    color: var(--ink);
     font-size: var(--text-sm);
   }
 </style>

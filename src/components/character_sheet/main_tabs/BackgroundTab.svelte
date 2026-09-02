@@ -44,7 +44,6 @@
         align-items: start;
         flex-direction: column;
         overflow: hidden;
-        background-color: var(--color-content-dark);
     }
 
     .scroll {
@@ -87,7 +86,6 @@
 
     .additional {
         margin-top: 16px;
-        background-color: var(--color-content-main);
         border-radius: 16px;
     }
 

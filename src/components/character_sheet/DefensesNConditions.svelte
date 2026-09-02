@@ -9,7 +9,7 @@
 
 </script>
 
-<div class="root primary-border">
+<div class="root dnd-panel dnd-keyline">
     <div class="box defences">
         <span class="title">Defences</span>
         {#if defences?.length}
@@ -47,8 +47,7 @@
         gap: 6px;
         padding: 4px 8px;
         z-index: 1;
-        background-color: var(--color-content-main);
-        color: var(--color-content-text);
+        color: var(--ink);
 
 
         align-self: stretch;
@@ -72,7 +71,7 @@
         position: relative;
         width: 1px;
         min-width: 1px;
-        background-color: var(--color-primary-main);
+        background-color: var(--metal);
         min-height: 90%;
         height: 100%;
     }
