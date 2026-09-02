@@ -16,10 +16,18 @@ export const INTEGRATIONS: Integration[] = [
   {
     id: 'firebase',
     title: 'Firebase',
-    purpose: 'Sign in, the database behind every character, campaign and map, and the file store behind uploads.',
+    purpose: 'Sign in, and the database behind every character, campaign and map.',
     status: 'live',
     note: 'Configured at build time from .env. Nothing to enter here.',
     siteUrl: 'https://console.firebase.google.com/'
+  },
+  {
+    id: 'storage',
+    title: 'Cloud Storage',
+    purpose: 'Would hold map images, portraits and sounds so the whole table sees them.',
+    status: 'blocked',
+    note: 'Since February 2026 a Storage bucket needs a billing account, and this project has none. Uploads are kept in your own browser instead, so a picture you add is visible to you and to nobody else. Attach billing and uploads move to Storage on their own.',
+    siteUrl: 'https://console.firebase.google.com/project/dndcs-420/storage'
   },
   {
     id: 'replicate',

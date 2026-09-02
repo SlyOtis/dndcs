@@ -4,6 +4,9 @@ import { app, auth } from './firebase'
 const storage: FirebaseStorage = getStorage(app)
 
 const MEGABYTE = 1024 * 1024
+const LOCAL_PREFIX = 'local:'
+const DB_NAME = 'dndcs-files'
+const STORE_NAME = 'files'
 
 export type UploadScope =
   | { kind: 'user' }
@@ -36,6 +39,46 @@ function getLimit(scope: UploadScope): number {
   return scope.kind === 'user' ? 10 : 20
 }
 
+function getDatabase(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1)
+    request.onupgradeneeded = () => request.result.createObjectStore(STORE_NAME)
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(new UploadError('This browser refused its local file store.'))
+  })
+}
+
+function runTransaction<T>(mode: IDBTransactionMode, work: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  return getDatabase().then(
+    (database) =>
+      new Promise<T>((resolve, reject) => {
+        const request = work(database.transaction(STORE_NAME, mode).objectStore(STORE_NAME))
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(new UploadError('The local file store refused the operation.'))
+      })
+  )
+}
+
+export function isLocalFile(address: string): boolean {
+  return address.startsWith(LOCAL_PREFIX)
+}
+
+async function postLocalFile(file: File, path: string): Promise<string> {
+  await runTransaction('readwrite', (store) => store.put(file, path))
+  return LOCAL_PREFIX + path
+}
+
+export async function getFileUrl(address: string): Promise<string> {
+  if (!isLocalFile(address)) return address
+
+  const blob = await runTransaction<Blob | undefined>('readonly', (store) =>
+    store.get(address.slice(LOCAL_PREFIX.length))
+  )
+
+  if (!blob) return ''
+  return URL.createObjectURL(blob)
+}
+
 export async function postFile(file: File, scope: UploadScope): Promise<string> {
   getUserId()
 
@@ -52,13 +95,23 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
     throw new UploadError('A sound needs an audio file.')
   }
 
-  const target = ref(storage, getPath(scope, file.name))
-  await uploadBytes(target, file, { contentType: file.type })
-  return getDownloadURL(target)
+  const path = getPath(scope, file.name)
+
+  try {
+    const target = ref(storage, path)
+    await uploadBytes(target, file, { contentType: file.type })
+    return await getDownloadURL(target)
+  } catch {
+    return postLocalFile(file, path)
+  }
 }
 
-export async function deleteFile(url: string): Promise<void> {
-  await deleteObject(ref(storage, url))
+export async function deleteFile(address: string): Promise<void> {
+  if (isLocalFile(address)) {
+    await runTransaction('readwrite', (store) => store.delete(address.slice(LOCAL_PREFIX.length)))
+    return
+  }
+  await deleteObject(ref(storage, address))
 }
 
 export { storage }

@@ -4,6 +4,7 @@
   import { postFile } from '$lib/storage.service'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import StoredImage from '$components/ui/StoredImage.svelte'
 
   const {
     campaignId,
@@ -79,7 +80,7 @@
         <li class="dnd-cast-card">
           <div class="dnd-cast-portrait">
             {#if npc.image_url}
-              <img src={npc.image_url} alt="" />
+              <StoredImage src={npc.image_url} alt="Portrait of {npc.name}" />
             {:else}
               <span class="dnd-cast-initial">{npc.name.charAt(0).toUpperCase()}</span>
             {/if}
@@ -184,7 +185,7 @@
     overflow: hidden;
   }
 
-  .dnd-cast-portrait img {
+  .dnd-cast-portrait :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;

@@ -2,6 +2,7 @@
   import { untrack } from 'svelte'
   import type { CampaignMap, MapMarker } from '$lib/firestore.types'
   import MapIcon from './MapIcon.svelte'
+  import StoredImage from '$components/ui/StoredImage.svelte'
 
   const {
     map,
@@ -126,7 +127,7 @@
     onpointercancel={onPointerUp}
   >
     <div class="dnd-map-plane" style="transform: translate({panX}px, {panY}px) scale({zoom})">
-      <img src={image} alt={layer?.title ?? map.title} draggable="false" />
+      <StoredImage src={image} alt={layer?.title ?? map.title} draggable={false} />
 
       {#each markers as marker (marker.id)}
         <button
@@ -205,7 +206,7 @@
     will-change: transform;
   }
 
-  .dnd-map-plane img {
+  .dnd-map-plane :global(img) {
     display: block;
     width: 100%;
     height: 100%;

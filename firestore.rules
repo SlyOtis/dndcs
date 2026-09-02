@@ -73,29 +73,17 @@ service cloud.firestore {
       allow update: if isOwner(stored().dm_id);
       allow delete: if isOwner(stored().dm_id);
 
-      match /maps/{mapId} {
-        allow read: if isMember();
-        allow write: if isOwner(stored().dm_id);
-      }
+      match /{part}/{recordId} {
+        function parent() {
+          return campaignOf(campaignId);
+        }
 
-      match /sessions/{sessionId} {
-        allow read: if isMember();
-        allow write: if isOwner(stored().dm_id);
-      }
+        function readsParent() {
+          return isOwner(parent().dm_id) || (signedIn() && uid() in parent().player_ids);
+        }
 
-      match /quests/{questId} {
-        allow read: if isMember();
-        allow write: if isOwner(stored().dm_id);
-      }
-
-      match /npcs/{npcId} {
-        allow read: if isMember();
-        allow write: if isOwner(stored().dm_id);
-      }
-
-      match /locations/{locationId} {
-        allow read: if isMember();
-        allow write: if isOwner(stored().dm_id);
+        allow read: if readsParent();
+        allow write: if isOwner(parent().dm_id);
       }
     }
 

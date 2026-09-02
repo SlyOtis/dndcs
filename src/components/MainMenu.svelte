@@ -5,6 +5,7 @@
   import { userCampaigns } from "$lib/stores/campaign.store";
   import { authService } from "$lib/auth.service";
   import { navigate, currentRoute } from "sly-svelte-location-router";
+  import StoredImage from "$components/ui/StoredImage.svelte";
 
   let { onNavigateToSoundboard, onSelectCharacter } = $props<{
     onNavigateToSoundboard: () => void;
@@ -78,7 +79,7 @@
     {#if $userProfile}
       <div class="user-avatar">
         {#if $userProfile.photo_url}
-          <img src={$userProfile.photo_url} alt="User avatar" />
+          <StoredImage src={$userProfile.photo_url} alt="Your picture" />
         {:else}
           <div class="avatar-placeholder">
             {$userProfile.display_name?.charAt(0) || $userProfile.email?.charAt(0) || '?'}
@@ -240,7 +241,7 @@
     flex-shrink: 0;
   }
 
-  .user-avatar img {
+  .user-avatar :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;

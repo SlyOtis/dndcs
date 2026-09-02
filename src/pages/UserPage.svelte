@@ -9,6 +9,7 @@
   import Background from '$components/Background.svelte'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import StoredImage from '$components/ui/StoredImage.svelte'
   import Aura from '$components/ui/Aura.svelte'
   import Ornament from '$components/ui/Ornament.svelte'
 
@@ -90,7 +91,7 @@
 <main class="dnd-user">
   <header class="dnd-user-header dnd-panel dnd-keyline">
     {#if $userProfile?.photo_url}
-      <img class="dnd-user-avatar" src={$userProfile.photo_url} alt="" />
+      <span class="dnd-user-avatar"><StoredImage src={$userProfile.photo_url} alt="Your picture" /></span>
     {:else}
       <div class="dnd-user-avatar dnd-user-placeholder">{(displayName || $userProfile?.email || '?').charAt(0).toUpperCase()}</div>
     {/if}

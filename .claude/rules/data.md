@@ -37,6 +37,10 @@ Verb prefixes are `get`, `post`, `put` and `delete`.
 
 Every upload goes through `postFile` in `src/lib/storage.service.ts` with a scope of `user`, `campaignMap` or `campaignAudio`. It checks the signed in user, the content type and the size limit. Never call `uploadBytes` directly.
 
+Cloud Storage needs a billing account and this project has none, so `postFile` falls back to IndexedDB and returns a `local:` reference. A `local:` file lives in one browser and no other player can see it. Attaching billing moves new uploads to Storage with no code change.
+
+An address held on a document is therefore either a hosted URL or a `local:` reference. Render it with `StoredImage`, never a bare `<img src>`, and remember its scoped CSS needs `:global(img)`.
+
 ## Access
 
 `firestore.rules` and `storage.rules` are the access model and both end in a deny. A user owns their profile and their `data` subtree. A character is reachable by its owner, its viewers, its editors, the DM of its campaign, or anyone when `metadata.is_public`. A campaign is reachable by its DM and its `player_ids`, and its subcollections are read by members and written by the DM.
