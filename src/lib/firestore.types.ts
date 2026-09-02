@@ -147,6 +147,25 @@ export interface CampaignMap {
   updated_at: Timestamp;
 }
 
+export interface CampaignChronicle {
+  campaign_id: string;
+  campaign_name: string;
+  session: CampaignSession;
+}
+
+export interface CampaignErrand {
+  campaign_id: string;
+  campaign_name: string;
+  quest: CampaignQuest;
+}
+
+export interface PartyMember {
+  profile: UserProfile;
+  campaign_id: string;
+  campaign_name: string;
+  is_dm: boolean;
+}
+
 export type CampaignRecordKind = 'location' | 'npc' | 'quest' | 'session';
 
 export type QuestState = 'active' | 'done' | 'abandoned';

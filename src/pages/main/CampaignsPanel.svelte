@@ -1,20 +1,20 @@
 <script lang="ts">
   import { navigate } from "sly-svelte-location-router";
   import { userCampaigns } from "$lib/stores/campaign.store";
-  import Panel from "$components/ui/Panel.svelte";
+  import Rail from "$components/ui/Rail.svelte";
   import Card from "$components/ui/Card.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
 
   let { loading = false } = $props();
 
-  let campaignSearch = $state('');
+  let search = $state('');
 
-  let filteredCampaigns = $derived($userCampaigns.filter(campaign =>
-    campaign.name.toLowerCase().includes(campaignSearch.toLowerCase()) ||
-    campaign.description.toLowerCase().includes(campaignSearch.toLowerCase())
+  let shown = $derived($userCampaigns.filter((entry) =>
+    entry.name.toLowerCase().includes(search.toLowerCase()) ||
+    entry.description.toLowerCase().includes(search.toLowerCase())
   ));
 
-  function createNewCampaign() {
+  function createCampaign() {
     navigate('/main/create/campaign');
   }
 
@@ -23,36 +23,37 @@
   }
 </script>
 
-<Panel title="Campaigns" variant="stone">
+<Rail
+  title="Campaigns"
+  note="{$userCampaigns.length} under way"
+  tone="verdigris"
+  mark="🏰"
+  empty="No chronicle has been opened"
+  count={shown.length}
+  {loading}
+>
   {#snippet actions()}
     <input
       type="text"
       class="dnd-search"
       placeholder="Search the chronicles..."
       aria-label="Search campaigns"
-      bind:value={campaignSearch}
+      bind:value={search}
     />
-    <Sigil title="Raise a new campaign" tone="verdigris" size="sm" onclick={createNewCampaign}>🏰</Sigil>
+    <Sigil title="Raise a new campaign" tone="verdigris" size="sm" onclick={createCampaign}>🏰</Sigil>
   {/snippet}
 
-  {#if loading}
-    <div class="dnd-loading"><span class="dnd-spinner"></span></div>
-  {:else if filteredCampaigns.length === 0}
-    <div class="dnd-empty">
-      <span class="dnd-empty-mark">🏰</span>
-      <p>No chronicles have been opened</p>
-    </div>
-  {:else}
-    {#each filteredCampaigns as campaign (campaign.id)}
-      <Card
-        title={campaign.name}
-        sub={campaign.description}
-        tone="verdigris"
-        onclick={() => openCampaign(campaign.id)}
-      >
-        <span>Players {campaign.player_ids.length}</span>
-        <span>Characters {campaign.character_ids.length}</span>
-      </Card>
-    {/each}
-  {/if}
-</Panel>
+  {#each shown as entry (entry.id)}
+    <Card
+      layout="tile"
+      title={entry.name}
+      sub={entry.description}
+      tone="verdigris"
+      badge={entry.is_active ? 'live' : undefined}
+      onclick={() => openCampaign(entry.id)}
+    >
+      <span>Players {entry.player_ids.length}</span>
+      <span>Heroes {entry.character_ids.length}</span>
+    </Card>
+  {/each}
+</Rail>

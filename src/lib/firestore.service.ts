@@ -23,6 +23,9 @@ import type {
   CampaignNpc,
   CampaignQuest,
   CampaignSession,
+  CampaignChronicle,
+  CampaignErrand,
+  PartyMember,
   CharacterDocument,
   ChatSession,
   UserPreferences
@@ -148,6 +151,13 @@ export const userService = {
     
     await setDoc(detailsRef, dataToStore);
     console.log('Firestore Service: User details stored successfully');
+  },
+
+  async getProfiles(userIds: string[]): Promise<UserProfile[]> {
+    const unique = Array.from(new Set(userIds));
+    const snapshots = await Promise.all(unique.map((id) => getDoc(doc(db, COLLECTIONS.USERS, id))));
+
+    return snapshots.filter((entry) => entry.exists()).map((entry) => entry.data() as UserProfile);
   },
 
   async getUserDetails(userId?: string): Promise<any> {
@@ -377,6 +387,24 @@ export const campaignService = {
     return entries.sort((a, b) => b.number - a.number);
   },
 
+  async getRecentSessions(campaigns: Campaign[], count = 12): Promise<CampaignChronicle[]> {
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const sessions = await this.getSessions(campaign.id);
+        return sessions.map((session) => ({
+          campaign_id: campaign.id,
+          campaign_name: campaign.name,
+          session
+        }));
+      })
+    );
+
+    return runs
+      .flat()
+      .sort((a, b) => b.session.played_at.localeCompare(a.session.played_at))
+      .slice(0, count);
+  },
+
   async postSession(campaignId: string, session: Partial<CampaignSession>): Promise<string> {
     return postRecord<CampaignSession>(campaignId, COLLECTIONS.SESSIONS, {
       number: session.number ?? 1,
@@ -397,6 +425,23 @@ export const campaignService = {
 
   async getQuests(campaignId: string): Promise<CampaignQuest[]> {
     return getRecords<CampaignQuest>(campaignId, COLLECTIONS.QUESTS);
+  },
+
+  async getActiveQuests(campaigns: Campaign[], count = 12): Promise<CampaignErrand[]> {
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const quests = await this.getQuests(campaign.id);
+        return quests
+          .filter((quest) => quest.state === 'active')
+          .map((quest) => ({
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            quest
+          }));
+      })
+    );
+
+    return runs.flat().slice(0, count);
   },
 
   async postQuest(campaignId: string, quest: Partial<CampaignQuest>): Promise<string> {
@@ -467,6 +512,32 @@ export const campaignService = {
 
   async deleteLocation(campaignId: string, id: string): Promise<void> {
     return deleteRecord(campaignId, COLLECTIONS.LOCATIONS, id);
+  },
+
+  async getPartyMembers(campaigns: Campaign[]): Promise<PartyMember[]> {
+    const self = getCurrentUserId();
+    const seats = campaigns.flatMap((campaign) =>
+      [campaign.dm_id, ...campaign.player_ids]
+        .filter((uid) => uid !== self)
+        .map((uid) => ({
+          uid,
+          campaign_id: campaign.id,
+          campaign_name: campaign.name,
+          is_dm: uid === campaign.dm_id
+        }))
+    );
+
+    const profiles = await userService.getProfiles(seats.map((seat) => seat.uid));
+    const byUid = new Map(profiles.map((profile) => [profile.uid, profile]));
+    const taken = new Set<string>();
+
+    return seats.flatMap((seat) => {
+      const profile = byUid.get(seat.uid);
+      if (!profile || taken.has(seat.uid)) return [];
+      taken.add(seat.uid);
+
+      return [{ profile, campaign_id: seat.campaign_id, campaign_name: seat.campaign_name, is_dm: seat.is_dm }];
+    });
   },
 
   async getUserCampaigns(): Promise<Campaign[]> {

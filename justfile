@@ -47,7 +47,10 @@ update:
     pnpm update --latest
 
 rules:
-    firebase deploy --only firestore:rules,storage:rules
+    firebase deploy --only firestore:rules,firestore:indexes
 
 deploy: gate
-    firebase deploy --only hosting,firestore:rules,storage:rules
+    firebase deploy --only hosting,firestore:rules,firestore:indexes
+
+storage-rules:
+    firebase deploy --only storage:rules
