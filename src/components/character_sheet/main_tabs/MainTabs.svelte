@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {onDestroy, type Snippet} from "svelte";
+  import {onDestroy, untrack, type Snippet} from "svelte";
   import {writable} from "svelte/store";
 
   let {
@@ -15,8 +15,7 @@
 
   type Tabs = keyof typeof tabs
 
-  initialTab = localStorage.getItem('selectedTab') || initialTab
-  const selectedTab = writable(initialTab as Tabs);
+  const selectedTab = writable((localStorage.getItem('selectedTab') || untrack(() => initialTab)) as Tabs);
 
   const unsubscribe = selectedTab.subscribe(state => {
     localStorage.setItem('selectedTab', state)

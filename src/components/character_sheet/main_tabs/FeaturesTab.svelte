@@ -67,11 +67,6 @@
         margin-bottom: 12px;
     }
 
-    h4, p {
-        padding: 0;
-        margin: 0;
-    }
-
     li:not(:last-child) {
         padding-bottom: 16px;
         border-bottom: 1px dashed var(--color-content-text);

@@ -2,14 +2,16 @@
   import { onMount } from 'svelte';
   import { navigate } from "sly-svelte-location-router";
   import { authService } from '../lib/auth.service';
-  import { isAuthenticated, authError, isLoading } from '../lib/stores/auth.store';
+  import { isAuthenticated, authError, isLoading } from '$lib/stores/auth.store';
+  import Button from '$components/ui/Button.svelte';
+  import Field from '$components/ui/Field.svelte';
   
-  let email = '';
-  let password = '';
-  let displayName = '';
-  let replicateApiKey = '';
-  let loading = false;
-  let localError = '';
+  let email = $state('');
+  let password = $state('');
+  let displayName = $state('');
+  let replicateApiKey = $state('');
+  let loading = $state(false);
+  let localError = $state('');
 
   // Redirect if already authenticated
   $effect(() => {
@@ -81,57 +83,56 @@
         </div>
       {/if}
 
-      <div class="form-section">
-        <input
-          type="text"
-          bind:value={displayName}
-          placeholder="Your adventurer name..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
-        <input
-          type="email"
-          bind:value={email}
-          placeholder="Your email address..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
-        <input
-          type="password"
-          bind:value={password}
-          placeholder="Your secret passphrase..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
-        <input
-          type="text"
-          bind:value={replicateApiKey}
-          placeholder="Your Replicate API key (r8_...)..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
+      <form class="form-section" onsubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+        <Field label="Adventurer name" id="signup-name" required>
+          <input
+            id="signup-name"
+            type="text"
+            bind:value={displayName}
+            placeholder="Your adventurer name..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
+
+        <Field label="Email" id="signup-email" required>
+          <input
+            id="signup-email"
+            type="email"
+            bind:value={email}
+            placeholder="Your email address..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
+
+        <Field label="Passphrase" id="signup-password" required>
+          <input
+            id="signup-password"
+            type="password"
+            bind:value={password}
+            placeholder="Your secret passphrase..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
+
+        <Field label="Replicate API key" id="signup-key" required help="The key stays on your own account and is used from your browser only.">
+          <input
+            id="signup-key"
+            type="text"
+            bind:value={replicateApiKey}
+            placeholder="r8_..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
+
         <p class="api-key-help">
           <small>Get your API key from <a href="https://replicate.com/account/api-tokens" target="_blank" rel="noopener noreferrer">Replicate</a></small>
         </p>
-        
-        <button 
-          on:click={handleSignUp} 
-          class="adventure-button"
-          disabled={loading || $isLoading}
-        >
-          {#if loading || $isLoading}
-            <span class="loading-spinner"></span>
-            Creating Account...
-          {:else}
-            <span>Create Account</span>
-          {/if}
-        </button>
-      </div>
-      
+
+        <Button type="submit" fill loading={loading || $isLoading}>
+          {loading || $isLoading ? 'Creating Account...' : 'Create Account'}
+        </Button>
+      </form>
+
       <div class="toggle-section">
         <p>
           Already have an account?
@@ -300,74 +301,6 @@
   .form-section {
     width: 100%;
     margin-bottom: 1.5rem;
-  }
-
-  .mystical-input {
-    width: 100%;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 2px solid #ffd700;
-    border-radius: 8px;
-    background: rgba(15, 10, 5, 0.9);
-    color: #ffffff;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .mystical-input:focus {
-    outline: none;
-    border-color: #ffed4e;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    background: rgba(20, 15, 10, 0.95);
-  }
-
-  .mystical-input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .adventure-button {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    border: 2px solid;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background: linear-gradient(145deg, #ffd700, #ffed4e);
-    color: #1a1a1a;
-    border-color: #ffc107;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-
-  .adventure-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-  }
-
-  .adventure-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .loading-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
   }
 
   @keyframes spin {

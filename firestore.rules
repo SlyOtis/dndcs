@@ -3,17 +3,109 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function isOwner(ownerId) {
+      return signedIn() && uid() == ownerId;
+    }
+
+    function campaignOf(campaignId) {
+      return get(/databases/$(database)/documents/campaigns/$(campaignId)).data;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId);
+
+      match /data/{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /characters/{characterId} {
+      function stored() {
+        return resource.data;
+      }
+
+      function inCampaign() {
+        return stored().campaign_id != null
+          && signedIn()
+          && campaignOf(stored().campaign_id).dm_id == uid();
+      }
+
+      allow read: if isOwner(stored().owner_id)
+        || stored().metadata.is_public == true
+        || (signedIn() && uid() in stored().permissions.viewers)
+        || (signedIn() && uid() in stored().permissions.editors)
+        || inCampaign();
+
+      allow create: if isOwner(request.resource.data.owner_id);
+
+      allow update: if isOwner(stored().owner_id)
+        || (signedIn() && uid() in stored().permissions.editors)
+        || inCampaign();
+
+      allow delete: if isOwner(stored().owner_id);
+
+      match /{document=**} {
+        allow read, write: if isOwner(get(/databases/$(database)/documents/characters/$(characterId)).data.owner_id);
+      }
+    }
+
+    match /campaigns/{campaignId} {
+      function stored() {
+        return resource.data;
+      }
+
+      function isMember() {
+        return isOwner(stored().dm_id) || (signedIn() && uid() in stored().player_ids);
+      }
+
+      allow read: if isMember();
+      allow create: if isOwner(request.resource.data.dm_id);
+      allow update: if isOwner(stored().dm_id);
+      allow delete: if isOwner(stored().dm_id);
+
+      match /maps/{mapId} {
+        allow read: if isMember();
+        allow write: if isOwner(stored().dm_id);
+      }
+
+      match /sessions/{sessionId} {
+        allow read: if isMember();
+        allow write: if isOwner(stored().dm_id);
+      }
+
+      match /quests/{questId} {
+        allow read: if isMember();
+        allow write: if isOwner(stored().dm_id);
+      }
+
+      match /npcs/{npcId} {
+        allow read: if isMember();
+        allow write: if isOwner(stored().dm_id);
+      }
+
+      match /locations/{locationId} {
+        allow read: if isMember();
+        allow write: if isOwner(stored().dm_id);
+      }
+    }
+
+    match /chatSessions/{sessionId} {
+      allow read, update, delete: if isOwner(resource.data.user_id);
+      allow create: if isOwner(request.resource.data.user_id);
+    }
+
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 6, 23);
+      allow read, write: if false;
     }
   }
 }

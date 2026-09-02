@@ -15,18 +15,14 @@
     "checkJs": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "baseUrl": ".",
     "paths": {
-      "$lib/*": ["src/lib/*"],
-      "$components/*": ["src/components/*"],
-      "$character-sheet/*": ["src/components/character_sheet/*"],
-      "$dialogues/*": ["src/components/dialogues/*"],
-      "$chat/*": ["src/components/chat/*"],
-      "$pages/*": ["src/pages/*"]
+      "$lib/*": ["./src/lib/*"],
+      "$components/*": ["./src/components/*"],
+      "$character-sheet/*": ["./src/components/character_sheet/*"],
+      "$dialogs/*": ["./src/components/dialogs/*"],
+      "$chat/*": ["./src/components/chat/*"],
+      "$pages/*": ["./src/pages/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
-  "references": [
-    { "path": "./tsconfig.node.json" }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"]
 }

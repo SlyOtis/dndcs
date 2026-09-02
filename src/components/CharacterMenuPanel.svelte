@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getContext } from "svelte";
   import type { CharacterContext } from "$lib/types";
-  import { setUIActionDispatcher } from "$lib/chat";
+  import { postUIAction } from "$lib/chat";
   import { navigationActions } from "$lib/navigation";
 
   let { isOpen = $bindable() }: { isOpen: boolean } = $props();
@@ -10,19 +10,19 @@
 
   // Panel actions
   function exportCharacter() {
-    setUIActionDispatcher('exportCharacter');
+    postUIAction('exportCharacter');
   }
 
   function levelUp() {
-    setUIActionDispatcher('openLevelUpDialog');
+    postUIAction('openLevelUpDialog');
   }
 
   function openThemes() {
-    setUIActionDispatcher('openThemeDialog');
+    postUIAction('openThemeDialog');
   }
 
   function openSources() {
-    setUIActionDispatcher('openSourceImport');
+    postUIAction('openSourceImport');
   }
 
   function openSoundboard() {

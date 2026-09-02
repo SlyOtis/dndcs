@@ -31,7 +31,7 @@
         class="search-input"
         bind:value={campaignSearch}
       />
-      <button class="create-btn" on:click={createNewCampaign}>
+      <button class="create-btn" onclick={createNewCampaign}>
         <span>🏰</span>
       </button>
     </div>
@@ -49,16 +49,16 @@
       </div>
     {:else}
       {#each filteredCampaigns as campaign (campaign.id)}
-        <div class="item-card" on:click={() => openCampaign(campaign.id)}>
+        <button type="button" class="item-card" onclick={() => openCampaign(campaign.id)}>
           <div class="item-info">
             <h4>{campaign.name}</h4>
             <p>{campaign.description}</p>
             <div class="item-stats">
-              <span>Players: {campaign.playerIds.length}</span>
-              <span>Characters: {campaign.characterIds.length}</span>
+              <span>Players: {campaign.player_ids.length}</span>
+              <span>Characters: {campaign.character_ids.length}</span>
             </div>
           </div>
-        </div>
+        </button>
       {/each}
     {/if}
   </div>

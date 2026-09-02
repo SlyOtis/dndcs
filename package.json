@@ -7,31 +7,33 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
+    "check": "svelte-check --tsgo --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
-    "@tsconfig/svelte": "^5.0.4",
-    "dotenv": "^16.4.7",
-    "svelte": "^5.15.0",
-    "svelte-check": "^4.1.1",
-    "typescript": "~5.6.2",
-    "vite": "6.3.5"
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "@tsconfig/svelte": "^5.0.8",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "dotenv": "^17.4.2",
+    "svelte": "^5.57.0",
+    "svelte-check": "^4.7.6",
+    "tslib": "^2.8.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
-    "@octokit/rest": "^21.1.1",
-    "date-fns": "^4.1.0",
-    "firebase": "^11.1.0",
-    "i": "^0.3.7",
-    "marked": "^15.0.11",
-    "marked-emoji": "^2.0.0",
-    "marked-gfm-heading-id": "^4.1.1",
-    "marked-xhtml": "^1.0.12",
+    "@octokit/rest": "^22.0.1",
+    "date-fns": "^4.4.0",
+    "firebase": "^12.18.0",
+    "marked": "^18.0.11",
+    "marked-emoji": "^2.0.3",
+    "marked-gfm-heading-id": "^4.1.4",
+    "marked-xhtml": "^1.0.15",
     "normalize.css": "^8.0.1",
-    "npm": "^11.2.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^5.2.133",
-    "replicate": "^1.0.1",
-    "sly-svelte-location-router": "^3.1.1"
+    "pdfjs-dist": "^6.3.289",
+    "replicate": "^1.4.0",
+    "sly-svelte-location-router": "^3.3.5"
   }
 }

@@ -32,7 +32,7 @@
         class="search-input"
         bind:value={characterSearch}
       />
-      <button class="create-btn" on:click={createNewCharacter}>
+      <button class="create-btn" onclick={createNewCharacter}>
         <span>⚔️</span>
       </button>
     </div>
@@ -50,10 +50,10 @@
       </div>
     {:else}
       {#each filteredCharacters as character (character.id)}
-        <div class="item-card" on:click={() => openCharacter(character.id)}>
+        <button type="button" class="item-card" onclick={() => openCharacter(character.id)}>
           <div class="item-image">
-            {#if character.character.imageUrl}
-              <img src={character.character.imageUrl} alt={character.metadata.name} />
+            {#if character.character.info?.imageUrl}
+              <img src={character.character.info?.imageUrl} alt={character.metadata.name} />
             {:else}
               <div class="placeholder">
                 {character.metadata.name.charAt(0).toUpperCase()}
@@ -64,11 +64,11 @@
             <h4>{character.metadata.name}</h4>
             <p>Level {character.metadata.level} {character.metadata.race} {character.metadata.class}</p>
             <div class="item-stats">
-              <span>HP: {character.character.hitPoints?.current || 0}/{character.character.hitPoints?.max || 0}</span>
-              <span>AC: {character.character.armorClass || 10}</span>
+              <span>HP: {character.character.info?.hp?.current || 0}/{character.character.info?.hp?.max || 0}</span>
+              <span>AC: {character.character.info?.ac || 10}</span>
             </div>
           </div>
-        </div>
+        </button>
       {/each}
     {/if}
   </div>

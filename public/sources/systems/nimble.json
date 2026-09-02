@@ -1,0 +1,50 @@
+{
+  "id": "nimble",
+  "title": "Nimble",
+  "version": "0.1.0",
+  "description": "Layers the Nimble streamlining over the 5e core: armor reduces damage, casters spend mana, and a turn is a budget of actions.",
+  "extends": ["dnd5e"],
+  "pools": [
+    { "id": "actions", "title": "Actions", "description": "Spent during your own turn.", "max": "3 + bonus.actions", "regainedAt": "turn" },
+    { "id": "mana", "title": "Mana", "description": "Spent to cast and to empower spells.", "max": "max(0, prof * level + bonus.mana)", "regainedAt": "long" },
+    { "id": "wounds", "title": "Wounds", "description": "Taken when hit points reach zero.", "max": "6", "regainedAt": "never" }
+  ],
+  "derived": [
+    { "id": "armorClass", "title": "Armor", "value": "bonus.armorClass", "unit": "reduction" },
+    { "id": "maxHitPoints", "title": "Maximum Hit Points", "value": "max(1, bonus.hitPoints + (mod.con + step.hitPointsPerLevel) * level)" },
+    { "id": "dyingThreshold", "title": "Dying Threshold", "value": "0 - derived.maxHitPoints" }
+  ],
+  "progression": {
+    "maxLevel": 20,
+    "proficiency": "2 + floor((level - 1) / 4)",
+    "steps": [
+      { "level": 1, "values": { "hitPointsPerLevel": 5 } },
+      { "level": 5, "values": { "hitPointsPerLevel": 6 } },
+      { "level": 11, "values": { "hitPointsPerLevel": 7 } },
+      { "level": 17, "values": { "hitPointsPerLevel": 8 } }
+    ]
+  },
+  "panels": [
+    {
+      "id": "defence",
+      "title": "Defence",
+      "layout": "row",
+      "fields": [
+        { "source": "derived", "id": "armorClass" },
+        { "source": "derived", "id": "initiative" },
+        { "source": "derived", "id": "speed" },
+        { "source": "pool", "id": "hitPoints" },
+        { "source": "pool", "id": "wounds" }
+      ]
+    },
+    {
+      "id": "turn",
+      "title": "Turn",
+      "layout": "row",
+      "fields": [
+        { "source": "pool", "id": "actions" },
+        { "source": "pool", "id": "mana" }
+      ]
+    }
+  ]
+}

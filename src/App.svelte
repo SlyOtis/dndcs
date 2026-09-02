@@ -1,8 +1,10 @@
 <script lang="ts">
-  import {Router, type Routes} from "sly-svelte-location-router";
+  import {Router, currentRoute, navigate, type Routes} from "sly-svelte-location-router";
   import {onMount, onDestroy} from "svelte";
   import { initializeAuth } from "$lib/auth.init";
-  import { isLoading, isAuthenticated } from "$lib/stores/auth.store";
+  import { isAuthenticated, isLoading } from "$lib/stores/auth.store";
+
+  const PUBLIC_PATHS = ["/login", "/signup"];
 
   const routes: Routes = {
     "/": "/main",
@@ -34,6 +36,10 @@
       name: "character-view",
       component: () => import("./pages/CharacterPage.svelte")
     },
+    "/user": {
+      name: "user",
+      component: () => import("./pages/UserPage.svelte")
+    },
     "/campaign/:id": {
       name: "campaign-view",
       component: () => import("./pages/CampaignPage.svelte")
@@ -51,6 +57,12 @@
       unsubscribeAuth();
     }
   });
+
+  $effect(() => {
+    if ($isLoading || $isAuthenticated) return;
+    if (PUBLIC_PATHS.includes($currentRoute.path)) return;
+    navigate("/login");
+  });
 </script>
 
 {#if $isLoading}
@@ -62,7 +74,7 @@
     </div>
   </div>
 {:else}
-  <Router {routes} fallback="/main/character" />
+  <Router {routes} fallback="/main" />
 {/if}
 
 <style>

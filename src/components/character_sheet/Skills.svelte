@@ -1,9 +1,21 @@
 <script lang="ts">
-  import type {CharacterContext, CharacterSkill} from "../../lib/types";
-    import {rollSkill} from "../../lib/engine";
+  import type {CharacterContext} from "$lib/types";
+    import type {RulesState} from "$lib/rules/store";
+    import {getSkillId} from "$lib/rules/sheet";
+    import {rollSkill} from "$lib/engine";
     import {getContext} from "svelte";
+    import type {Readable} from "svelte/store";
 
     const {skills} = getContext<CharacterContext>('character')
+    const rules = getContext<Readable<RulesState>>('rules')
+
+    const resolved = $derived.by(() =>
+        $skills.map((skill) => {
+            const derivedSkill = $rules.resolved?.skills.find((entry) => entry.id === getSkillId(skill.name))
+            if (!derivedSkill) return skill
+            return {...skill, modifier: derivedSkill.value}
+        })
+    )
 
     async function handleSkillRoll(e: Event, skill: any) {
         e.preventDefault();
@@ -35,7 +47,7 @@
         <span>Mod</span>
         <span>Skill</span>
         <span>Bonus</span>
-        {#each $skills as skill}
+        {#each resolved as skill}
             <span>{skill.proficiency}</span>
             <span>{skill.ability}</span>
             <span class="name">{skill.name}</span>
@@ -120,15 +132,6 @@
     }
     
     .medieval-button:active,
-    .medieval-button.pressed {
-        background: linear-gradient(145deg, var(--color-content-dark), var(--color-content-main));
-        border-color: color-mix(in srgb, var(--color-primary-main) 70%, transparent);
-        box-shadow: 
-            inset 2px 2px 6px rgba(0, 0, 0, 0.6),
-            inset -1px -1px 3px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
-            0 1px 2px rgba(0, 0, 0, 0.2);
-        transform: translateY(1px);
-    }
     
     .button-content {
         position: relative;

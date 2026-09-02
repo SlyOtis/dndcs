@@ -19,7 +19,7 @@ export const characterError = writable<string | null>(null);
 export const selectedCharacterId = writable<string | null>(null);
 
 // Auto-save functionality
-let autoSaveTimeout: NodeJS.Timeout;
+let autoSaveTimeout: ReturnType<typeof setTimeout>;
 
 export function enableAutoSave(characterId: string, saveFunction: (character: Character) => Promise<void>) {
   currentCharacter.subscribe(($character) => {

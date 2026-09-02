@@ -28,11 +28,7 @@
 
   // Create component state
   const store = createCharacterInfoStore();
-  const { 
-    showLevelUpDialog, 
-    showThemeDialog, 
-    showSourceImportDialog, 
-    levelUpData,
+  const {
     openLevelUpDialog,
     closeLevelUpDialog,
     openThemeDialog,
@@ -69,7 +65,7 @@
         exportedBy: "D&D Character Sheet",
         computed: {
           totalLevel: $info.level,
-          totalHP: $info.hp.maximum,
+          totalHP: $info.hp.max,
           currentHP: $info.hp.current,
           armorClass: $info.ac,
           proficiencyBonus: $info.proficiencyBonus,
@@ -166,18 +162,18 @@
 </script>
 
 <!-- Dialogs only - no visual UI elements -->
-{#if $showThemeDialog}
-  <ThemeDialog bind:open={$showThemeDialog} />
+{#if $store.showThemeDialog}
+  <ThemeDialog bind:isOpen={$store.showThemeDialog} />
 {/if}
 
-{#if $showSourceImportDialog}
-  <CharacterSourceImport bind:open={$showSourceImportDialog} />
+{#if $store.showSourceImportDialog}
+  <CharacterSourceImport bind:isOpen={$store.showSourceImportDialog} />
 {/if}
 
-{#if $showLevelUpDialog && $levelUpData}
+{#if $store.showLevelUpDialog && $store.levelUpData}
   <LevelUpDialog 
-    bind:open={$showLevelUpDialog} 
-    {levelUpData}
+    bind:isOpen={$store.showLevelUpDialog} 
+    levelUpData={$store.levelUpData}
     onComplete={() => closeLevelUpDialog()}
   />
 {/if}
@@ -189,7 +185,7 @@
   accept=".json,.txt,.pdf,.png,.jpg,.jpeg"
   style="display: none;"
   onchange={(e) => {
-    const file = e.target.files?.[0];
+    const file = e.currentTarget.files?.[0];
     if (file) {
       fileImportUtils.handleFileUpload(file).then(() => {
         openSourceImportDialog();

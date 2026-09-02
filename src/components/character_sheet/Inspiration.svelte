@@ -101,15 +101,6 @@
     }
     
     .medieval-button:active,
-    .medieval-button.pressed {
-        background: linear-gradient(145deg, var(--color-content-dark), var(--color-content-main));
-        border-color: color-mix(in srgb, var(--color-primary-main) 70%, transparent);
-        box-shadow: 
-            inset 2px 2px 6px rgba(0, 0, 0, 0.6),
-            inset -1px -1px 3px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
-            0 1px 2px rgba(0, 0, 0, 0.2);
-        transform: translateY(1px);
-    }
     
     .medieval-button.inspired {
         background: linear-gradient(145deg, var(--color-primary-main), var(--color-secondary-main));
@@ -211,20 +202,5 @@
     @keyframes shimmer {
         0% { transform: translateX(-100%); }
         100% { transform: translateX(100%); }
-    }
-
-    .score-container {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        height: auto;
-        z-index: 2;
-        margin-bottom: -20px;
-        border-radius: 16px;
-        width: 50%;
-        background: var(--color-content-main);
-        color: var(--color-content-text);
     }
 </style>

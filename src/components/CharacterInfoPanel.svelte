@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getContext } from "svelte";
   import type { CharacterContext } from "../lib/types";
-  import { setUIActionDispatcher } from "../lib/chat";
+  import { postUIAction } from "../lib/chat";
   import { navigationActions } from "../lib/navigation";
 
   const { info } = getContext<CharacterContext>('character');
@@ -25,19 +25,19 @@
 
   // Panel actions
   function exportCharacter() {
-    setUIActionDispatcher('exportCharacter');
+    postUIAction('exportCharacter');
   }
 
   function levelUp() {
-    setUIActionDispatcher('openLevelUpDialog');
+    postUIAction('openLevelUpDialog');
   }
 
   function openThemes() {
-    setUIActionDispatcher('openThemeDialog');
+    postUIAction('openThemeDialog');
   }
 
   function openSources() {
-    setUIActionDispatcher('openSourceImport');
+    postUIAction('openSourceImport');
   }
 
   function openSoundboard() {
@@ -94,7 +94,7 @@
 
 <!-- Overlay -->
 {#if isOpen}
-  <div class="overlay" onclick={() => isOpen = false}></div>
+  <button type="button" class="overlay" aria-label="Close panel" onclick={() => isOpen = false}></button>
 {/if}
 
 <style>

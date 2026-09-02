@@ -23,9 +23,9 @@
     homebrew: any;
   }
 
-  let campaign: Campaign | null = null;
-  let loading = true;
-  let error: string | null = null;
+  let campaign = $state<Campaign | null>(null);
+  let loading = $state(true);
+  let error = $state<string | null>(null);
 
   onMount(async () => {
     try {
@@ -112,7 +112,7 @@
           <h3>Active Quests</h3>
           <div class="quest-list">
             {#if campaign.story?.sideQuests}
-              {#each campaign.story.sideQuests.filter(q => q.status === 'active') as quest}
+              {#each campaign.story.sideQuests.filter((q: { status: string }) => q.status === 'active') as quest}
                 <div class="quest-item">
                   <div class="quest-title">{quest.title}</div>
                   <div class="quest-level">Level {quest.level}</div>

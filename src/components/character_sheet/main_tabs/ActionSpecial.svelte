@@ -1,6 +1,6 @@
 <script lang="ts">
   import AdditionalSlots from "./AdditionalSlots.svelte";
-  import type {CharacterAction} from "../../lib/character.types";
+  import type {CharacterAction} from "$lib/character.types";
 
   let {action}: { action: CharacterAction } = $props()
 

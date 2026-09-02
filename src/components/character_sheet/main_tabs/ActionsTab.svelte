@@ -1,7 +1,7 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext} from "../../lib/types";
-  import type {CharacterAction} from "../../lib/character.types";
+  import type {CharacterContext} from "$lib/types";
+  import type {CharacterAction} from "$lib/character.types";
   import ActionAttack from "./ActionAttack.svelte";
   import ActionSpecial from "./ActionSpecial.svelte";
 

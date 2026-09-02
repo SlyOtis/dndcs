@@ -2,7 +2,7 @@
   import { getContext } from "svelte";
   import type { CharacterContext } from "$lib/types";
   import { createLevelUpStore, levelUpLogic } from "$lib/dialogs/levelUp";
-  import { createThemeStore, themeLogic } from "$lib/dialogs/theme";
+  import { createThemeStore } from "$lib/dialogs/theme";
   import { createSourceImportStore, sourceImportLogic } from "$lib/dialogs/sourceImport";
   import { setUIActionDispatcher } from "$lib/chat";
   import ThemeDialog from "../ThemeDialog.svelte";
@@ -23,7 +23,9 @@
     currency,
     background,
     senses,
-    special
+    special,
+    equipped,
+    soundBoard
   } = getContext<CharacterContext>('character');
 
   // Create dialog stores
@@ -60,7 +62,7 @@
         exportedBy: "D&D Character Sheet",
         computed: {
           totalLevel: $info.level,
-          totalHP: $info.hp.maximum,
+          totalHP: $info.hp.max,
           currentHP: $info.hp.current,
           armorClass: $info.ac,
           proficiencyBonus: $info.proficiencyBonus,
@@ -122,7 +124,9 @@
       currency: $currency,
       background: $background,
       senses: $senses,
-      special: $special
+      special: $special,
+      equipped: $equipped,
+      soundBoard: $soundBoard
     };
 
     if (!levelUpLogic.checkForCharacterSources(character)) {
@@ -147,23 +151,23 @@
       sourceImportStore.open(sourceData);
     } catch (error) {
       console.error('File import error:', error);
-      sourceImportStore.setError('Failed to import file: ' + error.message);
+      sourceImportStore.setError('Failed to import file: ' + (error instanceof Error ? error.message : String(error)));
     }
   }
 </script>
 
 <!-- Dialog Components -->
 {#if $themeStore.isOpen}
-  <ThemeDialog bind:open={$themeStore.isOpen} />
+  <ThemeDialog bind:isOpen={$themeStore.isOpen} />
 {/if}
 
 {#if $sourceImportStore.isOpen}
-  <CharacterSourceImport bind:open={$sourceImportStore.isOpen} />
+  <CharacterSourceImport bind:isOpen={$sourceImportStore.isOpen} />
 {/if}
 
 {#if $levelUpStore.isOpen && $levelUpStore.data}
   <LevelUpDialog 
-    bind:open={$levelUpStore.isOpen} 
+    bind:isOpen={$levelUpStore.isOpen} 
     levelUpData={$levelUpStore.data}
     onComplete={() => levelUpStore.close()}
   />
@@ -176,7 +180,7 @@
   accept=".json,.txt,.pdf,.png,.jpg,.jpeg"
   style="display: none;"
   onchange={(e) => {
-    const file = e.target.files?.[0];
+    const file = e.currentTarget.files?.[0];
     if (file) {
       handleFileImport(file);
     }

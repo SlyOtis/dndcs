@@ -175,7 +175,8 @@
     // Sparks from edges
     for (let i = 0; i < 60; i++) {
       const side = Math.floor(Math.random() * 4);
-      let startX, startY;
+      let startX = 0;
+      let startY = 0;
       
       switch(side) {
         case 0: // Top

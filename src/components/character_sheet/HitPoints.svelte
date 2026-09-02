@@ -138,11 +138,6 @@
         margin: 0 2px;
     }
 
-    .value {
-        font-weight: 600;
-        font-size: 1.5em;
-    }
-
     .value-input {
         background: transparent;
         border: 1px solid rgba(255, 255, 255, 0.3);
@@ -154,7 +149,8 @@
         width: 65px;
         padding: 4px;
         transition: all 0.2s ease;
-        -moz-appearance: textfield; /* Firefox */
+        -moz-appearance: textfield;
+        appearance: textfield;
     }
 
     /* Remove spinner arrows in Webkit browsers (Chrome, Safari, Edge) */

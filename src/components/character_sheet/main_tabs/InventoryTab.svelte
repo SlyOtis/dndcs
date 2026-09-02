@@ -414,30 +414,6 @@
         font-size: 0.6em;
     }
 
-    .toggle, .empty, .consume {
-        position: relative;
-        width: 24px;
-        height: 24px;
-        min-height: 24px;
-        min-width: 24px;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        justify-self: center;
-        align-self: center;
-        text-align: center;
-        background: linear-gradient(145deg, var(--color-content-main), var(--color-content-dark));
-        border: 1px solid var(--color-primary-main);
-        border-radius: 6px;
-        font-size: 0.8em;
-        transition: all 0.2s ease;
-        box-shadow: 
-            inset 1px 1px 2px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
-            inset -1px -1px 2px rgba(0, 0, 0, 0.3),
-            0 1px 3px rgba(0, 0, 0, 0.2);
-    }
-
     .toggle:hover, .consume:hover {
         background: linear-gradient(145deg, var(--color-accent), var(--color-content-main));
         border-color: var(--color-secondary-main);

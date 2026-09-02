@@ -101,8 +101,9 @@
   
   <div class="results">
     {#each filteredCommands as command, index}
-      <div 
-        class="result-item" 
+      <button
+        type="button"
+        class="result-item"
         class:selected={index === selectedIndex}
         onclick={() => executeCommand(command.action)}
       >
@@ -112,7 +113,7 @@
             <div class="command-shortcut">{command.shortcut}</div>
           {/if}
         </div>
-      </div>
+      </button>
     {/each}
     
     {#if filteredCommands.length === 0}

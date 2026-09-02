@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
+  import { getContext, type Snippet } from 'svelte';
   
   let { 
     isOpen = $bindable(false),
@@ -12,7 +12,8 @@
     backdrop = true,
     closeOnBackdropClick = true,
     closeOnEscape = true,
-    zIndex = 1000
+    zIndex = 1000,
+    children
   }: {
     isOpen: boolean;
     onClose?: () => void;
@@ -25,9 +26,10 @@
     closeOnBackdropClick?: boolean;
     closeOnEscape?: boolean;
     zIndex?: number;
+    children?: Snippet;
   } = $props();
 
-  let dialogElement: HTMLDivElement;
+  let dialogElement = $state<HTMLDivElement>();
   
   // Context for dialog state management
   const dialogContext = getContext('dialogState') as {
@@ -75,11 +77,13 @@
 {#if isOpen}
   {#if backdrop}
     <!-- Backdrop -->
-    <div 
-      class="backdrop" 
+    <button
+      type="button"
+      class="backdrop"
+      aria-label="Close dialog"
       onclick={handleBackdropClick}
       style="z-index: {zIndex};"
-    ></div>
+    ></button>
   {/if}
   
   <!-- Dialog -->

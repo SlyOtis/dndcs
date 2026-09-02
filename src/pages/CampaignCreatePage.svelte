@@ -138,15 +138,15 @@
       const campaignData = {
         name: generatedConcept.name || "Unnamed Campaign",
         description: generatedConcept.description || "An AI-generated campaign",
-        dmId: currentUser.uid,
-        playerIds: [], // Empty initially, players can be added later
-        characterIds: [], // Empty initially, characters can be added later
-        isActive: true,
+        dm_id: currentUser.uid,
+        player_ids: [],
+        character_ids: [],
+        is_active: true,
         settings: {
-          allowCharacterEditing: true,
-          shareCharacterSheets: true,
-          privateNotes: true,
-          experienceMode: 'milestone' as const
+          allow_character_editing: true,
+          share_character_sheets: true,
+          private_notes: true,
+          experience_mode: 'milestone' as const
         }
       };
       
@@ -256,23 +256,23 @@
         
         <div class="info-grid">
           <div class="info-item">
-            <label>Setting:</label>
+            <span class="info-label">Setting:</span>
             <span>{generatedConcept.setting || "Not specified"}</span>
           </div>
           <div class="info-item">
-            <label>Genre:</label>
+            <span class="info-label">Genre:</span>
             <span>{generatedConcept.genre || "Not specified"}</span>
           </div>
           <div class="info-item">
-            <label>Tone:</label>
+            <span class="info-label">Tone:</span>
             <span>{generatedConcept.tone || "Not specified"}</span>
           </div>
           <div class="info-item">
-            <label>Theme:</label>
+            <span class="info-label">Theme:</span>
             <span>{generatedConcept.theme || "Not specified"}</span>
           </div>
           <div class="info-item">
-            <label>Starting Level:</label>
+            <span class="info-label">Starting Level:</span>
             <span>{generatedConcept.startLevel || 1}</span>
           </div>
         </div>
@@ -594,7 +594,7 @@
     gap: 0.5rem;
   }
 
-  .info-item label {
+  .info-item .info-label {
     font-weight: bold;
     color: var(--color-secondary-text);
     min-width: 100px;

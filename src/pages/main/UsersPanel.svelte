@@ -7,7 +7,7 @@
   let userSearch = $state('');
   
   let filteredUsers = $derived(users.filter(user => 
-    user.displayName.toLowerCase().includes(userSearch.toLowerCase()) ||
+    user.display_name.toLowerCase().includes(userSearch.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearch.toLowerCase())
   ));
 
@@ -47,22 +47,22 @@
       {#each filteredUsers as user (user.uid)}
         <div class="item-card">
           <div class="item-image">
-            {#if user.photoURL}
-              <img src={user.photoURL} alt={user.displayName} />
+            {#if user.photo_url}
+              <img src={user.photo_url} alt={user.display_name} />
             {:else}
               <div class="placeholder">
-                {user.displayName.charAt(0).toUpperCase()}
+                {user.display_name.charAt(0).toUpperCase()}
               </div>
             {/if}
           </div>
           <div class="item-info">
-            <h4>{user.displayName}</h4>
+            <h4>{user.display_name}</h4>
             <p>{user.email}</p>
             <div class="user-actions">
-              <button class="action-btn" on:click={() => addFriend(user.uid)}>
+              <button class="action-btn" onclick={() => addFriend(user.uid)}>
                 Add Friend
               </button>
-              <button class="action-btn" on:click={() => viewUserCharacters(user.uid)}>
+              <button class="action-btn" onclick={() => viewUserCharacters(user.uid)}>
                 View Characters
               </button>
             </div>

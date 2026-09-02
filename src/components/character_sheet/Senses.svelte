@@ -1,14 +1,26 @@
 <script lang="ts">
-  import type {CharacterContext, CharacterSense} from "$lib/types";
+  import type {CharacterContext} from "$lib/types";
+  import type {RulesState} from "$lib/rules/store";
+  import {getSkillId} from "$lib/rules/sheet";
   import {getContext} from "svelte";
+  import type {Readable} from "svelte/store";
 
   const {senses} = getContext<CharacterContext>('character')
+  const rules = getContext<Readable<RulesState>>('rules')
+
+  const resolved = $derived.by(() =>
+    $senses.map((sense) => {
+      const derivedSense = $rules.resolved?.senses.find((entry) => entry.id === getSkillId(sense.title))
+      if (!derivedSense) return sense
+      return {...sense, score: derivedSense.value}
+    })
+  )
 </script>
 
 
 <div class="root primary-border">
     <div class="senses">
-        {#each $senses as sense}
+        {#each resolved as sense}
             <div class="sense primary-border">
                 <button class="value primary-border">{sense.score}</button>
                 <span class="title">{sense.title}</span>

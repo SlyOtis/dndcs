@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getTheme, setTheme } from "$lib/dialogs/theme";
   import { onMount, setContext, onDestroy } from "svelte";
   import { getCharacterStore, getSidebar } from "$lib/engine";
   import type { CharacterContext } from "$lib/types";
@@ -33,8 +34,7 @@
   let error = $state<string | null>(null);
 
   onMount(async () => {
-    const savedTheme = localStorage.getItem('dnd_theme') || 'medieval';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    setTheme(getTheme());
 
     try {
       const [characters, campaigns] = await Promise.all([
@@ -67,7 +67,7 @@
       <span class="display-name">{$userDetails?.display_name}</span>
       <span class="email">{$user?.email || ''}</span>
     </div>
-    <button class="sign-out-btn" on:click={handleSignOut}>
+    <button class="sign-out-btn" onclick={handleSignOut}>
       Sign Out
     </button>
   </div>

@@ -1,6 +1,6 @@
 <script lang="ts">
   import {getContext} from "svelte";
-  import type {CharacterContext} from "../../lib/types";
+  import type {CharacterContext} from "$lib/types";
 
   const {background} = getContext<CharacterContext>('character')
 

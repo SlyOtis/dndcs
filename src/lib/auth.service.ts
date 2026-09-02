@@ -22,9 +22,9 @@ export const authService = {
     try {
       await userService.createProfile({
         email,
-        display_name: '',
+        display_name: displayName,
         photo_url: user.photoURL || undefined,
-        replicate_api_key: ''
+        replicate_api_key: replicateApiKey
       });
 
       console.log('Auth Service: Storing user details:', {

@@ -116,7 +116,7 @@
     try {
       stateThinking = "Converting speech to text..."
       
-      const apiKey = $userProfile?.replicateApiKey
+      const apiKey = $userProfile?.replicate_api_key
       if (!apiKey) {
         throw new Error("Replicate API key is missing")
       }
@@ -189,7 +189,7 @@
       
     } catch (error) {
       console.error('Error transcribing audio:', error)
-      stateError = `Failed to transcribe audio: ${error.message}`
+      stateError = `Failed to transcribe audio: ${error instanceof Error ? error.message : String(error)}`
       stateThinking = undefined
     }
   }
@@ -344,7 +344,7 @@
                 <span class="thinking">{stateThinking || stateError}</span>
             </div>
         {/if}
-        <div class="input" class:disabled={stateThinking?.length || stateError?.length || isDialogOpen}>
+        <div class="input" class:disabled={Boolean(stateThinking?.length || stateError?.length || isDialogOpen)}>
             <textarea bind:value={chatInput} onkeydown={onKeyDown}></textarea>
             <div class="actions">
                 <button onclick={() => showHidden = !showHidden}><span>Show</span></button>
@@ -352,7 +352,7 @@
                     class="audio-btn" 
                     class:recording={isRecording}
                     onclick={toggleRecording}
-                    disabled={stateThinking?.length || stateError?.length || isDialogOpen}
+                    disabled={Boolean(stateThinking?.length || stateError?.length || isDialogOpen)}
                     title={isRecording ? 'Stop recording' : 'Start voice recording'}
                 >
                     <span>{isRecording ? '⏹️' : '🎤'}</span>

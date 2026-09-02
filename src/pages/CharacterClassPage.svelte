@@ -3,7 +3,8 @@
   import { navigate } from "sly-svelte-location-router";
   import { aiService } from "../lib/ai";
   import { characterService } from "../lib/firestore.service";
-  import type { Character } from "../lib/character.types";
+  import type { Character } from "$lib/character.types";
+  import { getAbilities, getEmptyCharacterInfo } from "$lib/engine";
   import Background from "$components/Background.svelte";
 
   interface CharacterData {
@@ -30,7 +31,7 @@
     savingThrows: string;
   }
 
-  let characterData: CharacterData | null = null;
+  let characterData = $state<CharacterData | null>(null);
   let isAnalyzing = $state(true);
   let error = $state<string | null>(null);
   let aiAnalysis = $state<any>(null);
@@ -192,18 +193,21 @@
 
     try {
       const character: Partial<Character> = {
-        name: characterData.name,
-        level: characterData.level,
-        abilityScores: characterData.abilityScores,
-        imageUrl: characterData.imageUrl,
-        backgroundUrl: characterData.backgroundUrl,
-        class: { name: selectedClass },
-        race: { name: "Unknown" },
-        background: { name: "Unknown" }
+        info: {
+          ...getEmptyCharacterInfo(),
+          name: characterData.name,
+          level: characterData.level,
+          imageUrl: characterData.imageUrl ?? "",
+          backgroundUrl: characterData.backgroundUrl,
+          class: { name: selectedClass, hitDice: { amount: characterData.level, die: 8 } },
+          race: { name: "Unknown", type: "Unknown" }
+        },
+        abilities: getAbilities(characterData.abilityScores),
+        background: { title: "Unknown", description: "" }
       };
 
       const characterId = await characterService.createCharacter(character as Character, {
-        name: character.name || characterData.name,
+        name: character.info?.name || characterData.name,
         level: characterData.level,
         class: selectedClass,
         race: "Unknown",
@@ -240,7 +244,7 @@
 
 <div class="page-wrapper">
   <div class="class-selection">
-    <button class="back-btn" on:click={() => navigate('/main/create/character')}>
+    <button class="back-btn" onclick={() => navigate('/main/create/character')}>
       ← Back
     </button>
     
@@ -262,8 +266,8 @@
     {:else}
       <div class="class-grid">
         {#each availableClasses as classOption}
-          <div class="class-card {selectedClass === classOption.name ? 'selected' : ''}" 
-               on:click={() => selectClass(classOption.name)}>
+          <button type="button" class="class-card {selectedClass === classOption.name ? 'selected' : ''}"
+                  onclick={() => selectClass(classOption.name)}>
             <h3>{classOption.name}</h3>
             <p class="class-description">{classOption.description}</p>
             <div class="class-details">
@@ -280,13 +284,13 @@
                 <span class="value">{classOption.savingThrows}</span>
               </div>
             </div>
-          </div>
+          </button>
         {/each}
       </div>
 
       {#if selectedClass}
         <div class="continue-section">
-          <button class="btn-primary" on:click={continueToNext}>
+          <button class="btn-primary" onclick={continueToNext}>
             Continue with {selectedClass}
           </button>
         </div>

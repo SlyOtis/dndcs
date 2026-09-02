@@ -1,19 +1,49 @@
 import { writable } from 'svelte/store';
 
+const THEME_KEY = 'dnd_theme';
+const DEFAULT_THEME = 'medieval';
+
+export interface ThemeOption {
+  id: string;
+  name: string;
+  description: string;
+  colors: string[];
+}
+
 export interface ThemeState {
   isOpen: boolean;
   currentTheme: string;
 }
 
+export const availableThemes: ThemeOption[] = [
+  { id: 'medieval', name: 'Fantasy Medieval', description: 'Gold and bronze mystical realm', colors: ['#ffd700', '#ff6b35', '#8b5a2b'] },
+  { id: 'forest', name: 'Mystic Forest', description: 'Enchanted woodland greens', colors: ['#00ff88', '#66d9aa', '#2d5a3d'] },
+  { id: 'fire', name: 'Dragon Fire', description: 'Burning crimson flames', colors: ['#ff4444', '#ffaa22', '#8b0000'] },
+  { id: 'arcane', name: 'Arcane Magic', description: 'Purple mystical energies', colors: ['#aa44ff', '#6644ff', '#2d1b69'] },
+  { id: 'ocean', name: 'Ocean Depths', description: 'Deep blue mysteries', colors: ['#00aaff', '#00ffdd', '#1e3a8a'] }
+];
+
+export function getTheme(): string {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved && availableThemes.some((theme) => theme.id === saved)) return saved;
+  return DEFAULT_THEME;
+}
+
+export function setTheme(id: string): void {
+  const theme = availableThemes.some((candidate) => candidate.id === id) ? id : DEFAULT_THEME;
+  localStorage.setItem(THEME_KEY, theme);
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
 export function createThemeStore() {
-  const state = writable<ThemeState>({ 
-    isOpen: false, 
-    currentTheme: localStorage.getItem('app_theme') || 'default' 
+  const state = writable<ThemeState>({
+    isOpen: false,
+    currentTheme: getTheme()
   });
 
   return {
     ...state,
-    
+
     open() {
       state.update(s => ({ ...s, isOpen: true }));
     },
@@ -22,57 +52,9 @@ export function createThemeStore() {
       state.update(s => ({ ...s, isOpen: false }));
     },
 
-    setTheme(theme: string) {
-      localStorage.setItem('app_theme', theme);
-      state.update(s => ({ ...s, currentTheme: theme }));
-      document.documentElement.setAttribute('data-theme', theme);
+    setTheme(id: string) {
+      setTheme(id);
+      state.update(s => ({ ...s, currentTheme: getTheme() }));
     }
   };
 }
-
-export const themeLogic = {
-  availableThemes: [
-    { id: 'default', name: 'Default Dark', preview: '#1a1a1a' },
-    { id: 'light', name: 'Light Mode', preview: '#ffffff' },
-    { id: 'medieval', name: 'Medieval', preview: '#8b4513' },
-    { id: 'cyberpunk', name: 'Cyberpunk', preview: '#0d1117' },
-    { id: 'nature', name: 'Forest', preview: '#2d5016' }
-  ],
-
-  applyTheme(themeId: string) {
-    const root = document.documentElement;
-    
-    switch (themeId) {
-      case 'light':
-        root.style.setProperty('--color-content-main', '#ffffff');
-        root.style.setProperty('--color-content-dark', '#f5f5f5');
-        root.style.setProperty('--color-primary-text', '#333333');
-        break;
-      case 'medieval':
-        root.style.setProperty('--color-content-main', '#8b4513');
-        root.style.setProperty('--color-content-dark', '#654321');
-        root.style.setProperty('--color-primary-text', '#f4f1e8');
-        break;
-      case 'cyberpunk':
-        root.style.setProperty('--color-content-main', '#0d1117');
-        root.style.setProperty('--color-content-dark', '#010409');
-        root.style.setProperty('--color-primary-text', '#00ff00');
-        break;
-      case 'nature':
-        root.style.setProperty('--color-content-main', '#2d5016');
-        root.style.setProperty('--color-content-dark', '#1a2e0a');
-        root.style.setProperty('--color-primary-text', '#90ee90');
-        break;
-      default:
-        // Reset to default theme
-        root.style.removeProperty('--color-content-main');
-        root.style.removeProperty('--color-content-dark');
-        root.style.removeProperty('--color-primary-text');
-        break;
-    }
-  },
-
-  getCurrentTheme(): string {
-    return localStorage.getItem('app_theme') || 'default';
-  }
-};

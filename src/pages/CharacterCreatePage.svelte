@@ -195,10 +195,10 @@
       };
 
       const characterId = await characterService.createCharacter(character as Character, {
-        name: character.name || creationData.name,
+        name: character.info?.name || creationData.name,
         level: 1,
-        class: character.class || "Unknown",
-        race: character.race || "Unknown",
+        class: character.info?.class?.name || "Unknown",
+        race: character.info?.race?.name || "Unknown",
         tags: ["ai-generated", "sources-uploaded"]
       });
 
@@ -215,7 +215,7 @@
 
 <div class="page-wrapper">
 <div class="create-character">
-  <button class="back-btn" on:click={() => navigate('/main')}>
+  <button class="back-btn" onclick={() => navigate('/main')}>
     ← Back
   </button>
   
@@ -227,9 +227,11 @@
     <div class="top-section">
       <div class="image-section">
         <div class="image-upload-area {dragActive ? 'drag-active' : ''}"
-             on:dragover={handleDragOver}
-             on:dragleave={handleDragLeave}
-             on:drop={handleDrop}>
+             role="region"
+             aria-label="Character image drop zone"
+             ondragover={handleDragOver}
+             ondragleave={handleDragLeave}
+             ondrop={handleDrop}>
           {#if imagePreview}
             <img src={imagePreview} alt="Character" class="character-image-preview" />
             <div class="image-overlay">
@@ -244,7 +246,7 @@
           <input
             type="file"
             accept="image/*"
-            on:change={handleFileInput}
+            onchange={handleFileInput}
             class="file-input"
           />
         </div>
@@ -280,23 +282,25 @@
     <div class="background-section">
       <h3>Character Background</h3>
       <div class="background-upload-box {backgroundDragActive ? 'drag-active' : ''}"
-           on:dragover={handleBackgroundDragOver}
-           on:dragleave={handleBackgroundDragLeave}
-           on:drop={handleBackgroundDrop}>
+           role="region"
+           aria-label="Background image drop zone"
+           ondragover={handleBackgroundDragOver}
+           ondragleave={handleBackgroundDragLeave}
+           ondrop={handleBackgroundDrop}>
         <input
           type="url"
           bind:value={creationData.backgroundUrl}
           placeholder="Enter image or video URL for character page background"
           class="background-url-input"
         />
-        <button class="background-upload-btn" on:click={() => document.getElementById('background-file-input')?.click()}>
+        <button class="background-upload-btn" onclick={() => document.getElementById('background-file-input')?.click()}>
           Upload Image
         </button>
         <input
           id="background-file-input"
           type="file"
           accept="image/*,video/*"
-          on:change={handleBackgroundFileInput}
+          onchange={handleBackgroundFileInput}
           class="file-input"
         />
       </div>
@@ -342,9 +346,11 @@
       <h3>Source Materials</h3>
       <div 
         class="upload-area {dragActive ? 'drag-active' : ''}"
-        on:dragover={handleDragOver}
-        on:dragleave={handleDragLeave}
-        on:drop={handleDrop}
+        role="region"
+        aria-label="Source material drop zone"
+        ondragover={handleDragOver}
+        ondragleave={handleDragLeave}
+        ondrop={handleDrop}
       >
         <div class="upload-content">
           <div class="upload-icon">📄</div>
@@ -354,7 +360,7 @@
             type="file"
             multiple
             accept=".pdf"
-            on:change={handleFileInput}
+            onchange={handleFileInput}
             class="file-input"
           />
         </div>
@@ -366,7 +372,7 @@
           {#each creationData.sources as source, index}
             <div class="source-item">
               <span class="source-preview">{source.substring(0, 100)}...</span>
-              <button class="remove-btn" on:click={() => removeSource(index)}>×</button>
+              <button class="remove-btn" onclick={() => removeSource(index)}>×</button>
             </div>
           {/each}
         </div>
@@ -378,8 +384,8 @@
     {/if}
 
     <div class="form-actions">
-      <button class="btn-secondary" on:click={() => navigate('/main')}>Cancel</button>
-      <button class="btn-primary" on:click={analyzeAndContinue} disabled={!canContinue || isProcessing}>
+      <button class="btn-secondary" onclick={() => navigate('/main')}>Cancel</button>
+      <button class="btn-primary" onclick={analyzeAndContinue} disabled={!canContinue || isProcessing}>
         {#if isProcessing}
           <span class="spinner"></span>
           Continuing...
@@ -539,22 +545,6 @@
     margin-bottom: 0.5rem;
     font-weight: 600;
     color: var(--color-primary-text);
-  }
-
-  .text-input, .select-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-primary-main);
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    color: var(--color-primary-text);
-    font-size: 1rem;
-  }
-
-  .text-input:focus, .select-input:focus {
-    outline: none;
-    border-color: var(--color-primary-light);
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
   }
 
   .background-section {
@@ -722,11 +712,6 @@
     background: rgba(255, 215, 0, 0.1);
   }
 
-  .upload-content h3 {
-    margin: 0.5rem 0;
-    color: var(--color-primary-main);
-  }
-
   .upload-content p {
     margin: 0;
     color: var(--color-secondary-text);
@@ -785,105 +770,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .image-preview {
-    margin-bottom: 2rem;
-  }
-
-  .image-preview h4 {
-    margin: 0 0 1rem 0;
-    color: var(--color-primary-text);
-  }
-
-  .image-preview img {
-    max-width: 200px;
-    max-height: 200px;
-    border-radius: 8px;
-    border: 2px solid var(--color-primary-main);
-  }
-
-  .config-grid {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .radio-option {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--color-primary-text);
-    cursor: pointer;
-  }
-
-  .radio-option input {
-    accent-color: var(--color-primary-main);
-  }
-
-  .analysis-result {
-    display: grid;
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .character-summary {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    padding: 1.5rem;
-  }
-
-  .character-summary h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--color-primary-main);
-    font-size: 1.5rem;
-  }
-
-  .character-summary p {
-    margin: 0.25rem 0;
-    color: var(--color-primary-text);
-  }
-
-  .ability-scores h4, .features-list h4, .pending-choices h4, .notes h4 {
-    margin: 0 0 1rem 0;
-    color: var(--color-primary-main);
-  }
-
-  .scores-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .score {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 0.75rem;
-    border-radius: 6px;
-    text-align: center;
-    color: var(--color-primary-text);
-    font-weight: 600;
-  }
-
-  .features-list ul, .pending-choices ul {
-    margin: 0;
-    padding-left: 1.5rem;
-    color: var(--color-primary-text);
-  }
-
-  .features-list li, .pending-choices li {
-    margin-bottom: 0.5rem;
-  }
-
-  .notes p {
-    margin: 0;
-    color: var(--color-primary-text);
-    line-height: 1.5;
   }
 
   .error {

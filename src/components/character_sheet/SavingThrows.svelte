@@ -1,16 +1,27 @@
 <script lang="ts">
-  import type {CharacterContext, CharacterSavingThrow} from "$lib/types"
+  import type {CharacterContext} from "$lib/types"
+  import type {RulesState} from "$lib/rules/store";
+  import {getAttributeId} from "$lib/rules/sheet";
   import SavingThrow from './SavingThrow.svelte'
   import {getContext} from "svelte";
+  import type {Readable} from "svelte/store";
 
   const {savingThrows} = getContext<CharacterContext>('character')
+  const rules = getContext<Readable<RulesState>>('rules')
 
+  const resolved = $derived.by(() =>
+    $savingThrows.map((save) => {
+      const derivedSave = $rules.resolved?.saves.find((entry) => entry.id === getAttributeId(save.title))
+      if (!derivedSave) return save
+      return {...save, modifier: derivedSave.value}
+    })
+  )
 </script>
 
 
 <div class="root primary-border">
     <div class="saves">
-        {#each $savingThrows as save}
+        {#each resolved as save}
             <SavingThrow {save}/>
         {/each}
     </div>

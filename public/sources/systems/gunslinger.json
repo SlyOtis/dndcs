@@ -1,0 +1,54 @@
+{
+  "id": "gunslinger",
+  "title": "Gunslinger, Heavyarms Edition",
+  "version": "1.11.0",
+  "description": "A custom character system layered on 5e: grit fuels trick shots, and firearms scale off a Grit attribute the core rules do not have.",
+  "extends": ["dnd5e"],
+  "attributes": [
+    { "id": "grt", "title": "Grit", "short": "GRT", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" }
+  ],
+  "skills": [
+    { "id": "gunsmithing", "title": "Gunsmithing", "attribute": "grt" },
+    { "id": "quickDraw", "title": "Quick Draw", "attribute": "dex" }
+  ],
+  "saves": [
+    { "id": "grt", "title": "Grit", "attribute": "grt" }
+  ],
+  "pools": [
+    { "id": "grit", "title": "Grit Points", "description": "Spent on trick shots and regained on a critical hit or a kill.", "max": "max(1, mod.grt + prof)", "regainedAt": "short" },
+    { "id": "misfire", "title": "Misfire", "description": "A jammed firearm needs a Gunsmithing check to clear.", "max": "3", "regainedAt": "short" }
+  ],
+  "derived": [
+    { "id": "trickShotDc", "title": "Trick Shot DC", "value": "8 + prof + mod.grt" },
+    { "id": "firearmAttack", "title": "Firearm Attack", "value": "prof + mod.dex + bonus.firearm" },
+    { "id": "reloadTime", "title": "Reload", "value": "max(0, 1 - floor(prof / 3))", "unit": "actions" }
+  ],
+  "panels": [
+    {
+      "id": "abilities",
+      "title": "Ability Scores",
+      "layout": "grid",
+      "fields": [
+        { "source": "attribute", "id": "str" },
+        { "source": "attribute", "id": "dex" },
+        { "source": "attribute", "id": "con" },
+        { "source": "attribute", "id": "int" },
+        { "source": "attribute", "id": "wis" },
+        { "source": "attribute", "id": "cha" },
+        { "source": "attribute", "id": "grt" }
+      ]
+    },
+    {
+      "id": "gunslinger",
+      "title": "Gunslinger",
+      "layout": "row",
+      "fields": [
+        { "source": "pool", "id": "grit" },
+        { "source": "pool", "id": "misfire" },
+        { "source": "derived", "id": "trickShotDc" },
+        { "source": "derived", "id": "firearmAttack" },
+        { "source": "derived", "id": "reloadTime" }
+      ]
+    }
+  ]
+}

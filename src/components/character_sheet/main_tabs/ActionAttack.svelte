@@ -230,15 +230,6 @@
     }
     
     .medieval-button:active,
-    .medieval-button.pressed {
-        background: linear-gradient(145deg, var(--color-content-dark), var(--color-content-main));
-        border-color: color-mix(in srgb, var(--color-primary-main) 70%, transparent);
-        box-shadow: 
-            inset 2px 2px 6px rgba(0, 0, 0, 0.6),
-            inset -1px -1px 3px color-mix(in srgb, var(--color-primary-main) 20%, transparent),
-            0 1px 2px rgba(0, 0, 0, 0.2);
-        transform: translateY(1px);
-    }
     
     .button-content {
         position: relative;
@@ -375,13 +366,5 @@
         z-index: 10;
         font-size: 0.7em;
         font-weight: 600;
-    }
-
-    .ammo-ok {
-        background: rgba(0, 255, 0, 0.8);
-        color: white;
-        padding: 2px 6px;
-        border-radius: 4px;
-        animation: pulse 1s ease-in-out infinite;
     }
 </style>

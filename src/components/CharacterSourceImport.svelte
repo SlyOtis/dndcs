@@ -589,7 +589,7 @@
         loadSources();
       }
     } catch (error: any) {
-      errorMessage = `Failed to process character source: ${error.message}`;
+      errorMessage = `Failed to process character source: ${error instanceof Error ? error.message : String(error)}`;
       console.error('Processing error:', error);
     } finally {
       processing = false;
@@ -807,7 +807,7 @@
       return fullText.trim();
     } catch (error) {
       console.error('PDF extraction error:', error);
-      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
   
@@ -821,7 +821,7 @@
   }
   
   async function processWithReplicate(content: string, fileName: string, type: 'pdf' | 'image'): Promise<any> {
-    const apiKey = $userProfile?.replicateApiKey;
+    const apiKey = $userProfile?.replicate_api_key;
     if (!apiKey) {
       throw new Error('Replicate API key is required. Please set your API key in the login page.');
     }
@@ -924,7 +924,7 @@ ${content}`,
 
 {#if isOpen && !showImportDialog}
   <div class="backdrop" onclick={handleBackdropClick} onkeydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
-    <div class="dialog" onclick={e => e.stopPropagation()}>
+    <div class="dialog">
       <div class="header">
         <h2>Character Sources</h2>
         <button class="close-btn" onclick={closeDialog} aria-label="Close dialog">×</button>
@@ -1014,7 +1014,7 @@ ${content}`,
 <!-- Import Dialog -->
 {#if showImportDialog}
   <div class="backdrop" onclick={handleImportBackdropClick} onkeydown={handleImportKeydown} role="dialog" aria-modal="true" tabindex="-1">
-    <div class="dialog import-dialog" onclick={e => e.stopPropagation()}>
+    <div class="dialog import-dialog">
       <div class="header">
         <h2>Import Character Source</h2>
         <button class="close-btn" onclick={closeImportDialog} aria-label="Close dialog">×</button>

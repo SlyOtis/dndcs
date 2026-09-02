@@ -1,28 +1,21 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import BaseDialog from './BaseDialog.svelte';
+  import { availableThemes, getTheme, setTheme } from '$lib/dialogs/theme';
 
   let { isOpen = $bindable(false) } = $props();
 
-  let currentTheme = $state('medieval');
+  let currentTheme = $state(getTheme());
 
-  const themes = [
-    { id: 'medieval', name: 'Fantasy Medieval', description: 'Gold and bronze mystical realm', colors: ['#ffd700', '#ff6b35', '#8b5a2b'] },
-    { id: 'forest', name: 'Mystic Forest', description: 'Enchanted woodland greens', colors: ['#00ff88', '#66d9aa', '#2d5a3d'] },
-    { id: 'fire', name: 'Dragon Fire', description: 'Burning crimson flames', colors: ['#ff4444', '#ffaa22', '#8b0000'] },
-    { id: 'arcane', name: 'Arcane Magic', description: 'Purple mystical energies', colors: ['#aa44ff', '#6644ff', '#2d1b69'] },
-    { id: 'ocean', name: 'Ocean Depths', description: 'Deep blue mysteries', colors: ['#00aaff', '#00ffdd', '#1e3a8a'] }
-  ];
+  const themes = availableThemes;
 
   onMount(() => {
-    const savedTheme = localStorage.getItem('dnd_theme') || 'medieval';
-    applyTheme(savedTheme);
+    applyTheme(getTheme());
   });
 
   function applyTheme(themeId: string) {
-    currentTheme = themeId;
-    document.documentElement.setAttribute('data-theme', themeId);
-    localStorage.setItem('dnd_theme', themeId);
+    setTheme(themeId);
+    currentTheme = getTheme();
   }
 </script>
 

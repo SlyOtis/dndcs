@@ -3,12 +3,13 @@
   import type {CharacterContext} from '$lib/types';
   import {getContext} from 'svelte';
 
-  let { isOpen = $bindable(false), levelUpData = $bindable() } = $props<{
+  let { isOpen = $bindable(false), levelUpData = $bindable(), onComplete }: {
     isOpen: boolean;
     levelUpData?: LevelUpData;
-  }>();
+    onComplete?: () => void;
+  } = $props();
   
-  const {info} = getContext<CharacterContext>('character');
+  const {info, abilities} = getContext<CharacterContext>('character');
 
   let selections = $state<Record<string, string[]>>({});
   let errors = $state<string[]>([]);
@@ -17,6 +18,7 @@
     isOpen = false;
     selections = {};
     errors = [];
+    onComplete?.();
   }
   
   function handleBackdropClick(event: MouseEvent) {
@@ -103,9 +105,9 @@
     }
     
     // Add hit points (for now, add the average + CON modifier)
-    const conModifier = Math.floor(($info.abilities.find(a => a.name === 'Constitution')?.score || 10) - 10) / 2;
+    const conModifier = Math.floor(($abilities.find((a) => a.title === 'Constitution')?.score || 10) - 10) / 2;
     const hitPointGain = Math.floor(levelUpData.hitDiceGain.die / 2) + 1 + Math.floor(conModifier);
-    $info.hp.maximum += hitPointGain;
+    $info.hp.max += hitPointGain;
     $info.hp.current += hitPointGain;
     
     // Process ability score improvements from selections
@@ -117,7 +119,7 @@
         for (const option of selectedOptions) {
           if (option.includes('+2')) {
             const abilityName = option.split(' +2')[0];
-            const ability = $info.abilities.find(a => a.name === abilityName);
+            const ability = $abilities.find((a) => a.title === abilityName);
             if (ability) {
               ability.score = Math.min(20, ability.score + 2);
               ability.modifier = Math.floor((ability.score - 10) / 2);

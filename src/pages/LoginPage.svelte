@@ -2,12 +2,14 @@
   import { onMount } from 'svelte';
   import { navigate } from "sly-svelte-location-router";
   import { authService } from '../lib/auth.service';
-  import { isAuthenticated, authError, isLoading } from '../lib/stores/auth.store';
+  import { isAuthenticated, authError, isLoading } from '$lib/stores/auth.store';
+  import Button from '$components/ui/Button.svelte';
+  import Field from '$components/ui/Field.svelte';
   
-  let email = '';
-  let password = '';
-  let loading = false;
-  let localError = '';
+  let email = $state('');
+  let password = $state('');
+  let loading = $state(false);
+  let localError = $state('');
 
   // Redirect if already authenticated
   $effect(() => {
@@ -79,38 +81,36 @@
         </div>
       {/if}
 
-      <div class="form-section">
+      <form class="form-section" onsubmit={(e) => {
+        e.preventDefault();
+        handleSignIn();
+      }}>
         
-        <input
-          type="email"
-          bind:value={email}
-          placeholder="Your email address..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
-        <input
-          type="password"
-          bind:value={password}
-          placeholder="Your secret passphrase..."
-          class="mystical-input"
-          disabled={loading || $isLoading}
-        />
-        
-        <button 
-          on:click={handleSignIn} 
-          class="adventure-button"
-          disabled={loading || $isLoading}
-        >
-          {#if loading || $isLoading}
-            <span class="loading-spinner"></span>
-            Signing In...
-          {:else}
-            <span>Sign In</span>
-          {/if}
-        </button>
+        <Field label="Email" id="login-email" required>
+          <input
+            id="login-email"
+            type="email"
+            bind:value={email}
+            placeholder="Your email address..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
 
-      </div>
+        <Field label="Passphrase" id="login-password" required>
+          <input
+            id="login-password"
+            type="password"
+            bind:value={password}
+            placeholder="Your secret passphrase..."
+            disabled={loading || $isLoading}
+          />
+        </Field>
+
+        <Button type="submit" fill loading={loading || $isLoading}>
+          {loading || $isLoading ? 'Signing In...' : 'Sign In'}
+        </Button>
+
+      </form>
       
       <div class="toggle-section">
         <p>
@@ -282,105 +282,9 @@
     margin-bottom: 1.5rem;
   }
 
-  .mystical-input {
-    width: 100%;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border: 2px solid #ffd700;
-    border-radius: 8px;
-    background: rgba(15, 10, 5, 0.9);
-    color: #ffffff;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    box-sizing: border-box;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  .mystical-input:focus {
-    outline: none;
-    border-color: #ffed4e;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    background: rgba(20, 15, 10, 0.95);
-  }
-
-  .mystical-input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .adventure-button {
-    width: 100%;
-    padding: 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    border: 2px solid;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-  }
-
-  .adventure-button {
-    background: linear-gradient(145deg, #ffd700, #ffed4e);
-    color: #1a1a1a;
-    border-color: #ffc107;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  }
-
-
-  .adventure-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
-  }
-
-  .adventure-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-
-  .loading-spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-  }
-
-  .divider {
-    text-align: center;
-    margin: 1rem 0;
-    position: relative;
-  }
-
-  .divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(255, 215, 0, 0.3);
-  }
-
-  .divider span {
-    background: linear-gradient(145deg, rgba(40, 25, 15, 0.95), rgba(25, 15, 10, 0.98));
-    padding: 0 1rem;
-    color: #ffd700;
-    font-size: 0.9rem;
   }
 
   .toggle-section {

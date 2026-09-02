@@ -1,13 +1,11 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { config } from 'dotenv'
-import { resolve } from 'path'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-declare const process: {
-  env: {
-    REPLICATE_API_KEY: string | undefined
-  }
-}
+
+const here = dirname(fileURLToPath(import.meta.url))
 
 config()
 
@@ -16,12 +14,12 @@ export default defineConfig({
   plugins: [svelte()],
   resolve: {
     alias: {
-      '$lib': resolve(__dirname, 'src/lib'),
-      '$components': resolve(__dirname, 'src/components'),
-      '$character-sheet': resolve(__dirname, 'src/components/character_sheet'),
-      '$dialogs': resolve(__dirname, 'src/components/dialogs'),
-      '$chat': resolve(__dirname, 'src/components/chat'),
-      '$pages': resolve(__dirname, 'src/pages')
+      '$lib': resolve(here, 'src/lib'),
+      '$components': resolve(here, 'src/components'),
+      '$character-sheet': resolve(here, 'src/components/character_sheet'),
+      '$dialogs': resolve(here, 'src/components/dialogs'),
+      '$chat': resolve(here, 'src/components/chat'),
+      '$pages': resolve(here, 'src/pages')
     }
   },
   server: {

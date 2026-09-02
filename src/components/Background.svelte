@@ -28,7 +28,7 @@
                     allowfullscreen>
             </iframe>
         {:else if bckSource.type === 'image'}
-            <img src={bckSource.url} alt="Image background"/>
+            <img src={bckSource.url} alt="Background"/>
         {/if}
     </div>
 </div>
@@ -45,7 +45,7 @@
 
         user-select: none;
         pointer-events: none;
-        tab-index: -1;
+        pointer-events: none;
     }
 
     .inner {
@@ -78,7 +78,7 @@
         object-fit: cover;
         user-select: none;
         pointer-events: none;
-        tab-index: -1;
+        pointer-events: none;
     }
 
     iframe {

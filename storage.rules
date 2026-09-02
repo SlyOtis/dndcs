@@ -1,10 +1,39 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isAudio() {
+      return request.resource.contentType.matches('audio/.*');
+    }
+
+    function withinSize(megabytes) {
+      return request.resource.size < megabytes * 1024 * 1024;
+    }
+
+    match /users/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == userId && withinSize(10);
+    }
+
+    match /campaigns/{campaignId}/maps/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn() && isImage() && withinSize(20);
+    }
+
+    match /campaigns/{campaignId}/audio/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if signedIn() && isAudio() && withinSize(20);
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

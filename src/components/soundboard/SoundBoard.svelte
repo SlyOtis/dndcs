@@ -91,6 +91,8 @@
 <div 
   class="clips-grid" 
   class:dragged-over={draggedOver}
+  role="region"
+  aria-label="Sound clip drop zone"
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
   ondrop={handleDrop}
@@ -204,6 +206,7 @@
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
   }
 

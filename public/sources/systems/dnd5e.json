@@ -1,0 +1,122 @@
+{
+  "id": "dnd5e",
+  "title": "Dungeons & Dragons 5th Edition",
+  "version": "1.0.0",
+  "description": "The core rules every character in this group builds on.",
+  "attributes": [
+    { "id": "str", "title": "Strength", "short": "STR", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" },
+    { "id": "dex", "title": "Dexterity", "short": "DEX", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" },
+    { "id": "con", "title": "Constitution", "short": "CON", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" },
+    { "id": "int", "title": "Intelligence", "short": "INT", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" },
+    { "id": "wis", "title": "Wisdom", "short": "WIS", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" },
+    { "id": "cha", "title": "Charisma", "short": "CHA", "default": 10, "min": 1, "max": 30, "modifier": "floor((score - 10) / 2)" }
+  ],
+  "proficiencyTiers": [
+    { "id": "none", "title": "Not proficient", "multiplier": 0 },
+    { "id": "half", "title": "Half proficient", "multiplier": 0.5 },
+    { "id": "proficient", "title": "Proficient", "multiplier": 1 },
+    { "id": "expertise", "title": "Expertise", "multiplier": 2 }
+  ],
+  "skills": [
+    { "id": "acrobatics", "title": "Acrobatics", "attribute": "dex" },
+    { "id": "animalHandling", "title": "Animal Handling", "attribute": "wis" },
+    { "id": "arcana", "title": "Arcana", "attribute": "int" },
+    { "id": "athletics", "title": "Athletics", "attribute": "str" },
+    { "id": "deception", "title": "Deception", "attribute": "cha" },
+    { "id": "history", "title": "History", "attribute": "int" },
+    { "id": "insight", "title": "Insight", "attribute": "wis" },
+    { "id": "intimidation", "title": "Intimidation", "attribute": "cha" },
+    { "id": "investigation", "title": "Investigation", "attribute": "int" },
+    { "id": "medicine", "title": "Medicine", "attribute": "wis" },
+    { "id": "nature", "title": "Nature", "attribute": "int" },
+    { "id": "perception", "title": "Perception", "attribute": "wis" },
+    { "id": "performance", "title": "Performance", "attribute": "cha" },
+    { "id": "persuasion", "title": "Persuasion", "attribute": "cha" },
+    { "id": "religion", "title": "Religion", "attribute": "int" },
+    { "id": "sleightOfHand", "title": "Sleight of Hand", "attribute": "dex" },
+    { "id": "stealth", "title": "Stealth", "attribute": "dex" },
+    { "id": "survival", "title": "Survival", "attribute": "wis" }
+  ],
+  "saves": [
+    { "id": "str", "title": "Strength", "attribute": "str" },
+    { "id": "dex", "title": "Dexterity", "attribute": "dex" },
+    { "id": "con", "title": "Constitution", "attribute": "con" },
+    { "id": "int", "title": "Intelligence", "attribute": "int" },
+    { "id": "wis", "title": "Wisdom", "attribute": "wis" },
+    { "id": "cha", "title": "Charisma", "attribute": "cha" }
+  ],
+  "senses": [
+    { "id": "passivePerception", "title": "Passive Perception", "value": "10 + skill.perception" },
+    { "id": "passiveInvestigation", "title": "Passive Investigation", "value": "10 + skill.investigation" },
+    { "id": "passiveInsight", "title": "Passive Insight", "value": "10 + skill.insight" },
+    { "id": "darkvision", "title": "Darkvision", "value": "bonus.darkvision", "unit": "ft" }
+  ],
+  "pools": [
+    { "id": "hitDice", "title": "Hit Dice", "description": "Spent on a short rest to recover hit points.", "max": "level", "regainedAt": "long", "regainAmount": "max(1, floor(level / 2))" },
+    { "id": "hitPoints", "title": "Hit Points", "description": "Damage taken is spent against this pool.", "max": "derived.maxHitPoints", "regainedAt": "long" },
+    { "id": "inspiration", "title": "Inspiration", "max": "1", "regainedAt": "never" }
+  ],
+  "derived": [
+    { "id": "initiative", "title": "Initiative", "value": "mod.dex + bonus.initiative" },
+    { "id": "armorClass", "title": "Armor Class", "value": "10 + mod.dex + bonus.armorClass" },
+    { "id": "carryCapacity", "title": "Carry Capacity", "value": "attr.str * 15", "unit": "lb" },
+    { "id": "speed", "title": "Speed", "value": "30 + bonus.speed", "unit": "ft" },
+    { "id": "maxHitPoints", "title": "Maximum Hit Points", "value": "max(1, bonus.hitPoints + mod.con * level)" },
+    { "id": "spellSaveDc", "title": "Spell Save DC", "value": "8 + prof + bonus.spellcasting" },
+    { "id": "spellAttack", "title": "Spell Attack", "value": "prof + bonus.spellcasting" }
+  ],
+  "progression": {
+    "maxLevel": 20,
+    "proficiency": "2 + floor((level - 1) / 4)",
+    "steps": []
+  },
+  "panels": [
+    {
+      "id": "abilities",
+      "title": "Ability Scores",
+      "layout": "grid",
+      "fields": [
+        { "source": "attribute", "id": "str" },
+        { "source": "attribute", "id": "dex" },
+        { "source": "attribute", "id": "con" },
+        { "source": "attribute", "id": "int" },
+        { "source": "attribute", "id": "wis" },
+        { "source": "attribute", "id": "cha" }
+      ]
+    },
+    {
+      "id": "defence",
+      "title": "Defence",
+      "layout": "row",
+      "fields": [
+        { "source": "derived", "id": "armorClass" },
+        { "source": "derived", "id": "initiative" },
+        { "source": "derived", "id": "speed" },
+        { "source": "pool", "id": "hitPoints" }
+      ]
+    },
+    {
+      "id": "saves",
+      "title": "Saving Throws",
+      "layout": "list",
+      "fields": [
+        { "source": "save", "id": "str" },
+        { "source": "save", "id": "dex" },
+        { "source": "save", "id": "con" },
+        { "source": "save", "id": "int" },
+        { "source": "save", "id": "wis" },
+        { "source": "save", "id": "cha" }
+      ]
+    },
+    {
+      "id": "senses",
+      "title": "Senses",
+      "layout": "row",
+      "fields": [
+        { "source": "sense", "id": "passivePerception" },
+        { "source": "sense", "id": "passiveInvestigation" },
+        { "source": "sense", "id": "passiveInsight" }
+      ]
+    }
+  ]
+}

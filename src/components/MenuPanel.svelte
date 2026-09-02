@@ -74,7 +74,7 @@
     <div class="soundboard-container">
       <SoundBoardComponent 
         soundBoard={$soundBoardStore}
-        onChange={handleSoundBoardChange}
+        onSoundBoardChange={handleSoundBoardChange}
       />
     </div>
   {/if}

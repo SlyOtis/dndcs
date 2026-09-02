@@ -97,12 +97,123 @@ export interface ChatMessage {
   };
 }
 
+export type MapMarkerKind =
+  | 'region'
+  | 'city'
+  | 'town'
+  | 'keep'
+  | 'dungeon'
+  | 'inn'
+  | 'temple'
+  | 'npc'
+  | 'quest'
+  | 'danger'
+  | 'treasure'
+  | 'note';
+
+export interface MapMarker {
+  id: string;
+  title: string;
+  description?: string;
+  kind: MapMarkerKind;
+  x: number;
+  y: number;
+  is_visible: boolean;
+  min_zoom: number;
+  max_zoom: number;
+  link_map_id?: string;
+  record_kind?: CampaignRecordKind;
+  record_id?: string;
+}
+
+export interface MapLayer {
+  id: string;
+  title: string;
+  image_url: string;
+  min_zoom: number;
+  max_zoom: number;
+}
+
+export interface CampaignMap {
+  id: string;
+  title: string;
+  image_url: string;
+  layers: MapLayer[];
+  markers: MapMarker[];
+  is_visible: boolean;
+  min_zoom: number;
+  max_zoom: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export type CampaignRecordKind = 'location' | 'npc' | 'quest' | 'session';
+
+export type QuestState = 'active' | 'done' | 'abandoned';
+
+export type Disposition = 'friendly' | 'neutral' | 'hostile' | 'unknown';
+
+export interface CampaignSession {
+  id: string;
+  number: number;
+  title: string;
+  played_at: string;
+  summary: string;
+  present_character_ids: string[];
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface CampaignQuest {
+  id: string;
+  title: string;
+  description: string;
+  state: QuestState;
+  level?: number;
+  giver_npc_id?: string;
+  location_id?: string;
+  is_known: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface CampaignNpc {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  disposition: Disposition;
+  location_id?: string;
+  image_url?: string;
+  stat_block_id?: string;
+  is_known: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface CampaignLocation {
+  id: string;
+  name: string;
+  description: string;
+  kind: MapMarkerKind;
+  map_id?: string;
+  marker_id?: string;
+  is_known: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 // Firestore collection names
 export const COLLECTIONS = {
   USERS: 'users',
   CHARACTERS: 'characters',
   CAMPAIGNS: 'campaigns',
-  CHAT_SESSIONS: 'chatSessions'
+  CHAT_SESSIONS: 'chatSessions',
+  MAPS: 'maps',
+  SESSIONS: 'sessions',
+  QUESTS: 'quests',
+  NPCS: 'npcs',
+  LOCATIONS: 'locations'
 } as const;
 
 // Helper types for Firestore operations

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setUIActionDispatcher } from "$lib/chat";
+  import { postUIAction } from "$lib/chat";
   import { user, userProfile } from "$lib/stores/auth.store";
   import { userCharacters } from "$lib/stores/character.store";
   import { userCampaigns } from "$lib/stores/campaign.store";
@@ -15,26 +15,25 @@
   let charactersExpanded = $state(false);
   
   // Get current section from route
-  const currentSection = $derived(() => {
-    const path = $currentRoute;
-    if (path.includes('/campaign')) return 'campaign';
+  const currentSection = $derived.by(() => {
+    if ($currentRoute.path.includes('/campaign')) return 'campaign';
     return 'character';
   });
 
   function exportCharacter() {
-    setUIActionDispatcher('exportCharacter');
+    postUIAction('exportCharacter');
   }
 
   function levelUp() {
-    setUIActionDispatcher('openLevelUpDialog');
+    postUIAction('openLevelUpDialog');
   }
 
   function openThemes() {
-    setUIActionDispatcher('openThemeDialog');
+    postUIAction('openThemeDialog');
   }
 
   function openSources() {
-    setUIActionDispatcher('openSourceImport');
+    postUIAction('openSourceImport');
   }
 
   function toggleCampaigns() {
@@ -49,20 +48,19 @@
     if (onSelectCharacter) {
       onSelectCharacter(characterId);
     }
-    navigate('/main/character');
+    navigate(`/character/${characterId}`);
   }
 
   function createNewCharacter() {
-    navigate('/main/character/create');
+    navigate('/main/create/character');
   }
 
   function createNewCampaign() {
-    navigate('/main/campaign/create');
+    navigate('/main/create/campaign');
   }
 
   function selectCampaign(campaignId: string) {
-    console.log('Selected campaign:', campaignId);
-    navigate('/main/campaign');
+    navigate(`/campaign/${campaignId}`);
   }
 
   async function signOut() {
@@ -79,18 +77,21 @@
   <div class="user-info">
     {#if $userProfile}
       <div class="user-avatar">
-        {#if $userProfile.photoURL}
-          <img src={$userProfile.photoURL} alt="User avatar" />
+        {#if $userProfile.photo_url}
+          <img src={$userProfile.photo_url} alt="User avatar" />
         {:else}
           <div class="avatar-placeholder">
-            {$userProfile.displayName?.charAt(0) || $userProfile.email?.charAt(0) || '?'}
+            {$userProfile.display_name?.charAt(0) || $userProfile.email?.charAt(0) || '?'}
           </div>
         {/if}
       </div>
       <div class="user-details">
-        <h3>{$userProfile.displayName || 'User'}</h3>
+        <h3>{$userProfile.display_name || 'User'}</h3>
         <p>{$userProfile.email}</p>
-        <button class="sign-out-btn" onclick={signOut}>Sign Out</button>
+        <div class="user-actions">
+          <button class="sign-out-btn" onclick={() => navigate('/user')}>Account and integrations</button>
+          <button class="sign-out-btn" onclick={signOut}>Sign Out</button>
+        </div>
       </div>
     {:else}
       <div class="user-loading">Loading user info...</div>
@@ -119,7 +120,7 @@
               </svg>
               <div class="item-details">
                 <span class="item-name">{campaign.name}</span>
-                <span class="item-meta">{campaign.playerIds.length} players</span>
+                <span class="item-meta">{campaign.player_ids.length} players</span>
               </div>
             </button>
           {:else}
@@ -278,6 +279,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .user-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
   }
 
   .sign-out-btn {

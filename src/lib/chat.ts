@@ -129,7 +129,7 @@ export const availableModels = {
 async function callReplicate(input: ReplicateInput, modelId?: string) {
   const model = modelId || defaultModel;
   const profile = get(userProfile);
-  const apiKey = profile?.replicateApiKey
+  const apiKey = profile?.replicate_api_key
 
   if (!apiKey) {
     throw new Error("Replicate api key is missing")
@@ -749,6 +749,11 @@ let uiActionDispatcher: ((action: string, payload?: any) => void) | null = null;
 
 export function setUIActionDispatcher(dispatcher: (action: string, payload?: any) => void) {
   uiActionDispatcher = dispatcher;
+}
+
+export function postUIAction(action: string, payload?: any) {
+  if (!uiActionDispatcher) return;
+  uiActionDispatcher(action, payload);
 }
 
 async function aiUpdateInventory(action: AiAction) {
@@ -1473,10 +1478,7 @@ async function aiRefillSpellSlots(action: AiAction) {
         
         return {
           ...info,
-          slots: {
-            ...info.slots,
-            expended: 0
-          }
+          slots: info.slots ? { ...info.slots, expended: 0 } : undefined
         };
       } else if (info.spells?.slots) {
         // Refill spell slots by level
@@ -1628,10 +1630,7 @@ async function aiLongRest(action: AiAction) {
       if (slotsRestored > 0) {
         characterStore.info.update(info => ({
           ...info,
-          slots: {
-            ...info.slots,
-            expended: 0
-          }
+          slots: info.slots ? { ...info.slots, expended: 0 } : undefined
         }));
         restorations.push(`• Restored all ${currentInfo.slots.title} (+${slotsRestored})`);
       }
@@ -2736,7 +2735,7 @@ async function aiShowSpecificItem(action: AiAction) {
 
     // Use AI to find the best matching item
     const profile = get(userProfile);
-    const apiKey = profile?.replicateApiKey;
+    const apiKey = profile?.replicate_api_key;
     if (!apiKey) {
       // Fallback to simple text matching if no API key
       const matchedItem = findItemBySimpleMatch(inventory, itemQuery);
@@ -2868,7 +2867,7 @@ Return only the index number of the best match, or -1 if no good match exists.`;
 
 async function generateItemImage(item: any): Promise<string> {
   const profile = get(userProfile);
-  const apiKey = profile?.replicateApiKey;
+  const apiKey = profile?.replicate_api_key;
   if (!apiKey) {
     return getDefaultItemImage(item.type);
   }
@@ -3104,7 +3103,7 @@ async function aiAddAmmunition(action: AiAction) {
         (currentInventory) => currentInventory.map(item => 
           item.id === ammoItem.id ? { ...item, quantity: newQuantity } : item
         ),
-        ChangeActions.ADD_ITEM,
+        ChangeActions.INVENTORY_ADD,
         `Added ${quantity} ammunition (${oldQuantity} → ${newQuantity})`
       );
 
@@ -3120,12 +3119,12 @@ async function aiAddAmmunition(action: AiAction) {
       const newAmmo = {
         id: "ammunition-" + Date.now(),
         title: "Ammunition",
-        type: "ammunition",
+        type: "ammunition" as const,
         subtype: "rounds",
-        rarity: "common",
-        attributes: [],
+        rarity: "common" as const,
+        attributes: [] as string[],
         description: "Firearm ammunition for ranged weapons",
-        value: { amount: 3, currency: "gp" },
+        value: { amount: 3, currency: "gp" as const },
         weight: Math.ceil(quantity / 20), // 1 lb per 20 rounds
         quantity: quantity,
         equippable: true,
@@ -3135,7 +3134,7 @@ async function aiAddAmmunition(action: AiAction) {
       updateCharacterWithChangeLog(
         'inventory',
         (currentInventory) => [...currentInventory, newAmmo],
-        ChangeActions.ADD_ITEM,
+        ChangeActions.INVENTORY_ADD,
         `Added ${quantity} new ammunition`
       );
 

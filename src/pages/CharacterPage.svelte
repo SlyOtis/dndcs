@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { getTheme, setTheme } from "$lib/dialogs/theme";
   import Senses from "$character-sheet/Senses.svelte";
   import PlainBox from "$character-sheet/PlainBox.svelte";
   import Skills from "$character-sheet/Skills.svelte";
@@ -8,6 +9,7 @@
   import SavingThrows from "$character-sheet/SavingThrows.svelte";
   import Abilities from "$character-sheet/Abilities.svelte";
   import Proficiencies from "$character-sheet/Proficiencies.svelte";
+  import RulePanels from "$character-sheet/RulePanels.svelte";
   import HitPoints from "$character-sheet/HitPoints.svelte";
   import {getContext} from "svelte";
   import type {CharacterContext} from "$lib/types";
@@ -18,8 +20,10 @@
   import ActionsTab from "$character-sheet/main_tabs/ActionsTab.svelte";
   import Special from "$character-sheet/Special.svelte";
   import Background from "$components/Background.svelte";
-  import { getCharacterStore, getSidebar } from "$lib/engine";
-  import { setContext, onDestroy, onMount } from "svelte";
+  import { applyStateToCharacter, getCharacterStore, getSidebar } from "$lib/engine";
+  import { characterService } from "$lib/firestore.service";
+  import { getRulesStore } from "$lib/rules/store";
+  import { setContext, onDestroy, onMount, untrack } from "svelte";
   import MenuPanel from "$components/MenuPanel.svelte";
   import Chat from "$chat/Chat.svelte";
   import Overlay from "$components/Overlay.svelte";
@@ -30,11 +34,15 @@
   import { uiStore, isSearchDialogOpen, anyDialogOpen } from "$lib/stores/ui.store";
   import { initializeGlobalEvents } from "$lib/globalEvents";
 
-  // Create character store and context
-  const {unsubscribe, ...chStore} = getCharacterStore()
+  const { route }: { route?: { params?: Record<string, string> } } = $props();
+  const characterId = untrack(() => route?.params?.id) ?? "local";
+
+  const {unsubscribe, ...chStore} = getCharacterStore(characterId)
   const unsubscribeSidebar = sidebarStore.subscribe(() => {});
   
   setContext<CharacterContext>('character', chStore);
+  const rules = getRulesStore(chStore);
+  setContext('rules', rules);
   setContext('sidebar', sidebarStore)
   setContext('dialogState', {
     get isAnyDialogOpen() {
@@ -46,9 +54,16 @@
   const {info} = chStore;
 
   onMount(() => {
-    const savedTheme = localStorage.getItem('dnd_theme') || 'medieval';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
+    setTheme(getTheme());
+
+    if (route?.params?.id) {
+      characterService.getCharacter(route.params.id)
+        .then((document) => {
+          if (document?.character) applyStateToCharacter(document.character);
+        })
+        .catch((error) => console.error('Character did not load:', error));
+    }
+
     const cleanupGlobalEvents = initializeGlobalEvents({
       anyDialogOpen: $anyDialogOpen,
       setDialogState: uiStore.setDialogState,
@@ -121,10 +136,11 @@
                 <Special/>
                 <Senses/>
                 <Proficiencies/>
+                <RulePanels skip={['abilities', 'defence', 'saves', 'senses']}/>
             </div>
             <div class="grid end">
             <div style:grid-column="1">
-                <PlainBox bind:value={$info.proficiencyBonus}
+                <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
                           title="Proficiency"
                           subTitle="bonus"
                           prefix="+"
@@ -360,8 +376,5 @@
     }
 
     @media screen and (max-width: 1024px) {
-        .scroll {
-
-        }
     }
 </style>

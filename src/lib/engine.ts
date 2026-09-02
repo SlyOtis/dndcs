@@ -1,7 +1,7 @@
 import type {CharacterContext, CharacterStore, RollLog, RollResult} from "./types";
-import testCharacter from './character.test'
+import testCharacter from './character.fixture'
 import {writable, type Unsubscriber, type Writable} from "svelte/store";
-import type {Character, CharacterCurrency} from "./character.types";
+import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo} from "./character.types";
 import { addChangeLogEntry, createStateSnapshot, type ChangeAction } from "./changelog";
 
 const rollStore = writable<RollLog>(JSON.parse(localStorage.getItem('roll_log') || '[]'))
@@ -406,12 +406,11 @@ export function resetCharacterLevel(targetLevel: number = 4) {
 }
 
 export function getCharacter(): Character {
-  // Old test function
   return testCharacter
 }
 
-// Singleton character store instance
 let characterStoreInstance: CharacterStore | null = null;
+let characterStoreId: string | null = null;
 
 // Helper function to update character store with change tracking
 export function updateCharacterWithChangeLog<K extends keyof Character>(
@@ -474,16 +473,20 @@ export function applyStateToCharacter(partialState: Partial<Character>) {
 // Inject the state application function into global scope for changelog
 (globalThis as any).__applyCharacterState = applyStateToCharacter;
 
-export function getCharacterStore(): CharacterStore {
-  // Return existing instance if available
-  if (characterStoreInstance) {
+export function getCharacterStore(id: string = 'local', character: Character = getCharacter()): CharacterStore {
+  if (characterStoreInstance && characterStoreId === id) {
     return characterStoreInstance;
   }
-  
-  const character = getCharacter()
+
+  if (characterStoreInstance) {
+    characterStoreInstance.unsubscribe();
+    characterStoreInstance = null;
+  }
+
+  const prefix = `ch_${id}_`
 
   const {unsubscribe, ...rest} = Object.keys(character).reduce((prev: any, curr) => {
-    let extProp: any = localStorage.getItem('ch_' + curr)
+    let extProp: any = localStorage.getItem(prefix + curr)
     if (extProp) {
       try {
         extProp = JSON.parse(extProp) as Character[keyof Character]
@@ -503,7 +506,7 @@ export function getCharacterStore(): CharacterStore {
     const propStore = writable(prop)
 
     const unsubscribe = propStore.subscribe(state => {
-      localStorage.setItem('ch_' + curr, JSON.stringify(state))
+      localStorage.setItem(prefix + curr, JSON.stringify(state))
     })
 
     return {
@@ -518,8 +521,8 @@ export function getCharacterStore(): CharacterStore {
     unsubscribe: () => unsubscribe.forEach(unsub => unsub())
   };
   
-  // Cache the instance
   characterStoreInstance = store;
+  characterStoreId = id;
   return store;
 }
 
@@ -568,4 +571,36 @@ export async function decryptMediaUrl(url: string): Promise<{ type: 'video' | 'i
     console.error('Error checking content-type:', error);
     return {type: 'unknown', url};
   }
+}
+export function getEmptyCharacterInfo(): CharacterInfo {
+  return {
+    name: '',
+    description: '',
+    gender: '',
+    imageUrl: '',
+    infoUrl: '',
+    level: 1,
+    inspiration: false,
+    hp: { current: 0, max: 0, temporary: 0 },
+    ac: 10,
+    initiative: 0,
+    speed: '30 ft',
+    proficiencyBonus: 2,
+    weight: 0,
+    carry_capacity: 0,
+    race: { name: 'Unknown', type: 'Unknown' },
+    class: { name: 'Unknown', hitDice: { amount: 1, die: 8 } },
+    conditions: [],
+    defences: [],
+    state: { type: 'normal' }
+  }
+}
+
+export function getAbilities(scores: Record<string, number>): CharacterAbility[] {
+  return Object.entries(scores).map(([id, score]) => ({
+    id,
+    title: id.charAt(0).toUpperCase() + id.slice(1),
+    score,
+    modifier: Math.floor((score - 10) / 2)
+  }))
 }
