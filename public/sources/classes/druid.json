@@ -1,0 +1,79 @@
+{
+  "id": "druid",
+  "name": "Druid",
+  "description": "A keeper of the old order. Druids call on storm, stone and growing things, and can set aside their own shape entirely to walk as a beast.",
+  "full": [
+    "Druids serve an order older than any nation: the balance of the natural world. Their magic comes from that pact rather than a deity, and their strangest gift is the ability to stop being themselves and become a beast instead.",
+    "Wild Shape is the class in one feature, functioning as a scouting tool, a second health bar, and a combat form all at once. Circle of the Moon leans into fighting as an animal, Circle of the Land into spell recovery and control, but every druid handles terrain, weather and living things with an authority nobody else has."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "WIS"
+  ],
+  "savingThrows": [
+    "INT",
+    "WIS"
+  ],
+  "features": [
+    {
+      "id": "druidic",
+      "name": "Druidic",
+      "description": "You know the secret language of druids, and can leave hidden messages that only another speaker notices, or reads without a check.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You draw on the divine essence of nature, preparing a number of druid spells equal to your Wisdom modifier + your druid level. Wisdom is your spellcasting ability.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "wild_shape",
+      "name": "Wild Shape",
+      "description": "As an action, assume the form of a beast you have seen, twice per short or long rest, for half your druid level in hours. The permitted challenge rating and whether the beast may swim or fly improve at 4th and 8th level.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "druid_circle",
+      "name": "Druid Circle",
+      "description": "Choose the circle you belong to. It grants features at 2nd, 6th, 10th and 14th level.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "timeless_body",
+      "name": "Timeless Body",
+      "description": "Primal magic slows your ageing: for every ten years that pass, your body ages only one.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "beast_spells",
+      "name": "Beast Spells",
+      "description": "Cast druid spells in any Wild Shape form, using no somatic or verbal components and needing no material component without a cost.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "archdruid",
+      "name": "Archdruid",
+      "description": "Wild Shape an unlimited number of times, and ignore verbal, somatic and free material components on your druid spells.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

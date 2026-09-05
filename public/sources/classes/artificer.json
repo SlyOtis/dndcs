@@ -1,0 +1,114 @@
+{
+  "id": "artificer",
+  "name": "Artificer",
+  "description": "Inventors who bend magic into objects. An artificer infuses tools, weapons and trinkets with power, turning a workshop into an arsenal and a party into something better equipped than it has any right to be.",
+  "full": [
+    "Artificers treat magic as engineering. Where a wizard studies the weave to command it directly, an artificer studies it to build with it, binding spell effects into tools, weapons and prosthetics until the object itself does the work. Their power is portable, transferable, and shared: an artificer arms the whole party.",
+    "In play they are the flexible half-caster. Infusions let you retune the party's gear between adventuring days, Magical Tinkering supplies small solutions to problems nobody planned for, and a subclass decides whether you fight beside a construct, from behind a shield, at range with a cannon, or through an armoured suit you built yourself."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "INT"
+  ],
+  "savingThrows": [
+    "CON",
+    "INT"
+  ],
+  "features": [
+    {
+      "id": "magical_tinkering",
+      "name": "Magical Tinkering",
+      "description": "Touch a Tiny nonmagical object and give it one property: a light, a recorded message, an odour, a sound, or a static visual effect. You can carry a number of such objects equal to your Intelligence modifier.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You cast through tools and tinkered devices, preparing a number of artificer spells equal to your Intelligence modifier + half your artificer level, rounded down. Every spell needs a tool or a thieves' tools as its focus.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "infuse_item",
+      "name": "Infuse Item",
+      "description": "Learn infusions that turn ordinary gear into magic items over a long rest. The number known and the number active at once both grow with level.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "artificer_specialist",
+      "name": "Artificer Specialist",
+      "description": "Choose the discipline your work follows, whether alchemist, artillerist, armorer or battle smith. It grants features at 3rd, 5th, 9th and 15th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "the_right_tool_for_the_job",
+      "name": "The Right Tool for the Job",
+      "description": "Spend one hour with thieves' tools or artisan's tools to conjure a set of artisan's tools of your choice. The set lasts until you use the feature again or die.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "tool_expertise",
+      "name": "Tool Expertise",
+      "description": "Your proficiency bonus is doubled for any ability check you make with a tool you are proficient in.",
+      "level": 6,
+      "source": "base"
+    },
+    {
+      "id": "flash_of_genius",
+      "name": "Flash of Genius",
+      "description": "When you or a creature within 30 feet makes an ability check or a saving throw, use your reaction to add your Intelligence modifier. Usable your Intelligence modifier times per long rest.",
+      "level": 7,
+      "source": "base"
+    },
+    {
+      "id": "magic_item_adept",
+      "name": "Magic Item Adept",
+      "description": "Attune to four magic items at once, and craft common or uncommon items in a quarter of the usual time for half the usual cost.",
+      "level": 10,
+      "source": "base"
+    },
+    {
+      "id": "spell_storing_item",
+      "name": "Spell-Storing Item",
+      "description": "On a long rest, store a 1st or 2nd level artificer spell in a weapon or a tool. Whoever holds it can cast the spell, a number of times equal to twice your Intelligence modifier.",
+      "level": 11,
+      "source": "base"
+    },
+    {
+      "id": "magic_item_savant",
+      "name": "Magic Item Savant",
+      "description": "Attune to five magic items at once, and ignore every class, race, spell and level requirement on attuning to or using a magic item.",
+      "level": 14,
+      "source": "base"
+    },
+    {
+      "id": "magic_item_master",
+      "name": "Magic Item Master",
+      "description": "Attune to six magic items at once.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "soul_of_artifice",
+      "name": "Soul of Artifice",
+      "description": "Gain a bonus to all saving throws equal to the number of items you are attuned to, and when reduced to 0 hit points you may end one attunement to drop to 1 hit point instead.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

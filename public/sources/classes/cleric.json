@@ -1,0 +1,72 @@
+{
+  "id": "cleric",
+  "name": "Cleric",
+  "description": "A mortal agent of a god. Clerics channel divine power to mend, to ward and to burn, and the domain they serve decides whether that looks like a field medic or a front line.",
+  "full": [
+    "A cleric is not a priest who fights, but a conduit. Divine power flows through them because a god decided it should, and the domain they serve shapes it entirely: a Life cleric mends, a War cleric leads a charge, a Trickery cleric is not where you left them.",
+    "They are full casters with heavy armour, which makes them unusually hard to remove from a fight. Channel Divinity gives an at-will-scale ability each rest, Turn Undead reshapes whole encounters, and preparing spells fresh each day means a cleric is always the right cleric for today's problem."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "WIS"
+  ],
+  "savingThrows": [
+    "WIS",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You channel divine magic from your deity, preparing a number of cleric spells equal to your Wisdom modifier + your cleric level. Wisdom is your spellcasting ability, and you know cantrips from first level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "divine_domain",
+      "name": "Divine Domain",
+      "description": "Choose the domain your deity's portfolio grants. It supplies domain spells always prepared, and features at 1st, 2nd, 6th, 8th and 17th level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "channel_divinity",
+      "name": "Channel Divinity",
+      "description": "Channel divine energy directly, using an effect your domain grants or Turn Undead. Saves against it use your spell save DC. One use per short or long rest, rising to two at 6th level and three at 18th.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "turn_undead",
+      "name": "Turn Undead",
+      "description": "As an action, present your holy symbol: each undead within 30 feet that fails a Wisdom save is turned for one minute, spending its turns fleeing you.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "destroy_undead",
+      "name": "Destroy Undead",
+      "description": "An undead of challenge rating 1/2 or lower is destroyed outright rather than turned. The threshold rises every three levels to challenge rating 4 at 17th level.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "divine_intervention",
+      "name": "Divine Intervention",
+      "description": "Call on your deity for aid as an action. Roll percentile dice: on a result of your cleric level or lower, the intervention comes, and you cannot call again for seven days. At 20th level it succeeds automatically.",
+      "level": 10,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

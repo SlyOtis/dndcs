@@ -1,0 +1,100 @@
+{
+  "id": "bard",
+  "name": "Bard",
+  "description": "A performer whose art is genuinely magic. Bards talk, sing and improvise their way through problems, lifting allies with inspiration and borrowing whatever spell the moment calls for.",
+  "full": [
+    "Bards make magic out of performance. Their spellcasting is genuinely artistic, drawn from music, oratory and story rather than study or devotion, and it bends toward influence: charm, illusion, healing, and knowing things nobody meant to tell you.",
+    "Mechanically they are the best support in the game and a competent everything else. Bardic Inspiration hands allies dice at the moment they matter, Jack of All Trades props up every skill, and Magical Secrets eventually lets a bard borrow whatever spell the party is missing."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "CHA"
+  ],
+  "savingThrows": [
+    "DEX",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You weave magic through music, speech and performance. Charisma is your spellcasting ability, and you know a fixed number of bard spells that you may swap one of on each level up.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "bardic_inspiration",
+      "name": "Bardic Inspiration",
+      "description": "As a bonus action, give a creature within 60 feet a d6 it can add to one ability check, attack roll or saving throw within ten minutes. Usable your Charisma modifier times per long rest. The die grows to a d8 at 5th level, a d10 at 10th and a d12 at 15th.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "jack_of_all_trades",
+      "name": "Jack of All Trades",
+      "description": "Add half your proficiency bonus, rounded down, to any ability check you make that does not already include it.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "song_of_rest",
+      "name": "Song of Rest",
+      "description": "During a short rest, any ally who spends Hit Dice regains an extra 1d6 hit points. The die grows to a d8 at 9th level, a d10 at 13th and a d12 at 17th.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "bard_college",
+      "name": "Bard College",
+      "description": "Choose the college whose tradition you follow. It grants features at 3rd, 6th and 14th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "expertise",
+      "name": "Expertise",
+      "description": "Choose two skill proficiencies and double your proficiency bonus for checks with them. Choose two more at 10th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "font_of_inspiration",
+      "name": "Font of Inspiration",
+      "description": "You regain your expended uses of Bardic Inspiration on a short rest as well as a long one.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "countercharm",
+      "name": "Countercharm",
+      "description": "As an action, start a performance lasting until the end of your next turn. You and any friendly creature within 30 feet that can hear you have advantage on saves against being frightened or charmed.",
+      "level": 6,
+      "source": "base"
+    },
+    {
+      "id": "magical_secrets",
+      "name": "Magical Secrets",
+      "description": "Learn two spells from any class's list, of a level you can cast. They count as bard spells for you. Two more come at 14th level and two more at 18th.",
+      "level": 10,
+      "source": "base"
+    },
+    {
+      "id": "superior_inspiration",
+      "name": "Superior Inspiration",
+      "description": "When you roll initiative with no uses of Bardic Inspiration left, you regain one.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

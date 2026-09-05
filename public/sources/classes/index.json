@@ -1,0 +1,18 @@
+{
+  "classes": [
+    "artificer",
+    "barbarian",
+    "bard",
+    "cleric",
+    "druid",
+    "fighter",
+    "gunslinger",
+    "monk",
+    "paladin",
+    "ranger",
+    "rogue",
+    "sorcerer",
+    "warlock",
+    "wizard"
+  ]
+}

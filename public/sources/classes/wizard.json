@@ -1,0 +1,65 @@
+{
+  "id": "wizard",
+  "name": "Wizard",
+  "description": "A scholar of the underlying rules. Wizards earn every spell through study and keep them in a book, and no other caster commands anything like their range.",
+  "full": [
+    "Wizards earn everything. No bloodline, no patron, no god: only the underlying rules of magic, written down, memorised and rehearsed until reality complies. The spellbook is the class, and it grows with every scroll and rival's library they get their hands on.",
+    "No caster has their range. A wizard prepares a different toolkit each morning, and the school they specialise in refines it further, whether that is battlefield control, illusion, divination that removes uncertainty entirely, or necromancy that adds bodies to their side of the fight."
+  ],
+  "image": "",
+  "hitDie": 6,
+  "primaryAbility": [
+    "INT"
+  ],
+  "savingThrows": [
+    "INT",
+    "WIS"
+  ],
+  "features": [
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "Your spellbook holds the spells you have copied, and you prepare a number of them equal to your Intelligence modifier + your wizard level. Intelligence is your spellcasting ability.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "arcane_recovery",
+      "name": "Arcane Recovery",
+      "description": "Once per day on a short rest, recover expended spell slots with a combined level of up to half your wizard level, rounded up, none of them 6th level or higher.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "arcane_tradition",
+      "name": "Arcane Tradition",
+      "description": "Choose the school your study follows. It grants features at 2nd, 6th, 10th and 14th level.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "spell_mastery",
+      "name": "Spell Mastery",
+      "description": "Choose one 1st level and one 2nd level spell in your spellbook. You can cast them at their lowest level without expending a slot, as often as you like.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "signature_spells",
+      "name": "Signature Spells",
+      "description": "Choose two 3rd level spells in your spellbook. They are always prepared, and each can be cast once at 3rd level without a slot, returning on a short or long rest.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

@@ -1,0 +1,72 @@
+{
+  "id": "warlock",
+  "name": "Warlock",
+  "description": "A spellcaster who made a deal. Something older and stranger supplies the power, and the warlock pays for it in service, in secrets, and eventually in ways they did not read closely enough.",
+  "full": [
+    "Warlocks did not earn their power and did not inherit it. They negotiated for it, and something on the other side agreed. The patron shapes everything downstream, and the bargain is rarely as finished as the warlock believes.",
+    "Their casting is unusual: very few slots, always at the highest level, all back on a short rest. Eldritch Blast plus invocations gives a warlock a reliable attack that never runs out, and the Pact Boon decides whether they fight with a weapon, a familiar, or a tome of borrowed rituals."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "CHA"
+  ],
+  "savingThrows": [
+    "WIS",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "otherworldly_patron",
+      "name": "Otherworldly Patron",
+      "description": "Strike a bargain with a being of another plane. The patron grants expanded spells always known, and features at 1st, 6th, 10th and 14th level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "pact_magic",
+      "name": "Pact Magic",
+      "description": "Your slots are few but always of the highest level you can cast, and they return on a short rest. Charisma is your spellcasting ability.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "eldritch_invocations",
+      "name": "Eldritch Invocations",
+      "description": "Learn two fragments of forbidden lore that reshape your abilities, such as Agonizing Blast or Devil's Sight. The number known grows to eight by 18th level, and one may be swapped on each level up.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "pact_boon",
+      "name": "Pact Boon",
+      "description": "Your patron gives a gift: the Pact of the Chain, the Blade or the Tome.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "mystic_arcanum",
+      "name": "Mystic Arcanum",
+      "description": "Your patron grants one 6th level spell, cast once per long rest without a slot. A 7th level spell follows at 13th level, an 8th at 15th and a 9th at 17th.",
+      "level": 11,
+      "source": "base"
+    },
+    {
+      "id": "eldritch_master",
+      "name": "Eldritch Master",
+      "description": "Spend one minute entreating your patron to regain all expended Pact Magic slots. Usable once per long rest.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

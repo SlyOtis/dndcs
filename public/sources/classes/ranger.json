@@ -1,0 +1,115 @@
+{
+  "id": "ranger",
+  "name": "Ranger",
+  "description": "A hunter at home where roads end. Rangers read ground and quarry alike, strike from range with uncanny precision, and keep a party alive in country that would swallow it.",
+  "full": [
+    "Rangers are specialists in the space between civilisation and whatever is out there. They track, they endure, and they kill efficiently at range, and they are equally at home guiding a party through hostile country as they are ending an ambush before it starts.",
+    "Favoured Enemy and Natural Explorer make travel and pursuit trivial in their chosen environment, spellcasting adds control and utility on a martial chassis, and the subclass decides whether they fight beside a companion, from the shadows, or with two weapons at once."
+  ],
+  "image": "",
+  "hitDie": 10,
+  "primaryAbility": [
+    "DEX",
+    "WIS"
+  ],
+  "savingThrows": [
+    "STR",
+    "DEX"
+  ],
+  "features": [
+    {
+      "id": "favored_enemy",
+      "name": "Favored Enemy",
+      "description": "Choose a type of creature you have hunted. You have advantage on Survival checks to track it and on Intelligence checks to recall what you know of it, and you learn one language it speaks. A further choice comes at 6th and 14th level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "natural_explorer",
+      "name": "Natural Explorer",
+      "description": "Choose a favoured terrain. In it, difficult ground does not slow your party, you cannot be lost by nonmagical means, you stay alert while tracking or foraging, and you find twice as much food. A further choice comes at 6th and 10th level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "fighting_style",
+      "name": "Fighting Style",
+      "description": "Adopt a style of combat such as Archery, Defense, Duelling or Two-Weapon Fighting.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You learn ranger spells drawn from the primal magic of the wild. Wisdom is your spellcasting ability, and you know a fixed number of spells rather than preparing them.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "ranger_archetype",
+      "name": "Ranger Archetype",
+      "description": "Choose the archetype your hunting follows. It grants features at 3rd, 7th, 11th and 15th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "primeval_awareness",
+      "name": "Primeval Awareness",
+      "description": "Expend a spell slot to sense, for one minute per slot level, whether aberrations, celestials, dragons, elementals, fey, fiends or undead are within one mile, or six miles in your favoured terrain.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "extra_attack",
+      "name": "Extra Attack",
+      "description": "Attack twice, instead of once, whenever you take the Attack action on your turn.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "lands_stride",
+      "name": "Land's Stride",
+      "description": "Nonmagical difficult terrain costs you no extra movement, thorns and briars do not harm you, and you have advantage on saves against plants magically impeding movement.",
+      "level": 8,
+      "source": "base"
+    },
+    {
+      "id": "hide_in_plain_sight",
+      "name": "Hide in Plain Sight",
+      "description": "Spend one minute camouflaging yourself against a solid surface to gain +10 to Stealth checks while you stay still.",
+      "level": 10,
+      "source": "base"
+    },
+    {
+      "id": "vanish",
+      "name": "Vanish",
+      "description": "Hide as a bonus action, and you cannot be tracked by nonmagical means unless you choose to leave a trail.",
+      "level": 14,
+      "source": "base"
+    },
+    {
+      "id": "feral_senses",
+      "name": "Feral Senses",
+      "description": "You suffer no disadvantage attacking a creature you cannot see, and you know the location of any invisible creature within 30 feet that is not hidden from you.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "foe_slayer",
+      "name": "Foe Slayer",
+      "description": "Once on each of your turns, add your Wisdom modifier to the attack roll or the damage roll of an attack against a favoured enemy.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

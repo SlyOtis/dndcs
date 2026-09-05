@@ -1,0 +1,65 @@
+{
+  "id": "sorcerer",
+  "name": "Sorcerer",
+  "description": "A spellcaster who studied nothing. The magic is in the blood, and a sorcerer bends it on instinct, twisting spells into shapes the careful casters cannot manage.",
+  "full": [
+    "A sorcerer never studied. The magic is in the blood, whether from a draconic ancestor, a brush with wild chaos, or something that happened before they were born, and it comes out on instinct rather than through preparation.",
+    "They know few spells but bend them further than anyone. Metamagic is the whole class: twinning a spell onto two targets, quickening it into a bonus action, subtling it past a gag or a grapple. A sorcerer casts less often than a wizard and does more with each cast."
+  ],
+  "image": "",
+  "hitDie": 6,
+  "primaryAbility": [
+    "CHA"
+  ],
+  "savingThrows": [
+    "CON",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "Magic is innate to you rather than studied. Charisma is your spellcasting ability, and you know a small fixed number of sorcerer spells, swapping one on each level up.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "sorcerous_origin",
+      "name": "Sorcerous Origin",
+      "description": "Choose the source of your power, whether draconic bloodline, wild magic or another. It grants features at 1st, 6th, 14th and 18th level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "font_of_magic",
+      "name": "Font of Magic",
+      "description": "You hold sorcery points equal to your sorcerer level, regained on a long rest. Convert them into spell slots as a bonus action, or convert an unused slot back into points.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "metamagic",
+      "name": "Metamagic",
+      "description": "Choose two ways to bend your spells, such as Twinned, Quickened, Subtle or Heightened, spending sorcery points to apply one, at most one per spell. A third option comes at 10th level and a fourth at 17th.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "sorcerous_restoration",
+      "name": "Sorcerous Restoration",
+      "description": "Regain 4 expended sorcery points when you finish a short rest.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

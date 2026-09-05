@@ -1,0 +1,121 @@
+{
+  "id": "barbarian",
+  "name": "Barbarian",
+  "description": "A warrior who answers violence with fury. Rage carries a barbarian past wounds that would drop anyone else, trading finesse and armour for raw staying power and the strength to end a fight early.",
+  "full": [
+    "A barbarian's power is not technique but refusal. Rage floods the body with a fury that dulls pain, sharpens strength, and carries them through wounds that would put anyone else on the ground. Between rages they are still formidable; inside one they are a problem the enemy has to solve immediately.",
+    "They are the simplest class to play well and the hardest to kill. Unarmoured Defence rewards a high Constitution, Reckless Attack trades safety for hit chance, and Danger Sense keeps the worst surprises survivable. A barbarian holds the line so the rest of the party can do something clever."
+  ],
+  "image": "",
+  "hitDie": 12,
+  "primaryAbility": [
+    "STR"
+  ],
+  "savingThrows": [
+    "STR",
+    "CON"
+  ],
+  "features": [
+    {
+      "id": "rage",
+      "name": "Rage",
+      "description": "Enter a rage as a bonus action for one minute, gaining advantage on Strength checks and saves, bonus damage on Strength melee attacks, and resistance to bludgeoning, piercing and slashing damage. You cannot cast or concentrate on spells while raging. The number of rages per long rest and the damage bonus both grow with level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "unarmored_defense",
+      "name": "Unarmored Defense",
+      "description": "While wearing no armour, your Armour Class equals 10 + your Dexterity modifier + your Constitution modifier. You can still use a shield.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "reckless_attack",
+      "name": "Reckless Attack",
+      "description": "On your first attack of the turn, choose to attack recklessly: melee attacks using Strength gain advantage this turn, and attacks against you gain advantage until your next turn.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "danger_sense",
+      "name": "Danger Sense",
+      "description": "Advantage on Dexterity saving throws against effects you can see, such as traps and spells, as long as you are not blinded, deafened or incapacitated.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "primal_path",
+      "name": "Primal Path",
+      "description": "Choose the path that shapes your rage. It grants features at 3rd, 6th, 10th and 14th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "extra_attack",
+      "name": "Extra Attack",
+      "description": "Attack twice, instead of once, whenever you take the Attack action on your turn.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "fast_movement",
+      "name": "Fast Movement",
+      "description": "Your speed increases by 10 feet while you are not wearing heavy armour.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "feral_instinct",
+      "name": "Feral Instinct",
+      "description": "Advantage on initiative rolls. If you are surprised and not incapacitated, you can act normally on your first turn provided you rage before doing anything else.",
+      "level": 7,
+      "source": "base"
+    },
+    {
+      "id": "brutal_critical",
+      "name": "Brutal Critical",
+      "description": "Roll one additional weapon damage die when determining the extra damage of a melee critical hit. This increases to two dice at 13th level and three dice at 17th level.",
+      "level": 9,
+      "source": "base"
+    },
+    {
+      "id": "relentless_rage",
+      "name": "Relentless Rage",
+      "description": "When you drop to 0 hit points while raging and do not die outright, make a DC 10 Constitution save to drop to 1 hit point instead. The DC rises by 5 each time you use it, resetting on a short or long rest.",
+      "level": 11,
+      "source": "base"
+    },
+    {
+      "id": "persistent_rage",
+      "name": "Persistent Rage",
+      "description": "Your rage ends early only if you fall unconscious or choose to end it.",
+      "level": 15,
+      "source": "base"
+    },
+    {
+      "id": "indomitable_might",
+      "name": "Indomitable Might",
+      "description": "If the total of a Strength check is less than your Strength score, use the score in place of the total.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "primal_champion",
+      "name": "Primal Champion",
+      "description": "Your Strength and Constitution scores increase by 4, and their maximum becomes 24.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

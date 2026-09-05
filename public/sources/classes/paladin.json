@@ -1,0 +1,115 @@
+{
+  "id": "paladin",
+  "name": "Paladin",
+  "description": "A warrior bound by an oath they swore themselves. That oath is the source of the power: smites that burn the wicked, auras that steady allies, and a conviction that does not bend.",
+  "full": [
+    "A paladin's power comes from an oath they swore themselves, not from a god. That distinction matters: the conviction is the source, and breaking it costs them everything. What it buys is a warrior who heals, protects, and detonates.",
+    "Divine Smite converts spell slots directly into damage, making paladins the best burst damage in the game against the things that most need burst damage. Lay on Hands is a pool of healing that never runs to waste, and their auras quietly make everyone standing near them harder to kill."
+  ],
+  "image": "",
+  "hitDie": 10,
+  "primaryAbility": [
+    "STR",
+    "CHA"
+  ],
+  "savingThrows": [
+    "WIS",
+    "CHA"
+  ],
+  "features": [
+    {
+      "id": "divine_sense",
+      "name": "Divine Sense",
+      "description": "As an action, know the location of any celestial, fiend or undead within 60 feet that is not behind total cover, and of any consecrated or desecrated ground. Usable 1 + your Charisma modifier times per long rest.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "lay_on_hands",
+      "name": "Lay on Hands",
+      "description": "A pool of healing equal to five times your paladin level, spent by touch. Five points from the pool cure one disease or neutralise one poison. The pool refills on a long rest.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "fighting_style",
+      "name": "Fighting Style",
+      "description": "Adopt a style of combat such as Defense, Duelling, Great Weapon Fighting or Protection.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "spellcasting",
+      "name": "Spellcasting",
+      "description": "You draw on divine magic through prayer and meditation, preparing a number of paladin spells equal to your Charisma modifier + half your paladin level. Charisma is your spellcasting ability.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "divine_smite",
+      "name": "Divine Smite",
+      "description": "When you hit with a melee weapon attack, expend a spell slot to deal an extra 2d8 radiant damage, plus 1d8 per slot level above first, to a maximum of 5d8, and one die more against undead and fiends.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "divine_health",
+      "name": "Divine Health",
+      "description": "The divine magic in you makes you immune to disease.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "sacred_oath",
+      "name": "Sacred Oath",
+      "description": "Swear the oath that binds you. It grants Channel Divinity options and oath spells at 3rd level, and further features at 7th, 15th and 20th.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "extra_attack",
+      "name": "Extra Attack",
+      "description": "Attack twice, instead of once, whenever you take the Attack action on your turn.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "aura_of_protection",
+      "name": "Aura of Protection",
+      "description": "You and friendly creatures within 10 feet add your Charisma modifier, minimum 1, to every saving throw. The radius grows to 30 feet at 18th level.",
+      "level": 6,
+      "source": "base"
+    },
+    {
+      "id": "aura_of_courage",
+      "name": "Aura of Courage",
+      "description": "You and friendly creatures within your aura cannot be frightened while you are conscious.",
+      "level": 10,
+      "source": "base"
+    },
+    {
+      "id": "improved_divine_smite",
+      "name": "Improved Divine Smite",
+      "description": "Every melee weapon hit deals an extra 1d8 radiant damage, with no slot spent.",
+      "level": 11,
+      "source": "base"
+    },
+    {
+      "id": "cleansing_touch",
+      "name": "Cleansing Touch",
+      "description": "As an action, end one spell on yourself or on a willing creature you touch. Usable your Charisma modifier times, minimum once, per long rest.",
+      "level": 14,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}

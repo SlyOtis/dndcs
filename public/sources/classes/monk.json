@@ -1,0 +1,178 @@
+{
+  "id": "monk",
+  "name": "Monk",
+  "description": "A martial artist who treats the body as the weapon. Ki flows into speed, into unarmed strikes that land like steel, and into a defence that needs no armour at all.",
+  "full": [
+    "Monks train the body until it becomes the weapon and the armour both. Ki is the discipline made manifest: a limited pool spent to strike more often, move impossibly, deflect what is thrown at them, or briefly stop being subject to the usual rules.",
+    "They are the most mobile class in the game. Unarmoured Movement and Step of the Wind put a monk anywhere on the battlefield, Stunning Strike removes the most dangerous enemy from a round, and Deflect Missiles turns ranged attacks into ammunition. They are fragile if they stand still, and almost impossible to pin down if they do not."
+  ],
+  "image": "",
+  "hitDie": 8,
+  "primaryAbility": [
+    "DEX",
+    "WIS"
+  ],
+  "savingThrows": [
+    "STR",
+    "DEX"
+  ],
+  "features": [
+    {
+      "id": "unarmored_defense",
+      "name": "Unarmored Defense",
+      "description": "While wearing no armour and wielding no shield, your Armour Class equals 10 + your Dexterity modifier + your Wisdom modifier.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "martial_arts",
+      "name": "Martial Arts",
+      "description": "With unarmed strikes and monk weapons you use Dexterity for attack and damage, roll a martial arts die in place of the weapon's damage, and make one unarmed strike as a bonus action after the Attack action. The die grows from d4 to d10 with level.",
+      "level": 1,
+      "source": "base"
+    },
+    {
+      "id": "ki",
+      "name": "Ki",
+      "description": "You hold ki points equal to your monk level, spent on ki features and regained on a short or long rest. Saving throws against your ki features use a DC of 8 + your proficiency bonus + your Wisdom modifier.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "flurry_of_blows",
+      "name": "Flurry of Blows",
+      "description": "Immediately after the Attack action, spend 1 ki point to make two unarmed strikes as a bonus action.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "patient_defense",
+      "name": "Patient Defense",
+      "description": "Spend 1 ki point to take the Dodge action as a bonus action.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "step_of_the_wind",
+      "name": "Step of the Wind",
+      "description": "Spend 1 ki point to Disengage or Dash as a bonus action, and your jump distance is doubled for the turn.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "unarmored_movement",
+      "name": "Unarmored Movement",
+      "description": "Your speed increases by 10 feet while wearing no armour and no shield, rising to 30 feet by 18th level. From 9th level you can move along vertical surfaces and across liquids on your turn without falling.",
+      "level": 2,
+      "source": "base"
+    },
+    {
+      "id": "monastic_tradition",
+      "name": "Monastic Tradition",
+      "description": "Choose the tradition your monastery follows. It grants features at 3rd, 6th, 11th and 17th level.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "deflect_missiles",
+      "name": "Deflect Missiles",
+      "description": "Use your reaction to reduce ranged weapon damage by 1d10 + your Dexterity modifier + your monk level. Reduce it to 0 and you may spend 1 ki point to throw the missile back as a ranged attack.",
+      "level": 3,
+      "source": "base"
+    },
+    {
+      "id": "ability_score_improvement",
+      "name": "Ability Score Improvement",
+      "description": "Increase one ability score by 2 or two ability scores by 1. Cannot increase scores above 20. Gained at 4th, 8th, 12th, 16th and 19th level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "slow_fall",
+      "name": "Slow Fall",
+      "description": "Use your reaction when you fall to reduce the damage by five times your monk level.",
+      "level": 4,
+      "source": "base"
+    },
+    {
+      "id": "extra_attack",
+      "name": "Extra Attack",
+      "description": "Attack twice, instead of once, whenever you take the Attack action on your turn.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "stunning_strike",
+      "name": "Stunning Strike",
+      "description": "When you hit with a melee weapon attack, spend 1 ki point to force a Constitution save or stun the target until the end of your next turn.",
+      "level": 5,
+      "source": "base"
+    },
+    {
+      "id": "ki_empowered_strikes",
+      "name": "Ki-Empowered Strikes",
+      "description": "Your unarmed strikes count as magical for overcoming resistance and immunity to nonmagical attacks.",
+      "level": 6,
+      "source": "base"
+    },
+    {
+      "id": "evasion",
+      "name": "Evasion",
+      "description": "When subjected to an effect allowing a Dexterity save for half damage, take no damage on a success and half damage on a failure.",
+      "level": 7,
+      "source": "base"
+    },
+    {
+      "id": "stillness_of_mind",
+      "name": "Stillness of Mind",
+      "description": "Use your action to end one effect charming or frightening you.",
+      "level": 7,
+      "source": "base"
+    },
+    {
+      "id": "purity_of_body",
+      "name": "Purity of Body",
+      "description": "You are immune to disease and poison.",
+      "level": 10,
+      "source": "base"
+    },
+    {
+      "id": "tongue_of_the_sun_and_moon",
+      "name": "Tongue of the Sun and Moon",
+      "description": "You understand every spoken language, and any creature that can understand a language understands what you say.",
+      "level": 13,
+      "source": "base"
+    },
+    {
+      "id": "diamond_soul",
+      "name": "Diamond Soul",
+      "description": "You gain proficiency in all saving throws, and may spend 1 ki point to reroll one you fail.",
+      "level": 14,
+      "source": "base"
+    },
+    {
+      "id": "timeless_body",
+      "name": "Timeless Body",
+      "description": "You no longer age, cannot be aged magically, and need neither food nor water.",
+      "level": 15,
+      "source": "base"
+    },
+    {
+      "id": "empty_body",
+      "name": "Empty Body",
+      "description": "Spend 4 ki points to turn invisible for one minute with resistance to all damage but force, or 8 ki points to cast astral projection on yourself.",
+      "level": 18,
+      "source": "base"
+    },
+    {
+      "id": "perfect_self",
+      "name": "Perfect Self",
+      "description": "When you roll initiative with no ki points left, you regain 4.",
+      "level": 20,
+      "source": "base"
+    }
+  ],
+  "proficiencies": {},
+  "subclasses": [],
+  "source": "srd"
+}
