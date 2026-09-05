@@ -164,36 +164,29 @@
     </div>
 
     <div class="sheet-board">
-      <div style:grid-column="1">
+      <div class="sheet-stats">
         <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
                   title="Proficiency"
                   subTitle="bonus"
                   prefix="+"
         />
-      </div>
-      <div style:grid-column="2">
         <PlainBox bind:value={$info.speed}
                   title="Walking"
                   subTitle="speed"
         />
-      </div>
-      <div style:grid-column="3">
         <Inspiration />
-      </div>
-      <HitPoints bind:hp={$info.hp}/>
-      <div style:grid-column="1" style:grid-row="2">
+        <HitPoints bind:hp={$info.hp}/>
         <Initiative bind:initiative={$info.initiative}/>
-      </div>
-      <div style:grid-column="2" style:grid-row="2">
         <PlainBox bind:value={$info.ac}
                   title="Armor"
                   subTitle="class"
         />
+        <DefensesNConditions
+                bind:conditions={$info.conditions}
+                bind:defences={$info.defences}
+        />
       </div>
-      <DefensesNConditions
-              bind:conditions={$info.conditions}
-              bind:defences={$info.defences}
-      />
+
       <div class="sheet-tabs">
         <MainTabs initialTab="actionsTab">
           {#snippet actionsTab()}
@@ -300,7 +293,7 @@
 
   .sheet-grid {
     display: grid;
-    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    grid-template-columns: minmax(min-content, max-content) minmax(min-content, 1fr);
     align-items: start;
     gap: var(--space-3);
     min-width: 0;
@@ -317,24 +310,27 @@
   }
 
   .sheet-board {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     min-width: 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .sheet-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(min-content, 1fr));
     grid-auto-rows: min-content;
-    align-content: start;
     align-items: stretch;
     justify-items: stretch;
     gap: var(--space-3);
   }
 
   .sheet-tabs {
-    grid-column: 1 / -1;
-    min-width: 0;
     display: flex;
     flex-direction: column;
-    align-self: stretch;
-    justify-self: stretch;
+    min-width: 0;
     min-height: 0;
+    contain: inline-size;
   }
 
   @media (max-width: 1400px) {
