@@ -2,7 +2,7 @@
   "id": "gnome",
   "name": "Gnome",
   "description": "Small, inventive and relentlessly curious. Gnomes carry a native cunning that turns aside magic aimed at the mind, and a habit of taking things apart to see why they worked.",
-  "image": "",
+  "image": "/sources/art/races/gnome.svg",
   "size": "Small",
   "speed": 25,
   "abilityBonuses": {

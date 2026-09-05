@@ -6,7 +6,7 @@
     "Rogues do not win fights by trading blows. They win by arranging for one strike to matter more than everyone else's, and by not being where the retaliation lands. Everything in the class serves that: position, opportunity, and getting out.",
     "Sneak Attack scales relentlessly and needs only an ally nearby or a moment of advantage. Cunning Action makes them the hardest class to catch, Expertise turns two skills into near certainties, and Uncanny Dodge and Evasion mean the trap that was meant to kill them usually does not."
   ],
-  "image": "",
+  "image": "/sources/art/classes/rogue.svg",
   "hitDie": 8,
   "primaryAbility": [
     "DEX"

@@ -6,7 +6,7 @@
     "The fighter is the class that simply out-fights everyone. No pact, no bloodline, no deity: only training taken further than anyone else was willing to take it, until the ordinary act of hitting something becomes overwhelming through sheer volume and precision.",
     "Extra Attack scales further than any other class, Action Surge buys a whole extra turn at the moment it decides a fight, and Second Wind keeps them standing. The subclass supplies the flavour, whether that is battlefield manoeuvres, arcane spellcasting, or simply critting more often than should be possible."
   ],
-  "image": "",
+  "image": "/sources/art/classes/fighter.svg",
   "hitDie": 10,
   "primaryAbility": [
     "STR",

@@ -2,6 +2,7 @@
   "id": "gunslinger",
   "name": "Gunslinger",
   "description": "A master of firearms who combines quick reflexes, deadly accuracy, and grit to survive in a hostile frontier",
+  "image": "/sources/art/classes/gunslinger.svg",
   "hitDie": 8,
   "primaryAbility": [
     "DEX",

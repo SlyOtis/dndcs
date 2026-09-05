@@ -6,7 +6,7 @@
     "A sorcerer never studied. The magic is in the blood, whether from a draconic ancestor, a brush with wild chaos, or something that happened before they were born, and it comes out on instinct rather than through preparation.",
     "They know few spells but bend them further than anyone. Metamagic is the whole class: twinning a spell onto two targets, quickening it into a bonus action, subtling it past a gag or a grapple. A sorcerer casts less often than a wizard and does more with each cast."
   ],
-  "image": "",
+  "image": "/sources/art/classes/sorcerer.svg",
   "hitDie": 6,
   "primaryAbility": [
     "CHA"

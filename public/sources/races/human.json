@@ -2,7 +2,7 @@
   "id": "human",
   "name": "Human",
   "description": "Everywhere, in every trade, in a single lifetime that forces them to hurry. Humans have no single gift because they spread their talent across all of them.",
-  "image": "",
+  "image": "/sources/art/races/human.svg",
   "size": "Medium",
   "speed": 30,
   "abilityBonuses": {

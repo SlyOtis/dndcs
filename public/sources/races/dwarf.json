@@ -2,7 +2,7 @@
   "id": "dwarf",
   "name": "Dwarf",
   "description": "Stone-stubborn and slow to trust, quick to hold a line. Dwarves see in the dark, shake off poison that would fell others, and carry a memory for grudges measured in generations.",
-  "image": "",
+  "image": "/sources/art/races/dwarf.svg",
   "size": "Medium",
   "speed": 25,
   "abilityBonuses": {

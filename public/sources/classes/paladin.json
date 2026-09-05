@@ -6,7 +6,7 @@
     "A paladin's power comes from an oath they swore themselves, not from a god. That distinction matters: the conviction is the source, and breaking it costs them everything. What it buys is a warrior who heals, protects, and detonates.",
     "Divine Smite converts spell slots directly into damage, making paladins the best burst damage in the game against the things that most need burst damage. Lay on Hands is a pool of healing that never runs to waste, and their auras quietly make everyone standing near them harder to kill."
   ],
-  "image": "",
+  "image": "/sources/art/classes/paladin.svg",
   "hitDie": 10,
   "primaryAbility": [
     "STR",

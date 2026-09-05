@@ -6,7 +6,7 @@
     "Artificers treat magic as engineering. Where a wizard studies the weave to command it directly, an artificer studies it to build with it, binding spell effects into tools, weapons and prosthetics until the object itself does the work. Their power is portable, transferable, and shared: an artificer arms the whole party.",
     "In play they are the flexible half-caster. Infusions let you retune the party's gear between adventuring days, Magical Tinkering supplies small solutions to problems nobody planned for, and a subclass decides whether you fight beside a construct, from behind a shield, at range with a cannon, or through an armoured suit you built yourself."
   ],
-  "image": "",
+  "image": "/sources/art/classes/artificer.svg",
   "hitDie": 8,
   "primaryAbility": [
     "INT"

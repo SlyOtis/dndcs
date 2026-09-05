@@ -6,7 +6,7 @@
     "A barbarian's power is not technique but refusal. Rage floods the body with a fury that dulls pain, sharpens strength, and carries them through wounds that would put anyone else on the ground. Between rages they are still formidable; inside one they are a problem the enemy has to solve immediately.",
     "They are the simplest class to play well and the hardest to kill. Unarmoured Defence rewards a high Constitution, Reckless Attack trades safety for hit chance, and Danger Sense keeps the worst surprises survivable. A barbarian holds the line so the rest of the party can do something clever."
   ],
-  "image": "",
+  "image": "/sources/art/classes/barbarian.svg",
   "hitDie": 12,
   "primaryAbility": [
     "STR"

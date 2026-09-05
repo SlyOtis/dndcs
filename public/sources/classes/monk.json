@@ -6,7 +6,7 @@
     "Monks train the body until it becomes the weapon and the armour both. Ki is the discipline made manifest: a limited pool spent to strike more often, move impossibly, deflect what is thrown at them, or briefly stop being subject to the usual rules.",
     "They are the most mobile class in the game. Unarmoured Movement and Step of the Wind put a monk anywhere on the battlefield, Stunning Strike removes the most dangerous enemy from a round, and Deflect Missiles turns ranged attacks into ammunition. They are fragile if they stand still, and almost impossible to pin down if they do not."
   ],
-  "image": "",
+  "image": "/sources/art/classes/monk.svg",
   "hitDie": 8,
   "primaryAbility": [
     "DEX",

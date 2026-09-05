@@ -2,7 +2,7 @@
   "id": "dragonborn",
   "name": "Dragonborn",
   "description": "Descended from dragons and carrying the proof in their scales and their breath. Dragonborn are built broad and proud, and a draconic ancestry decides both the damage they exhale and the damage they shrug off.",
-  "image": "",
+  "image": "/sources/art/races/dragonborn.svg",
   "size": "Medium",
   "speed": 30,
   "abilityBonuses": {

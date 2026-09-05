@@ -6,7 +6,7 @@
     "A cleric is not a priest who fights, but a conduit. Divine power flows through them because a god decided it should, and the domain they serve shapes it entirely: a Life cleric mends, a War cleric leads a charge, a Trickery cleric is not where you left them.",
     "They are full casters with heavy armour, which makes them unusually hard to remove from a fight. Channel Divinity gives an at-will-scale ability each rest, Turn Undead reshapes whole encounters, and preparing spells fresh each day means a cleric is always the right cleric for today's problem."
   ],
-  "image": "",
+  "image": "/sources/art/classes/cleric.svg",
   "hitDie": 8,
   "primaryAbility": [
     "WIS"

@@ -2,7 +2,7 @@
   "id": "tiefling",
   "name": "Tiefling",
   "description": "Marked by an infernal bargain nobody alive agreed to. Tieflings carry horns, a tail, and fire that does not burn them, along with the suspicion of everyone who notices.",
-  "image": "",
+  "image": "/sources/art/races/tiefling.svg",
   "size": "Medium",
   "speed": 30,
   "abilityBonuses": {

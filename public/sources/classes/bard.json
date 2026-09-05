@@ -6,7 +6,7 @@
     "Bards make magic out of performance. Their spellcasting is genuinely artistic, drawn from music, oratory and story rather than study or devotion, and it bends toward influence: charm, illusion, healing, and knowing things nobody meant to tell you.",
     "Mechanically they are the best support in the game and a competent everything else. Bardic Inspiration hands allies dice at the moment they matter, Jack of All Trades props up every skill, and Magical Secrets eventually lets a bard borrow whatever spell the party is missing."
   ],
-  "image": "",
+  "image": "/sources/art/classes/bard.svg",
   "hitDie": 8,
   "primaryAbility": [
     "CHA"

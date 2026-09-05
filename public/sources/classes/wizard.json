@@ -6,7 +6,7 @@
     "Wizards earn everything. No bloodline, no patron, no god: only the underlying rules of magic, written down, memorised and rehearsed until reality complies. The spellbook is the class, and it grows with every scroll and rival's library they get their hands on.",
     "No caster has their range. A wizard prepares a different toolkit each morning, and the school they specialise in refines it further, whether that is battlefield control, illusion, divination that removes uncertainty entirely, or necromancy that adds bodies to their side of the fight."
   ],
-  "image": "",
+  "image": "/sources/art/classes/wizard.svg",
   "hitDie": 6,
   "primaryAbility": [
     "INT"

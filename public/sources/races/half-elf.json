@@ -2,7 +2,7 @@
   "id": "half-elf",
   "name": "Half-Elf",
   "description": "At home in two worlds and fully of neither. Half-elves inherit elven resilience and human adaptability, and tend to be the one in the room everybody ends up talking to.",
-  "image": "",
+  "image": "/sources/art/races/half-elf.svg",
   "size": "Medium",
   "speed": 30,
   "abilityBonuses": {

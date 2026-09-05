@@ -2,7 +2,7 @@
   "id": "halfling",
   "name": "Halfling",
   "description": "Small, steady and much harder to rattle than they look. Halflings reroll their worst luck, slip through spaces larger folk cannot, and are almost impossible to frighten.",
-  "image": "",
+  "image": "/sources/art/races/halfling.svg",
   "size": "Small",
   "speed": 25,
   "abilityBonuses": {

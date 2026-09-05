@@ -6,7 +6,7 @@
     "Rangers are specialists in the space between civilisation and whatever is out there. They track, they endure, and they kill efficiently at range, and they are equally at home guiding a party through hostile country as they are ending an ambush before it starts.",
     "Favoured Enemy and Natural Explorer make travel and pursuit trivial in their chosen environment, spellcasting adds control and utility on a martial chassis, and the subclass decides whether they fight beside a companion, from the shadows, or with two weapons at once."
   ],
-  "image": "",
+  "image": "/sources/art/classes/ranger.svg",
   "hitDie": 10,
   "primaryAbility": [
     "DEX",

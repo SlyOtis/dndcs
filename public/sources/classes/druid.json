@@ -6,7 +6,7 @@
     "Druids serve an order older than any nation: the balance of the natural world. Their magic comes from that pact rather than a deity, and their strangest gift is the ability to stop being themselves and become a beast instead.",
     "Wild Shape is the class in one feature, functioning as a scouting tool, a second health bar, and a combat form all at once. Circle of the Moon leans into fighting as an animal, Circle of the Land into spell recovery and control, but every druid handles terrain, weather and living things with an authority nobody else has."
   ],
-  "image": "",
+  "image": "/sources/art/classes/druid.svg",
   "hitDie": 8,
   "primaryAbility": [
     "WIS"

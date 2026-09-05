@@ -6,7 +6,7 @@
     "Warlocks did not earn their power and did not inherit it. They negotiated for it, and something on the other side agreed. The patron shapes everything downstream, and the bargain is rarely as finished as the warlock believes.",
     "Their casting is unusual: very few slots, always at the highest level, all back on a short rest. Eldritch Blast plus invocations gives a warlock a reliable attack that never runs out, and the Pact Boon decides whether they fight with a weapon, a familiar, or a tome of borrowed rituals."
   ],
-  "image": "",
+  "image": "/sources/art/classes/warlock.svg",
   "hitDie": 8,
   "primaryAbility": [
     "CHA"

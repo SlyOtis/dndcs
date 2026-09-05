@@ -2,7 +2,7 @@
   "id": "half-orc",
   "name": "Half-Orc",
   "description": "Built for the moment a fight goes badly. Half-orcs hit harder on a solid strike and refuse to drop when the blow that should have killed them lands.",
-  "image": "",
+  "image": "/sources/art/races/half-orc.svg",
   "size": "Medium",
   "speed": 30,
   "abilityBonuses": {
