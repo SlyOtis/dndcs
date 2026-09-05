@@ -3,9 +3,11 @@
   import type { CharacterContext } from "$lib/types";
   import { createLevelUpStore, levelUpLogic } from "$lib/dialogs/levelUp";
   import { createThemeStore } from "$lib/dialogs/theme";
+  import { createFrameStore } from "$lib/dialogs/frame";
   import { createSourceImportStore, sourceImportLogic } from "$lib/dialogs/sourceImport";
   import { setUIActionDispatcher } from "$lib/chat";
   import ThemeDialog from "../ThemeDialog.svelte";
+  import FrameDialog from "../FrameDialog.svelte";
   import CharacterSourceImport from "../CharacterSourceImport.svelte";
   import LevelUpDialog from "../LevelUpDialog.svelte";
 
@@ -31,6 +33,7 @@
   // Create dialog stores
   const levelUpStore = createLevelUpStore();
   const themeStore = createThemeStore();
+  const frameStore = createFrameStore();
   const sourceImportStore = createSourceImportStore();
 
   let fileInput: HTMLInputElement;
@@ -43,6 +46,9 @@
         break;
       case 'openThemeDialog':
         themeStore.open();
+        break;
+      case 'openFrameDialog':
+        frameStore.open();
         break;
       case 'openSourceImport':
         sourceImportStore.open();
@@ -159,6 +165,15 @@
 <!-- Dialog Components -->
 {#if $themeStore.isOpen}
   <ThemeDialog bind:isOpen={$themeStore.isOpen} />
+{/if}
+
+{#if $frameStore.isOpen}
+  <FrameDialog
+    bind:isOpen={$frameStore.isOpen}
+    bind:frame={$info.imageFrame}
+    src={$info.imageUrl}
+    alt={$info.name || 'Character'}
+  />
 {/if}
 
 {#if $sourceImportStore.isOpen}
