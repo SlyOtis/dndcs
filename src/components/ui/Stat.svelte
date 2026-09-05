@@ -33,15 +33,17 @@
 
   {#if onclick}
     <button type="button" class="dnd-stat-face" aria-label={title ?? label} title={title ?? label} {onclick}>
+      <span class="dnd-stat-plate"></span>
+      <span class="dnd-stat-sheen"></span>
       <span class="dnd-stat-value">{value}</span>
       {#if sub}<span class="dnd-stat-sub">{sub}</span>{/if}
-      <span class="dnd-stat-sheen"></span>
     </button>
   {:else}
     <span class="dnd-stat-face dnd-stat-face-still" {title}>
+      <span class="dnd-stat-plate"></span>
+      <span class="dnd-stat-sheen"></span>
       <span class="dnd-stat-value">{value}</span>
       {#if sub}<span class="dnd-stat-sub">{sub}</span>{/if}
-      <span class="dnd-stat-sheen"></span>
     </span>
   {/if}
 
@@ -59,6 +61,20 @@
     gap: var(--space-2);
     padding: var(--space-3) var(--space-2) var(--space-4);
     --stat-light: var(--metal);
+    --stat-brace: var(--metal);
+    --stat-rim: var(--metal);
+    --stat-cut: 9px;
+    --stat-cusp: 10px;
+    --stat-shape: polygon(
+      var(--stat-cut) 0,
+      calc(100% - var(--stat-cut)) 0,
+      100% var(--stat-cut),
+      100% calc(100% - var(--stat-cut)),
+      calc(100% - var(--stat-cut)) 100%,
+      var(--stat-cut) 100%,
+      0 calc(100% - var(--stat-cut)),
+      0 var(--stat-cut)
+    );
     background:
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
@@ -66,6 +82,33 @@
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+  }
+
+  .dnd-stat::before,
+  .dnd-stat::after {
+    content: '';
+    position: absolute;
+    width: var(--stat-cusp);
+    height: var(--stat-cusp);
+    border: var(--border-hair) solid var(--stat-brace);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .dnd-stat::before {
+    top: -1px;
+    left: -1px;
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: var(--radius-md);
+  }
+
+  .dnd-stat::after {
+    right: -1px;
+    bottom: -1px;
+    border-left: none;
+    border-top: none;
+    border-bottom-right-radius: var(--radius-md);
   }
 
   .dnd-stat-ember {
@@ -81,6 +124,9 @@
   }
 
   .dnd-stat-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: 700;
@@ -91,6 +137,22 @@
     line-height: 1.2;
   }
 
+  .dnd-stat-label::before,
+  .dnd-stat-label::after {
+    content: '';
+    flex: none;
+    width: var(--space-3);
+    height: var(--border-hair);
+  }
+
+  .dnd-stat-label::before {
+    background: linear-gradient(90deg, transparent, var(--metal-dim));
+  }
+
+  .dnd-stat-label::after {
+    background: linear-gradient(90deg, var(--metal-dim), transparent);
+  }
+
   .dnd-stat-face {
     position: relative;
     display: flex;
@@ -98,26 +160,24 @@
     align-items: center;
     justify-content: center;
     gap: 1px;
-    min-width: 60px;
-    min-height: 42px;
+    min-width: 64px;
+    min-height: 44px;
     padding: var(--space-2) var(--space-3);
     border: none;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+    background: linear-gradient(180deg, var(--stat-rim) 0%, var(--metal-dim) 100%);
     color: var(--ink);
-    overflow: hidden;
-    clip-path: polygon(
-      8px 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% calc(100% - 8px),
-      calc(100% - 8px) 100%,
-      8px 100%,
-      0 calc(100% - 8px),
-      0 8px
-    );
-    outline: var(--border-hair) solid var(--metal-dim);
-    outline-offset: -1px;
+    clip-path: var(--stat-shape);
     transition: filter 0.15s ease, transform 0.12s ease;
+  }
+
+  .dnd-stat-plate {
+    position: absolute;
+    inset: var(--border-width);
+    z-index: 0;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+    clip-path: var(--stat-shape);
+    box-shadow: inset 0 -10px 16px -12px var(--shade-hard);
+    pointer-events: none;
   }
 
   button.dnd-stat-face {
@@ -136,10 +196,17 @@
 
   button.dnd-stat-face:focus-visible {
     outline: none;
-    box-shadow: var(--focus-ring);
+    --stat-rim: var(--metal-bright);
+    filter: drop-shadow(0 0 8px var(--metal));
+  }
+
+  button.dnd-stat-face:focus-visible .dnd-stat-plate {
+    box-shadow: inset 0 0 0 var(--border-width) var(--metal-bright);
   }
 
   .dnd-stat-value {
+    position: relative;
+    z-index: 2;
     font-family: var(--font-display);
     font-size: var(--text-lg);
     font-weight: 700;
@@ -149,6 +216,8 @@
   }
 
   .dnd-stat-sub {
+    position: relative;
+    z-index: 2;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
     color: var(--ink-faint);
@@ -156,9 +225,12 @@
 
   .dnd-stat-sheen {
     position: absolute;
-    inset: 0 0 auto 0;
-    height: 45%;
-    background: linear-gradient(180deg, var(--sheen) 0%, transparent 100%);
+    top: var(--border-width);
+    right: var(--border-width);
+    left: var(--border-width);
+    z-index: 1;
+    height: 34%;
+    background: linear-gradient(180deg, var(--sheen-soft) 0%, transparent 100%);
     pointer-events: none;
   }
 
@@ -171,16 +243,19 @@
     padding: 1px var(--space-3);
     background: linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: 700;
+    letter-spacing: var(--tracking-wide);
     text-align: center;
     color: var(--metal-bright);
-    box-shadow: var(--shadow-sm);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--ground-deep), var(--shadow-sm);
   }
 
   .dnd-stat-lit {
+    --stat-brace: var(--stat-light);
+    --stat-rim: var(--stat-light);
     border-color: var(--stat-light);
     box-shadow: var(--shadow-sm), 0 0 18px color-mix(in srgb, var(--stat-light) 45%, transparent);
     animation: dnd-stat-glow 2.6s ease-in-out infinite alternate;

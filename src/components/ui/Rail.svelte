@@ -46,7 +46,7 @@
 
 <section class="dnd-rail dnd-rail-{tone}" aria-label={title}>
   <header class="dnd-rail-head">
-    <span class="dnd-rail-crest"><Ornament name="rosette" size="xs" tone="metal" /></span>
+    <span class="dnd-rail-crest"><Ornament name="tracery" size="xs" tone="metal" /></span>
     <h2 class="dnd-heading dnd-rail-title">{title}</h2>
     {#if note}<span class="dnd-rail-note">{note}</span>{/if}
     <span class="dnd-rail-run"></span>
@@ -77,11 +77,13 @@
 
 <style>
   .dnd-rail {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
     --rail-light: var(--metal);
+    --rail-arcade: 7px;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    min-height: 0;
   }
 
   .dnd-rail-ember {
@@ -93,11 +95,33 @@
   }
 
   .dnd-rail-head {
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: var(--space-3);
     padding-bottom: var(--space-2);
     border-bottom: var(--border-hair) solid var(--metal-dim);
+    box-shadow: 0 2px 0 -1px var(--metal-edge);
+  }
+
+  .dnd-rail-head::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    height: var(--rail-arcade);
+    background: linear-gradient(0deg, var(--metal-dim) 0%, transparent 100%);
+    -webkit-mask-image: var(--mask-arch);
+    mask-image: var(--mask-arch);
+    -webkit-mask-size: 13px var(--rail-arcade);
+    mask-size: 13px var(--rail-arcade);
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    opacity: 0.4;
+    pointer-events: none;
   }
 
   .dnd-rail-crest {
@@ -125,8 +149,10 @@
   .dnd-rail-run {
     flex: 1;
     min-width: var(--space-4);
-    height: 1px;
-    background: linear-gradient(90deg, var(--metal-dim), transparent);
+    height: 3px;
+    background:
+      linear-gradient(90deg, var(--metal-dim), transparent) 0 0 / 100% var(--border-hair) no-repeat,
+      linear-gradient(90deg, var(--metal-edge), transparent) 0 100% / 100% var(--border-hair) no-repeat;
   }
 
   .dnd-rail-actions {
@@ -151,6 +177,7 @@
     background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
     color: var(--metal);
     font-family: var(--font-display);
     font-size: var(--text-md);
@@ -184,14 +211,34 @@
   }
 
   .dnd-rail-empty {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-4);
-    border: var(--border-hair) dashed var(--metal-dim);
-    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: 0;
+    clip-path: polygon(
+      var(--space-3) 0,
+      calc(100% - var(--space-3)) 0,
+      calc(100% - var(--space-2)) var(--space-2),
+      100% var(--space-3),
+      100% 100%,
+      0 100%,
+      0 var(--space-3),
+      var(--space-2) var(--space-2)
+    );
     color: var(--ink-faint);
     font-size: var(--text-sm);
+  }
+
+  .dnd-rail-empty::before {
+    content: '';
+    position: absolute;
+    inset: var(--space-3);
+    border: var(--border-hair) solid var(--metal-edge);
+    opacity: 0.6;
+    pointer-events: none;
   }
 
   .dnd-rail-empty p {

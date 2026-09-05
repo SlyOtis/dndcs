@@ -29,6 +29,8 @@
   } = $props()
 
   const cornerTone = $derived(variant === 'iron' ? 'ink' : 'metal')
+  const cornerName = $derived(variant === 'dragon' ? 'corner' : 'cusp')
+  const cornerSize = $derived(variant === 'hairline' ? 'sm' : 'md')
 </script>
 
 <section
@@ -44,29 +46,41 @@
       {#if variant === 'iron'}
         <Ornament name="skull" size="md" tone={cornerTone} />
       {:else}
-        <Ornament name="corner" size={variant === 'hairline' ? 'sm' : 'lg'} tone={cornerTone} />
+        <Ornament name={cornerName} size={cornerSize} tone={cornerTone} />
       {/if}
     </span>
     <span class="dnd-frame-corner dnd-frame-corner-tr">
       {#if variant === 'iron'}
         <Ornament name="skull" size="md" tone={cornerTone} />
       {:else}
-        <Ornament name="corner" size={variant === 'hairline' ? 'sm' : 'lg'} tone={cornerTone} flip />
+        <Ornament name={cornerName} size={cornerSize} tone={cornerTone} flip />
       {/if}
     </span>
     <span class="dnd-frame-corner dnd-frame-corner-bl">
       {#if variant === 'iron'}
         <Ornament name="skull" size="md" tone={cornerTone} />
       {:else}
-        <Ornament name="corner" size={variant === 'hairline' ? 'sm' : 'lg'} tone={cornerTone} rotate={-90} />
+        <Ornament name={cornerName} size={cornerSize} tone={cornerTone} rotate={-90} />
       {/if}
     </span>
     <span class="dnd-frame-corner dnd-frame-corner-br">
       {#if variant === 'iron'}
         <Ornament name="skull" size="md" tone={cornerTone} />
       {:else}
-        <Ornament name="corner" size={variant === 'hairline' ? 'sm' : 'lg'} tone={cornerTone} rotate={180} />
+        <Ornament name={cornerName} size={cornerSize} tone={cornerTone} rotate={180} />
       {/if}
+    </span>
+  {/if}
+
+  {#if variant === 'cathedral'}
+    <span class="dnd-frame-rose">
+      <Ornament name="tracery" size="xl" tone="metal" />
+    </span>
+    <span class="dnd-frame-lancet dnd-frame-lancet-left">
+      <Ornament name="lancet" size="lg" tone="metal" />
+    </span>
+    <span class="dnd-frame-lancet dnd-frame-lancet-right">
+      <Ornament name="lancet" size="lg" tone="metal" />
     </span>
   {/if}
 
@@ -115,6 +129,18 @@
 
 <style>
   .dnd-frame {
+    --frame-cusp: 30px;
+    --frame-dip: 18px;
+    --frame-cut: polygon(
+      var(--frame-cusp) 0,
+      calc(100% - var(--frame-cusp)) 0,
+      calc(100% - var(--frame-dip)) var(--frame-dip),
+      100% var(--frame-cusp),
+      100% 100%,
+      0 100%,
+      0 var(--frame-cusp),
+      var(--frame-dip) var(--frame-dip)
+    );
     position: relative;
     isolation: isolate;
     border-radius: var(--radius-xl);
@@ -133,7 +159,8 @@
     background:
       var(--texture-weave),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 55%, var(--ground-deep) 100%);
-    box-shadow: var(--shadow-lg);
+    clip-path: var(--frame-cut);
+    filter: drop-shadow(0 16px 36px var(--shade-hard));
   }
 
   .dnd-frame-keyline {
@@ -146,6 +173,41 @@
       inset 0 0 0 var(--border-hair) var(--metal-edge),
       inset 0 0 40px -14px var(--ember-glow);
     pointer-events: none;
+  }
+
+  .dnd-frame-keyline::after {
+    content: '';
+    position: absolute;
+    inset: var(--space-1);
+    border: var(--border-hair) solid var(--metal-edge);
+    border-radius: calc(var(--radius-xl) - 8px);
+    opacity: 0.55;
+  }
+
+  .dnd-frame-rose {
+    position: absolute;
+    top: var(--space-4);
+    left: 50%;
+    z-index: 0;
+    transform: translateX(-50%);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  .dnd-frame-lancet {
+    position: absolute;
+    bottom: var(--space-4);
+    z-index: 0;
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  .dnd-frame-lancet-left {
+    left: var(--space-5);
+  }
+
+  .dnd-frame-lancet-right {
+    right: var(--space-5);
   }
 
   .dnd-frame-body {
@@ -276,6 +338,11 @@
     border-radius: calc(var(--radius-xl) * 2) calc(var(--radius-xl) * 2) var(--radius-lg) var(--radius-lg);
   }
 
+  .dnd-frame-iron,
+  .dnd-frame-timber {
+    --frame-cut: none;
+  }
+
   .dnd-frame-iron .dnd-frame-ground {
     background:
       var(--texture-noise),
@@ -329,9 +396,14 @@
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
   }
 
+  .dnd-frame-hairline {
+    --frame-cusp: 16px;
+    --frame-dip: 10px;
+  }
+
   .dnd-frame-hairline .dnd-frame-ground {
     background: linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
-    box-shadow: var(--shadow-md);
+    filter: drop-shadow(0 6px 16px var(--shade));
   }
 
   .dnd-frame-hairline .dnd-frame-keyline {
@@ -339,8 +411,14 @@
     box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
   }
 
+  .dnd-frame-hairline .dnd-frame-keyline::after {
+    inset: 2px;
+    border-radius: calc(var(--radius-xl) - 8px);
+  }
+
   @media (max-width: 760px) {
     .dnd-frame-dragon,
+    .dnd-frame-lancet,
     .dnd-frame-torch {
       display: none;
     }

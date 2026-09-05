@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import Ornament from './Ornament.svelte'
 
   const {
     text,
@@ -24,6 +25,12 @@
 <div class="dnd-banner dnd-banner-{tone} dnd-banner-{size}">
   <span class="dnd-banner-tail dnd-banner-tail-start"></span>
   <span class="dnd-banner-plate">
+    <span class="dnd-banner-cusp dnd-banner-cusp-start">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={180} flip />
+    </span>
+    <span class="dnd-banner-cusp dnd-banner-cusp-end">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={180} />
+    </span>
     <span class="dnd-banner-text">{text}</span>
     {#if sub}<span class="dnd-banner-sub">{sub}</span>{/if}
     {@render children?.()}
@@ -33,10 +40,12 @@
 
 <style>
   .dnd-banner {
+    --banner-h: 44px;
+    --banner-head: 34%;
+    --banner-line: var(--metal);
     position: relative;
     display: inline-flex;
-    align-items: stretch;
-    --banner-h: 44px;
+    align-items: flex-end;
     filter: drop-shadow(0 4px 10px var(--shade-hard));
   }
 
@@ -54,16 +63,42 @@
 
   .dnd-banner-plate {
     position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     min-height: var(--banner-h);
-    padding: var(--space-1) var(--space-5);
+    padding: calc(var(--banner-h) * 0.34) var(--space-5) var(--space-2);
+  }
+
+  .dnd-banner-plate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 50%, var(--ground-deep) 100%);
-    border-top: var(--border-hair) solid var(--metal);
-    border-bottom: var(--border-hair) solid var(--metal-dim);
-    box-shadow: inset 0 1px 0 var(--metal-edge);
+    clip-path: polygon(0 100%, 0 var(--banner-head), 50% 0, 100% var(--banner-head), 100% 100%);
+    filter:
+      drop-shadow(var(--border-hair) 0 0 var(--banner-line))
+      drop-shadow(calc(var(--border-hair) * -1) 0 0 var(--banner-line))
+      drop-shadow(0 var(--border-hair) 0 var(--banner-line))
+      drop-shadow(0 calc(var(--border-hair) * -1) 0 var(--banner-line));
+  }
+
+  .dnd-banner-cusp {
+    position: absolute;
+    bottom: var(--space-1);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .dnd-banner-cusp-start {
+    left: var(--space-1);
+  }
+
+  .dnd-banner-cusp-end {
+    right: var(--space-1);
   }
 
   .dnd-banner-text {
@@ -95,7 +130,8 @@
 
   .dnd-banner-tail {
     width: calc(var(--banner-h) * 0.45);
-    background: linear-gradient(180deg, var(--metal-dim) 0%, var(--ground-deep) 100%);
+    height: calc(var(--banner-h) * 0.62);
+    background: linear-gradient(180deg, var(--banner-line) 0%, var(--ground-deep) 100%);
     box-shadow: inset 0 1px 0 var(--metal-edge);
   }
 
@@ -107,24 +143,26 @@
     clip-path: polygon(0 0, 100% 0, 55% 50%, 100% 100%, 0 100%);
   }
 
-  .dnd-banner-iron .dnd-banner-plate {
+  .dnd-banner-iron {
+    --banner-line: var(--ink-faint);
+  }
+
+  .dnd-banner-iron .dnd-banner-plate::before {
     background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground) 100%);
-    border-color: var(--ink-faint);
   }
 
   .dnd-banner-iron .dnd-banner-text {
     color: var(--ink);
   }
 
-  .dnd-banner-iron .dnd-banner-tail {
-    background: linear-gradient(180deg, var(--ink-faint) 0%, var(--ground-deep) 100%);
+  .dnd-banner-timber {
+    --banner-line: var(--metal-dim);
   }
 
-  .dnd-banner-timber .dnd-banner-plate {
+  .dnd-banner-timber .dnd-banner-plate::before {
     background:
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     background-blend-mode: soft-light, normal;
-    border-radius: var(--radius-sm);
   }
 </style>

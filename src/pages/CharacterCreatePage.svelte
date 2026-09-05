@@ -1,878 +1,765 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import { navigate } from "sly-svelte-location-router";
-  import { characterService } from "../lib/firestore.service";
-  import { aiService } from "../lib/ai";
-  import type { Character } from "../lib/character.types";
-  import Background from "$components/Background.svelte";
-  import * as pdfjsLib from 'pdfjs-dist';
-  import Aura from "$components/ui/Aura.svelte";
+  import { getSystem } from "$lib/rules/system";
+  import { getExpressionValue } from "$lib/rules/expression";
+  import type { AttributeSpec } from "$lib/rules/spec.types";
+  import { aiService, hasReplicateKey } from "$lib/ai";
+  import { getSource, SOURCE_ACCEPT, type Source } from "$lib/sources";
+  import { postFile } from "$lib/storage.service";
+  import Button from "$components/ui/Button.svelte";
+  import Field from "$components/ui/Field.svelte";
+  import Glyph from "$components/ui/Glyph.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
-  
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+  import Panel from "$components/ui/Panel.svelte";
+  import Portrait from "$components/ui/Portrait.svelte";
+  import Shell from "$components/ui/Shell.svelte";
 
   interface CharacterCreationData {
     name: string;
     level: number;
     backgroundUrl?: string;
-    abilityScores: {
-      strength: number;
-      dexterity: number;
-      constitution: number;
-      intelligence: number;
-      wisdom: number;
-      charisma: number;
-    };
+    abilityScores: Record<string, number>;
+    attributes: AttributeSpec[];
     sources: string[];
     imageUrl?: string;
-    aiAnalysis?: any;
+    suggestedClass?: string;
+    suggestedRace?: string;
   }
+
+  const SYSTEM = 'dnd5e';
+
+  const KINDS: Record<Source['kind'], string> = {
+    pdf: 'PDF',
+    json: 'JSON',
+    text: 'Text',
+    image: 'Image'
+  };
 
   let creationData = $state<CharacterCreationData>({
     name: '',
     level: 1,
-    abilityScores: {
-      strength: 10,
-      dexterity: 10,
-      constitution: 10,
-      intelligence: 10,
-      wisdom: 10,
-      charisma: 10
-    },
+    abilityScores: {},
+    attributes: [],
     sources: []
   });
-  let isProcessing = $state(false);
+
+  let adding = $state(false);
+  let newTitle = $state('');
+  let newShort = $state('');
+
+  onMount(async () => {
+    const system = await getSystem(SYSTEM);
+    for (const spec of system.attributes) postAttribute(spec);
+  });
+
+  function postAttribute(spec: AttributeSpec) {
+    if (creationData.attributes.some((held) => held.id === spec.id)) return;
+    creationData.attributes.push(spec);
+    creationData.abilityScores[spec.id] = spec.default;
+  }
+
+  function removeAttribute(id: string) {
+    creationData.attributes = creationData.attributes.filter((spec) => spec.id !== id);
+    delete creationData.abilityScores[id];
+  }
+
+  function postOwnAttribute() {
+    const title = newTitle.trim();
+    if (!title) return;
+
+    const id = title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
+    if (!id || creationData.attributes.some((spec) => spec.id === id)) {
+      error = `${title} is already on the sheet, or its name carries no letters.`;
+      return;
+    }
+
+    postAttribute({
+      id,
+      title,
+      short: (newShort.trim() || title.slice(0, 3)).toUpperCase(),
+      default: 10,
+      min: 1,
+      max: 30,
+      modifier: 'floor((score - 10) / 2)'
+    });
+
+    newTitle = '';
+    newShort = '';
+    adding = false;
+    error = null;
+  }
+
+  let sources = $state<Source[]>([]);
+  let reading = $state<string | null>(null);
+  let importing = $state(false);
   let error = $state<string | null>(null);
+  let word = $state<string | null>(null);
   let dragActive = $state(false);
-  let imagePreview = $state<string | null>(null);
-  let imageUrl = $state('');
+  let portraitDragActive = $state(false);
   let backgroundDragActive = $state(false);
+  let imagePreview = $state<string | null>(null);
 
-  let canContinue = $derived(
-    creationData.name.trim().length > 0
-  );
+  let canContinue = $derived(creationData.name.trim().length > 0);
+  let busy = $derived(Boolean(reading) || importing);
 
-  function handleImageUrlChange() {
-    if (imageUrl.trim()) {
-      imagePreview = imageUrl;
-      creationData.imageUrl = imageUrl;
+  function modifier(spec: AttributeSpec, score: number): string {
+    const value = getExpressionValue(spec.modifier, { score });
+    return value >= 0 ? `+${value}` : String(value);
+  }
+
+  function drag(event: DragEvent, active: boolean): boolean {
+    event.preventDefault();
+    return active;
+  }
+
+  async function postSources(files: File[]) {
+    error = null;
+    word = null;
+
+    for (const file of files) {
+      reading = file.name;
+      try {
+        sources.push(await getSource(file));
+      } catch (reason) {
+        error = reason instanceof Error ? reason.message : String(reason);
+      }
+    }
+
+    reading = null;
+    if (!error && sources.length > 0) word = `${sources.length} source${sources.length === 1 ? '' : 's'} read.`;
+  }
+
+  async function handleSourceDrop(event: DragEvent) {
+    event.preventDefault();
+    dragActive = false;
+    const files = event.dataTransfer?.files;
+    if (files) await postSources(Array.from(files));
+  }
+
+  async function handleSourceInput(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    if (input.files) await postSources(Array.from(input.files));
+    input.value = '';
+  }
+
+  function removeSource(index: number) {
+    sources.splice(index, 1);
+  }
+
+  async function postCharacterReading() {
+    if (sources.length === 0) return;
+
+    importing = true;
+    error = null;
+    word = null;
+
+    try {
+      const found = await aiService.postCharacterImport(sources.map((entry) => entry.text));
+
+      if (found.name) creationData.name = found.name;
+      if (found.level) creationData.level = found.level;
+      if (found.class) creationData.suggestedClass = found.class;
+      if (found.race) creationData.suggestedRace = found.race;
+
+      for (const spec of creationData.attributes) {
+        const score = found.abilityScores?.[spec.id] ?? found.abilityScores?.[spec.title.toLowerCase()];
+        if (typeof score === 'number') creationData.abilityScores[spec.id] = score;
+      }
+
+      word = found.name
+        ? `Read ${found.name}${found.class ? `, ${found.class}` : ''} from your sources.`
+        : 'Read what the sources hold. Check the fields before you continue.';
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason);
+    } finally {
+      importing = false;
     }
   }
 
-  function handleBackgroundDragOver(event: DragEvent) {
-    event.preventDefault();
-    backgroundDragActive = true;
+  async function postPortrait(files: File[]) {
+    const file = files.find((entry) => entry.type.startsWith('image/'));
+    if (!file) return;
+
+    imagePreview = URL.createObjectURL(file);
+    error = null;
+
+    try {
+      creationData.imageUrl = await postFile(file, { kind: 'user' });
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason);
+    }
   }
 
-  function handleBackgroundDragLeave() {
-    backgroundDragActive = false;
+  async function handlePortraitDrop(event: DragEvent) {
+    event.preventDefault();
+    portraitDragActive = false;
+    const files = event.dataTransfer?.files;
+    if (files) await postPortrait(Array.from(files));
+  }
+
+  async function handlePortraitInput(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    if (input.files) await postPortrait(Array.from(input.files));
+  }
+
+  async function postBackground(files: File[]) {
+    const file = files.find((entry) => entry.type.startsWith('image/') || entry.type.startsWith('video/'));
+    if (!file) return;
+
+    error = null;
+
+    try {
+      creationData.backgroundUrl = await postFile(file, { kind: 'user' });
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason);
+    }
   }
 
   async function handleBackgroundDrop(event: DragEvent) {
     event.preventDefault();
     backgroundDragActive = false;
-    
     const files = event.dataTransfer?.files;
-    if (files) {
-      await processBackgroundFiles(Array.from(files));
-    }
+    if (files) await postBackground(Array.from(files));
   }
 
-  async function handleBackgroundFileInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-      await processBackgroundFiles(Array.from(input.files));
-    }
+  async function handleBackgroundInput(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    if (input.files) await postBackground(Array.from(input.files));
   }
 
-  async function processBackgroundFiles(files: File[]) {
-    for (const file of files) {
-      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
-        const url = URL.createObjectURL(file);
-        creationData.backgroundUrl = url;
-        break;
-      }
-    }
-  }
-
-  function handleDragOver(event: DragEvent) {
-    event.preventDefault();
-    dragActive = true;
-  }
-
-  function handleDragLeave() {
-    dragActive = false;
-  }
-
-  async function handleDrop(event: DragEvent) {
-    event.preventDefault();
-    dragActive = false;
-    
-    const files = event.dataTransfer?.files;
-    if (files) {
-      await processFiles(Array.from(files));
-    }
-  }
-
-  async function handleFileInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-      await processFiles(Array.from(input.files));
-    }
-  }
-
-  async function processFiles(files: File[]) {
-    isProcessing = true;
-    error = null;
-
+  function putCreationData(data: unknown): boolean {
     try {
-      for (const file of files) {
-        if (file.type === 'application/pdf') {
-          const text = await extractTextFromPDF(file);
-          creationData.sources.push(text);
-        } else if (file.type.startsWith('image/')) {
-          const url = URL.createObjectURL(file);
-          imagePreview = url;
-          creationData.imageUrl = url;
-          imageUrl = '';
-        }
-      }
-    } catch (err) {
-      error = 'Failed to process files';
-    } finally {
-      isProcessing = false;
+      sessionStorage.setItem('characterCreationData', JSON.stringify(data));
+      return true;
+    } catch {
+      error = 'Your source material is too large to carry to the next step. Remove a source and try again.';
+      return false;
     }
   }
 
-  async function extractTextFromPDF(file: File): Promise<string> {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
-    }
-
-    return fullText;
-  }
-
-  function removeSource(index: number) {
-    creationData.sources.splice(index, 1);
-  }
-
-  async function analyzeAndContinue() {
+  function continueToClass() {
     if (!canContinue) {
-      error = 'Please provide character name';
+      error = 'Your character needs a name.';
       return;
     }
 
-    isProcessing = true;
-    error = null;
+    creationData.sources = sources.map((entry) => entry.text);
 
-    try {
-      sessionStorage.setItem('characterCreationData', JSON.stringify(creationData));
-      navigate('/main/create/character/class');
-    } catch (err) {
-      error = 'Failed to continue character creation';
-      isProcessing = false;
-    }
-  }
-
-  async function createCharacter() {
-    if (!creationData.aiAnalysis) {
-      error = 'No character analysis available';
-      return;
-    }
-
-    try {
-      const character: Partial<Character> = {
-        ...creationData.aiAnalysis.character,
-        abilityScores: creationData.abilityScores,
-        imageUrl: creationData.imageUrl,
-        sources: creationData.sources
-      };
-
-      const characterId = await characterService.createCharacter(character as Character, {
-        name: character.info?.name || creationData.name,
-        level: 1,
-        class: character.info?.class?.name || "Unknown",
-        race: character.info?.race?.name || "Unknown",
-        tags: ["ai-generated", "sources-uploaded"]
-      });
-
-      navigate(`/character/${characterId}`);
-    } catch (err) {
-      error = 'Failed to create character';
-    } finally {
-      isProcessing = false;
-    }
+    if (!putCreationData(creationData)) return;
+    navigate('/main/create/character/class');
   }
 </script>
 
-<Background />
-<Aura variant="veil" tone="verdigris" />
-<Aura variant="motes" tone="ember" density="sparse" />
+<Shell title="New Character" width="narrow" back={() => navigate('/main')}>
+  <header class="make-crown">
+    <span class="make-crest">
+      <span class="make-plate dnd-shield"></span>
+      <Ornament name="crest" size="md" tone="metal" />
+    </span>
+    <h1 class="dnd-heading dnd-heading-hero make-name">Forge a Character</h1>
+    <span class="make-rule"><Ornament name="divider" tone="metal" /></span>
+    <p class="make-lede">Name them, bring what you have written, and set the scores they start with.</p>
+  </header>
 
-<div class="page-wrapper">
-<div class="create-character">
-  <button class="back-btn" onclick={() => navigate('/main')}>
-    ← Back
-  </button>
-  
-  <div class="header">
-    <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
-    <h1>Create New Character</h1>
-  </div>
-
-  <div class="form-content">
-    <div class="top-section">
-      <div class="image-section">
-        <div class="image-upload-area {dragActive ? 'drag-active' : ''}"
-             role="region"
-             aria-label="Character image drop zone"
-             ondragover={handleDragOver}
-             ondragleave={handleDragLeave}
-             ondrop={handleDrop}>
-          {#if imagePreview}
-            <img src={imagePreview} alt="Character" class="character-image-preview" />
-            <div class="image-overlay">
-              <span>Drop image to change</span>
-            </div>
-          {:else}
-            <div class="image-placeholder">
-              <div class="upload-icon">🖼️</div>
-              <p>Drop image here or click to upload character image</p>
-            </div>
-          {/if}
-          <input
-            type="file"
-            accept="image/*"
-            onchange={handleFileInput}
-            class="file-input"
-          />
-        </div>
+  <Panel title="The character">
+    <div class="make-top">
+      <div
+        class="make-drop"
+        class:make-drop-live={portraitDragActive}
+        role="region"
+        aria-label="Character image drop zone"
+        ondragover={(event) => (portraitDragActive = drag(event, true))}
+        ondragleave={() => (portraitDragActive = false)}
+        ondrop={handlePortraitDrop}
+      >
+        {#if imagePreview}
+          <Portrait src={imagePreview} alt="Character" frame="lancet" size="lg" />
+        {:else}
+          <span class="dnd-empty-mark"><Ornament name="quatrefoil" size="sm" tone="metal" /></span>
+          <p class="make-drop-note">Drop a portrait, or pick one</p>
+        {/if}
+        <input class="make-drop-input" type="file" accept="image/*" aria-label="Character image" onchange={handlePortraitInput} />
       </div>
 
-      <div class="info-section">
-        <div class="form-group">
-          <label for="character-name">Character Name</label>
-          <input
-            type="text"
-            id="character-name"
-            bind:value={creationData.name}
-            placeholder="Enter character name"
-            class="text-input"
-          />
-        </div>
+      <div class="make-lines">
+        <Field label="Character name" id="character-name" required>
+          <input id="character-name" type="text" bind:value={creationData.name} placeholder="Enter character name" />
+        </Field>
 
-        <div class="form-group">
-          <label for="level">Starting Level</label>
-          <input
-            type="number"
-            id="level"
-            bind:value={creationData.level}
-            min="1"
-            max="20"
-            placeholder="1"
-            class="text-input"
-          />
-        </div>
+        <Field label="Starting level" id="character-level">
+          <input id="character-level" type="number" min="1" max="20" bind:value={creationData.level} />
+        </Field>
       </div>
     </div>
+  </Panel>
 
-    <div class="background-section">
-      <h3>Character Background</h3>
-      <div class="background-upload-box {backgroundDragActive ? 'drag-active' : ''}"
-           role="region"
-           aria-label="Background image drop zone"
-           ondragover={handleBackgroundDragOver}
-           ondragleave={handleBackgroundDragLeave}
-           ondrop={handleBackgroundDrop}>
-        <input
-          type="url"
-          bind:value={creationData.backgroundUrl}
-          placeholder="Enter image or video URL for character page background"
-          class="background-url-input"
-        />
-        <button class="background-upload-btn" onclick={() => document.getElementById('background-file-input')?.click()}>
-          Upload Image
-        </button>
-        <input
-          id="background-file-input"
-          type="file"
-          accept="image/*,video/*"
-          onchange={handleBackgroundFileInput}
-          class="file-input"
-        />
+  <Panel title="Source material">
+    {#if !$hasReplicateKey}
+      <div class="make-gate">
+        <p class="make-gate-text">
+          Reading source material runs on Replicate, and your account carries no key yet. Add one on your profile
+          and it stays on your own user document.
+        </p>
+        <Button variant="secondary" size="sm" onclick={() => navigate('/user')}>Add a Replicate key</Button>
       </div>
-    </div>
-
-    <div class="ability-scores">
-      <h3>Ability Scores</h3>
-      <div class="scores-container">
-        <div class="score-box">
-          <div class="score-label">STR</div>
-          <input type="number" bind:value={creationData.abilityScores.strength} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.strength - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.strength - 10) / 2)}</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">DEX</div>
-          <input type="number" bind:value={creationData.abilityScores.dexterity} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.dexterity - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.dexterity - 10) / 2)}</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">CON</div>
-          <input type="number" bind:value={creationData.abilityScores.constitution} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.constitution - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.constitution - 10) / 2)}</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">INT</div>
-          <input type="number" bind:value={creationData.abilityScores.intelligence} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.intelligence - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.intelligence - 10) / 2)}</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">WIS</div>
-          <input type="number" bind:value={creationData.abilityScores.wisdom} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.wisdom - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.wisdom - 10) / 2)}</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">CHA</div>
-          <input type="number" bind:value={creationData.abilityScores.charisma} min="1" max="20" class="score-value" />
-          <div class="score-modifier">{Math.floor((creationData.abilityScores.charisma - 10) / 2) >= 0 ? '+' : ''}{Math.floor((creationData.abilityScores.charisma - 10) / 2)}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="source-upload">
-      <h3>Source Materials</h3>
-      <div 
-        class="upload-area {dragActive ? 'drag-active' : ''}"
+    {:else}
+      <div
+        class="make-drop make-band"
+        class:make-drop-live={dragActive}
         role="region"
         aria-label="Source material drop zone"
-        ondragover={handleDragOver}
-        ondragleave={handleDragLeave}
-        ondrop={handleDrop}
+        ondragover={(event) => (dragActive = drag(event, true))}
+        ondragleave={() => (dragActive = false)}
+        ondrop={handleSourceDrop}
       >
-        <div class="upload-content">
-          <div class="upload-icon">📄</div>
-          <h4>Drop PDFs here or click to select</h4>
-          <p>Upload character sheets, class guides, or source materials</p>
-          <input
-            type="file"
-            multiple
-            accept=".pdf"
-            onchange={handleFileInput}
-            class="file-input"
-          />
-        </div>
+        <p class="make-drop-note">Drop source material here, or pick it</p>
+        <p class="make-drop-help">
+          A PDF, a JSON or Markdown export, a class guide, or a screenshot of a D&amp;D Beyond sheet.
+        </p>
+        <input
+          class="make-drop-input"
+          type="file"
+          multiple
+          accept={SOURCE_ACCEPT}
+          aria-label="Source material"
+          disabled={busy}
+          onchange={handleSourceInput}
+        />
       </div>
 
-      {#if creationData.sources.length > 0}
-        <div class="sources-list">
-          <h4>Uploaded Sources:</h4>
-          {#each creationData.sources as source, index}
-            <div class="source-item">
-              <span class="source-preview">{source.substring(0, 100)}...</span>
-              <button class="remove-btn" onclick={() => removeSource(index)}>×</button>
-            </div>
-          {/each}
-        </div>
+      {#if reading}
+        <p class="make-reading"><span class="dnd-spinner make-reading-mark"></span>Reading {reading}…</p>
       {/if}
+
+      {#if sources.length > 0}
+        <ul class="make-sources">
+          {#each sources as source, index (source.name + index)}
+            <li class="make-source">
+              <span class="make-source-kind">{KINDS[source.kind]}</span>
+              <span class="make-source-name">{source.name}</span>
+              <span class="make-source-size">{source.text.length.toLocaleString()} characters</span>
+              <Button variant="ghost" size="sm" onclick={() => removeSource(index)}>Remove</Button>
+            </li>
+          {/each}
+        </ul>
+
+        <Button variant="secondary" loading={importing} disabled={busy} onclick={postCharacterReading}>
+          Read the character from these
+        </Button>
+      {/if}
+    {/if}
+  </Panel>
+
+  <Panel title="Ability scores">
+    <div class="make-scores">
+      {#each creationData.attributes as spec (spec.id)}
+        <div class="make-score">
+          <label class="dnd-caption make-score-label" for="score-{spec.id}" title={spec.title}>{spec.short}</label>
+          <input
+            id="score-{spec.id}"
+            class="dnd-num"
+            type="number"
+            min={spec.min}
+            max={spec.max}
+            bind:value={creationData.abilityScores[spec.id]}
+          />
+          <span class="make-score-mod">{modifier(spec, creationData.abilityScores[spec.id])}</span>
+          <button
+            type="button"
+            class="make-score-drop"
+            title="Drop {spec.title}"
+            aria-label="Drop {spec.title}"
+            onclick={() => removeAttribute(spec.id)}
+          ><Glyph name="close" size="sm" /></button>
+        </div>
+      {/each}
     </div>
 
-    {#if error}
-      <div class="error">{error}</div>
+    {#if adding}
+      <div class="make-own">
+        <Field label="Ability name" id="own-title">
+          <input id="own-title" type="text" bind:value={newTitle} placeholder="Grit" />
+        </Field>
+
+        <Field label="Short" id="own-short" help="Three letters read best on the sheet.">
+          <input id="own-short" type="text" maxlength="4" bind:value={newShort} placeholder="GRT" />
+        </Field>
+
+        <div class="make-own-acts">
+          <Button variant="secondary" size="sm" onclick={() => (adding = false)}>Cancel</Button>
+          <Button variant="primary" size="sm" disabled={!newTitle.trim()} onclick={postOwnAttribute}>Add</Button>
+        </div>
+      </div>
     {/if}
 
-    <div class="form-actions">
-      <button class="btn-secondary" onclick={() => navigate('/main')}>Cancel</button>
-      <button class="btn-primary" onclick={analyzeAndContinue} disabled={!canContinue || isProcessing}>
-        {#if isProcessing}
-          <span class="spinner"></span>
-          Continuing...
-        {:else}
-          Continue
-        {/if}
-      </button>
+    {#snippet actions()}
+      <Button variant="ghost" size="sm" onclick={() => (adding = !adding)}>Add an ability</Button>
+    {/snippet}
+  </Panel>
+
+  <Panel title="Background">
+    <Field label="Image or video URL" id="character-background" help="Shown behind the sheet on the character page.">
+      <input id="character-background" type="url" bind:value={creationData.backgroundUrl} placeholder="https://" />
+    </Field>
+
+    <div
+      class="make-drop make-band"
+      class:make-drop-live={backgroundDragActive}
+      role="region"
+      aria-label="Background image drop zone"
+      ondragover={(event) => (backgroundDragActive = drag(event, true))}
+      ondragleave={() => (backgroundDragActive = false)}
+      ondrop={handleBackgroundDrop}
+    >
+      <p class="make-drop-note">Drop an image or a video, or pick one</p>
+      <input
+        class="make-drop-input"
+        type="file"
+        accept="image/*,video/*"
+        aria-label="Background file"
+        onchange={handleBackgroundInput}
+      />
     </div>
+  </Panel>
+
+  {#if error}
+    <p class="make-alarm" role="alert">{error}</p>
+  {:else if word}
+    <p class="make-word" role="status">{word}</p>
+  {/if}
+
+  <div class="make-acts">
+    <Button variant="secondary" onclick={() => navigate('/main')}>Cancel</Button>
+    <Button variant="primary" loading={busy} disabled={!canContinue} onclick={continueToClass}>Continue</Button>
   </div>
-</div>
-</div>
+</Shell>
 
 <style>
-  .header-crest {
-    display: block;
-    margin: 0 auto var(--space-2);
-    filter: drop-shadow(0 4px 10px var(--shade-hard));
-  }
-
-  .page-wrapper {
-    min-height: 100vh;
-    width: 100%;
-    overflow-y: auto;
-  }
-
-  .create-character {
-    padding: 4rem 2rem 4rem 2rem;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-  }
-
-  .back-btn {
-    position: fixed;
-    top: 2rem;
-    left: 2rem;
-    padding: 0.5rem 1rem;
-    background: var(--ground);
-    border: 1px solid var(--metal);
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-    z-index: 100;
-  }
-
-  .back-btn:hover {
-    background: var(--metal);
-    transform: translateX(-2px);
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .header h1 {
-    margin: 0;
-    color: var(--metal);
-    font-size: 2.5rem;
-  }
-
-  .form-content {
-    background: var(--ground);
-    border: 2px solid var(--metal);
-    border-radius: 12px;
-    padding: 2rem;
+  .make-crown {
+    --make-rule-run: calc(var(--space-8) * 6);
+    --make-rule-share: 70%;
+    --make-crest-lift: drop-shadow(0 var(--space-1) var(--space-3) var(--shade-hard));
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    max-width: 1024px;
-    margin: 0 auto;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    text-align: center;
   }
 
-  .top-section {
+  .make-crest {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6) var(--space-5);
+    filter: var(--make-crest-lift);
+  }
+
+  .make-plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+  }
+
+  .make-name {
+    font-size: var(--text-2xl);
+  }
+
+  .make-rule {
+    display: block;
+    width: min(var(--make-rule-run), var(--make-rule-share));
+  }
+
+  .make-lede {
+    max-width: 60ch;
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .make-top {
+    --make-portrait-col: calc(var(--space-8) * 3);
     display: grid;
-    grid-template-columns: 200px 1fr;
-    gap: 2rem;
+    grid-template-columns: minmax(0, var(--make-portrait-col)) minmax(0, 1fr);
+    gap: var(--space-4);
     align-items: start;
   }
 
-  .image-section {
-    position: relative;
+  .make-lines {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
   }
 
-  .image-upload-area {
-    width: 200px;
-    height: 200px;
-    border: 2px dashed var(--metal);
-    border-radius: 12px;
+  .make-drop {
+    --make-drop-sink: inset 0 var(--border-width) var(--space-3) var(--shade-hard);
+    --make-band-h: calc(var(--space-8) + var(--space-7));
     position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    min-width: 0;
     overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .image-upload-area.drag-active {
-    border-color: var(--metal-bright);
-    background: color-mix(in srgb, var(--metal) 12%, transparent);
-  }
-
-  .character-image-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--shade-hard);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    color: var(--ink);
-  }
-
-  .image-upload-area:hover .image-overlay {
-    opacity: 1;
-  }
-
-  .image-placeholder {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    border: var(--border-width) dashed var(--metal-dim);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    box-shadow: var(--make-drop-sink);
     text-align: center;
-    padding: 1rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .image-placeholder .upload-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+  .make-drop-live {
+    border-color: var(--metal);
+    box-shadow: var(--make-drop-sink), var(--glow-metal);
   }
 
-  .image-placeholder p {
+  .make-drop:focus-within {
+    border-color: var(--metal);
+    box-shadow: var(--focus-ring);
+  }
+
+  .make-band {
+    min-height: var(--make-band-h);
+  }
+
+  .make-drop-note {
     margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
     color: var(--ink-dim);
   }
 
-  .info-section {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    z-index: 1;
-  }
-
-  .form-group label {
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--ink);
-  }
-
-  .background-section {
-    position: relative;
-    z-index: 1;
-  }
-
-  .background-section h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.5rem;
-  }
-
-  .background-upload-box {
-    border: 2px dashed var(--metal);
-    border-radius: 8px;
-    padding: 1rem;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    position: relative;
-  }
-
-  .background-upload-box.drag-active {
-    border-color: var(--metal-bright);
-    background: color-mix(in srgb, var(--metal) 12%, transparent);
-  }
-
-  .background-url-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--metal);
-    border-radius: 6px;
-    background: var(--shade-soft);
-    color: var(--ink);
-    font-size: 1rem;
-    position: relative;
-    z-index: 2;
-  }
-
-  .background-url-input:focus {
-    outline: none;
-    border-color: var(--metal-bright);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--metal) 32%, transparent);
-  }
-
-  .background-upload-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--ground);
-    border: 1px solid var(--metal);
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-  }
-
-  .background-upload-btn:hover {
-    background: var(--metal);
-    transform: translateY(-1px);
-  }
-
-
-  .ability-scores {
-    position: relative;
-    z-index: 1;
-  }
-
-  .ability-scores h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.5rem;
-  }
-
-  .scores-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  @media (min-width: 768px) {
-    .scores-container {
-      grid-template-columns: repeat(6, 1fr);
-    }
-  }
-
-  .score-box {
-    background: var(--shade-soft);
-    border: 2px solid var(--metal);
-    border-radius: 12px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-
-  .score-box:hover {
-    border-color: var(--metal-bright);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
-  }
-
-  .score-label {
-    font-weight: bold;
-    color: var(--metal);
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .score-value {
-    width: 50px;
-    height: 50px;
-    padding: 0;
-    text-align: center;
-    border: none;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--metal), var(--metal-bright));
-    color: var(--ink);
-    font-size: 1.5rem;
-    font-weight: bold;
-    box-shadow: 0 2px 8px var(--shade-soft);
-  }
-
-  .score-value:focus {
-    outline: none;
-    box-shadow: 0 0 12px color-mix(in srgb, var(--metal) 62%, transparent);
-  }
-
-  .score-modifier {
-    background: var(--sheen-soft);
-    color: var(--ink-dim);
-    font-size: 0.8rem;
-    font-weight: bold;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    min-width: 30px;
-    text-align: center;
-  }
-
-  .source-upload h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.5rem;
-  }
-
-  .upload-area {
-    border: 2px dashed var(--metal);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    text-align: center;
-    margin-bottom: 2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-
-  .upload-area.drag-active {
-    border-color: var(--metal-bright);
-    background: color-mix(in srgb, var(--metal) 12%, transparent);
-  }
-
-  .upload-content p {
+  .make-drop-help {
+    max-width: 46ch;
     margin: 0;
-    color: var(--ink-dim);
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
   }
 
-  .upload-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-  }
-
-  .file-input {
+  .make-drop-input {
     position: absolute;
-    top: 0;
-    left: 0;
+    inset: 0;
     width: 100%;
     height: 100%;
     opacity: 0;
     cursor: pointer;
   }
 
-  .sources-list {
-    margin-bottom: 2rem;
+  .make-drop-input:disabled {
+    cursor: progress;
   }
 
-  .sources-list h4 {
-    margin: 0 0 1rem 0;
-    color: var(--ink);
-  }
-
-  .source-item {
+  .make-gate {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    background: var(--shade-soft);
-    border: 1px solid color-mix(in srgb, var(--metal) 22%, transparent);
-    border-radius: 6px;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-warn) 55%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--state-warn) 14%, transparent);
   }
 
-  .source-preview {
-    color: var(--ink);
-    font-size: 0.9rem;
+  .make-gate-text {
     flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink);
   }
 
-  .remove-btn {
-    background: var(--state-bad);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    font-size: 1rem;
+  .make-reading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .make-reading-mark {
+    width: var(--space-4);
+    height: var(--space-4);
+    flex: none;
+  }
+
+  .make-scores {
+    --make-score-col: calc(var(--space-7) * 2);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--make-score-col), 100%), 1fr));
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .make-own {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+  }
+
+  .make-own-acts {
+    display: flex;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+  }
+
+  .make-score-drop {
+    position: absolute;
+    top: var(--make-drop-out);
+    right: var(--make-drop-out);
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .error {
-    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
-    border: 1px solid var(--state-bad);
-    border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    color: var(--state-bad);
-    text-align: center;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-    margin-top: 1rem;
-  }
-
-  .btn-primary, .btn-secondary {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
+    width: var(--make-drop-d);
+    height: var(--make-drop-d);
+    padding: 0;
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-pill);
+    background: radial-gradient(circle at 38% 26%, var(--ground-lift) 0%, var(--ground-deep) 84%);
+    box-shadow: 0 var(--border-width) var(--space-2) var(--shade-hard);
+    color: var(--ink-faint);
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .make-score:hover .make-score-drop,
+  .make-score-drop:focus-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .make-score-drop:hover {
+    border-color: var(--state-bad);
+    color: var(--state-bad);
+    box-shadow: 0 0 var(--space-3) color-mix(in srgb, var(--state-bad) 45%, transparent);
+  }
+
+  .make-score-drop:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .make-score {
+    --make-drop-d: var(--space-5);
+    --make-drop-out: calc(var(--space-2) * -1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    min-width: 0;
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 var(--border-hair) 0 var(--metal-edge);
+  }
+
+  .make-score-label {
+    margin: 0;
+  }
+
+  .make-score-mod {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .make-sources {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .make-source {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+    background: var(--ground-deep);
   }
 
-  .btn-primary {
-    background: var(--metal);
+  .make-source-kind {
+    flex: none;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--verdigris) 25%, transparent);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
     color: var(--ink);
   }
 
-  .btn-primary:hover:not(:disabled) {
-    background: var(--metal-bright);
-    transform: translateY(-1px);
-  }
-
-  .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .btn-secondary {
-    background: var(--ground);
+  .make-source-name {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--text-sm);
     color: var(--ink);
-    border: 1px solid var(--metal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .btn-secondary:hover {
-    background: var(--ground-lift);
+  .make-source-size {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
   }
 
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+  .make-word,
+  .make-alarm {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-hair) solid transparent;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    color: var(--ink);
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .make-alarm {
+    border-color: color-mix(in srgb, var(--state-bad) 55%, transparent);
+    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
   }
 
-  @media (max-width: 768px) {
-    .create-character {
-      padding: 1rem;
-    }
+  .make-word {
+    border-color: color-mix(in srgb, var(--state-good) 55%, transparent);
+    background: color-mix(in srgb, var(--state-good) 18%, transparent);
+  }
 
-    .top-section {
+  .make-acts {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 720px) {
+    .make-top {
       grid-template-columns: 1fr;
-      gap: 1.5rem;
     }
 
-    .image-upload-area {
-      width: 100%;
-      height: 250px;
-    }
-
-    .form-actions {
-      flex-direction: column;
-    }
-
-    .scores-container {
-      grid-template-columns: repeat(2, 1fr);
+    .make-source {
+      flex-wrap: wrap;
     }
   }
 </style>

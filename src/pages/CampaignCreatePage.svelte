@@ -2,8 +2,11 @@
   import { navigate } from "sly-svelte-location-router";
   import { campaignService } from "../lib/firestore.service";
   import { authService } from "../lib/auth.service";
-  import Aura from "$components/ui/Aura.svelte";
+  import Button from "$components/ui/Button.svelte";
+  import Field from "$components/ui/Field.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
+  import Panel from "$components/ui/Panel.svelte";
+  import Shell from "$components/ui/Shell.svelte";
   
   interface CampaignConcept {
     name?: string;
@@ -158,7 +161,7 @@
       console.log("Campaign created successfully with ID:", campaignId);
       
       // Navigate to campaign view with the new campaign ID
-      navigate(`/main/campaign/${campaignId}`);
+      navigate(`/campaign/${campaignId}`);
     } catch (err) {
       console.error("Failed to create campaign:", err);
       error = "Failed to create campaign. Please try again.";
@@ -177,579 +180,324 @@
   }
 </script>
 
-<Aura variant="veil" tone="verdigris" />
-<Aura variant="motes" tone="ember" density="sparse" />
-
-<div class="create-campaign">
-  <div class="header">
-    <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
-    <h1>Create New Campaign</h1>
-    <p>Describe your campaign idea and let AI help you build a complete adventure</p>
-  </div>
+<Shell title="New Campaign" width="narrow" back={() => navigate('/main')}>
+  <header class="raise-crown">
+    <span class="raise-crest">
+      <span class="raise-plate dnd-shield"></span>
+      <Ornament name="crest" size="md" tone="metal" />
+    </span>
+    <h1 class="dnd-heading dnd-heading-hero raise-name">Raise a Campaign</h1>
+    <span class="raise-rule"><Ornament name="divider" tone="metal" /></span>
+    <p class="raise-lede">Describe the world you mean to run and the forge writes the first draft.</p>
+  </header>
 
   {#if !generatedConcept}
-    <div class="input-section">
-      <div class="prompt-input">
-        <label for="campaign-prompt">Campaign Concept</label>
+    <Panel title="The concept">
+      <Field label="Campaign concept" id="campaign-prompt" help="Setting, tone, and what the party is pulled into.">
         <textarea
           id="campaign-prompt"
+          rows="5"
           bind:value={prompt}
-          placeholder="Describe your campaign setting and theme... (e.g., 'A mysterious fantasy campaign about investigating disappearances in a haunted forest' or 'A space opera adventure exploring ancient alien ruins')"
-          rows="4"
           disabled={isGenerating}
+          placeholder="A dark fantasy campaign about disappearances in a haunted forest kingdom…"
         ></textarea>
-      </div>
+      </Field>
 
-      <div class="examples">
-        <h3>Need inspiration? Try these examples:</h3>
-        <div class="example-grid">
-          {#each examplePrompts as example}
-            <button 
-              class="example-btn" 
-              onclick={() => useExamplePrompt(example)}
-              disabled={isGenerating}
-            >
-              {example}
-            </button>
-          {/each}
-        </div>
+      <p class="dnd-label raise-label">Need a spark</p>
+      <div class="raise-sparks">
+        {#each examplePrompts as example (example)}
+          <button type="button" class="raise-spark" disabled={isGenerating} onclick={() => useExamplePrompt(example)}>
+            {example}
+          </button>
+        {/each}
       </div>
 
       {#if error}
-        <div class="error">{error}</div>
+        <p class="raise-alarm" role="alert">{error}</p>
       {/if}
 
-      <div class="actions">
-        <button 
-          class="btn-primary" 
-          onclick={generateCampaign}
-          disabled={isGenerating || !prompt.trim()}
-        >
-          {#if isGenerating}
-            <span class="spinner"></span>
-            Generating Campaign...
-          {:else}
-            Generate Campaign
-          {/if}
-        </button>
-        <button class="btn-secondary" onclick={() => navigate('/main/campaign')}>
-          Cancel
-        </button>
-      </div>
+      {#snippet actions()}
+        <Button size="sm" loading={isGenerating} disabled={!prompt.trim()} onclick={generateCampaign}>Generate</Button>
+      {/snippet}
+    </Panel>
+
+    <div class="raise-acts">
+      <Button variant="secondary" onclick={() => navigate('/main')}>Cancel</Button>
     </div>
   {:else}
-    <div class="concept-display">
-      <div class="concept-header">
-        <h2>Generated Campaign</h2>
-        <div class="concept-actions">
-          <button class="btn-secondary" onclick={editPrompt}>Edit Prompt</button>
-          <button class="btn-secondary" onclick={regenerateCampaign} disabled={isGenerating}>
-            {#if isGenerating}
-              <span class="spinner"></span>
-              Regenerating...
-            {:else}
-              Regenerate
-            {/if}
-          </button>
-        </div>
-      </div>
+    <Panel title={generatedConcept.name ?? 'Generated campaign'}>
+      <p class="raise-blurb">{generatedConcept.description}</p>
 
-      <div class="concept-overview">
-        <div class="title-section">
-          <h3>{generatedConcept.name}</h3>
-          <p class="description">{generatedConcept.description}</p>
-        </div>
-        
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Setting:</span>
-            <span>{generatedConcept.setting || "Not specified"}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Genre:</span>
-            <span>{generatedConcept.genre || "Not specified"}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Tone:</span>
-            <span>{generatedConcept.tone || "Not specified"}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Theme:</span>
-            <span>{generatedConcept.theme || "Not specified"}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Starting Level:</span>
-            <span>{generatedConcept.startLevel || 1}</span>
-          </div>
-        </div>
-      </div>
+      <dl class="raise-facts">
+        <dt>Setting</dt>
+        <dd>{generatedConcept.setting || 'Not specified'}</dd>
+        <dt>Genre</dt>
+        <dd>{generatedConcept.genre || 'Not specified'}</dd>
+        <dt>Tone</dt>
+        <dd>{generatedConcept.tone || 'Not specified'}</dd>
+        <dt>Theme</dt>
+        <dd>{generatedConcept.theme || 'Not specified'}</dd>
+        <dt>Starting level</dt>
+        <dd>{generatedConcept.startLevel || 1}</dd>
+      </dl>
 
-      <div class="concept-grid">
-        {#if generatedConcept.mainQuest}
-          <div class="concept-section">
-            <h3>Main Quest</h3>
-            <div class="quest-content">
-              <h4>{generatedConcept.mainQuest.title}</h4>
-              <p>{generatedConcept.mainQuest.description}</p>
-            </div>
-          </div>
-        {/if}
+      {#snippet actions()}
+        <Button variant="ghost" size="sm" onclick={editPrompt}>Edit prompt</Button>
+        <Button variant="ghost" size="sm" loading={isGenerating} onclick={regenerateCampaign}>Regenerate</Button>
+      {/snippet}
+    </Panel>
 
-        {#if generatedConcept.locations && generatedConcept.locations.length > 0}
-          <div class="concept-section">
-            <h3>Key Locations</h3>
-            <div class="locations-list">
-              {#each generatedConcept.locations as location}
-                <div class="location-item">
-                  <div class="location-header">
-                    <span class="location-name">{location.name}</span>
-                    <span class="location-type">({location.type})</span>
-                  </div>
-                  <p class="location-description">{location.description}</p>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
+    <div class="raise-outline">
+      {#if generatedConcept.mainQuest}
+        <Panel title="Main quest">
+          <p class="raise-entry-name">{generatedConcept.mainQuest.title}</p>
+          <p class="raise-entry-note">{generatedConcept.mainQuest.description}</p>
+        </Panel>
+      {/if}
 
-        {#if generatedConcept.npcs && generatedConcept.npcs.length > 0}
-          <div class="concept-section">
-            <h3>Important NPCs</h3>
-            <div class="npcs-list">
-              {#each generatedConcept.npcs as npc}
-                <div class="npc-item">
-                  <div class="npc-header">
-                    <span class="npc-name">{npc.name}</span>
-                    <span class="npc-role">({npc.role})</span>
-                  </div>
-                  <p class="npc-description">{npc.description}</p>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
+      {#if generatedConcept.locations && generatedConcept.locations.length > 0}
+        <Panel title="Key locations">
+          <ul class="raise-list">
+            {#each generatedConcept.locations as location (location.name)}
+              <li class="raise-entry">
+                <span class="raise-entry-head">
+                  <span class="raise-entry-name">{location.name}</span>
+                  <span class="raise-entry-kind">{location.type}</span>
+                </span>
+                <span class="raise-entry-note">{location.description}</span>
+              </li>
+            {/each}
+          </ul>
+        </Panel>
+      {/if}
 
-        {#if generatedConcept.hooks && generatedConcept.hooks.length > 0}
-          <div class="concept-section">
-            <h3>Adventure Hooks</h3>
-            <ul class="hooks-list">
-              {#each generatedConcept.hooks as hook}
-                <li>{hook}</li>
-              {/each}
-            </ul>
-          </div>
-        {/if}
-      </div>
+      {#if generatedConcept.npcs && generatedConcept.npcs.length > 0}
+        <Panel title="Important NPCs">
+          <ul class="raise-list">
+            {#each generatedConcept.npcs as npc (npc.name)}
+              <li class="raise-entry">
+                <span class="raise-entry-head">
+                  <span class="raise-entry-name">{npc.name}</span>
+                  <span class="raise-entry-kind">{npc.role}</span>
+                </span>
+                <span class="raise-entry-note">{npc.description}</span>
+              </li>
+            {/each}
+          </ul>
+        </Panel>
+      {/if}
 
-      <div class="original-prompt">
-        <h4>Original Prompt:</h4>
-        <p>"{prompt}"</p>
-      </div>
+      {#if generatedConcept.hooks && generatedConcept.hooks.length > 0}
+        <Panel title="Adventure hooks">
+          <ul class="raise-list">
+            {#each generatedConcept.hooks as hook (hook)}
+              <li class="raise-entry"><span class="raise-entry-note">{hook}</span></li>
+            {/each}
+          </ul>
+        </Panel>
+      {/if}
+    </div>
 
-      <div class="final-actions">
-        <button class="btn-primary" onclick={createCampaign} disabled={isCreating}>
-          {#if isCreating}
-            <span class="spinner"></span>
-            Creating Campaign...
-          {:else}
-            Create This Campaign
-          {/if}
-        </button>
-        <button class="btn-secondary" onclick={editPrompt} disabled={isCreating}>
-          Start Over
-        </button>
-      </div>
+    <Panel title="The prompt">
+      <p class="raise-entry-note">{prompt}</p>
+    </Panel>
+
+    {#if error}
+      <p class="raise-alarm" role="alert">{error}</p>
+    {/if}
+
+    <div class="raise-acts">
+      <Button variant="secondary" disabled={isCreating} onclick={editPrompt}>Start over</Button>
+      <Button variant="primary" loading={isCreating} onclick={createCampaign}>Create this campaign</Button>
     </div>
   {/if}
-</div>
+</Shell>
 
 <style>
-  .header-crest {
-    display: block;
-    margin: 0 auto var(--space-2);
-    filter: drop-shadow(0 4px 10px var(--shade-hard));
-  }
-
-  .create-campaign {
-    height: 100%;
-    overflow-y: auto;
-    padding: 2rem 2rem 3rem 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
-
-  .header h1 {
-    margin: 0 0 0.5rem 0;
-    color: var(--metal);
-    font-size: 2.5rem;
-  }
-
-  .header p {
-    margin: 0;
-    color: var(--ink-dim);
-    font-size: 1.1rem;
-  }
-
-  .input-section {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .prompt-input {
-    margin-bottom: 2rem;
-  }
-
-  .prompt-input label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: var(--ink);
-  }
-
-  .prompt-input textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 2px solid var(--metal);
-    border-radius: 0.5rem;
-    background: var(--ground-raised);
-    color: var(--ink);
-    font-size: 1rem;
-    line-height: 1.5;
-    resize: vertical;
-    min-height: 120px;
-  }
-
-  .prompt-input textarea:focus {
-    outline: none;
-    border-color: var(--metal-dim);
-    box-shadow: 0 0 0 2px var(--sheen-soft);
-  }
-
-  .prompt-input textarea:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .examples {
-    margin-bottom: 2rem;
-  }
-
-  .examples h3 {
-    margin: 0 0 1rem 0;
-    color: var(--ink);
-    font-size: 1.2rem;
-  }
-
-  .example-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .example-btn {
-    padding: 1rem;
-    background: var(--ground);
-    border: 1px solid var(--metal);
-    border-radius: 0.375rem;
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-    font-size: 0.95rem;
-    line-height: 1.4;
-  }
-
-  .example-btn:hover:not(:disabled) {
-    background: var(--metal);
-    transform: translateY(-1px);
-  }
-
-  .example-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .error {
-    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
-    border: 1px solid var(--state-bad);
-    border-radius: 0.375rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    color: var(--state-bad);
-    text-align: center;
-  }
-
-  .actions {
+  .raise-crown {
+    --raise-rule-run: calc(var(--space-8) * 6);
+    --raise-rule-share: 70%;
+    --raise-crest-lift: drop-shadow(0 var(--space-1) var(--space-3) var(--shade-hard));
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    text-align: center;
+  }
+
+  .raise-crest {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
     justify-content: center;
+    padding: var(--space-3) var(--space-6) var(--space-5);
+    filter: var(--raise-crest-lift);
   }
 
-  .btn-primary, .btn-secondary {
-    padding: 0.875rem 1.75rem;
-    border: none;
-    border-radius: 0.5rem;
+  .raise-plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+  }
+
+  .raise-name {
+    font-size: var(--text-2xl);
+    overflow-wrap: anywhere;
+  }
+
+  .raise-rule {
+    display: block;
+    width: min(var(--raise-rule-run), var(--raise-rule-share));
+  }
+
+  .raise-lede {
+    max-width: 60ch;
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .raise-label {
+    margin: var(--space-2) 0 0;
+    color: var(--ink-faint);
+  }
+
+  .raise-sparks {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .raise-spark {
+    padding: var(--space-3);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
+    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    color: var(--ink-dim);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    text-align: start;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .btn-primary {
-    background: var(--metal);
+  .raise-spark:hover:not(:disabled) {
+    border-color: var(--metal);
     color: var(--ink);
+    box-shadow: var(--glow-metal);
   }
 
-  .btn-primary:hover:not(:disabled) {
-    background: var(--metal-bright);
-    transform: translateY(-2px);
+  .raise-spark:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
   }
 
-  .btn-primary:disabled {
-    opacity: 0.6;
+  .raise-spark:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
   }
 
-  .btn-secondary {
-    background: var(--ground);
-    color: var(--ink);
-    border: 1px solid var(--metal);
-  }
-
-  .btn-secondary:hover:not(:disabled) {
-    background: var(--ground-lift);
-    transform: translateY(-1px);
-  }
-
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid transparent;
-    border-top: 2px solid currentColor;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  .concept-display {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .concept-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .concept-header h2 {
-    margin: 0;
-    color: var(--metal);
-    font-size: 2rem;
-  }
-
-  .concept-actions {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .concept-overview {
-    background: var(--ground-raised);
-    border: 1px solid var(--metal);
-    border-radius: 0.5rem;
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .title-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .title-section h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--metal);
-    font-size: 1.8rem;
-  }
-
-  .description {
+  .raise-blurb {
     margin: 0;
     color: var(--ink);
-    font-size: 1.1rem;
-    line-height: 1.6;
   }
 
-  .info-grid {
+  .raise-facts {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-
-  .info-item {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .info-item .info-label {
-    font-weight: bold;
-    color: var(--ink-dim);
-    min-width: 100px;
-  }
-
-  .info-item span {
-    color: var(--ink);
-  }
-
-  .concept-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .concept-section {
-    background: var(--ground-raised);
-    border: 1px solid var(--metal);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-  }
-
-  .concept-section h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.3rem;
-    border-bottom: 1px solid var(--sheen-soft);
-    padding-bottom: 0.5rem;
-  }
-
-  .quest-content h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--ink);
-    font-size: 1.1rem;
-  }
-
-  .quest-content p {
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2) var(--space-4);
     margin: 0;
-    color: var(--ink-dim);
-    line-height: 1.5;
+    font-size: var(--text-sm);
+    color: var(--ink);
   }
 
-  .location-item, .npc-item {
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--sheen-soft);
+  .raise-facts dt {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
   }
 
-  .location-item:last-child, .npc-item:last-child {
-    margin-bottom: 0;
+  .raise-facts dd {
+    margin: 0;
+  }
+
+  .raise-outline {
+    --raise-column: calc(var(--space-8) * 4);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--raise-column), 100%), 1fr));
+    align-items: start;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .raise-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .raise-entry {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-hair) solid var(--ground-lift);
+  }
+
+  .raise-entry:last-child {
     padding-bottom: 0;
     border-bottom: none;
   }
 
-  .location-header, .npc-header {
-    margin-bottom: 0.5rem;
-  }
-
-  .location-name, .npc-name {
-    font-weight: bold;
-    color: var(--ink);
-  }
-
-  .location-type, .npc-role {
-    color: var(--ink-dim);
-    font-style: italic;
-    margin-left: 0.5rem;
-  }
-
-  .location-description, .npc-description {
-    margin: 0;
-    color: var(--ink-dim);
-    line-height: 1.5;
-    font-size: 0.95rem;
-  }
-
-  .hooks-list {
-    margin: 0;
-    padding-left: 1.5rem;
-    color: var(--ink);
-  }
-
-  .hooks-list li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-  }
-
-  .original-prompt {
-    background: var(--ground);
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .original-prompt h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--ink-dim);
-    font-size: 1rem;
-  }
-
-  .original-prompt p {
-    margin: 0;
-    color: var(--ink);
-    font-style: italic;
-    line-height: 1.5;
-  }
-
-  .final-actions {
+  .raise-entry-head {
     display: flex;
-    gap: 1rem;
-    justify-content: center;
-    padding-top: 1rem;
+    align-items: baseline;
+    gap: var(--space-3);
   }
 
-  @media (max-width: 768px) {
-    .create-campaign {
-      padding: 1rem;
-    }
+  .raise-entry-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    color: var(--metal-bright);
+  }
 
-    .header h1 {
-      font-size: 2rem;
-    }
+  .raise-entry-kind {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    color: var(--verdigris);
+  }
 
-    .concept-header {
-      flex-direction: column;
-      align-items: stretch;
-    }
+  .raise-entry-note {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+    overflow-wrap: anywhere;
+  }
 
-    .concept-actions {
-      justify-content: center;
-    }
+  .raise-alarm {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
 
-    .actions, .final-actions {
-      flex-direction: column;
-    }
-
-    .info-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .concept-grid {
-      grid-template-columns: 1fr;
-    }
+  .raise-acts {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
   }
 </style>

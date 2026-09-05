@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
+  import Ornament from './Ornament.svelte'
   import StoredImage from './StoredImage.svelte'
 
   const {
@@ -34,6 +35,10 @@
 </script>
 
 <button type="button" class="dnd-card dnd-card-{tone} dnd-card-{layout}" {onclick}>
+  {#if layout === 'tile'}
+    <span class="dnd-card-finial"><Ornament name="finial" size="xs" tone="metal" /></span>
+  {/if}
+
   <span class="dnd-card-medallion">
     {#if image}
       <span class="dnd-card-portrait"><StoredImage src={image} alt="" /></span>
@@ -62,13 +67,29 @@
     text-align: start;
     cursor: pointer;
     --card-light: var(--metal);
+    --card-keyline: var(--space-1);
     background:
       var(--texture-weave),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
     transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .dnd-card::after {
+    content: '';
+    position: absolute;
+    inset: var(--card-keyline);
+    border: var(--border-hair) solid var(--metal-edge);
+    border-radius: var(--radius-sm);
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .dnd-card:hover::after {
+    opacity: 0.9;
   }
 
   .dnd-card-row {
@@ -129,7 +150,13 @@
   .dnd-card-tile .dnd-card-medallion {
     width: 100%;
     aspect-ratio: 3 / 4;
-    border-radius: var(--radius-sm);
+    border-radius: 0;
+    -webkit-mask-image: var(--mask-arch);
+    mask-image: var(--mask-arch);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
   }
 
   .dnd-card-portrait {
@@ -163,7 +190,20 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    box-shadow: inset 0 0 0 2px var(--metal-dim), inset 0 0 12px var(--shade-hard);
+    box-shadow:
+      inset 0 0 0 var(--border-width) var(--metal-dim),
+      inset 0 0 0 var(--border-heavy) var(--metal-edge),
+      inset 0 0 12px var(--shade-hard);
+    pointer-events: none;
+  }
+
+  .dnd-card-finial {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -25%);
+    filter: drop-shadow(0 1px 3px var(--shade-hard));
     pointer-events: none;
   }
 
@@ -216,9 +256,18 @@
     position: absolute;
     top: var(--space-2);
     right: var(--space-2);
+    z-index: 2;
     padding: 1px var(--space-2);
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-pill);
+    border-radius: 0;
+    clip-path: polygon(
+      var(--space-1) 0,
+      100% 0,
+      100% calc(100% - var(--space-1)),
+      calc(100% - var(--space-1)) 100%,
+      0 100%,
+      0 var(--space-1)
+    );
     background: var(--ground-deep);
     font-family: var(--font-mono);
     font-size: var(--text-xs);

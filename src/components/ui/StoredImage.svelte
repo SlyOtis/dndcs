@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
-  import { getFileUrl, isLocalFile } from '$lib/storage.service'
+  import { deleteFilePlace, getFileUrl, isStoredFile } from '$lib/storage.service'
 
   const {
     src,
@@ -16,6 +16,7 @@
   } = $props()
 
   let resolved = $state('')
+  let looked = $state(false)
   let objectUrl = ''
 
   function release() {
@@ -27,32 +28,48 @@
     const address = src
     let stale = false
 
-    if (!isLocalFile(address)) {
+    looked = false
+
+    if (!isStoredFile(address)) {
       release()
       resolved = address
       return
     }
 
-    getFileUrl(address).then((url) => {
-      if (stale) {
-        URL.revokeObjectURL(url)
-        return
-      }
-      release()
-      objectUrl = url
-      resolved = url
-    })
+    getFileUrl(address)
+      .catch(() => '')
+      .then((url) => {
+        if (stale) {
+          if (url) URL.revokeObjectURL(url)
+          return
+        }
+        release()
+        objectUrl = url
+        resolved = url
+      })
 
     return () => {
       stale = true
     }
   })
 
+  async function relook() {
+    if (looked || !isStoredFile(src)) {
+      resolved = ''
+      return
+    }
+
+    looked = true
+    await deleteFilePlace(src).catch(() => undefined)
+    release()
+    resolved = await getFileUrl(src).catch(() => '')
+  }
+
   onDestroy(release)
 </script>
 
 {#if resolved}
-  <img src={resolved} {alt} draggable={draggable} />
+  <img src={resolved} {alt} draggable={draggable} onerror={relook} />
 {:else}
   <span class="dnd-stored-image-missing" aria-label="{alt}, not on this device"></span>
 {/if}

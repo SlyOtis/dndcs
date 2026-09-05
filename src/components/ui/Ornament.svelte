@@ -7,7 +7,22 @@
     rotate = 0
   }: {
     /** Picks which vector is drawn. */
-    name: 'corner' | 'crest' | 'rosette' | 'divider' | 'vine' | 'skull' | 'chain' | 'rune' | 'dragon' | 'arch'
+    name:
+      | 'corner'
+      | 'crest'
+      | 'rosette'
+      | 'divider'
+      | 'vine'
+      | 'skull'
+      | 'chain'
+      | 'rune'
+      | 'dragon'
+      | 'arch'
+      | 'lancet'
+      | 'tracery'
+      | 'quatrefoil'
+      | 'finial'
+      | 'cusp'
     /** Scales the vector against the type scale. */
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
     /** Colours the vector against the active theme. */
@@ -28,7 +43,12 @@
     chain: '0 0 260 24',
     rune: '0 0 48 48',
     dragon: '0 0 128 176',
-    arch: '0 0 160 200'
+    arch: '0 0 160 200',
+    lancet: '0 0 120 168',
+    tracery: '0 0 96 96',
+    quatrefoil: '0 0 64 64',
+    finial: '0 0 32 72',
+    cusp: '0 0 72 72'
   }
 
   const box = $derived(boxes[name])
@@ -268,6 +288,78 @@
     <path d="M80 6 70 20h20L80 6Z" fill="currentColor" />
     <circle cx="80" cy="52" r="7" stroke="currentColor" stroke-width="1.6" />
     <circle cx="80" cy="52" r="2.6" class="dnd-ornament-accent-fill" />
+
+  {:else if name === 'lancet'}
+    <path
+      d="M6 166V60C6 30 28 6 60 6s54 24 54 54v106"
+      stroke="currentColor"
+      stroke-width="3"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M14 166V62C14 36 34 15 60 15s46 21 46 47v104"
+      stroke="currentColor"
+      stroke-width="1.1"
+      opacity="0.5"
+    />
+    <path d="M60 6 60 -6" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+    <path d="M60 22c9 10 9 22 0 32-9-10-9-22 0-32Z" class="dnd-ornament-accent" opacity="0.9" />
+    <path d="M32 54c0-15 12-27 28-27" stroke="currentColor" stroke-width="1.4" opacity="0.65" stroke-linecap="round" />
+    <path d="M88 54c0-15-12-27-28-27" stroke="currentColor" stroke-width="1.4" opacity="0.65" stroke-linecap="round" />
+    <path d="M6 166h108" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+
+  {:else if name === 'tracery'}
+    <circle cx="48" cy="48" r="44" stroke="currentColor" stroke-width="2.4" />
+    <circle cx="48" cy="48" r="35" stroke="currentColor" stroke-width="1" opacity="0.5" />
+    <path
+      d="M48 13c12 0 22 10 22 22S60 57 48 57 26 47 26 35s10-22 22-22Z"
+      stroke="currentColor"
+      stroke-width="1.6"
+      opacity="0.75"
+    />
+    <path
+      d="M48 39c12 0 22 10 22 22s-10 22-22 22-22-10-22-22 10-22 22-22Z"
+      stroke="currentColor"
+      stroke-width="1.6"
+      opacity="0.75"
+    />
+    <path
+      d="M31 48c0-12 8-20 17-20s17 8 17 20-8 20-17 20-17-8-17-20Z"
+      class="dnd-ornament-accent"
+      opacity="0.55"
+    />
+    <circle cx="48" cy="48" r="7" fill="currentColor" opacity="0.9" />
+    <path d="M48 4v10M48 82v10M4 48h10M82 48h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+
+  {:else if name === 'quatrefoil'}
+    <path
+      d="M32 4c7 0 13 6 13 13v2h2c7 0 13 6 13 13s-6 13-13 13h-2v2c0 7-6 13-13 13s-13-6-13-13v-2h-2C10 45 4 39 4 32s6-13 13-13h2v-2c0-7 6-13 13-13Z"
+      stroke="currentColor"
+      stroke-width="2.2"
+      stroke-linejoin="round"
+    />
+    <circle cx="32" cy="32" r="6" class="dnd-ornament-accent" opacity="0.9" />
+
+  {:else if name === 'finial'}
+    <path d="M16 2 26 26 16 70 6 26 16 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+    <path d="M16 14 21 27 16 52 11 27 16 14Z" class="dnd-ornament-accent" opacity="0.8" />
+    <path d="M6 26h20" stroke="currentColor" stroke-width="1.6" opacity="0.7" />
+
+  {:else if name === 'cusp'}
+    <path
+      d="M4 68V26C4 14 14 4 26 4h42"
+      stroke="currentColor"
+      stroke-width="2.6"
+      stroke-linecap="round"
+    />
+    <path d="M4 44c0-12 4-22 12-30" stroke="currentColor" stroke-width="1.2" opacity="0.55" />
+    <path
+      d="M18 30c8-8 18-12 30-12-2 11-8 18-18 21-8 2-14-3-12-9Z"
+      class="dnd-ornament-accent"
+      opacity="0.85"
+    />
+    <path d="M26 4c0 10-8 18-18 20" stroke="currentColor" stroke-width="1.4" opacity="0.6" stroke-linecap="round" />
+
   {/if}
 </svg>
 

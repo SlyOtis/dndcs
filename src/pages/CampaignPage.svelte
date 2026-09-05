@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
   import { navigate } from 'sly-svelte-location-router'
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService } from '$lib/firestore.service'
@@ -13,16 +13,27 @@
     CharacterDocument
   } from '$lib/firestore.types'
   import { user } from '$lib/stores/auth.store'
-  import Background from '$components/Background.svelte'
+  import { joinSwarm } from '$lib/swarm'
   import Button from '$components/ui/Button.svelte'
+  import Card from '$components/ui/Card.svelte'
   import CampaignMaps from '$components/campaign/CampaignMaps.svelte'
   import CampaignStory from '$components/campaign/CampaignStory.svelte'
   import CampaignCast from '$components/campaign/CampaignCast.svelte'
   import CampaignPlaces from '$components/campaign/CampaignPlaces.svelte'
-  import Aura from '$components/ui/Aura.svelte'
   import Ornament from '$components/ui/Ornament.svelte'
+  import Panel from '$components/ui/Panel.svelte'
+  import Shell from '$components/ui/Shell.svelte'
 
   const { route }: { route?: { params?: Record<string, string> } } = $props()
+
+  const TABS = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'story', label: 'Story' },
+    { id: 'cast', label: 'Cast' },
+    { id: 'places', label: 'Places' },
+    { id: 'party', label: 'Party' },
+    { id: 'maps', label: 'Maps' }
+  ] as const
 
   let campaign = $state<Campaign | null>(null)
   let characters = $state<CharacterDocument[]>([])
@@ -33,7 +44,7 @@
   let places = $state<CampaignLocation[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
-  let tab = $state<'overview' | 'story' | 'cast' | 'places' | 'party' | 'maps'>('overview')
+  let tab = $state<(typeof TABS)[number]['id']>('overview')
 
   const campaignId = $derived(route?.params?.id ?? '')
   const isDm = $derived(Boolean(campaign && $user && campaign.dm_id === $user.uid))
@@ -49,6 +60,8 @@
   const openQuests = $derived(quests.filter((quest) => quest.state === 'active' && (isDm || quest.is_known)))
   const knownNpcs = $derived(npcs.filter((npc) => isDm || npc.is_known))
   const knownPlaces = $derived(places.filter((place) => isDm || place.is_known))
+
+  let leaveSwarm: (() => void) | null = null
 
   onMount(async () => {
     setTheme(getTheme())
@@ -71,7 +84,15 @@
     } finally {
       loading = false
     }
+
+    try {
+      leaveSwarm = joinSwarm(campaignId)
+    } catch {
+      leaveSwarm = null
+    }
   })
+
+  onDestroy(() => leaveSwarm?.())
 
   async function reload() {
     const [party, board, log, tasks, cast, world] = await Promise.all([
@@ -92,106 +113,106 @@
   }
 </script>
 
-<Background />
+<Shell title={campaign?.name ?? 'Campaign'} back={() => navigate('/main')}>
+  {#snippet nav()}
+    {#if campaign}
+      {#each TABS as entry (entry.id)}
+        <Button
+          variant={tab === entry.id ? 'primary' : 'ghost'}
+          size="sm"
+          onclick={() => (tab = entry.id)}
+        >
+          {entry.label}
+        </Button>
+      {/each}
+    {/if}
+  {/snippet}
 
-<Aura variant="veil" tone="verdigris" />
-<Aura variant="motes" tone="ember" density="sparse" />
-
-<main class="dnd-campaign">
   {#if loading}
-    <p class="dnd-campaign-note">Loading the campaign...</p>
+    <div class="dnd-loading"><span class="dnd-spinner"></span></div>
   {:else if error}
-    <p class="dnd-campaign-error">{error}</p>
-    <Button onclick={() => navigate('/main')}>Back to the table</Button>
+    <div class="camp-alarm" role="alert">
+      <p class="camp-alarm-text">{error}</p>
+      <Button variant="secondary" size="sm" onclick={() => navigate('/main')}>Back to the table</Button>
+    </div>
   {:else if campaign}
-    <header class="dnd-campaign-header dnd-panel dnd-keyline">
-      <span class="dnd-campaign-crest"><Ornament name="crest" size="md" tone="metal" /></span>
-      <h1>{campaign.name}</h1>
-      <span class="dnd-campaign-rule"><Ornament name="divider" tone="metal" /></span>
-      <p>{campaign.description}</p>
-      <div class="dnd-campaign-meta">
+    <header class="camp-crown">
+      <span class="camp-crest">
+        <span class="camp-plate dnd-shield"></span>
+        <Ornament name="crest" size="md" tone="metal" />
+      </span>
+      <h1 class="dnd-heading dnd-heading-hero camp-name">{campaign.name}</h1>
+      <span class="camp-rule"><Ornament name="divider" tone="metal" /></span>
+      <p class="camp-lede">{campaign.description}</p>
+      <div class="camp-meta">
         <span>{campaign.player_ids.length} players</span>
         <span>{characters.length} characters</span>
         <span>{campaign.settings.experience_mode} experience</span>
         <span>{campaign.is_active ? 'Active' : 'Closed'}</span>
-        {#if isDm}<span class="dnd-campaign-dm">You are the DM</span>{/if}
+        {#if isDm}<span class="camp-meta-dm">You are the DM</span>{/if}
       </div>
     </header>
 
-    <nav class="dnd-campaign-tabs">
-      <Button variant={tab === 'overview' ? 'primary' : 'secondary'} onclick={() => (tab = 'overview')}>Overview</Button>
-      <Button variant={tab === 'story' ? 'primary' : 'secondary'} onclick={() => (tab = 'story')}>Story</Button>
-      <Button variant={tab === 'cast' ? 'primary' : 'secondary'} onclick={() => (tab = 'cast')}>Cast</Button>
-      <Button variant={tab === 'places' ? 'primary' : 'secondary'} onclick={() => (tab = 'places')}>Places</Button>
-      <Button variant={tab === 'party' ? 'primary' : 'secondary'} onclick={() => (tab = 'party')}>Party</Button>
-      <Button variant={tab === 'maps' ? 'primary' : 'secondary'} onclick={() => (tab = 'maps')}>Maps</Button>
-    </nav>
-
     {#if tab === 'overview'}
-      <div class="dnd-campaign-outline">
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>The party</h2>
+      <div class="camp-outline">
+        <Panel title="The party">
           {#if characters.length === 0}
-            <p class="dnd-campaign-note">No character has joined yet.</p>
+            <p class="camp-note">No character has joined yet.</p>
           {:else}
-            <ul class="dnd-campaign-tally">
+            <ul class="camp-tally">
               {#each characters.slice(0, 5) as entry (entry.id)}
                 <li><span>{entry.metadata.name}</span><span>{entry.metadata.class} {entry.metadata.level}</span></li>
               {/each}
             </ul>
-            <p class="dnd-campaign-note">Average level {averageLevel}.</p>
+            <p class="camp-note">Average level {averageLevel}.</p>
           {/if}
-        </section>
+        </Panel>
 
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>The world</h2>
+        <Panel title="The world">
           {#if maps.length === 0}
-            <p class="dnd-campaign-note">No map has been drawn yet.</p>
+            <p class="camp-note">No map has been drawn yet.</p>
           {:else}
-            <ul class="dnd-campaign-tally">
+            <ul class="camp-tally">
               {#each maps.slice(0, 5) as entry (entry.id)}
                 <li><span>{entry.title}</span><span>{entry.markers.length} pins</span></li>
               {/each}
             </ul>
-            <p class="dnd-campaign-note">{revealed} of {maps.length} shared with the party.</p>
+            <p class="camp-note">{revealed} of {maps.length} shared with the party.</p>
           {/if}
-        </section>
+        </Panel>
 
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>The story</h2>
+        <Panel title="The story">
           {#if sessions.length === 0 && openQuests.length === 0}
-            <p class="dnd-campaign-note">Nothing has been written down yet.</p>
+            <p class="camp-note">Nothing has been written down yet.</p>
           {:else}
             {#if latest}
-              <p class="dnd-campaign-lead">{latest.number}. {latest.title}</p>
-              <p class="dnd-campaign-summary">{latest.summary || 'Nothing was written down.'}</p>
+              <p class="camp-lead">{latest.number}. {latest.title}</p>
+              <p class="camp-summary">{latest.summary || 'Nothing was written down.'}</p>
             {/if}
-            <ul class="dnd-campaign-tally">
+            <ul class="camp-tally">
               {#each openQuests.slice(0, 4) as quest (quest.id)}
                 <li><span>{quest.title}</span><span>{quest.state}</span></li>
               {/each}
             </ul>
-            <p class="dnd-campaign-note">{sessions.length} sessions played, {openQuests.length} quests open.</p>
+            <p class="camp-note">{sessions.length} sessions played, {openQuests.length} quests open.</p>
           {/if}
-        </section>
+        </Panel>
 
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>Met along the way</h2>
+        <Panel title="Met along the way">
           {#if knownNpcs.length === 0}
-            <p class="dnd-campaign-note">Nobody has been met yet.</p>
+            <p class="camp-note">Nobody has been met yet.</p>
           {:else}
-            <ul class="dnd-campaign-tally">
+            <ul class="camp-tally">
               {#each knownNpcs.slice(0, 5) as npc (npc.id)}
                 <li><span>{npc.name}</span><span>{npc.role || npc.disposition}</span></li>
               {/each}
             </ul>
-            <p class="dnd-campaign-note">{knownNpcs.length} of {npcs.length} known, {knownPlaces.length} places found.</p>
+            <p class="camp-note">{knownNpcs.length} of {npcs.length} known, {knownPlaces.length} places found.</p>
           {/if}
-        </section>
+        </Panel>
 
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>House rules</h2>
-          <dl class="dnd-campaign-facts">
+        <Panel title="House rules">
+          <dl class="camp-facts">
             <dt>Experience</dt>
             <dd>{campaign.settings.experience_mode}</dd>
             <dt>Character editing</dt>
@@ -201,11 +222,10 @@
             <dt>Private notes</dt>
             <dd>{campaign.settings.private_notes ? 'On' : 'Off'}</dd>
           </dl>
-        </section>
+        </Panel>
 
-        <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-          <h2>At the table</h2>
-          <dl class="dnd-campaign-facts">
+        <Panel title="At the table">
+          <dl class="camp-facts">
             <dt>Players</dt>
             <dd>{campaign.player_ids.length}</dd>
             <dt>Characters</dt>
@@ -217,7 +237,7 @@
             <dt>State</dt>
             <dd>{campaign.is_active ? 'Running' : 'Closed'}</dd>
           </dl>
-        </section>
+        </Panel>
       </div>
     {:else if tab === 'story'}
       <CampaignStory {campaignId} {isDm} {sessions} {quests} {npcs} {characters} onChange={reload} />
@@ -226,111 +246,102 @@
     {:else if tab === 'places'}
       <CampaignPlaces {campaignId} {isDm} locations={places} {npcs} {maps} onChange={reload} />
     {:else if tab === 'party'}
-      <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-        <h2>Party</h2>
+      <Panel title="Party">
         {#if characters.length === 0}
-          <p class="dnd-campaign-note">No character has joined this campaign yet.</p>
+          <p class="camp-note">No character has joined this campaign yet.</p>
         {:else}
-          <ul class="dnd-campaign-party">
+          <div class="camp-party">
             {#each characters as entry (entry.id)}
-              <li>
-                <Button variant="secondary" fill onclick={() => navigate(`/character/${entry.id}`)}>
-                  {entry.metadata.name} — level {entry.metadata.level} {entry.metadata.class}
-                </Button>
-              </li>
+              <Card
+                title={entry.metadata.name}
+                sub="{entry.metadata.race} {entry.metadata.class}"
+                image={entry.character?.info?.imageUrl}
+                badge="Lv {entry.metadata.level}"
+                onclick={() => navigate(`/character/${entry.id}`)}
+              />
             {/each}
-          </ul>
+          </div>
         {/if}
-      </section>
+      </Panel>
     {:else}
-      <section class="dnd-campaign-panel dnd-panel dnd-keyline">
-        <h2>Maps</h2>
+      <Panel title="Maps" pad="sm">
         <CampaignMaps {campaignId} {isDm} locations={places} {npcs} {quests} />
-      </section>
+      </Panel>
     {/if}
   {/if}
-</main>
+</Shell>
 
 <style>
-  .dnd-campaign {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: var(--space-5);
-    overflow-y: auto;
-  }
-
-  .dnd-campaign-header,
-  .dnd-campaign-panel {
-    padding: var(--space-5);
-    border-radius: var(--radius-lg);
-  }
-
-  .dnd-campaign-header {
-    position: relative;
+  .camp-crown {
+    --camp-rule-run: calc(var(--space-8) * 6);
+    --camp-rule-share: 70%;
+    --camp-crest-lift: drop-shadow(0 var(--space-1) var(--space-3) var(--shade-hard));
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
     text-align: center;
-    padding-top: var(--space-6);
   }
 
-  .dnd-campaign-crest {
-    display: block;
-    margin-top: calc(var(--space-6) * -1.2);
-    filter: drop-shadow(0 4px 10px var(--shade-hard));
+  .camp-crest {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6) var(--space-5);
+    filter: var(--camp-crest-lift);
   }
 
-  .dnd-campaign-rule {
-    display: block;
-    width: min(420px, 80%);
-    margin-bottom: var(--space-3);
+  .camp-plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
   }
 
-  .dnd-campaign-header h1 {
-    margin: var(--space-2) 0;
-    font-family: var(--font-display);
+  .camp-name {
     font-size: var(--text-2xl);
-    letter-spacing: var(--tracking-wide);
-    color: var(--metal-bright);
-    text-shadow: 0 2px 10px var(--ember-glow);
+    overflow-wrap: anywhere;
   }
 
-  .dnd-campaign-header p {
-    margin: 0 0 var(--space-3);
+  .camp-rule {
+    display: block;
+    width: min(var(--camp-rule-run), var(--camp-rule-share));
+  }
+
+  .camp-lede {
+    max-width: 70ch;
+    margin: 0;
     color: var(--ink);
   }
 
-  .dnd-campaign-meta {
+  .camp-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3);
-    font-size: var(--text-sm);
+    justify-content: center;
+    gap: var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
     color: var(--ink-dim);
   }
 
-  .dnd-campaign-dm {
+  .camp-meta-dm {
     color: var(--metal);
   }
 
-  .dnd-campaign-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+  .camp-outline {
+    --camp-column: calc(var(--space-8) * 4);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--camp-column), 100%), 1fr));
+    align-items: start;
+    gap: var(--space-4);
+    min-width: 0;
   }
 
-  .dnd-campaign-panel h2 {
-    margin: 0 0 var(--space-3);
-    font-size: var(--text-lg);
-    color: var(--metal);
-  }
-
-  .dnd-campaign-facts {
+  .camp-facts {
     display: grid;
     grid-template-columns: auto 1fr;
     gap: var(--space-2) var(--space-4);
@@ -339,49 +350,46 @@
     color: var(--ink);
   }
 
-  .dnd-campaign-facts dt {
+  .camp-facts dt {
     color: var(--ink-dim);
   }
 
-  .dnd-campaign-facts dd {
+  .camp-facts dd {
     margin: 0;
   }
 
-  .dnd-campaign-outline {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .dnd-campaign-tally {
+  .camp-tally {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    margin: 0 0 var(--space-2);
+    margin: 0;
     padding: 0;
     list-style: none;
     font-size: var(--text-sm);
     color: var(--ink);
   }
 
-  .dnd-campaign-tally li {
+  .camp-tally li {
     display: flex;
     justify-content: space-between;
     gap: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: var(--border-hair) solid var(--ground-lift);
   }
 
-  .dnd-campaign-tally li span:last-child {
+  .camp-tally li span:last-child {
     color: var(--ink-dim);
   }
 
-  .dnd-campaign-lead {
+  .camp-lead {
     margin: 0;
+    font-family: var(--font-display);
     font-size: var(--text-sm);
     color: var(--metal);
   }
 
-  .dnd-campaign-summary {
-    margin: 0 0 var(--space-2);
+  .camp-summary {
+    margin: 0;
     font-size: var(--text-sm);
     color: var(--ink);
     display: -webkit-box;
@@ -391,26 +399,35 @@
     overflow: hidden;
   }
 
-  .dnd-campaign-party {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    margin: 0;
-    padding: 0;
-    list-style: none;
+  .camp-party {
+    --camp-face: calc(var(--space-8) * 4);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--camp-face), 100%), 1fr));
+    gap: var(--space-3);
+    min-width: 0;
   }
 
-  .dnd-campaign-note,
-  .dnd-campaign-error {
+  .camp-note {
     margin: 0;
     font-size: var(--text-sm);
     color: var(--ink-dim);
   }
 
-  .dnd-campaign-error {
-    padding: var(--space-3);
+  .camp-alarm {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+  }
+
+  .camp-alarm-text {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-sm);
     color: var(--ink);
   }
 </style>

@@ -26,12 +26,14 @@
 </script>
 
 <section class="dnd-panel dnd-panel-{variant} dnd-panelbox dnd-panelbox-pad-{pad}" aria-label={title}>
+  <span class="dnd-panelbox-keyline"></span>
+
   {#if corners}
     <span class="dnd-panelbox-corner dnd-panelbox-corner-start">
-      <Ornament name="corner" size="sm" tone="metal" />
+      <Ornament name="cusp" size="xs" tone="metal" />
     </span>
     <span class="dnd-panelbox-corner dnd-panelbox-corner-end">
-      <Ornament name="corner" size="sm" tone="metal" flip />
+      <Ornament name="cusp" size="xs" tone="metal" flip />
     </span>
   {/if}
 
@@ -49,31 +51,62 @@
 
 <style>
   .dnd-panelbox {
+    --panel-cusp: 18px;
+    --panel-dip: 11px;
+    --panel-keyline: var(--space-3);
+    --panel-arcade: 8px;
     position: relative;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
     height: 100%;
+    min-height: 0;
     overflow: hidden;
+    border: none;
+    border-radius: 0;
+    box-shadow: var(--shadow-inset);
+    filter: drop-shadow(0 12px 26px var(--shade-hard));
+    clip-path: polygon(
+      var(--panel-cusp) 0,
+      calc(100% - var(--panel-cusp)) 0,
+      calc(100% - var(--panel-dip)) var(--panel-dip),
+      100% var(--panel-cusp),
+      100% 100%,
+      0 100%,
+      0 var(--panel-cusp),
+      var(--panel-dip) var(--panel-dip)
+    );
+    outline: var(--border-width) solid var(--metal-dim);
+    outline-offset: calc(var(--border-width) * -1);
+  }
+
+  .dnd-panelbox-keyline {
+    position: absolute;
+    inset: var(--panel-keyline);
+    z-index: -1;
+    border: var(--border-hair) solid var(--metal-edge);
+    box-shadow: inset 0 0 32px -14px var(--ember-glow);
+    pointer-events: none;
   }
 
   .dnd-panelbox-corner {
     position: absolute;
-    top: -2px;
+    top: var(--panel-keyline);
     z-index: 2;
-    opacity: 0.75;
+    opacity: 0.8;
     pointer-events: none;
   }
 
   .dnd-panelbox-corner-start {
-    left: -2px;
+    left: var(--panel-keyline);
   }
 
   .dnd-panelbox-corner-end {
-    right: -2px;
+    right: var(--panel-keyline);
   }
 
   .dnd-panelbox-head {
+    position: relative;
+    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -81,7 +114,29 @@
     padding: var(--space-3) var(--space-4);
     background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
     border-bottom: var(--border-hair) solid var(--metal-dim);
-    box-shadow: inset 0 1px 0 var(--metal-edge), 0 2px 10px var(--shade);
+    box-shadow:
+      inset 0 1px 0 var(--metal-edge),
+      0 2px 0 -1px var(--metal-edge),
+      0 4px 12px var(--shade);
+  }
+
+  .dnd-panelbox-head::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    height: var(--panel-arcade);
+    background: linear-gradient(0deg, var(--metal-dim) 0%, transparent 100%);
+    -webkit-mask-image: var(--mask-arch);
+    mask-image: var(--mask-arch);
+    -webkit-mask-size: 14px var(--panel-arcade);
+    mask-size: 14px var(--panel-arcade);
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   .dnd-panelbox-title {
@@ -98,11 +153,11 @@
   }
 
   .dnd-panelbox-body {
-    flex: 1;
-    min-height: 0;
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
+    min-height: 0;
   }
 
   .dnd-panelbox-pad-none .dnd-panelbox-body {

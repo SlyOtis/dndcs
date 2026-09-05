@@ -1,138 +1,35 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { navigate } from "sly-svelte-location-router";
-  import { aiService } from "../lib/ai";
-  import { characterService } from "../lib/firestore.service";
-  import type { Character } from "$lib/character.types";
-  import { getAbilities, getEmptyCharacterInfo } from "$lib/engine";
-  import Background from "$components/Background.svelte";
-  import Aura from "$components/ui/Aura.svelte";
+  import { aiService, type CharacterImport } from "$lib/ai";
+  import { getCatalog, postCatalogReading, putCatalogEntry, type CatalogEntry } from "$lib/catalog";
+  import { getSource } from "$lib/sources";
+  import CatalogList from "$components/CatalogList.svelte";
+  import Button from "$components/ui/Button.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
+  import Shell from "$components/ui/Shell.svelte";
 
   interface CharacterData {
     name: string;
     level: number;
     backgroundUrl?: string;
-    abilityScores: {
-      strength: number;
-      dexterity: number;
-      constitution: number;
-      intelligence: number;
-      wisdom: number;
-      charisma: number;
-    };
+    abilityScores: Record<string, number>;
     sources: string[];
     imageUrl?: string;
-  }
-
-  interface ClassOption {
-    name: string;
-    description: string;
-    hitDie: string;
-    primaryAbility: string;
-    savingThrows: string;
+    suggestedClass?: string;
+    suggestedRace?: string;
   }
 
   let characterData = $state<CharacterData | null>(null);
   let isAnalyzing = $state(true);
   let error = $state<string | null>(null);
-  let aiAnalysis = $state<any>(null);
-  let availableClasses = $state<ClassOption[]>([]);
+  let aiAnalysis = $state<CharacterImport | null>(null);
+  let availableClasses = $state<CatalogEntry[]>([]);
   let selectedClass = $state<string>('');
+  let reading = $state<string | null>(null);
+  let picking = $state(false);
 
-  const standardClasses: ClassOption[] = [
-    {
-      name: "Artificer",
-      description: "Masters of invention, artificers use ingenuity and magic to unlock extraordinary capabilities in objects.",
-      hitDie: "d8",
-      primaryAbility: "Intelligence",
-      savingThrows: "Constitution, Intelligence"
-    },
-    {
-      name: "Barbarian", 
-      description: "A fierce warrior of primitive background who can enter a battle rage.",
-      hitDie: "d12",
-      primaryAbility: "Strength",
-      savingThrows: "Strength, Constitution"
-    },
-    {
-      name: "Bard",
-      description: "A master of song, speech, and the magic they contain.",
-      hitDie: "d8", 
-      primaryAbility: "Charisma",
-      savingThrows: "Dexterity, Charisma"
-    },
-    {
-      name: "Cleric",
-      description: "A priestly champion who wields divine magic in service of a higher power.",
-      hitDie: "d8",
-      primaryAbility: "Wisdom", 
-      savingThrows: "Wisdom, Charisma"
-    },
-    {
-      name: "Druid",
-      description: "A priest of the Old Faith, wielding the elemental forces of nature and transforming into animal forms.",
-      hitDie: "d8",
-      primaryAbility: "Wisdom",
-      savingThrows: "Intelligence, Wisdom"
-    },
-    {
-      name: "Fighter",
-      description: "A master of martial combat, skilled with a variety of weapons and armor.",
-      hitDie: "d10",
-      primaryAbility: "Strength or Dexterity", 
-      savingThrows: "Strength, Constitution"
-    },
-    {
-      name: "Monk",
-      description: "A master of martial arts, harnessing the power of the body in pursuit of physical and spiritual perfection.",
-      hitDie: "d8",
-      primaryAbility: "Dexterity, Wisdom",
-      savingThrows: "Strength, Dexterity"
-    },
-    {
-      name: "Paladin",
-      description: "A holy warrior bound to a sacred oath.",
-      hitDie: "d10", 
-      primaryAbility: "Strength, Charisma",
-      savingThrows: "Wisdom, Charisma"
-    },
-    {
-      name: "Ranger",
-      description: "A warrior of the wilderness.",
-      hitDie: "d10",
-      primaryAbility: "Dexterity, Wisdom",
-      savingThrows: "Strength, Dexterity"
-    },
-    {
-      name: "Rogue",
-      description: "A scoundrel who uses stealth and trickery to overcome obstacles.",
-      hitDie: "d8",
-      primaryAbility: "Dexterity", 
-      savingThrows: "Dexterity, Intelligence"
-    },
-    {
-      name: "Sorcerer",
-      description: "A spellcaster who draws on inherent magic from a gift or bloodline.",
-      hitDie: "d6",
-      primaryAbility: "Charisma",
-      savingThrows: "Constitution, Charisma"
-    },
-    {
-      name: "Warlock",
-      description: "A wielder of magic that is derived from a bargain with an extraplanar entity.",
-      hitDie: "d8",
-      primaryAbility: "Charisma",
-      savingThrows: "Wisdom, Charisma"
-    },
-    {
-      name: "Wizard",
-      description: "A scholarly magic-user capable of manipulating the structures of reality.",
-      hitDie: "d6",
-      primaryAbility: "Intelligence",
-      savingThrows: "Intelligence, Wisdom"
-    }
-  ];
+  const settled = $derived(Boolean(characterData?.suggestedClass) && !picking);
 
   onMount(async () => {
     const savedData = sessionStorage.getItem('characterCreationData');
@@ -149,39 +46,47 @@
     if (!characterData) return;
 
     try {
-      availableClasses = [...standardClasses];
-
-      if (characterData.sources && characterData.sources.length > 0) {
-        console.log('Analyzing character sources:', characterData.sources.length, 'sources');
-        
-        const analysis = await aiService.analyzeCharacterSources(
-          characterData.sources,
-          characterData.name,
-          characterData.level,
-          'manual-roll'
-        );
-
-        console.log('AI Analysis response:', analysis);
-
-        try {
-          aiAnalysis = JSON.parse(analysis);
-          console.log('Parsed AI Analysis:', aiAnalysis);
-          
-          if (aiAnalysis.additionalClasses && Array.isArray(aiAnalysis.additionalClasses)) {
-            availableClasses.push(...aiAnalysis.additionalClasses);
-            console.log('Added additional classes:', aiAnalysis.additionalClasses);
-          }
-        } catch (parseError) {
-          console.error('Failed to parse AI response as JSON:', parseError);
-          console.error('Raw AI response:', analysis);
-          // Continue without AI analysis
-        }
-      }
-
-      isAnalyzing = false;
+      availableClasses = await getCatalog('classes');
     } catch (err) {
-      console.error('Character source analysis error:', err);
-      error = `Failed to analyze character sources: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      error = err instanceof Error ? err.message : String(err);
+      isAnalyzing = false;
+      return;
+    }
+
+    if (characterData.suggestedClass) {
+      const named = availableClasses.find(
+        (entry) => entry.name.toLowerCase() === characterData!.suggestedClass!.toLowerCase()
+      );
+      selectedClass = named?.name ?? characterData.suggestedClass;
+    }
+
+    if (!characterData.sources?.length) {
+      isAnalyzing = false;
+      return;
+    }
+
+    try {
+      aiAnalysis = await aiService.analyzeCharacterSources(
+        characterData.sources,
+        characterData.name,
+        characterData.level
+      );
+
+      for (const found of aiAnalysis?.classes ?? []) {
+        if (availableClasses.some((entry) => entry.name.toLowerCase() === found.name.toLowerCase())) continue;
+        availableClasses.push({
+          id: found.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+          name: found.name,
+          description: found.description,
+          hitDie: Number(String(found.hitDie).replace(/\D/g, '')) || 8,
+          primaryAbility: found.primaryAbility.split(/,\s*/),
+          savingThrows: found.savingThrows.split(/,\s*/),
+          source: 'uploaded'
+        });
+      }
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
+    } finally {
       isAnalyzing = false;
     }
   }
@@ -190,326 +95,239 @@
     selectedClass = className;
   }
 
-  async function continueToNext() {
-    if (!selectedClass || !characterData) return;
+  async function postOwnClass(files: File[]) {
+    error = null;
 
     try {
-      const character: Partial<Character> = {
-        info: {
-          ...getEmptyCharacterInfo(),
-          name: characterData.name,
-          level: characterData.level,
-          imageUrl: characterData.imageUrl ?? "",
-          backgroundUrl: characterData.backgroundUrl,
-          class: { name: selectedClass, hitDice: { amount: characterData.level, die: 8 } },
-          race: { name: "Unknown", type: "Unknown" }
-        },
-        abilities: getAbilities(characterData.abilityScores),
-        background: { title: "Unknown", description: "" }
-      };
-
-      const characterId = await characterService.createCharacter(character as Character, {
-        name: character.info?.name || characterData.name,
-        level: characterData.level,
-        class: selectedClass,
-        race: "Unknown",
-        tags: characterData.sources.length > 0 ? ["ai-generated", "sources-uploaded"] : ["manually-created"]
-      });
-
-      if (characterData.sources && characterData.sources.length > 0) {
-        await characterService.setCharacterSources(characterId, characterData.sources);
+      const texts: string[] = [];
+      for (const file of files) {
+        reading = file.name;
+        texts.push((await getSource(file)).text);
       }
 
-      const details = {
-        name: characterData.name,
-        level: characterData.level,
-        selectedClass,
-        abilityScores: characterData.abilityScores,
-        imageUrl: characterData.imageUrl,
-        backgroundUrl: characterData.backgroundUrl,
-        aiAnalysis: aiAnalysis || null,
-        creationMethod: characterData.sources.length > 0 ? 'ai-assisted' : 'manual'
-      };
+      reading = 'Reading the class';
+      const made = await postCatalogReading('classes', texts);
 
-      await characterService.setCharacterDetails(characterId, details);
-
-      sessionStorage.removeItem('characterCreationData');
-      navigate(`/character/${characterId}`);
-    } catch (err) {
-      error = 'Failed to create character';
-      console.error('Character creation error:', err);
+      availableClasses = [made, ...availableClasses.filter((entry) => entry.id !== made.id)];
+      selectedClass = made.name;
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason);
+    } finally {
+      reading = null;
     }
+  }
+
+  function continueToNext() {
+    if (!selectedClass || !characterData) return;
+
+    const picked = availableClasses.find((entry) => entry.name === selectedClass);
+
+    try {
+      sessionStorage.setItem(
+        'characterCreationData',
+        JSON.stringify({
+          ...characterData,
+          selectedClass,
+          hitDie: (picked?.hitDie as number) ?? 8
+        })
+      );
+    } catch {
+      error = 'Your source material is too large to carry to the next step. Remove a source and try again.';
+      return;
+    }
+
+    navigate('/main/create/character/race');
   }
 </script>
 
-<Background />
-<Aura variant="veil" tone="verdigris" />
-<Aura variant="motes" tone="ember" density="sparse" />
+<Shell title="Choose a Class" back={() => navigate('/main/create/character')}>
+  <header class="pick-crown">
+    <span class="pick-crest">
+      <span class="pick-plate dnd-shield"></span>
+      <Ornament name="crest" size="md" tone="metal" />
+    </span>
+    <h1 class="dnd-heading dnd-heading-hero pick-name">Choose Your Class</h1>
+    <span class="pick-rule"><Ornament name="divider" tone="metal" /></span>
+    {#if characterData}
+      <p class="pick-lede">The path {characterData.name} walks from here.</p>
+    {/if}
+  </header>
 
-<div class="page-wrapper">
-  <div class="class-selection">
-    <button class="back-btn" onclick={() => navigate('/main/create/character')}>
-      ← Back
-    </button>
-    
-    <div class="header">
-      <span class="header-crest"><Ornament name="crest" size="md" tone="metal" /></span>
-      <h1>Choose Your Class</h1>
-      {#if characterData}
-        <p>Select a class for {characterData.name}</p>
-      {/if}
+  {#if isAnalyzing}
+    <div class="dnd-loading pick-wait">
+      <span class="dnd-spinner"></span>
+      <p class="pick-wait-note">
+        Reading the classes{characterData?.sources?.length ? ' and the material you brought' : ''}…
+      </p>
+    </div>
+  {:else if error}
+    <p class="pick-alarm" role="alert">{error}</p>
+  {:else if settled}
+    <div class="pick-settled">
+      <span class="pick-niche">
+        <span class="pick-niche-plate dnd-arch"></span>
+        <Ornament name="lancet" size="md" tone="metal" />
+      </span>
+      <p class="dnd-label pick-settled-eyebrow">Read from your source material</p>
+      <p class="pick-settled-name">{selectedClass}</p>
+      <p class="pick-settled-note">Nothing to choose. Change it if the reading got it wrong.</p>
+      <Button variant="ghost" size="sm" onclick={() => (picking = true)}>Choose a different class</Button>
     </div>
 
-    {#if isAnalyzing}
-      <div class="loading-container">
-        <div class="spinner"></div>
-        <h2>Preparing Character Classes</h2>
-        <p>Loading available classes{characterData?.sources?.length ? ' and analyzing your uploaded materials' : ''}...</p>
-      </div>
-    {:else if error}
-      <div class="error">{error}</div>
-    {:else}
-      <div class="class-grid">
-        {#each availableClasses as classOption}
-          <button type="button" class="class-card {selectedClass === classOption.name ? 'selected' : ''}"
-                  onclick={() => selectClass(classOption.name)}>
-            <h3>{classOption.name}</h3>
-            <p class="class-description">{classOption.description}</p>
-            <div class="class-details">
-              <div class="detail">
-                <span class="label">Hit Die:</span>
-                <span class="value">{classOption.hitDie}</span>
-              </div>
-              <div class="detail">
-                <span class="label">Primary:</span>
-                <span class="value">{classOption.primaryAbility}</span>
-              </div>
-              <div class="detail">
-                <span class="label">Saves:</span>
-                <span class="value">{classOption.savingThrows}</span>
-              </div>
-            </div>
-          </button>
-        {/each}
-      </div>
+    <div class="pick-acts">
+      <Button variant="secondary" onclick={() => navigate('/main/create/character')}>Back</Button>
+      <Button variant="primary" onclick={continueToNext}>Continue as {selectedClass}</Button>
+    </div>
+  {:else}
+    <CatalogList
+      kind="classes"
+      entries={availableClasses}
+      selected={selectedClass}
+      {reading}
+      onpick={(entry) => selectClass(entry.name)}
+      onupload={postOwnClass}
+    />
 
-      {#if selectedClass}
-        <div class="continue-section">
-          <button class="btn-primary" onclick={continueToNext}>
-            Continue with {selectedClass}
-          </button>
-        </div>
-      {/if}
-    {/if}
-  </div>
-</div>
+    <div class="pick-acts">
+      <Button variant="secondary" onclick={() => navigate('/main/create/character')}>Back</Button>
+      <Button variant="primary" disabled={!selectedClass} onclick={continueToNext}>
+        {selectedClass ? `Continue as ${selectedClass}` : 'Choose a class'}
+      </Button>
+    </div>
+  {/if}
+</Shell>
 
 <style>
-  .header-crest {
-    display: block;
-    margin: 0 auto var(--space-2);
-    filter: drop-shadow(0 4px 10px var(--shade-hard));
-  }
-
-  .page-wrapper {
-    min-height: 100vh;
-    width: 100%;
-    overflow-y: auto;
-  }
-
-  .class-selection {
-    padding: 4rem 2rem;
-    width: 100%;
-    position: relative;
-    z-index: 1;
-  }
-
-  .back-btn {
-    position: fixed;
-    top: 2rem;
-    left: 2rem;
-    padding: 0.5rem 1rem;
-    background: var(--ground);
-    border: 1px solid var(--metal);
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s ease;
-    z-index: 100;
-  }
-
-  .back-btn:hover {
-    background: var(--metal);
-    transform: translateX(-2px);
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 3rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .header h1 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 2.5rem;
-  }
-
-  .header p {
-    margin: 0;
-    color: var(--ink-dim);
-    font-size: 1.2rem;
-  }
-
-  .loading-container {
-    text-align: center;
-    padding: 4rem 2rem;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-
-  .spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid color-mix(in srgb, var(--metal) 32%, transparent);
-    border-top: 4px solid var(--metal);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 2rem auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .loading-container h2 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.8rem;
-  }
-
-  .loading-container p {
-    margin: 0;
-    color: var(--ink-dim);
-    line-height: 1.5;
-  }
-
-  .error {
-    background: color-mix(in srgb, var(--state-bad) 22%, transparent);
-    border: 1px solid var(--state-bad);
-    border-radius: 6px;
-    padding: 1rem;
-    margin: 2rem auto;
-    max-width: 600px;
-    color: var(--state-bad);
-    text-align: center;
-  }
-
-  .class-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 1.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .class-card {
-    background: var(--ground);
-    border: 2px solid color-mix(in srgb, var(--metal) 32%, transparent);
-    border-radius: 12px;
-    padding: 1.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-  }
-
-  .class-card:hover {
-    border-color: var(--metal);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
-  }
-
-  .class-card.selected {
-    border-color: var(--metal-bright);
-    background: color-mix(in srgb, var(--metal) 12%, transparent);
-    box-shadow: 0 0 20px color-mix(in srgb, var(--metal) 42%, transparent);
-  }
-
-  .class-card h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-
-  .class-description {
-    margin: 0 0 1.5rem 0;
-    color: var(--ink);
-    line-height: 1.4;
-    font-size: 0.95rem;
-  }
-
-  .class-details {
+  .pick-crown {
+    --pick-rule-run: calc(var(--space-8) * 6);
+    --pick-rule-share: 70%;
+    --pick-crest-lift: drop-shadow(0 var(--space-1) var(--space-3) var(--shade-hard));
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .detail {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-  }
-
-  .label {
-    color: var(--ink-dim);
-    font-size: 0.9rem;
-  }
-
-  .value {
-    color: var(--ink);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  .continue-section {
+    gap: var(--space-2);
+    min-width: 0;
     text-align: center;
-    margin-top: 3rem;
   }
 
-  .btn-primary {
-    padding: 1rem 2rem;
-    background: var(--metal);
+  .pick-crest {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3) var(--space-6) var(--space-5);
+    filter: var(--pick-crest-lift);
+  }
+
+  .pick-plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+  }
+
+  .pick-name {
+    font-size: var(--text-2xl);
+    overflow-wrap: anywhere;
+  }
+
+  .pick-rule {
+    display: block;
+    width: min(var(--pick-rule-run), var(--pick-rule-share));
+  }
+
+  .pick-lede {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-dim);
+  }
+
+  .pick-wait {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .pick-wait-note {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .pick-alarm {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    font-size: var(--text-sm);
     color: var(--ink);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
   }
 
-  .btn-primary:hover {
-    background: var(--metal-bright);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--metal) 32%, transparent);
+  .pick-settled {
+    --pick-niche-w: calc(var(--space-8) + var(--space-5));
+    --pick-niche-h: calc(var(--space-8) * 2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    border: var(--border-width) solid var(--metal-dim);
+    border-radius: var(--radius-lg);
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--shadow-md), inset 0 var(--border-hair) 0 var(--metal-edge);
+    text-align: center;
   }
 
-  @media (max-width: 768px) {
-    .class-selection {
-      padding: 1rem;
-    }
+  .pick-niche {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pick-niche-w);
+    height: var(--pick-niche-h);
+    margin-bottom: var(--space-2);
+  }
 
-    .class-grid {
-      grid-template-columns: 1fr;
-    }
+  .pick-niche-plate {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+  }
 
-    .header h1 {
-      font-size: 2rem;
-    }
+  .pick-settled-eyebrow {
+    margin: 0;
+    color: var(--ink-faint);
+  }
+
+  .pick-settled-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal-bright);
+    text-shadow: var(--glow-metal);
+    overflow-wrap: anywhere;
+  }
+
+  .pick-settled-note {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
+  .pick-acts {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
   }
 </style>
