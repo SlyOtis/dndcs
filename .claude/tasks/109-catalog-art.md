@@ -5,16 +5,17 @@ depends: []
 relations: [107]
 title: Artwork for every class and race document
 type: task
-status: staged
-blocked_from:
+status: blocked
+blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data]
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-05T15:11:58Z
-questions: []
+updated_at: 2026-09-05T15:36:12Z
+questions: [q-002]
+base: 0f6e45333d959e86ef1651000b211c9a4a6b78f0
 ---
 
 ## Intent
