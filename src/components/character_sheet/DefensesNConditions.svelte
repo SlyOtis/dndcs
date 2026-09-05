@@ -53,8 +53,7 @@
         align-self: stretch;
         justify-self: stretch;
 
-        grid-column: 3 / 6;
-        grid-row: 2;
+        grid-column: span 3;
     }
 
     .box {

@@ -73,7 +73,7 @@
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-3) var(--space-4);
-    grid-column: 4 / 6;
+    grid-column: span 2;
     align-self: stretch;
     justify-self: stretch;
     background:
