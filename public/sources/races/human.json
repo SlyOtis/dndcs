@@ -1,0 +1,31 @@
+{
+  "id": "human",
+  "name": "Human",
+  "description": "Everywhere, in every trade, in a single lifetime that forces them to hurry. Humans have no single gift because they spread their talent across all of them.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "str": 1,
+    "dex": 1,
+    "con": 1,
+    "int": 1,
+    "wis": 1,
+    "cha": 1
+  },
+  "traits": [
+    {
+      "id": "versatility",
+      "name": "Versatility",
+      "description": "Every one of your ability scores increases by 1.",
+      "source": "base"
+    },
+    {
+      "id": "extra_language",
+      "name": "Extra Language",
+      "description": "You speak, read and write Common and one extra language of your choice.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

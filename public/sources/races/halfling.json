@@ -1,0 +1,32 @@
+{
+  "id": "halfling",
+  "name": "Halfling",
+  "description": "Small, steady and much harder to rattle than they look. Halflings reroll their worst luck, slip through spaces larger folk cannot, and are almost impossible to frighten.",
+  "image": "",
+  "size": "Small",
+  "speed": 25,
+  "abilityBonuses": {
+    "dex": 2
+  },
+  "traits": [
+    {
+      "id": "lucky",
+      "name": "Lucky",
+      "description": "When you roll a 1 on an attack roll, an ability check or a saving throw, reroll the die and use the new roll.",
+      "source": "base"
+    },
+    {
+      "id": "brave",
+      "name": "Brave",
+      "description": "Advantage on saving throws against being frightened.",
+      "source": "base"
+    },
+    {
+      "id": "halfling_nimbleness",
+      "name": "Halfling Nimbleness",
+      "description": "You can move through the space of any creature of a size larger than yours.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

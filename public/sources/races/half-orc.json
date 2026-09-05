@@ -1,0 +1,39 @@
+{
+  "id": "half-orc",
+  "name": "Half-Orc",
+  "description": "Built for the moment a fight goes badly. Half-orcs hit harder on a solid strike and refuse to drop when the blow that should have killed them lands.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "str": 2,
+    "con": 1
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "menacing",
+      "name": "Menacing",
+      "description": "Proficiency in the Intimidation skill.",
+      "source": "base"
+    },
+    {
+      "id": "relentless_endurance",
+      "name": "Relentless Endurance",
+      "description": "When you drop to 0 hit points without being killed outright, you drop to 1 hit point instead. Once per long rest.",
+      "source": "base"
+    },
+    {
+      "id": "savage_attacks",
+      "name": "Savage Attacks",
+      "description": "On a critical hit with a melee weapon, roll one of the weapon's damage dice an extra time and add it to the extra damage.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

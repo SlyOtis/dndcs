@@ -1,0 +1,33 @@
+{
+  "id": "tiefling",
+  "name": "Tiefling",
+  "description": "Marked by an infernal bargain nobody alive agreed to. Tieflings carry horns, a tail, and fire that does not burn them, along with the suspicion of everyone who notices.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "int": 1,
+    "cha": 2
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "hellish_resistance",
+      "name": "Hellish Resistance",
+      "description": "Resistance to fire damage.",
+      "source": "base"
+    },
+    {
+      "id": "infernal_legacy",
+      "name": "Infernal Legacy",
+      "description": "You know the thaumaturgy cantrip. At 3rd level you can cast hellish rebuke once per long rest as a 2nd-level spell, and at 5th level darkness once per long rest. Charisma is your spellcasting ability for all three.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

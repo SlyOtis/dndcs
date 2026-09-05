@@ -1,0 +1,33 @@
+{
+  "id": "dragonborn",
+  "name": "Dragonborn",
+  "description": "Descended from dragons and carrying the proof in their scales and their breath. Dragonborn are built broad and proud, and a draconic ancestry decides both the damage they exhale and the damage they shrug off.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "str": 2,
+    "cha": 1
+  },
+  "traits": [
+    {
+      "id": "draconic_ancestry",
+      "name": "Draconic Ancestry",
+      "description": "Choose a dragon type when the character is made. That choice fixes the damage type and the area of your Breath Weapon, and the damage you resist.",
+      "source": "base"
+    },
+    {
+      "id": "breath_weapon",
+      "name": "Breath Weapon",
+      "description": "Exhale destructive energy as an action, in the shape and damage type your ancestry sets. Each creature in the area makes a saving throw against DC 8 + your Constitution modifier + your proficiency bonus, taking 2d6 damage on a failure and half as much on a success. The damage rises to 3d6 at 6th level, 4d6 at 11th and 5d6 at 16th. Once per short or long rest.",
+      "source": "base"
+    },
+    {
+      "id": "damage_resistance",
+      "name": "Damage Resistance",
+      "description": "You have resistance to the damage type of your draconic ancestry.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

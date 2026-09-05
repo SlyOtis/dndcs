@@ -1,0 +1,38 @@
+{
+  "id": "elf",
+  "name": "Elf",
+  "description": "Long-lived, keen-eyed and difficult to surprise. Elves trance rather than sleep, resist the charms that work on everyone else, and have had centuries to get good at something.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "dex": 2
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "keen_senses",
+      "name": "Keen Senses",
+      "description": "Proficiency in the Perception skill.",
+      "source": "base"
+    },
+    {
+      "id": "fey_ancestry",
+      "name": "Fey Ancestry",
+      "description": "Advantage on saving throws against being charmed, and magic cannot put you to sleep.",
+      "source": "base"
+    },
+    {
+      "id": "trance",
+      "name": "Trance",
+      "description": "You do not sleep. Four hours of meditation, awake and aware, gives you what eight hours of sleep gives anyone else.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

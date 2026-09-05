@@ -1,0 +1,26 @@
+{
+  "id": "gnome",
+  "name": "Gnome",
+  "description": "Small, inventive and relentlessly curious. Gnomes carry a native cunning that turns aside magic aimed at the mind, and a habit of taking things apart to see why they worked.",
+  "image": "",
+  "size": "Small",
+  "speed": 25,
+  "abilityBonuses": {
+    "int": 2
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "gnome_cunning",
+      "name": "Gnome Cunning",
+      "description": "Advantage on every Intelligence, Wisdom and Charisma saving throw against magic.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

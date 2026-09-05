@@ -1,0 +1,50 @@
+{
+  "id": "dwarf",
+  "name": "Dwarf",
+  "description": "Stone-stubborn and slow to trust, quick to hold a line. Dwarves see in the dark, shake off poison that would fell others, and carry a memory for grudges measured in generations.",
+  "image": "",
+  "size": "Medium",
+  "speed": 25,
+  "abilityBonuses": {
+    "con": 2
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "dwarven_resilience",
+      "name": "Dwarven Resilience",
+      "description": "Advantage on saving throws against poison, and resistance to poison damage.",
+      "source": "base"
+    },
+    {
+      "id": "dwarven_combat_training",
+      "name": "Dwarven Combat Training",
+      "description": "Proficiency with the battleaxe, handaxe, light hammer and warhammer.",
+      "source": "base"
+    },
+    {
+      "id": "tool_proficiency",
+      "name": "Tool Proficiency",
+      "description": "Proficiency with the artisan's tools of your choice: smith's tools, brewer's supplies or mason's tools.",
+      "source": "base"
+    },
+    {
+      "id": "stonecunning",
+      "name": "Stonecunning",
+      "description": "You count as proficient on any Intelligence (History) check about the origin of stonework, and you add double your proficiency bonus to it.",
+      "source": "base"
+    },
+    {
+      "id": "dwarven_armor_training",
+      "name": "Dwarven Armour Training",
+      "description": "Heavy armour does not reduce your speed.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}

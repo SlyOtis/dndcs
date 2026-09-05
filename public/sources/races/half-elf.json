@@ -1,0 +1,32 @@
+{
+  "id": "half-elf",
+  "name": "Half-Elf",
+  "description": "At home in two worlds and fully of neither. Half-elves inherit elven resilience and human adaptability, and tend to be the one in the room everybody ends up talking to.",
+  "image": "",
+  "size": "Medium",
+  "speed": 30,
+  "abilityBonuses": {
+    "cha": 2
+  },
+  "traits": [
+    {
+      "id": "darkvision",
+      "name": "Darkvision",
+      "description": "You see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light. You cannot tell colour in darkness, only shades of grey.",
+      "source": "base"
+    },
+    {
+      "id": "fey_ancestry",
+      "name": "Fey Ancestry",
+      "description": "Advantage on saving throws against being charmed, and magic cannot put you to sleep.",
+      "source": "base"
+    },
+    {
+      "id": "skill_versatility",
+      "name": "Skill Versatility",
+      "description": "Proficiency in two skills of your choice.",
+      "source": "base"
+    }
+  ],
+  "source": "srd"
+}
