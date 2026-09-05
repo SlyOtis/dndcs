@@ -118,6 +118,16 @@ service cloud.firestore {
         allow update, delete: if isOwner(resource.data.author_id);
       }
 
+      match /encounters/{encounterId} {
+        function parent() {
+          return campaignOf(campaignId);
+        }
+
+        allow read: if isOwner(parent().dm_id)
+          || (signedIn() && uid() in parent().player_ids && resource.data.is_known);
+        allow write: if isOwner(parent().dm_id);
+      }
+
       match /{part}/{recordId} {
         function parent() {
           return campaignOf(campaignId);
@@ -127,7 +137,7 @@ service cloud.firestore {
           return isOwner(parent().dm_id) || (signedIn() && uid() in parent().player_ids);
         }
 
-        allow read: if readsParent();
+        allow read: if readsParent() && part != 'encounters';
         allow write: if isOwner(parent().dm_id) && part != 'chat';
       }
     }

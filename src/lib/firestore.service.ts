@@ -18,6 +18,8 @@ import { auth, db } from './firebase';
 import type {
   UserProfile,
   Campaign,
+  CampaignChatEntry,
+  CampaignEncounter,
   CampaignLocation,
   CampaignMap,
   CampaignNpc,
@@ -27,6 +29,7 @@ import type {
   CampaignErrand,
   PartyMember,
   CharacterDocument,
+  CharacterStatus,
   ChatSession,
   UserPreferences
 } from './firestore.types';
@@ -84,7 +87,6 @@ export const userService = {
       email: userData.email || '',
       display_name: userData.display_name || '',
       photo_url: userData.photo_url,
-      replicate_api_key: userData.replicate_api_key || '',
       created_at: serverTimestamp() as any,
       updated_at: serverTimestamp() as any,
       preferences: {
@@ -139,10 +141,6 @@ export const userService = {
   async setUserDetails(userId: string, details: any): Promise<void> {
     const detailsRef = doc(db, COLLECTIONS.USERS, userId, 'data', 'details');
     
-    console.log('Firestore Service: Setting user details for userId:', userId);
-    console.log('Firestore Service: Details path:', `users/${userId}/data/details`);
-    console.log('Firestore Service: Details to store:', details);
-    
     const dataToStore = {
       ...details,
       created_at: serverTimestamp(),
@@ -150,7 +148,6 @@ export const userService = {
     };
     
     await setDoc(detailsRef, dataToStore);
-    console.log('Firestore Service: User details stored successfully');
   },
 
   async getProfiles(userIds: string[]): Promise<UserProfile[]> {
@@ -160,23 +157,31 @@ export const userService = {
     return snapshots.filter((entry) => entry.exists()).map((entry) => entry.data() as UserProfile);
   },
 
+  async putUserSecrets(secrets: Record<string, string>): Promise<void> {
+    const userId = getCurrentUserId();
+    const detailsRef = doc(db, COLLECTIONS.USERS, userId, 'data', 'details');
+
+    await setDoc(detailsRef, { ...secrets, updated_at: serverTimestamp() }, { merge: true });
+  },
+
   async getUserDetails(userId?: string): Promise<any> {
     const uid = userId || getCurrentUserId();
     const detailsRef = doc(db, COLLECTIONS.USERS, uid, 'data', 'details');
     
-    console.log('Firestore Service: Getting user details for userId:', uid);
-    console.log('Firestore Service: Details path:', `users/${uid}/data/details`);
-    
     const detailsSnap = await getDoc(detailsRef);
-    const exists = detailsSnap.exists();
-    const data = exists ? detailsSnap.data() : null;
-    
-    console.log('Firestore Service: Details document exists:', exists);
-    console.log('Firestore Service: Retrieved data:', data);
-    
-    return data;
+    return detailsSnap.exists() ? detailsSnap.data() : null;
   }
 };
+
+/** A character is ready once the wizard has settled its name, its class and its race. */
+export function getCharacterStatus(document: CharacterDocument): CharacterStatus {
+  const info = document.character?.info;
+  const named = Boolean(info?.name?.trim());
+  const classed = Boolean(info?.class?.name) && info.class.name !== 'Unknown';
+  const raced = Boolean(info?.race?.name) && info.race.name !== 'Unknown';
+
+  return named && classed && raced ? 'ready' : 'draft';
+}
 
 // Character Operations
 export const characterService = {
@@ -208,6 +213,8 @@ export const characterService = {
       }
     };
     
+    characterDoc.metadata.status = getCharacterStatus(characterDoc);
+
     await setDoc(characterRef, characterDoc);
     return characterRef.id;
   },
@@ -244,7 +251,19 @@ export const characterService = {
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as CharacterDocument);
+    const found = querySnapshot.docs.map(entry => entry.data() as CharacterDocument);
+
+    for (const document of found) {
+      const status = getCharacterStatus(document);
+      if (document.metadata.status === status) continue;
+
+      document.metadata.status = status;
+      updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), { 'metadata.status': status }).catch(
+        () => undefined
+      );
+    }
+
+    return found;
   },
 
   subscribeToCharacter(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
@@ -512,6 +531,67 @@ export const campaignService = {
 
   async deleteLocation(campaignId: string, id: string): Promise<void> {
     return deleteRecord(campaignId, COLLECTIONS.LOCATIONS, id);
+  },
+
+  async getEncounters(campaignId: string): Promise<CampaignEncounter[]> {
+    const entries = await getRecords<CampaignEncounter>(campaignId, COLLECTIONS.ENCOUNTERS);
+    return entries.sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
+  },
+
+  async postEncounter(campaignId: string, encounter: Partial<CampaignEncounter>): Promise<string> {
+    return postRecord<CampaignEncounter>(campaignId, COLLECTIONS.ENCOUNTERS, {
+      title: encounter.title ?? 'Untitled encounter',
+      combatants: encounter.combatants ?? [],
+      round: encounter.round ?? 1,
+      turn: encounter.turn ?? 0,
+      is_active: encounter.is_active ?? false,
+      is_known: encounter.is_known ?? false
+    });
+  },
+
+  async putEncounter(campaignId: string, id: string, updates: Partial<CampaignEncounter>): Promise<void> {
+    return putRecord(campaignId, COLLECTIONS.ENCOUNTERS, id, updates);
+  },
+
+  async deleteEncounter(campaignId: string, id: string): Promise<void> {
+    return deleteRecord(campaignId, COLLECTIONS.ENCOUNTERS, id);
+  },
+
+  postEncountersListener(
+    campaignId: string,
+    onChange: (encounters: CampaignEncounter[]) => void
+  ): Unsubscribe {
+    const encounters = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.ENCOUNTERS);
+    return onSnapshot(
+      encounters,
+      (snapshot) => onChange(snapshot.docs.map((entry) => entry.data() as CampaignEncounter)),
+      (error) => console.error('Campaign encounters did not stream:', error)
+    );
+  },
+
+  async getChatEntries(campaignId: string): Promise<CampaignChatEntry[]> {
+    const entries = await getRecords<CampaignChatEntry>(campaignId, COLLECTIONS.CHAT);
+    return entries.sort((a, b) => (a.created_at?.toMillis() ?? 0) - (b.created_at?.toMillis() ?? 0));
+  },
+
+  async postChatEntry(
+    campaignId: string,
+    entry: Omit<CampaignChatEntry, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<string> {
+    return postRecord<CampaignChatEntry>(campaignId, COLLECTIONS.CHAT, entry);
+  },
+
+  postChatListener(campaignId: string, onChange: (entries: CampaignChatEntry[]) => void): Unsubscribe {
+    const entries = query(
+      collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.CHAT),
+      orderBy('created_at')
+    );
+
+    return onSnapshot(
+      entries,
+      (snapshot) => onChange(snapshot.docs.map((entry) => entry.data() as CampaignChatEntry)),
+      (error) => console.error('Campaign chat did not stream:', error)
+    );
   },
 
   async getPartyMembers(campaigns: Campaign[]): Promise<PartyMember[]> {

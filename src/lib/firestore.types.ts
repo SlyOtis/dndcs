@@ -7,7 +7,6 @@ export interface UserProfile {
   email: string;
   display_name: string;
   photo_url?: string;
-  replicate_api_key: string;
   created_at: Timestamp;
   updated_at: Timestamp;
   preferences: UserPreferences;
@@ -54,11 +53,15 @@ export interface CharacterDocument {
   permissions: CharacterPermissions;
 }
 
+/** Whether a character has been configured far enough to play. */
+export type CharacterStatus = 'draft' | 'ready';
+
 export interface CharacterMetadata {
   name: string;
   level: number;
   class: string;
   race: string;
+  status?: CharacterStatus;
   created_at: Timestamp;
   updated_at: Timestamp;
   last_played_at?: Timestamp;
@@ -222,17 +225,65 @@ export interface CampaignLocation {
   updated_at: Timestamp;
 }
 
+export type CampaignChatKind = 'message' | 'roll';
+
+export interface CampaignChatEntry {
+  id: string;
+  author_id: string;
+  author_name: string;
+  kind: CampaignChatKind;
+  body: string;
+  query: string;
+  is_hidden: boolean;
+  roll_kind: string;
+  formula: string;
+  dice: number[];
+  roll: number;
+  total: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export type CombatantKind = 'character' | 'npc';
+
+export interface EncounterCombatant {
+  id: string;
+  name: string;
+  kind: CombatantKind;
+  character_id?: string;
+  npc_id?: string;
+  initiative: number;
+  hit_points: number;
+  max_hit_points: number;
+  conditions: string[];
+  is_hit_points_known: boolean;
+}
+
+export interface CampaignEncounter {
+  id: string;
+  title: string;
+  combatants: EncounterCombatant[];
+  round: number;
+  turn: number;
+  is_active: boolean;
+  is_known: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
 // Firestore collection names
 export const COLLECTIONS = {
   USERS: 'users',
   CHARACTERS: 'characters',
   CAMPAIGNS: 'campaigns',
   CHAT_SESSIONS: 'chatSessions',
+  CHAT: 'chat',
   MAPS: 'maps',
   SESSIONS: 'sessions',
   QUESTS: 'quests',
   NPCS: 'npcs',
-  LOCATIONS: 'locations'
+  LOCATIONS: 'locations',
+  ENCOUNTERS: 'encounters'
 } as const;
 
 // Helper types for Firestore operations
