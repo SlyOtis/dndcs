@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: blocked
+status: doing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [claude-in-chrome]
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-05T15:25:31Z
+updated_at: 2026-09-05T15:37:41Z
 questions: [q-001]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
