@@ -1,13 +1,15 @@
 <script lang="ts">
   import BaseDialog from "../BaseDialog.svelte";
+  import Field from "$components/ui/Field.svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
   import { uiStore, isSearchDialogOpen } from "$lib/stores/ui.store";
-  
+
   // Use global store instead of props
   let isOpen = $derived($isSearchDialogOpen);
 
   let searchInput: HTMLInputElement;
   let searchQuery = $state('');
-  
+
   // Sample commands for now - can be expanded later
   const commands = [
     { name: 'Toggle Chat', shortcut: 'Ctrl+L', action: 'toggle-chat' },
@@ -23,19 +25,19 @@
     { name: 'Use Item', shortcut: '', action: 'item' },
     { name: 'Rest', shortcut: '', action: 'rest' }
   ];
-  
+
   let filteredCommands = $derived(
-    commands.filter(cmd => 
+    commands.filter(cmd =>
       cmd.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       cmd.shortcut.toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
-  
+
   let selectedIndex = $state(0);
-  
+
   function handleKeydown(event: KeyboardEvent) {
     if (!isOpen) return;
-    
+
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -53,7 +55,7 @@
         break;
     }
   }
-  
+
   function executeCommand(action: string) {
     console.log('Executing command:', action);
     // For now, just close the dialog
@@ -62,20 +64,20 @@
     searchQuery = '';
     selectedIndex = 0;
   }
-  
+
   // Focus the input when dialog opens
   $effect(() => {
     if (isOpen && searchInput) {
       searchInput.focus();
     }
   });
-  
+
   // Reset selected index when search changes
   $effect(() => {
     searchQuery; // dependency
     selectedIndex = 0;
   });
-  
+
   // Reset state when dialog closes
   $effect(() => {
     if (!isOpen) {
@@ -88,113 +90,134 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <BaseDialog isOpen={isOpen} onClose={uiStore.closeSearchDialog} width="600px" showCloseButton={false} closeOnEscape={false}>
-  <div class="search-container">
-    <div class="search-icon">🔍</div>
-    <input 
-      bind:this={searchInput}
-      bind:value={searchQuery}
-      type="text" 
-      placeholder="Search commands..."
-      class="search-input"
-    />
+  <div class="head">
+    <Field label="Command" id="search-command" help="Arrow keys walk the list, Enter invokes">
+      <input
+        id="search-command"
+        bind:this={searchInput}
+        bind:value={searchQuery}
+        type="text"
+        placeholder="Search commands..."
+      />
+    </Field>
   </div>
-  
-  <div class="results">
+
+  <span class="key">
+    <Ornament name="divider" tone="metal" />
+  </span>
+
+  <div class="rites dnd-scroll">
     {#each filteredCommands as command, index}
       <button
         type="button"
-        class="result-item"
-        class:selected={index === selectedIndex}
+        class="rite"
+        class:rite-lit={index === selectedIndex}
+        aria-current={index === selectedIndex ? 'true' : undefined}
         onclick={() => executeCommand(command.action)}
       >
-        <div class="command-info">
-          <div class="command-name">{command.name}</div>
-          {#if command.shortcut}
-            <div class="command-shortcut">{command.shortcut}</div>
-          {/if}
-        </div>
+        <span class="rite-mark" aria-hidden="true"></span>
+        <span class="rite-name">{command.name}</span>
+        {#if command.shortcut}
+          <span class="rite-key">{command.shortcut}</span>
+        {/if}
       </button>
     {/each}
-    
+
     {#if filteredCommands.length === 0}
-      <div class="no-results">No commands found</div>
+      <p class="hollow">No commands found</p>
     {/if}
   </div>
 </BaseDialog>
 
 <style>
-  .search-container {
-    display: flex;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid var(--metal);
-    gap: 12px;
+  .head {
+    padding: var(--space-5) var(--space-5) var(--space-3);
   }
-  
-  .search-icon {
-    font-size: 1.2rem;
-    color: var(--metal);
+
+  .key {
+    display: block;
+    width: 220px;
+    margin: 0 auto;
+    opacity: 0.75;
+    pointer-events: none;
   }
-  
-  .search-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: var(--ink);
-    font-size: 1.1rem;
-    padding: 8px 0;
-  }
-  
-  .search-input::placeholder {
-    color: var(--ink-dim);
-  }
-  
-  .results {
+
+  .rites {
     max-height: 400px;
     overflow-y: auto;
+    padding: var(--space-2) var(--space-3) var(--space-4);
   }
-  
-  .result-item {
+
+  .rite {
+    --rite-rim: transparent;
+    --rite-light: transparent;
+    position: relative;
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-    border-bottom: 1px solid var(--sheen-soft);
-  }
-  
-  .result-item:hover,
-  .result-item.selected {
-    background: var(--ground-lift);
-  }
-  
-  .command-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: var(--space-3);
     width: 100%;
-  }
-  
-  .command-name {
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(90deg, var(--ground-raised) 0%, transparent 85%);
+    border: var(--border-hair) solid var(--rite-rim);
+    border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md);
     color: var(--ink);
-    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
-  
-  .command-shortcut {
+
+  .rite:hover,
+  .rite-lit {
+    --rite-rim: var(--metal-dim);
+    --rite-light: var(--metal);
+    background: linear-gradient(90deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
+  }
+
+  .rite-lit {
+    --rite-rim: var(--metal);
+    box-shadow: inset 0 0 20px -10px var(--ember-glow);
+  }
+
+  .rite:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .rite-mark {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    transform: rotate(45deg);
+    background: var(--rite-light);
+    box-shadow: 0 0 8px var(--rite-light);
+    transition: background 0.15s ease;
+  }
+
+  .rite-name {
+    flex: 1;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    color: var(--ink);
+  }
+
+  .rite-key {
+    flex: none;
+    padding: var(--space-1) var(--space-2);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 1px 0 var(--metal-edge);
     color: var(--ink-dim);
-    font-size: 0.9rem;
     font-family: var(--font-mono);
-    background: var(--ground-raised);
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--metal);
+    font-size: var(--text-xs);
   }
-  
-  .no-results {
-    padding: 24px 16px;
+
+  .hollow {
+    margin: 0;
+    padding: var(--space-5) var(--space-4);
     text-align: center;
-    color: var(--ink-dim);
+    color: var(--ink-faint);
     font-style: italic;
   }
 </style>

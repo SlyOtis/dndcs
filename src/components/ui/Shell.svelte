@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte'
   import { navigate } from 'sly-svelte-location-router'
   import { user, userProfile, userDetails } from '$lib/stores/auth.store'
+  import { uiStore } from '$lib/stores/ui.store'
   import Aura from './Aura.svelte'
   import Button from './Button.svelte'
   import Ornament from './Ornament.svelte'
@@ -45,6 +46,7 @@
 
   const name = $derived($userDetails?.display_name || $userProfile?.display_name || 'Adventurer')
   const initial = $derived(name.charAt(0).toUpperCase())
+  const searchKey = navigator.userAgent.includes('Mac') ? 'Cmd K' : 'Ctrl K'
 
   function openProfile() {
     navigate('/user')
@@ -82,8 +84,15 @@
 
     {#if tools}
       <span class="dnd-shell-tools">{@render tools()}</span>
-      <span class="dnd-shell-split" aria-hidden="true"></span>
     {/if}
+
+    <span class="dnd-shell-handle">
+      <Sigil title="Search {searchKey}" size="sm" frame="ring" onclick={uiStore.toggleSearchDialog}>
+        <Glyph name="search" size="sm" />
+      </Sigil>
+    </span>
+
+    <span class="dnd-shell-split" aria-hidden="true"></span>
 
     <button type="button" class="dnd-shell-chip" onclick={openProfile} title="Your profile">
       <span class="dnd-shell-chip-face">
