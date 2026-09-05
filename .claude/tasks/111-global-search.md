@@ -5,16 +5,17 @@ depends: []
 relations: []
 title: Cmd or Ctrl K opens the search dialog on every page and the top bar carries a search button
 type: task
-status: staged
+status: review
 blocked_from:
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: []
+commits: [b079e38c30723a95ca6449120036e681cbdb45f9]
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-05T15:41:58Z
+updated_at: 2026-09-05T15:47:39Z
 questions: []
+base: f301e68d9d164beb849903552dcd3fb755b383d3
 ---
 
 ## Intent
