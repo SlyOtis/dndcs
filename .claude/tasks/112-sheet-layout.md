@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The character sheet fills the viewport and nothing clips, wraps or overflows
 type: epic
-status: blocked
+status: doing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-05T15:45:07Z
+updated_at: 2026-09-05T16:20:10Z
 questions: [q-003]
 base: f301e68d9d164beb849903552dcd3fb755b383d3
 ---

@@ -4,10 +4,10 @@ task: 112
 parent:
 relations: []
 files: []
-status: open
+status: answered
 asked_by: planner
 created_at: 2026-09-05T15:43:42Z
-answered_at:
+answered_at: 2026-09-05T16:20:10Z
 ---
 
 ## Question
@@ -17,3 +17,5 @@ Which other parts of the sheet compact, move into a dialog, or stay, beyond the 
 The three visible defects are boarded as 113, 114 and 115 and run without this. The user said "and a lot more" and "things that should have been a dialog", plural. Which blocks, panels and pickers those are decides whether 112 is finished at three sub tasks or grows more, and guessing the set costs a rework pass per wrong guess.
 
 ## Answer
+
+Only the customization options move into a dialog: anything where a thing on the sheet is picked or configured, like the portrait frame design picker, goes into a dialog on that thing. The saving throw tiles, Defences and Conditions, Grit points, Senses and passive skills are display blocks and stay as they are; they are not options. The frame dialog also needs more of the complex frame designs added to the set, because the current choice is too thin.
