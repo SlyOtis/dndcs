@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'
+  import { onDestroy, onMount, setContext } from 'svelte'
   import { navigate } from 'sly-svelte-location-router'
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService } from '$lib/firestore.service'
@@ -13,6 +13,7 @@
     CharacterDocument
   } from '$lib/firestore.types'
   import { user } from '$lib/stores/auth.store'
+  import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
   import { joinSwarm } from '$lib/swarm'
   import Button from '$components/ui/Button.svelte'
   import Card from '$components/ui/Card.svelte'
@@ -23,8 +24,17 @@
   import Ornament from '$components/ui/Ornament.svelte'
   import Panel from '$components/ui/Panel.svelte'
   import Shell from '$components/ui/Shell.svelte'
+  import MenuPanel from '$components/MenuPanel.svelte'
+  import Chat from '$chat/Chat.svelte'
 
   const { route }: { route?: { params?: Record<string, string> } } = $props()
+
+  setContext('dialogState', {
+    get isAnyDialogOpen() {
+      return $anyDialogOpen
+    },
+    setDialogState: uiStore.setDialogState
+  })
 
   const TABS = [
     { id: 'overview', label: 'Overview' },
@@ -126,6 +136,14 @@
         </Button>
       {/each}
     {/if}
+  {/snippet}
+
+  {#snippet menu()}
+    <MenuPanel />
+  {/snippet}
+
+  {#snippet chat()}
+    <Chat />
   {/snippet}
 
   {#if loading}

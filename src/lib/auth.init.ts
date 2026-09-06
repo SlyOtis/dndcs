@@ -1,4 +1,5 @@
 import { onAuthStateChanged, type User } from 'firebase/auth';
+import type { Unsubscribe } from 'firebase/firestore';
 import { auth } from './firebase';
 import { 
   user, 
@@ -21,34 +22,42 @@ import {
 import { userService, characterService, campaignService } from './firestore.service';
 
 export function initializeAuth() {
-  return onAuthStateChanged(auth, async (firebaseUser: User | null) => {
+  let unsubscribeProfile: Unsubscribe | null = null;
+
+  const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: User | null) => {
     isLoading.set(true);
-    
+
+    unsubscribeProfile?.();
+    unsubscribeProfile = null;
+
     try {
       if (firebaseUser) {
         user.set(firebaseUser);
         isAuthenticated.set(true);
-        
+
         try {
-          const [profile, details] = await Promise.all([
-            userService.getProfile(firebaseUser.uid),
-            userService.getUserDetails(firebaseUser.uid)
+          let settle: () => void = () => {};
+          const firstProfile = new Promise<void>((resolve) => (settle = resolve));
+
+          unsubscribeProfile = userService.subscribeToProfile((profile) => {
+            if (profile) userProfile.set(profile);
+            settle();
+          });
+
+          const [details] = await Promise.all([
+            userService.getUserDetails(firebaseUser.uid),
+            firstProfile
           ]);
-          
-          if (profile) {
-            userProfile.set(profile);
-          }
-          
+
           if (details) {
             userDetails.set(details);
-            console.log('Auth init: User details loaded:', details);
           } else {
             console.error('Auth init: No user details found for user:', firebaseUser.uid);
           }
         } catch (error) {
           console.error('Error loading user data:', error);
         }
-        
+
       } else {
         user.set(null);
         userProfile.set(null);
@@ -71,4 +80,9 @@ export function initializeAuth() {
       isLoading.set(false);
     }
   });
+
+  return () => {
+    unsubscribeProfile?.();
+    unsubscribeAuth();
+  };
 }

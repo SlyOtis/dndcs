@@ -2,7 +2,7 @@
 id: 123
 parent:
 depends: []
-relations: []
+relations: [144]
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
 status: blocked
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [577230226a1a6458a463579a08831dc5ab849cb1, 899c92f0ff22b2372fdf25b55150ad006dec3ea6]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T21:37:35Z
+updated_at: 2026-09-06T21:39:01Z
 questions: [q-008]
 base: d32b80c645e6bfe46355798c42feca0d1210fce4
 agent: a072995e85f270246

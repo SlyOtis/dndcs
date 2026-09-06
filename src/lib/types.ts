@@ -11,6 +11,8 @@ export interface RollResult {
 export interface RollLogItem {
   type: string
   text: string
+  author?: string
+  formula: string
   roll: number
   total: number
   details?: string

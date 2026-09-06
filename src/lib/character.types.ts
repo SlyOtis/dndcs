@@ -306,6 +306,8 @@ export interface CharacterInfo {
   description: string
   gender: string
   imageUrl: string
+  /** Which traced surround the portrait sits in. */
+  imageFrame?: string
   infoUrl: string
   backgroundUrl?: string
   level: number

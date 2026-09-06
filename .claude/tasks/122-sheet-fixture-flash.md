@@ -2,7 +2,7 @@
 id: 122
 parent:
 depends: []
-relations: []
+relations: [137]
 title: The sheet shows nothing until the routed character loads instead of the fixture character
 type: bug
 status: staged
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T19:16:41Z
+updated_at: 2026-09-06T20:12:27Z
 questions: []
 ---
 

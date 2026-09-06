@@ -23,28 +23,18 @@ export const authService = {
       await userService.createProfile({
         email,
         display_name: displayName,
-        photo_url: user.photoURL || undefined,
-        replicate_api_key: replicateApiKey
+        photo_url: user.photoURL || undefined
       });
 
-      console.log('Auth Service: Storing user details:', {
-        display_name: displayName,
-        replicate_api_key: replicateApiKey
-      });
-      
       await userService.setUserDetails(user.uid, {
         display_name: displayName,
         replicate_api_key: replicateApiKey
       });
-      
-      console.log('Auth Service: User details stored successfully');
-      
+
       const savedDetails = await userService.getUserDetails(user.uid);
       if (!savedDetails || !savedDetails.display_name) {
         throw new Error('Failed to save user details - verification failed');
       }
-      
-      console.log('Auth Service: Verified user details:', savedDetails);
       
     } catch (error) {
       console.error('Auth Service: Failed to save user data, deleting auth user:', error);

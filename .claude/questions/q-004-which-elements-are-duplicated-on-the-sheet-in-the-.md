@@ -4,10 +4,10 @@ task: 112
 parent:
 relations: []
 files: []
-status: open
+status: answered
 asked_by: worker
 created_at: 2026-09-05T16:22:55Z
-answered_at:
+answered_at: 2026-09-05T16:25:25Z
 ---
 
 ## Question
@@ -17,3 +17,5 @@ Which elements are duplicated on the sheet in the second screenshot, taken after
 The overflow is boarded as 117 and runs without this. A duplicate rendered twice on the sheet is either a component mounted twice, which is a fix in the page, or a display block the user reads as redundant, which q-003 already ruled stays. Which one it is decides whether 112 grows a sixth sub task or nothing.
 
 ## Answer
+
+Nothing is duplicated. The user was wrong: the sheet scaled out of the screen, so elements looked repeated. No sixth sub task under 112; the overflow is already boarded as 117.

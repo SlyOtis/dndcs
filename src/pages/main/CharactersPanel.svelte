@@ -4,6 +4,7 @@
   import Rail from "$components/ui/Rail.svelte";
   import Card from "$components/ui/Card.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
+  import Glyph from "$components/ui/Glyph.svelte";
 
   let { loading = false } = $props();
 
@@ -41,7 +42,7 @@
       aria-label="Search characters"
       bind:value={search}
     />
-    <Sigil title="Forge a new character" tone="ember" size="sm" onclick={createCharacter}>⚔</Sigil>
+    <Sigil title="Forge a new character" tone="ember" size="sm" onclick={createCharacter} frame="star"><Glyph name="character" size="sm" /></Sigil>
   {/snippet}
 
   {#each shown as entry (entry.id)}
@@ -50,12 +51,25 @@
       title={entry.metadata.name}
       sub="Level {entry.metadata.level} {entry.metadata.race} {entry.metadata.class}"
       image={entry.character.info?.imageUrl}
-      badge={String(entry.metadata.level)}
+      badge={entry.metadata.status === 'draft' ? 'Draft' : String(entry.metadata.level)}
       tone="ember"
       onclick={() => openCharacter(entry.id)}
     >
-      <span>HP {entry.character.info?.hp?.current ?? 0}/{entry.character.info?.hp?.max ?? 0}</span>
-      <span>AC {entry.character.info?.ac ?? 10}</span>
+      {#if entry.metadata.status === 'draft'}
+        <span class="roll-draft">Not finished</span>
+      {:else}
+        <span>HP {entry.character.info?.hp?.current ?? 0}/{entry.character.info?.hp?.max ?? 0}</span>
+        <span>AC {entry.character.info?.ac ?? 10}</span>
+      {/if}
     </Card>
   {/each}
 </Rail>
+
+<style>
+  .roll-draft {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--state-warn);
+  }
+</style>

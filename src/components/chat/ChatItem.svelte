@@ -62,9 +62,18 @@
             <span class="date">{format(logItem.data.rolledAt, 'MMM d h:mm')}</span>
         </div>
 
-        {#if logItem.data.details}
-            <span>Rolls: {logItem.data.details}</span>
-        {/if}
+        <div class="roll-by">
+            {#if logItem.data.author}
+                <span class="roll-author">{logItem.data.author}</span>
+            {/if}
+            {#if logItem.data.formula}
+                <span class="roll-formula">{logItem.data.formula}</span>
+            {/if}
+            {#if logItem.data.details}
+                <span class="roll-dice">{logItem.data.details}</span>
+            {/if}
+        </div>
+
         <div class="result">
             <span>On the die: <b>{logItem.data.roll}</b></span>
             <span>Total with modifiers: <b>{logItem.data.total}</b></span>
@@ -73,6 +82,34 @@
 {/if}
 
 <style>
+    .roll-by {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-1);
+        font-size: var(--text-xs);
+    }
+
+    .roll-author {
+        font-family: var(--font-display);
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
+        color: var(--metal);
+    }
+
+    .roll-formula {
+        padding: 0 var(--space-2);
+        border: var(--border-hair) solid var(--metal-dim);
+        border-radius: var(--radius-sm);
+        font-family: var(--font-mono);
+        color: var(--ink);
+    }
+
+    .roll-dice {
+        font-family: var(--font-mono);
+        color: var(--ink-faint);
+    }
 
     li {
         padding: 12px 16px;

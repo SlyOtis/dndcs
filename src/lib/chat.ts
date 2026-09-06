@@ -1,9 +1,13 @@
-import {type Unsubscriber, type Writable, writable, get} from "svelte/store";
+import {type Readable, type Unsubscriber, type Writable, writable, get} from "svelte/store";
+import {currentRoute} from "sly-svelte-location-router";
 import type {RollLog, RollLogItem} from "./types";
-import {rollDie, writeRollLog, getCharacterStore, updateCharacterWithChangeLog} from "./engine";
+import {rollDie, writeRollLog, getRollLog, getCharacterStore, updateCharacterWithChangeLog} from "./engine";
 import type {Character} from "./character.types";
 import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
-import { userProfile } from "./stores/auth.store";
+import { user, userProfile, userDetails } from "./stores/auth.store";
+import { currentCampaignId } from "./stores/campaign.store";
+import { campaignService, characterService } from "./firestore.service";
+import type { CampaignChatEntry } from "./firestore.types";
 
 export type ReplicateLogItem = {
   returnedAt: Date,
@@ -59,12 +63,207 @@ function checkIfNonsensical(input: string): boolean {
   return isRandomSequence;
 }
 
-export function getReplicateLog(): { replicateStore: Writable<ReplicateLog>, unsubscribeReplicate: Unsubscriber } {
+function getReplicateLog(): { replicateStore: Writable<ReplicateLog>, unsubscribeReplicate: Unsubscriber } {
   return {
     replicateStore,
     unsubscribeReplicate: replicateStore.subscribe(value => {
       localStorage.setItem('replicate_log', JSON.stringify(value));
     })
+  }
+}
+
+type ChatEntryFields = Omit<CampaignChatEntry, 'id' | 'created_at' | 'updated_at'>
+
+function getAuthor(): { author_id: string, author_name: string } {
+  const account = get(user);
+  const profile = get(userProfile);
+
+  return {
+    author_id: account?.uid ?? '',
+    author_name: profile?.display_name || account?.displayName || account?.email || 'Someone'
+  }
+}
+
+function asRollEntry(item: RollLogItem): ChatEntryFields {
+  const dice = (item.details ?? '')
+    .split(',')
+    .map(part => parseInt(part.trim(), 10))
+    .filter(part => !isNaN(part));
+
+  return {
+    ...getAuthor(),
+    kind: 'roll',
+    body: item.text ?? '',
+    query: '',
+    is_hidden: false,
+    roll_kind: item.type ?? 'roll',
+    formula: item.formula ?? '',
+    dice: dice.length ? dice : [item.roll ?? 0],
+    roll: item.roll ?? 0,
+    total: item.total ?? 0
+  }
+}
+
+function asMessageEntry(item: ReplicateLogItem): ChatEntryFields {
+  return {
+    ...getAuthor(),
+    kind: 'message',
+    body: item.message ?? item.response ?? '',
+    query: item.query ?? '',
+    is_hidden: item.hidden === true,
+    roll_kind: '',
+    formula: '',
+    dice: [],
+    roll: 0,
+    total: 0
+  }
+}
+
+function asLogItem(entry: CampaignChatEntry): LogItem {
+  const createdAt = entry.created_at ? entry.created_at.toDate() : new Date();
+  const author = entry.author_name || 'Someone';
+
+  if (entry.kind === 'roll') {
+    return {
+      createdAt,
+      type: 'roll',
+      data: {
+        type: entry.roll_kind || 'roll',
+        text: entry.body,
+        author,
+        formula: entry.formula,
+        roll: entry.roll,
+        total: entry.total,
+        details: entry.dice.join(','),
+        rolledAt: createdAt.toISOString()
+      }
+    }
+  }
+
+  return {
+    createdAt,
+    type: 'chat',
+    data: {
+      sentAt: createdAt,
+      returnedAt: createdAt,
+      hidden: entry.is_hidden,
+      query: `${author}: ${entry.query}`,
+      response: entry.body,
+      message: entry.body
+    }
+  }
+}
+
+function asLocalLog(rolls: RollLog, chats: ReplicateLog): ChatLog {
+  const rollItems: ChatLog = rolls.map(curr => ({
+    createdAt: new Date(curr.rolledAt),
+    type: 'roll' as const,
+    data: curr
+  }));
+
+  const chatItems: ChatLog = chats.map(curr => ({
+    createdAt: new Date(curr.sentAt),
+    type: 'chat' as const,
+    data: curr
+  }));
+
+  return [...rollItems, ...chatItems].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+}
+
+function postCampaignScope(): Unsubscriber {
+  return currentRoute.subscribe(route => {
+    const id = route?.params?.id ?? '';
+
+    if (route?.path?.startsWith('/campaign/') && id) {
+      currentCampaignId.set(id);
+      return;
+    }
+
+    if (route?.path?.startsWith('/character/') && id && id !== 'local') {
+      characterService.getCharacter(id)
+        .then(document => currentCampaignId.set(document?.campaign_id ?? null))
+        .catch(error => {
+          console.error('Campaign scope did not resolve:', error);
+          currentCampaignId.set(null);
+        });
+      return;
+    }
+
+    currentCampaignId.set(null);
+  })
+}
+
+export function getChatLog(): { chatStore: Readable<ChatLog>, unsubscribeChat: Unsubscriber } {
+  const {rollStore, unsubscribeRoll} = getRollLog();
+  const {replicateStore: localStore, unsubscribeReplicate} = getReplicateLog();
+
+  const chatStore = writable<ChatLog>(asLocalLog(get(rollStore), get(localStore)));
+
+  let scope: string | null = null;
+  let shared: ChatLog = [];
+  let unsubscribeShared: (() => void) | null = null;
+  let publishedRolls = get(rollStore).length;
+  let publishedChats = get(localStore).length;
+
+  const render = () => chatStore.set(scope ? shared : asLocalLog(get(rollStore), get(localStore)));
+
+  function postEntry(entry: ChatEntryFields) {
+    const campaignId = scope;
+    if (!campaignId) return;
+
+    campaignService.postChatEntry(campaignId, entry)
+      .catch(error => console.error('Campaign chat entry did not save:', error));
+  }
+
+  const unsubscribeRolls = rollStore.subscribe(value => {
+    if (scope) {
+      value.slice(publishedRolls).forEach(item => postEntry(asRollEntry(item)));
+    }
+    publishedRolls = value.length;
+    render();
+  });
+
+  const unsubscribeChats = localStore.subscribe(value => {
+    if (scope) {
+      value.slice(publishedChats).forEach(item => postEntry(asMessageEntry(item)));
+    }
+    publishedChats = value.length;
+    render();
+  });
+
+  const unsubscribeScope = currentCampaignId.subscribe(campaignId => {
+    if (campaignId === scope) return;
+
+    unsubscribeShared?.();
+    unsubscribeShared = null;
+    scope = campaignId;
+    shared = [];
+    publishedRolls = get(rollStore).length;
+    publishedChats = get(localStore).length;
+
+    if (campaignId) {
+      unsubscribeShared = campaignService.postChatListener(campaignId, entries => {
+        shared = entries.map(asLogItem);
+        render();
+      });
+    }
+
+    render();
+  });
+
+  const unsubscribeRoute = postCampaignScope();
+
+  return {
+    chatStore,
+    unsubscribeChat: () => {
+      unsubscribeRoute();
+      unsubscribeScope();
+      unsubscribeShared?.();
+      unsubscribeChats();
+      unsubscribeRolls();
+      unsubscribeReplicate();
+      unsubscribeRoll();
+    }
   }
 }
 
@@ -128,8 +327,8 @@ export const availableModels = {
 
 async function callReplicate(input: ReplicateInput, modelId?: string) {
   const model = modelId || defaultModel;
-  const profile = get(userProfile);
-  const apiKey = profile?.replicate_api_key
+  const details = get(userDetails);
+  const apiKey = details?.replicate_api_key
 
   if (!apiKey) {
     throw new Error("Replicate api key is missing")
@@ -197,7 +396,6 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
         }
 
         const body = await res.json()
-        console.log('Replicate poll response:', body);
         
         if (body.status === 'succeeded') {
           const output = body.output?.join('');
@@ -265,7 +463,7 @@ export async function detectAction(query: string, modelId?: string) {
         const total = result.sum + modifier;
         const modifierText = modifier ? ` ${modifier > 0 ? '+' : ''}${modifier}` : '';
         
-        writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
+        writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, `${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
         
         return {
           sentAt: new Date(),
@@ -738,7 +936,7 @@ async function aiRollDie(action: AiAction) {
     const amount = parseInt(action.args.amount, 0)
 
     const res = await rollDie(die, amount)
-    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
+    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, `${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
   } catch (e: any) {
     throw new Error(e)
   }
@@ -762,7 +960,7 @@ async function aiUpdateInventory(action: AiAction) {
     const amount = parseInt(action.args.amount, 0)
 
     const res = await rollDie(die, amount)
-    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
+    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, `${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
   } catch (e: any) {
     throw new Error(e)
   }
@@ -2734,8 +2932,8 @@ async function aiShowSpecificItem(action: AiAction) {
     }
 
     // Use AI to find the best matching item
-    const profile = get(userProfile);
-    const apiKey = profile?.replicate_api_key;
+    const details = get(userDetails);
+    const apiKey = details?.replicate_api_key;
     if (!apiKey) {
       // Fallback to simple text matching if no API key
       const matchedItem = findItemBySimpleMatch(inventory, itemQuery);
@@ -2866,8 +3064,8 @@ Return only the index number of the best match, or -1 if no good match exists.`;
 }
 
 async function generateItemImage(item: any): Promise<string> {
-  const profile = get(userProfile);
-  const apiKey = profile?.replicate_api_key;
+  const details = get(userDetails);
+  const apiKey = details?.replicate_api_key;
   if (!apiKey) {
     return getDefaultItemImage(item.type);
   }

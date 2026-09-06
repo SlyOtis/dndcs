@@ -4,6 +4,7 @@
   import Rail from "$components/ui/Rail.svelte";
   import Card from "$components/ui/Card.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
+  import Glyph from "$components/ui/Glyph.svelte";
 
   let { loading = false } = $props();
 
@@ -40,7 +41,7 @@
       aria-label="Search campaigns"
       bind:value={search}
     />
-    <Sigil title="Raise a new campaign" tone="verdigris" size="sm" onclick={createCampaign}>🏰</Sigil>
+    <Sigil title="Raise a new campaign" tone="verdigris" size="sm" onclick={createCampaign} frame="plate"><Glyph name="campaign" size="sm" /></Sigil>
   {/snippet}
 
   {#each shown as entry (entry.id)}

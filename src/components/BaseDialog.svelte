@@ -1,8 +1,10 @@
 <script lang="ts">
   import { getContext, type Snippet } from 'svelte';
   import Ornament from '$components/ui/Ornament.svelte';
-  
-  let { 
+  import Sigil from '$components/ui/Sigil.svelte'
+  import Glyph from '$components/ui/Glyph.svelte';
+
+  let {
     isOpen = $bindable(false),
     onClose,
     title = '',
@@ -31,11 +33,11 @@
   } = $props();
 
   let dialogElement = $state<HTMLDivElement>();
-  
+
   const dialogContext = getContext('dialogState') as {
     setDialogState: (isOpen: boolean) => void;
   } | undefined;
-  
+
   function closeDialog() {
     if (onClose) {
       onClose();
@@ -43,26 +45,26 @@
       isOpen = false;
     }
   }
-  
+
   function handleBackdropClick(event: MouseEvent) {
     if (closeOnBackdropClick && event.target === event.currentTarget) {
       closeDialog();
     }
   }
-  
+
   function handleKeydown(event: KeyboardEvent) {
     if (closeOnEscape && event.key === 'Escape') {
       event.preventDefault();
       closeDialog();
     }
   }
-  
+
   $effect(() => {
     if (dialogContext) {
       dialogContext.setDialogState(isOpen);
     }
   });
-  
+
   $effect(() => {
     if (isOpen && dialogElement) {
       dialogElement.focus();
@@ -92,11 +94,21 @@
     aria-modal="true"
     aria-labelledby={title ? 'dialog-title' : undefined}
   >
-    <span class="dialog-corner dialog-corner-start">
+    <span class="dialog-crown">
+      <Ornament name="tracery" size="sm" tone="metal" />
+    </span>
+
+    <span class="dialog-corner dialog-corner-head-start">
       <Ornament name="corner" size="sm" tone="metal" />
     </span>
-    <span class="dialog-corner dialog-corner-end">
+    <span class="dialog-corner dialog-corner-head-end">
       <Ornament name="corner" size="sm" tone="metal" flip />
+    </span>
+    <span class="dialog-corner dialog-corner-foot-start">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={180} flip />
+    </span>
+    <span class="dialog-corner dialog-corner-foot-end">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={180} />
     </span>
 
     {#if title || showCloseButton}
@@ -105,16 +117,17 @@
           <h2 id="dialog-title" class="dialog-title">{title}</h2>
         {/if}
         {#if showCloseButton}
-          <button class="close-button" onclick={closeDialog} aria-label="Close dialog">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
-            </svg>
-          </button>
+          <Sigil title="Close dialog" tone="bane" size="sm" frame="cusped" onclick={closeDialog}>
+            <Glyph name="close" size="sm" />
+          </Sigil>
         {/if}
       </div>
+      <span class="dialog-key">
+        <Ornament name="divider" tone="metal" />
+      </span>
     {/if}
-    
-    <div class="dialog-content">
+
+    <div class="dialog-content dnd-scroll">
       {@render children?.()}
     </div>
   </div>
@@ -128,47 +141,90 @@
     height: 100vh;
     border: none;
     padding: 0;
-    background: radial-gradient(ellipse at 50% 50%, var(--shade) 0%, var(--shade-hard) 100%);
+    background:
+      var(--texture-motes),
+      radial-gradient(ellipse at 50% 50%, var(--shade) 0%, var(--shade-hard) 100%);
     backdrop-filter: blur(5px) saturate(0.6);
     cursor: default;
     animation: dialog-veil 0.2s ease-out;
   }
 
   .dialog {
+    --dialog-rim: var(--metal-dim);
+    --dialog-key: var(--metal-edge);
+    --dialog-head: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
+    --dialog-glass:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 60%, var(--ground-deep) 100%);
+    --dialog-arch: var(--radius-xl);
+    --dialog-foot: var(--radius-lg);
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 60%, var(--ground-deep) 100%);
-    border: var(--border-width) solid var(--metal-dim);
-    border-radius: var(--radius-lg);
+    background: var(--dialog-glass);
+    border: var(--border-width) solid var(--dialog-rim);
+    border-radius: var(--dialog-arch) var(--dialog-arch) var(--dialog-foot) var(--dialog-foot);
     box-shadow:
       var(--shadow-lg),
-      inset 0 0 0 var(--border-hair) var(--metal-edge),
+      inset 0 0 0 var(--border-hair) var(--dialog-key),
       inset 0 0 50px -18px var(--ember-glow);
-    overflow: hidden;
     outline: none;
     animation: dialog-enter 0.22s ease-out;
   }
 
+  .dialog::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    z-index: 4;
+    border: var(--border-hair) solid var(--dialog-key);
+    border-radius: calc(var(--dialog-arch) - 5px) calc(var(--dialog-arch) - 5px) calc(var(--dialog-foot) - 5px)
+      calc(var(--dialog-foot) - 5px);
+    pointer-events: none;
+  }
+
+  .dialog-crown {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 5;
+    display: flex;
+    transform: translate(-50%, -58%);
+    padding: var(--space-1);
+    border-radius: var(--radius-pill);
+    background: radial-gradient(circle at 50% 40%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+    pointer-events: none;
+    filter: drop-shadow(0 2px 8px var(--shade-hard));
+  }
+
   .dialog-corner {
     position: absolute;
-    top: -3px;
     z-index: 3;
     opacity: 0.8;
     pointer-events: none;
   }
 
-  .dialog-corner-start {
+  .dialog-corner-head-start {
+    top: -3px;
     left: -3px;
   }
 
-  .dialog-corner-end {
+  .dialog-corner-head-end {
+    top: -3px;
     right: -3px;
+  }
+
+  .dialog-corner-foot-start {
+    bottom: -2px;
+    left: -2px;
+  }
+
+  .dialog-corner-foot-end {
+    bottom: -2px;
+    right: -2px;
   }
 
   .dialog-header {
@@ -179,9 +235,10 @@
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4) var(--space-5);
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
-    border-bottom: var(--border-hair) solid var(--metal-dim);
-    box-shadow: inset 0 1px 0 var(--metal-edge), 0 3px 12px var(--shade);
+    background: var(--dialog-head);
+    border-bottom: var(--border-hair) solid var(--dialog-rim);
+    border-radius: calc(var(--dialog-arch) - var(--border-width)) calc(var(--dialog-arch) - var(--border-width)) 0 0;
+    box-shadow: inset 0 1px 0 var(--dialog-key), 0 3px 12px var(--shade);
   }
 
   .dialog-title {
@@ -196,36 +253,14 @@
     text-shadow: 0 1px 2px var(--shade-hard);
   }
 
-  .close-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    background: linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-pill);
-    color: var(--metal);
-    cursor: pointer;
-    transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .close-button:hover {
-    color: var(--state-bad);
-    border-color: var(--state-bad);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--state-bad) 45%, transparent);
-  }
-
-  .close-button:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .close-button svg {
-    width: 18px;
-    height: 18px;
+  .dialog-key {
+    position: relative;
+    z-index: 3;
+    display: block;
+    width: 220px;
+    margin: calc(var(--space-3) * -1) auto var(--space-1);
+    opacity: 0.85;
+    pointer-events: none;
   }
 
   .dialog-content {
@@ -234,21 +269,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--metal-dim) transparent;
-  }
-
-  .dialog-content::-webkit-scrollbar {
-    width: 10px;
-  }
-
-  .dialog-content::-webkit-scrollbar-track {
-    background: var(--ground-deep);
-  }
-
-  .dialog-content::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--metal-dim), var(--ground-lift));
-    border-radius: var(--radius-pill);
+    border-radius: 0 0 calc(var(--dialog-foot) - var(--border-width)) calc(var(--dialog-foot) - var(--border-width));
   }
 
   @keyframes dialog-veil {

@@ -2,7 +2,7 @@
 id: 117
 parent: 112
 depends: [113]
-relations: []
+relations: [121, 127]
 title: The sheet never exceeds the viewport and a stat title fits by wrapping inside its box
 type: epic
 status: staged
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-05T16:22:55Z
-updated_at: 2026-09-05T16:22:55Z
+updated_at: 2026-09-06T19:12:49Z
 questions: []
 ---
 

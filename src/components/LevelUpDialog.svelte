@@ -1,7 +1,10 @@
 <script lang="ts">
-  import type { LevelUpData, LevelUpChoice } from '$lib/character.types';
+  import type { LevelUpData } from '$lib/character.types';
   import type {CharacterContext} from '$lib/types';
   import {getContext} from 'svelte';
+  import BaseDialog from './BaseDialog.svelte';
+  import Button from '$components/ui/Button.svelte';
+  import Ornament from '$components/ui/Ornament.svelte';
 
   let { isOpen = $bindable(false), levelUpData = $bindable(), onComplete }: {
     isOpen: boolean;
@@ -21,18 +24,6 @@
     onComplete?.();
   }
   
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      closeDialog();
-    }
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeDialog();
-    }
-  }
-
   function handleChoiceSelection(choiceIndex: number, option: string, isSelected: boolean) {
     const choice = levelUpData?.choices[choiceIndex];
     if (!choice) return;
@@ -157,478 +148,406 @@
   }
 </script>
 
-{#if isOpen && levelUpData}
-  <div class="backdrop" onclick={handleBackdropClick} onkeydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
-    <div class="dialog">
-      <div class="header">
-        <h2>Level Up to {levelUpData.level}!</h2>
-        <button class="close-btn" onclick={closeDialog} aria-label="Close dialog">×</button>
-      </div>
-      
-      <div class="content">
-        <div class="level-info">
-          <div class="stat-gains">
-            <div class="stat-item">
-              <span class="label">Hit Die:</span>
-              <span class="value">+1d{levelUpData.hitDiceGain.die}</span>
-            </div>
-            <div class="stat-item">
-              <span class="label">Proficiency Bonus:</span>
-              <span class="value">+{levelUpData.proficiencyBonus}</span>
-            </div>
-          </div>
 
-          {#if levelUpData.spellSlotChanges}
-            <div class="spell-slots">
-              <h4>Spell Slot Progression:</h4>
-              <div class="spell-slot-grid">
-                {#each Object.entries(levelUpData.spellSlotChanges) as [level, slots]}
-                  <div class="spell-slot-item">
-                    <span class="slot-level">{level}{level === '1' ? 'st' : level === '2' ? 'nd' : level === '3' ? 'rd' : 'th'} Level:</span>
-                    <span class="slot-count">{slots} slots</span>
-                  </div>
-                {/each}
-              </div>
-            </div>
-          {/if}
-
-          {#if levelUpData.newFeatures.length > 0}
-            <div class="new-features">
-              <h3>New Features Gained:</h3>
-              <ul>
-                {#each levelUpData.newFeatures as feature}
-                  <li>
-                    <strong>{feature.title}</strong>
-                    <p>{feature.description}</p>
-                  </li>
-                {/each}
-              </ul>
-            </div>
-          {/if}
+{#if levelUpData}
+  <BaseDialog
+    isOpen={isOpen}
+    onClose={closeDialog}
+    title="Level Up to {levelUpData.level}!"
+    width="700px"
+    maxWidth="95vw"
+    maxHeight="90vh"
+    zIndex={9999}
+  >
+    <div class="ledger">
+      <section class="gains">
+        <div class="gain">
+          <span class="gain-label">Hit Die</span>
+          <span class="gain-value">+1d{levelUpData.hitDiceGain.die}</span>
         </div>
+        <div class="gain">
+          <span class="gain-label">Proficiency Bonus</span>
+          <span class="gain-value">+{levelUpData.proficiencyBonus}</span>
+        </div>
+      </section>
 
-        {#if levelUpData.choices.length > 0}
-          <div class="choices-section">
-            <h3>Make Your Choices:</h3>
-            
-            {#each levelUpData.choices as choice, choiceIndex}
-              <div class="choice-group">
-                <div class="choice-header">
-                  <h4>{choice.title}</h4>
-                  <span class="selection-count">
-                    {selections[`choice_${choiceIndex}`]?.length || 0} / {choice.maxSelections}
-                  </span>
-                </div>
-                <p class="choice-description">{choice.description}</p>
-                
-                <div class="options-grid">
-                  {#each choice.options as option}
-                    <button
-                      class="option-button"
-                      class:selected={isOptionSelected(choiceIndex, option)}
-                      class:disabled={!canSelectMore(choiceIndex) && !isOptionSelected(choiceIndex, option)}
-                      onclick={() => handleChoiceSelection(choiceIndex, option, !isOptionSelected(choiceIndex, option))}
-                    >
-                      <span class="option-check">
-                        {isOptionSelected(choiceIndex, option) ? '✓' : '○'}
-                      </span>
-                      <span class="option-text">{option}</span>
-                    </button>
-                  {/each}
-                </div>
+      {#if levelUpData.spellSlotChanges}
+        <section class="ward">
+          <h3 class="ward-title">
+            <span class="ward-mark"><Ornament name="quatrefoil" size="xs" tone="metal" /></span>
+            Spell Slot Progression
+          </h3>
+          <div class="slots">
+            {#each Object.entries(levelUpData.spellSlotChanges) as [level, slots]}
+              <div class="slot">
+                <span class="slot-level">{level}{level === '1' ? 'st' : level === '2' ? 'nd' : level === '3' ? 'rd' : 'th'} Level</span>
+                <span class="slot-count">{slots} slots</span>
               </div>
             {/each}
           </div>
-        {/if}
+        </section>
+      {/if}
 
-        {#if errors.length > 0}
-          <div class="errors">
-            <h4>Please complete the following:</h4>
-            <ul>
-              {#each errors as error}
-                <li>{error}</li>
-              {/each}
-            </ul>
-          </div>
-        {/if}
+      {#if levelUpData.newFeatures.length > 0}
+        <section class="ward ward-boon">
+          <h3 class="ward-title">
+            <span class="ward-mark"><Ornament name="rosette" size="xs" tone="verdigris" /></span>
+            New Features Gained
+          </h3>
+          <ul class="boons">
+            {#each levelUpData.newFeatures as feature}
+              <li class="boon">
+                <strong class="boon-name">{feature.title}</strong>
+                <p class="boon-note">{feature.description}</p>
+              </li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
 
-        <div class="actions">
-          <button class="cancel-btn" onclick={closeDialog}>Cancel</button>
-          <button class="confirm-btn" onclick={confirmLevelUp}>Level Up!</button>
-        </div>
-      </div>
+      {#if levelUpData.choices.length > 0}
+        <section class="ward">
+          <h3 class="ward-title">
+            <span class="ward-mark"><Ornament name="rune" size="xs" tone="metal" /></span>
+            Make Your Choices
+          </h3>
+
+          {#each levelUpData.choices as choice, choiceIndex}
+            <div class="choice">
+              <div class="choice-head">
+                <h4 class="choice-title">{choice.title}</h4>
+                <span class="choice-count">
+                  {selections[`choice_${choiceIndex}`]?.length || 0} / {choice.maxSelections}
+                </span>
+              </div>
+              <p class="choice-note">{choice.description}</p>
+
+              <div class="options">
+                {#each choice.options as option}
+                  <button
+                    type="button"
+                    class="option"
+                    class:option-lit={isOptionSelected(choiceIndex, option)}
+                    aria-pressed={isOptionSelected(choiceIndex, option)}
+                    disabled={!canSelectMore(choiceIndex) && !isOptionSelected(choiceIndex, option)}
+                    onclick={() => handleChoiceSelection(choiceIndex, option, !isOptionSelected(choiceIndex, option))}
+                  >
+                    <span class="option-mark" aria-hidden="true"></span>
+                    <span class="option-text">{option}</span>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </section>
+      {/if}
+
+      {#if errors.length > 0}
+        <section class="ward ward-bane" role="alert">
+          <h3 class="ward-title">Please complete the following</h3>
+          <ul class="banes">
+            {#each errors as error}
+              <li>{error}</li>
+            {/each}
+          </ul>
+        </section>
+      {/if}
+
+      <span class="key">
+        <Ornament name="divider" tone="metal" />
+      </span>
+
+      <footer class="actions">
+        <Button variant="ghost" onclick={closeDialog}>Cancel</Button>
+        <Button variant="primary" onclick={confirmLevelUp}>Level Up!</Button>
+      </footer>
     </div>
-  </div>
+  </BaseDialog>
 {/if}
 
 <style>
-  .backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--shade-hard);
+  .ledger {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-6) var(--space-6);
+  }
+
+  .gains {
+    display: flex;
+    gap: var(--space-6);
     justify-content: center;
-    z-index: 9999;
-    backdrop-filter: blur(5px);
+    padding: var(--space-4);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
+    box-shadow: inset 0 2px 6px var(--shade-hard);
   }
 
-  .dialog {
-    background: linear-gradient(145deg, var(--ground-raised), var(--ground-deep));
-    border: 2px solid var(--metal);
-    border-radius: 20px;
-    max-width: 700px;
-    max-height: 90vh;
-    width: 95%;
-    overflow: hidden;
-    box-shadow: 
-      0 25px 50px var(--shade-hard),
-      inset 0 1px 0 var(--sheen-soft);
-  }
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--metal) 32%, transparent);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--metal) 12%, transparent), transparent);
-  }
-
-  .header h2 {
-    margin: 0;
-    color: var(--metal);
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-shadow: 0 2px 4px var(--shade);
-  }
-
-  .close-btn {
-    background: none;
-    border: none;
-    color: var(--metal);
-    font-size: 2rem;
-    cursor: pointer;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .close-btn:hover {
-    background: color-mix(in srgb, var(--metal) 22%, transparent);
-    transform: scale(1.1);
-  }
-
-  .content {
-    padding: 2rem;
-    overflow-y: auto;
-    max-height: calc(90vh - 120px);
-  }
-
-  .level-info {
-    margin-bottom: 2rem;
-  }
-
-  .stat-gains {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background: var(--shade-soft);
-    border-radius: 8px;
-    border: 1px solid var(--sheen-soft);
-  }
-
-  .stat-item {
+  .gain {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-1);
   }
 
-  .stat-item .label {
-    font-size: 0.9rem;
+  .gain-label {
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal);
+  }
+
+  .gain-value {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .ward {
+    --ward-rim: var(--metal-dim);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--ward-rim);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+    box-shadow: inset 0 1px 0 var(--metal-edge);
+  }
+
+  .ward-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal-bright);
+  }
+
+  .ward-mark {
+    display: flex;
+    flex: none;
+  }
+
+  .ward-boon {
+    --ward-rim: var(--verdigris-dim);
+  }
+
+  .ward-boon .ward-title {
+    color: var(--verdigris);
+  }
+
+  .ward-bane {
+    --ward-rim: var(--state-bad);
+  }
+
+  .ward-bane .ward-title {
+    color: var(--state-bad);
+  }
+
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-2);
+  }
+
+  .slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+  }
+
+  .slot-level {
+    font-size: var(--text-xs);
     color: var(--ink-dim);
   }
 
-  .stat-item .value {
-    font-size: 1.2rem;
+  .slot-count {
+    font-family: var(--font-display);
     font-weight: 700;
     color: var(--metal);
   }
 
-  .new-features {
-    background: var(--shade-soft);
-    border-radius: 8px;
-    padding: 1.5rem;
-    border: 1px solid color-mix(in srgb, var(--state-good) 26%, transparent);
-  }
-
-  .new-features h3 {
-    margin: 0 0 1rem 0;
-    color: var(--state-good);
-    font-size: 1.2rem;
-  }
-
-  .new-features ul {
+  .boons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .new-features li {
-    margin-bottom: 1rem;
-    padding: 1rem;
-    background: color-mix(in srgb, var(--state-good) 26%, transparent);
-    border-radius: 6px;
-    border: var(--border-hair) solid color-mix(in srgb, var(--state-good) 50%, transparent);
+  .boon {
+    padding: var(--space-3);
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
+    border: var(--border-hair) solid var(--verdigris-dim);
+    border-radius: var(--radius-sm);
   }
 
-  .new-features li:last-child {
-    margin-bottom: 0;
-  }
-
-  .new-features strong {
-    color: var(--ink);
+  .boon-name {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-1);
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-wide);
+    color: var(--ink);
   }
 
-  .new-features p {
+  .boon-note {
     margin: 0;
     color: var(--ink-dim);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     line-height: 1.4;
   }
 
-  .choices-section {
-    margin-bottom: 2rem;
+  .choice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-md);
   }
 
-  .choices-section > h3 {
-    margin: 0 0 1.5rem 0;
-    color: var(--metal);
-    font-size: 1.3rem;
-  }
-
-  .choice-group {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background: var(--shade-soft);
-    border-radius: 12px;
-    border: 1px solid var(--sheen-soft);
-  }
-
-  .choice-header {
+  .choice-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    gap: var(--space-3);
   }
 
-  .choice-header h4 {
+  .choice-title {
     margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
     color: var(--ink);
-    font-size: 1.1rem;
   }
 
-  .selection-count {
+  .choice-count {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
     color: var(--metal);
-    font-weight: 600;
-    font-size: 0.9rem;
   }
 
-  .choice-description {
-    margin: 0 0 1.5rem 0;
+  .choice-note {
+    margin: 0;
     color: var(--ink-dim);
     font-style: italic;
-    font-size: 0.9rem;
+    font-size: var(--text-xs);
   }
 
-  .options-grid {
+  .options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
-  .option-button {
+  .option {
+    --option-rim: var(--metal-dim);
+    --option-light: transparent;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: var(--ground-lift);
-    border: 2px solid var(--sheen-soft);
-    border-radius: 8px;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
+    border: var(--border-hair) solid var(--option-rim);
+    border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md);
     color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
     text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .option-button:hover:not(.disabled) {
-    border-color: var(--metal);
-    background: color-mix(in srgb, var(--metal) 12%, transparent);
+  .option:hover:not(:disabled) {
+    --option-rim: var(--metal);
+    --option-light: var(--metal);
   }
 
-  .option-button.selected {
-    border-color: var(--metal);
-    background: color-mix(in srgb, var(--metal) 22%, transparent);
+  .option-lit {
+    --option-rim: var(--metal);
+    --option-light: var(--ember);
+    box-shadow: inset 0 0 20px -8px var(--ember-glow);
   }
 
-  .option-button.disabled {
-    opacity: 0.5;
+  .option:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .option:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
   }
 
-  .option-check {
-    color: var(--metal);
-    font-weight: 600;
-    font-size: 1.1rem;
+  .option-mark {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    transform: rotate(45deg);
+    background: var(--option-light);
+    border: var(--border-hair) solid var(--metal-dim);
+    box-shadow: 0 0 8px var(--option-light);
+    transition: background 0.15s ease;
   }
 
   .option-text {
     flex: 1;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
   }
 
-  .errors {
-    background: color-mix(in srgb, var(--state-bad) 32%, transparent);
-    border: 1px solid color-mix(in srgb, var(--state-bad) 32%, transparent);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  .errors h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--state-bad);
-    font-size: 1rem;
-  }
-
-  .errors ul {
+  .banes {
     margin: 0;
-    padding-left: 1.5rem;
-  }
-
-  .errors li {
+    padding-inline-start: var(--space-5);
     color: var(--state-bad);
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
+    font-size: var(--text-sm);
   }
 
-  .spell-slots {
-    background: var(--shade-soft);
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid var(--sheen-soft);
-    margin-bottom: 1.5rem;
-  }
-
-  .spell-slots h4 {
-    margin: 0 0 0.75rem 0;
-    color: var(--metal);
-    font-size: 1.1rem;
-  }
-
-  .spell-slot-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 0.75rem;
-  }
-
-  .spell-slot-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    background: var(--sheen-soft);
-    border-radius: 4px;
-    border: 1px solid color-mix(in srgb, var(--metal) 22%, transparent);
-  }
-
-  .slot-level {
-    font-size: 0.85rem;
-    color: var(--ink-dim);
-  }
-
-  .slot-count {
-    font-weight: 600;
-    color: var(--metal);
+  .key {
+    display: block;
+    width: 220px;
+    margin: 0 auto;
+    opacity: 0.75;
+    pointer-events: none;
   }
 
   .actions {
     display: flex;
-    gap: 1rem;
+    gap: var(--space-3);
     justify-content: flex-end;
-    padding-top: 1rem;
-    border-top: 1px solid var(--sheen-soft);
-  }
-
-  .cancel-btn,
-  .confirm-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-  }
-
-  .cancel-btn {
-    background: var(--ground-lift);
-    color: var(--ink);
-    border: 1px solid var(--sheen-strong);
-  }
-
-  .cancel-btn:hover {
-    background: var(--ground-lift);
-  }
-
-  .confirm-btn {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-    color: white;
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .confirm-btn:hover {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--ember-glow);
   }
 
   @media (max-width: 640px) {
-    .dialog {
-      width: 95%;
-      max-height: 95vh;
+    .ledger {
+      padding: var(--space-4);
     }
-    
-    .header {
-      padding: 1rem;
-    }
-    
-    .content {
-      padding: 1rem;
-    }
-    
-    .stat-gains {
+
+    .gains {
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--space-3);
     }
-    
-    .options-grid {
+
+    .options {
       grid-template-columns: 1fr;
     }
-    
+
     .actions {
       flex-direction: column;
     }

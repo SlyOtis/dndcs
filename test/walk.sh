@@ -99,6 +99,32 @@ wait_for "($hearth) || document.querySelector('.gate-error') !== null" "the hear
 
 visit /main "$hearth" "the hearth" && check_page bar
 
+page="encounter tracker"
+campaign_id="$(js "(async () => { const { userCampaigns } = await import('/src/lib/stores/campaign.store.ts'); let held = []; userCampaigns.subscribe((entries) => (held = entries))(); return held[0]?.id ?? '' })()")"
+if [ -z "$campaign_id" ]; then
+  fail "no campaign to track an encounter in"
+else
+  tracker="[...document.querySelectorAll('.dnd-menu-section')].find((e) => /Encounter tracker/.test(e.textContent))"
+  rows="[...$tracker.querySelectorAll('.dnd-menu-row')]"
+  pw click "getByTitle('Toggle the menu')" >/dev/null
+  wait_for "$tracker !== undefined" "the navigator drawer"
+  js "$tracker.querySelector('.dnd-menu-band').click() ?? null" >/dev/null
+  wait_for "$tracker.classList.contains('dnd-menu-section-open')" "the tracker to open"
+  [ "$(js "$tracker.textContent.includes('No encounter is under way.')")" = "true" ] || fail "the tracker carries no empty state while the campaign has no encounter"
+  encounter_id="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); return campaignService.postEncounter('$campaign_id', { title: 'Walk Ambush', is_active: true, is_known: true, round: 3, turn: 1, combatants: [{ id: 'w1', name: 'Goblin Cutter', kind: 'npc', npc_id: 'w-n1', initiative: 8, hit_points: 5, max_hit_points: 12, conditions: ['prone'], is_hit_points_known: true }, { id: 'w2', name: 'Walk Hero', kind: 'character', character_id: 'w-c1', initiative: 17, hit_points: 22, max_hit_points: 30, conditions: [], is_hit_points_known: true }, { id: 'w3', name: 'Dire Wolf', kind: 'npc', npc_id: 'w-n2', initiative: 12, hit_points: 9, max_hit_points: 26, conditions: [], is_hit_points_known: true }] }) })()")"
+  if wait_for "$rows.length === 3" "the combatants to stream into the tracker"; then
+    order="$(js "$rows.map((e) => e.querySelector('.dnd-menu-row-mark').textContent.trim()).join(',')")"
+    [ "$order" = "17,12,8" ] || fail "the combatants stand in $order, not in initiative order 17,12,8"
+    current="$(js "String($rows.findIndex((e) => e.getAttribute('aria-current') === 'true'))")"
+    [ "$current" = "1" ] || fail "turn 1 of the round points at row $current, not at the second in initiative order"
+    [ "$(js "$tracker.textContent.includes('Walk Ambush')")" = "true" ] || fail "the tracker does not name the encounter it lists"
+    [ "$(js "$tracker.querySelector('.dnd-menu-empty') === null")" = "true" ] || fail "the tracker keeps an empty state while an encounter is under way"
+  fi
+  js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); await campaignService.deleteEncounter('$campaign_id', '$encounter_id'); return true })()" >/dev/null
+  wait_for "$tracker.textContent.includes('No encounter is under way.')" "the empty state after the encounter is struck"
+  pw click "getByTitle('Toggle the menu')" >/dev/null
+fi
+
 page="/main"
 wait_for "[...document.querySelectorAll('.dnd-card-title')].some((e) => e.textContent.trim() === 'Testy')" "Testy on the hearth"
 js "[...document.querySelectorAll('.dnd-card')].find((e) => e.querySelector('.dnd-card-title').textContent.trim() === 'Testy').click() ?? null" >/dev/null

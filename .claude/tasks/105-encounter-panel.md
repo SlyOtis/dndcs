@@ -5,7 +5,7 @@ depends: [104]
 relations: []
 title: Encounter tracker in the left drawer, reading the model
 type: feature
-status: review
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [3cf6da750caec237da664614d9cf2b1a7c0936a1]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T20:51:33Z
+updated_at: 2026-09-06T21:58:05Z
 questions: []
 base: ff1be73afc233d4fecff3f48b1d791bb1f22e3ba
 ---

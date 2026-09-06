@@ -18,7 +18,7 @@
 
   const { onNavigateToSoundboard }: {
     /** Swaps the drawer over to the soundboard view. */
-    onNavigateToSoundboard: () => void
+    onNavigateToSoundboard?: () => void
   } = $props()
 
   let campaign = $state<Campaign | null>(null)
@@ -344,16 +344,18 @@
     </ul>
   {/if}
 
-  <p class="dnd-menu-title">Table</p>
-  <ul class="dnd-menu-list">
-    <li class="dnd-menu-item">
-      <button type="button" class="dnd-menu-row" onclick={onNavigateToSoundboard}>
-        <span class="dnd-menu-row-mark" aria-hidden="true">♪</span>
-        <span class="dnd-menu-row-name">Soundboard</span>
-        <span class="dnd-menu-row-meta">Open</span>
-      </button>
-    </li>
-  </ul>
+  {#if onNavigateToSoundboard}
+    <p class="dnd-menu-title">Table</p>
+    <ul class="dnd-menu-list">
+      <li class="dnd-menu-item">
+        <button type="button" class="dnd-menu-row" onclick={onNavigateToSoundboard}>
+          <span class="dnd-menu-row-mark" aria-hidden="true">♪</span>
+          <span class="dnd-menu-row-name">Soundboard</span>
+          <span class="dnd-menu-row-meta">Open</span>
+        </button>
+      </li>
+    </ul>
+  {/if}
 {/snippet}
 
 <style>

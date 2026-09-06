@@ -1,6 +1,7 @@
 <script lang="ts">
   import type {CharacterContext} from "$lib/types";
   import {getContext} from "svelte";
+  import Ornament from "$components/ui/Ornament.svelte";
 
   const {special} = getContext<CharacterContext>('character')
 
@@ -33,7 +34,7 @@
         onclick={() => togglePoint(index)}
         aria-label={`Toggle ${$special.name} point ${index + 1}`}
       >
-        ◆
+        <Ornament name="quatrefoil" size="xs" tone={index >= $special.current ? 'ink' : 'ember'} />
       </button>
     {/each}
   </div>
@@ -47,10 +48,7 @@
     justify-content: space-between;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    grid-column: 1 / 3;
-    grid-row: 2;
-    align-self: stretch;
-    justify-self: stretch;
+    min-width: 0;
     background:
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
@@ -96,26 +94,25 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: var(--space-2);
+    min-width: 0;
   }
 
   .pool-pip {
     display: flex;
+    flex: none;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     padding: 0;
-    background: none;
-    border: none;
+    background: radial-gradient(circle at 50% 50%, var(--ground-lift) 0%, var(--ground-deep) 82%);
+    border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-pill);
-    color: var(--ember);
-    font-size: var(--text-md);
-    line-height: 1;
     cursor: pointer;
-    text-shadow: 0 0 8px var(--ember-glow);
-    transition: transform 0.15s ease, color 0.15s ease, text-shadow 0.15s ease;
+    filter: drop-shadow(0 0 6px var(--ember-glow));
+    transition: transform 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
   }
 
   .pool-pip:hover {
@@ -128,7 +125,8 @@
   }
 
   .pool-pip-spent {
-    color: var(--ink-faint);
+    border-color: var(--ground-lift);
+    filter: none;
     text-shadow: none;
     opacity: 0.55;
   }

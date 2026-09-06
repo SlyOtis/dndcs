@@ -6,7 +6,11 @@ paths:
 
 ## Stack
 
-Frontend only and static. Vite builds to `dist`, Firebase Hosting serves it, Firestore and Storage hold everything. There is no server and none is to be added.
+Every player runs their own copy: clone the repo, `just dev`, and the app is theirs on localhost. Firestore holds what the table shares. There is no hosted server and none is to be added, but the dev server each player runs is part of the product, not scaffolding.
+
+It carries two things the browser cannot do alone. The `/replicate` proxy reaches the API without CORS. The `/media/` store reads and writes real files under `media/`, which is gitignored, with `ETag`, `If-None-Match` and byte ranges, so an original never leaves the machine that made it and audio and video stream.
+
+`just build` still produces a static `dist`, and Firebase Hosting still serves it, but a hosted visitor has no proxy and no media store. AI and full size media need the local client.
 
 pnpm only. Never npm, never yarn.
 

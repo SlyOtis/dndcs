@@ -2,7 +2,7 @@
 id: 111
 parent:
 depends: []
-relations: []
+relations: [138]
 title: Cmd or Ctrl K opens the search dialog on every page and the top bar carries a search button
 type: task
 status: failed
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [b079e38c30723a95ca6449120036e681cbdb45f9]
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-06T19:37:49Z
+updated_at: 2026-09-06T20:12:27Z
 questions: []
 base: f301e68d9d164beb849903552dcd3fb755b383d3
 ---

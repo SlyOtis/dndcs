@@ -45,7 +45,7 @@ export async function rollAbility(name: string, modifier: number) {
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('ability', `Rolled ${name} 1d20`, res.sum, total);
+  writeRollLog('ability', `Rolled ${name} 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for ability checks
   if (typeof window !== 'undefined') {
@@ -77,7 +77,7 @@ export async function rollSkill(name: string, modifier: number, proficiency: num
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('skill', `Rolled ${name} 1d20`, res.sum, total);
+  writeRollLog('skill', `Rolled ${name} 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for skill checks
   if (typeof window !== 'undefined') {
@@ -131,7 +131,7 @@ export async function rollInitiative(modifier: number) {
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('initiative', `Rolled Initiative 1d20`, res.sum, total);
+  writeRollLog('initiative', `Rolled Initiative 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for initiative
   if (typeof window !== 'undefined') {
@@ -163,7 +163,7 @@ export async function rollSave(name: string, modifier: number, proficiency: numb
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('save', `Rolled ${name} saving throw 1d20`, res.sum, total);
+  writeRollLog('save', `Rolled ${name} saving throw 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for saving throws
   if (typeof window !== 'undefined') {
@@ -195,7 +195,7 @@ export async function rollPassive(name: string, modifier: number) {
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('passive', `Rolled ${name} passive 1d20`, res.sum, total);
+  writeRollLog('passive', `Rolled ${name} passive 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for passive checks
   if (typeof window !== 'undefined') {
@@ -227,7 +227,7 @@ export async function rollAttack(name: string, modifier: number) {
   const res = await rollDie(20, 1);
   const total = res.sum + modifier;
   
-  writeRollLog('attack', `Rolled ${name} attack 1d20`, res.sum, total);
+  writeRollLog('attack', `Rolled ${name} attack 1d20`, '1d20', res.sum, total);
   
   // Trigger sound and visual feedback for attacks
   if (typeof window !== 'undefined') {
@@ -273,7 +273,7 @@ export async function rollDamage(name: string, die: number, amount: number, bonu
   const maxPossibleDamage = (die * amount) + bonus;
   const isCritical = res.rolls.some(roll => roll === die) || totalDamage === maxPossibleDamage;
   
-  writeRollLog('damage', `Rolled ${name} damage ${amount}d${die}`, res.sum, totalDamage, res.rolls.join(','));
+  writeRollLog('damage', `Rolled ${name} damage ${amount}d${die}`, `${amount}d${die}`, res.sum, totalDamage, res.rolls.join(','));
   
   // Trigger sound and damage display animation
   if (typeof window !== 'undefined') {
@@ -327,9 +327,16 @@ export function consumeAmmunition(ammoId: string) {
   });
 }
 
-export function writeRollLog(type: string, text: string, roll: number, total: number, details?: string) {
+export function writeRollLog(
+  type: string,
+  text: string,
+  formula: string,
+  roll: number,
+  total: number,
+  details?: string
+) {
   rollStore.update(state => {
-    state.push({type, text, roll, total, details, rolledAt: Date()})
+    state.push({type, text, formula, roll, total, details, rolledAt: Date()})
     return state
   })
 }
@@ -460,8 +467,8 @@ export function updateCharacterWithChangeLog<K extends keyof Character>(
 
 // Helper function to apply state changes to character (for undo/redo)
 export function applyStateToCharacter(partialState: Partial<Character>) {
-  const store = getCharacterStore();
-  
+  const store = characterStoreInstance ?? getCharacterStore();
+
   Object.entries(partialState).forEach(([key, value]) => {
     const propertyKey = key as keyof Character;
     if (store[propertyKey] && value !== undefined) {
