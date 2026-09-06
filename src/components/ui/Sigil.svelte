@@ -37,7 +37,7 @@
   export type SigilFrame = 'ring' | 'cusped' | 'lobed' | 'star' | 'plate'
 
   const TRACES: Record<SigilFrame, string> = {
-    ring: 'M50 6a44 44 0 1 1 0 88 44 44 0 0 1 0-88Z',
+    ring: 'M50 0 58 6.7A44 44 0 0 1 58 93.3L50 100 42 93.3A44 44 0 0 1 42 6.7L50 0Z',
     cusped:
       'M50 4 62 16h16v16l12 12-12 12v16H62L50 84 38 96H22V80L10 68l12-12V40h16L50 4Z',
     lobed:
@@ -82,9 +82,6 @@
     cursor: pointer;
     --sigil-d: 56px;
     --sigil-light: var(--metal);
-    --sigil-edge: calc(var(--sigil-d) * 0.062);
-    --sigil-cusp: calc(var(--sigil-d) * 0.15);
-    --sigil-point: var(--metal-dim);
     width: var(--sigil-d);
     height: var(--sigil-d);
     transition: transform 0.15s ease, filter 0.15s ease;
@@ -122,58 +119,6 @@
     --sigil-light: var(--state-bad);
   }
 
-  .dnd-sigil-ring {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: var(--radius-pill);
-    background: conic-gradient(
-      from 210deg,
-      var(--metal-dim) 0deg,
-      var(--metal-bright) 90deg,
-      var(--metal-dim) 180deg,
-      var(--metal) 280deg,
-      var(--metal-dim) 360deg
-    );
-    box-shadow: var(--shadow-sm);
-  }
-
-  .dnd-sigil-ring::before,
-  .dnd-sigil-ring::after,
-  .dnd-sigil-face::before,
-  .dnd-sigil-face::after {
-    content: '';
-    position: absolute;
-    width: var(--sigil-cusp);
-    height: var(--sigil-cusp);
-    background: var(--sigil-point);
-    transition: background 0.15s ease;
-  }
-
-  .dnd-sigil-ring::before {
-    top: calc(var(--sigil-cusp) / -2);
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-  }
-
-  .dnd-sigil-ring::after {
-    bottom: calc(var(--sigil-cusp) / -2);
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-  }
-
-  .dnd-sigil-face::before {
-    top: 50%;
-    left: calc(-1 * var(--sigil-edge) - var(--sigil-cusp) / 2);
-    transform: translateY(-50%) rotate(45deg);
-  }
-
-  .dnd-sigil-face::after {
-    top: 50%;
-    right: calc(-1 * var(--sigil-edge) - var(--sigil-cusp) / 2);
-    transform: translateY(-50%) rotate(45deg);
-  }
-
   .dnd-sigil-trace {
     position: absolute;
     inset: 0;
@@ -182,6 +127,7 @@
     height: 100%;
     overflow: visible;
     pointer-events: none;
+    filter: drop-shadow(0 -1px 0 var(--metal-edge)) drop-shadow(0 2px 3px var(--shade));
   }
 
   .dnd-sigil-fill {
@@ -255,12 +201,6 @@
   .dnd-sigil:active:not(:disabled) {
     transform: translateY(0) scale(0.97);
   }
-
-  .dnd-sigil-active {
-    --sigil-point: var(--sigil-light);
-  }
-
-
 
   .dnd-sigil:disabled {
     cursor: not-allowed;

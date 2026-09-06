@@ -62,7 +62,7 @@
   <header class="dnd-shell-bar">
     {#if menu}
       <span class="dnd-shell-handle">
-        <Sigil title="Toggle the menu" size="sm" frame="cusped" active={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
+        <Sigil title="Toggle the menu" size="sm" active={menuOpen} onclick={() => (menuOpen = !menuOpen)}>
           <Glyph name="menu" size="sm" />
         </Sigil>
       </span>
@@ -87,7 +87,7 @@
     {/if}
 
     <span class="dnd-shell-handle">
-      <Sigil title="Search {searchKey}" size="sm" frame="ring" onclick={uiStore.toggleSearchDialog}>
+      <Sigil title="Search {searchKey}" size="sm" onclick={uiStore.toggleSearchDialog}>
         <Glyph name="search" size="sm" />
       </Sigil>
     </span>
@@ -111,7 +111,7 @@
 
     {#if chat}
       <span class="dnd-shell-handle">
-        <Sigil title="Toggle the chat" tone="verdigris" size="sm" frame="lobed" active={chatOpen} onclick={() => (chatOpen = !chatOpen)}>
+        <Sigil title="Toggle the chat" size="sm" active={chatOpen} onclick={() => (chatOpen = !chatOpen)}>
           <Glyph name="chat" size="sm" />
         </Sigil>
       </span>

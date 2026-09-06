@@ -96,7 +96,7 @@
   {/snippet}
 
   {#snippet tools()}
-    <Sigil title="Change theme" size="sm" frame="lobed" onclick={() => postUIAction('openThemeDialog')}>
+    <Sigil title="Change theme" size="sm" onclick={() => postUIAction('openThemeDialog')}>
       <Glyph name="theme" size="sm" />
     </Sigil>
   {/snippet}

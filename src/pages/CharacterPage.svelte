@@ -95,16 +95,16 @@
 
 <Shell title={$info.name || 'Character'} width="full" back={() => navigate('/main')}>
   {#snippet tools()}
-    <Sigil title="Export this character" size="sm" frame="plate" onclick={() => postUIAction('exportCharacter')}>
+    <Sigil title="Export this character" size="sm" onclick={() => postUIAction('exportCharacter')}>
       <Glyph name="export" size="sm" />
     </Sigil>
-    <Sigil title="Level up" tone="ember" size="sm" frame="star" onclick={() => postUIAction('openLevelUpDialog')}>
+    <Sigil title="Level up" size="sm" onclick={() => postUIAction('openLevelUpDialog')}>
       <Glyph name="levelup" size="sm" />
     </Sigil>
-    <Sigil title="Import sources" tone="verdigris" size="sm" frame="cusped" onclick={() => postUIAction('openSourceImport')}>
+    <Sigil title="Import sources" size="sm" onclick={() => postUIAction('openSourceImport')}>
       <Glyph name="sources" size="sm" />
     </Sigil>
-    <Sigil title="Change theme" size="sm" frame="lobed" onclick={() => postUIAction('openThemeDialog')}>
+    <Sigil title="Change theme" size="sm" onclick={() => postUIAction('openThemeDialog')}>
       <Glyph name="theme" size="sm" />
     </Sigil>
   {/snippet}
