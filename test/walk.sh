@@ -112,10 +112,43 @@ if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() ===
   [ "$crown_pickers" = "0" ] || fail "the crown carries $crown_pickers frame picker controls"
   crown_names="$(js "/\b(Lancet|Ogee|Trefoil|Shield|Round)\b/.test(document.querySelector('.sheet-crown').textContent)")"
   [ "$crown_names" = "false" ] || fail "the crown names a frame"
+  for w in 1280 1600 2000; do
+    pw resize "$w" 900 >/dev/null
+    spill="$(js "[...document.querySelectorAll('.sheet-stats *')].filter((e) => e.children.length === 0 && e.textContent.trim() && (() => { const b = e.closest('.sheet-stats > *').getBoundingClientRect(), r = e.getBoundingClientRect(); return r.left < b.left - 1 || r.right > b.right + 1 })()).map((e) => e.textContent.trim()).join(', ')")"
+    [ -z "$spill" ] || fail "the stat titles run outside their boxes at $w: $spill"
+    short="$(js "String(Math.round(document.querySelector('.sheet-board').getBoundingClientRect().right - document.querySelector('.sheet-tabs').getBoundingClientRect().right))")"
+    [ "$short" = "0" ] || fail "the tabs panel stops ${short}px short of the board's right edge at $w"
+  done
+  pw resize 1600 900 >/dev/null
   pw click "getByTitle('Choose the portrait frame')" >/dev/null
   wait_for "document.querySelector('#dialog-title')?.textContent.trim() === 'Choose Your Frame'" "the frame dialog after clicking the portrait"
+  crown_clip="document.querySelector('.sheet-crown .dnd-portrait-glass').getAttribute('style')"
+  taken="$(js "document.querySelector('.trace-lit .trace-name').textContent.trim()")"
+  worn="$(js "$crown_clip")"
+  js "[...document.querySelectorAll('.trace')].find((e) => !e.classList.contains('trace-lit')).click() ?? null" >/dev/null
+  [ "$(js "$crown_clip")" = "$worn" ] && fail "the crown keeps $worn after another frame is chosen"
+  [ "$(js "document.querySelector('.trace-lit .trace-name').textContent.trim()")" = "$taken" ] && fail "the dialog still lights $taken after another frame is chosen"
+  js "[...document.querySelectorAll('.trace')].find((e) => e.querySelector('.trace-name').textContent.trim() === '$taken').click() ?? null" >/dev/null
+  [ "$(js "$crown_clip")" = "$worn" ] || fail "the crown does not return to $worn when $taken is chosen back"
   pw press Escape >/dev/null
   wait_for "document.querySelector('#dialog-title') === null" "the frame dialog to close"
+
+  pw click "getByTitle('Import sources')" >/dev/null
+  wait_for "document.querySelector('#dialog-title')?.textContent.trim() === 'Character Sources'" "the sources dialog after clicking the bar"
+  dialog="document.querySelector('[role=dialog]')"
+  raw="$(js "[...$dialog.querySelectorAll('button')].filter((e) => !/dnd-/.test(e.className)).length")"
+  [ "$raw" = "0" ] || fail "the sources dialog carries $raw raw buttons"
+  emoji="$(js "/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u.test($dialog.textContent)")"
+  [ "$emoji" = "false" ] || fail "the sources dialog carries an emoji"
+  painted="$(js "[...$dialog.querySelectorAll('*')].filter((e) => /#[0-9a-f]{3}|rgb/i.test(e.getAttribute('style') ?? '')).length")"
+  [ "$painted" = "0" ] || fail "the sources dialog paints $painted elements with a literal colour"
+  pw click "getByRole('button', { name: 'Import New Source' })" >/dev/null
+  wait_for "document.querySelector('#dialog-title')?.textContent.trim() === 'Import Character Source'" "the import dialog"
+  [ "$(js "document.querySelector('#source-file') !== null")" = "true" ] || fail "the import dialog carries no file field"
+  pw press Escape >/dev/null
+  wait_for "document.querySelector('#dialog-title')?.textContent.trim() === 'Character Sources'" "the sources dialog after Escape on the import dialog"
+  pw press Escape >/dev/null
+  wait_for "document.querySelector('#dialog-title') === null" "the sources dialog to close"
 fi
 
 visit /main "$hearth" "the hearth"
@@ -146,6 +179,8 @@ fi
 
 if visit /main/create/character/race "$catalog" "the race catalog"; then
   check_page bar
+  strays="$(js "(async () => { const { classes } = await (await fetch('/sources/classes/index.json')).json(); const held = new Set(classes); return [...document.querySelectorAll('.dnd-catalog-row .dnd-catalog-name')].map((e) => e.textContent.trim()).filter((name) => held.has(name.toLowerCase().replace(/ /g, '-'))).join(', ') })()")"
+  [ -z "$strays" ] || fail "the race catalog offers a class as a race: $strays"
   visit "$(first_href '.dnd-catalog-more')" "document.querySelector('.source-crown') !== null" "the race detail" && check_page bar
 fi
 
