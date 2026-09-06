@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Ship the campaign chat rules so the shared roll log works
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [2ad16c4a38130762ec928e9b48c66159fa5ae3db]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-05T15:25:56Z
+updated_at: 2026-09-06T19:34:52Z
 questions: []
 own: [firestore.rules]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
@@ -42,3 +42,7 @@ The shared campaign chat and roll log was built against `campaigns/{id}/chat` bu
 `task.sh scope` finds no path in a `## Scope` that names a repo-root file, because `scope_of` matches only strings containing a slash. `own: [firestore.rules]` in the frontmatter is what makes `land` and `diff` see this task's one file.
 
 Order step 3, two accounts rolling in one campaign, is the interactive proof in `## Done when` and is left to the tester; it cannot be run from this session.
+
+Review: `firestore.rules:31-34`, `81-88`, `90-98`, `100-108` and `137-141` land `users/{userId}/files`, `campaigns/{campaignId}/files`, `peers`, `signals` and `catalog/{kind}/entries` in commit `2ad16c4`; 41 of the 53 lines. Scope names the chat match and the `part != 'chat'` guard alone, the Summary claims only those, and no task on the board owns the rest. Unclaimed change in the diff: either the Summary claims each block and what it permits, or the planner takes the task back and boards the blocks that carry them.
+
+Review: `firestore.rules:131`, the Summary says the generic write "no longer shadows" the chat match. Firestore allows are additive, so the guard removes the DM's write to any chat entry through the generic match; nothing was shadowed. The claim should say what the guard does.
