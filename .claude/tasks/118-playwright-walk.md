@@ -5,7 +5,7 @@ depends: []
 relations: [136]
 title: A playwright-cli walk under test/ drives every screen without the extension
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [test]
 commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0, 31a074c313831a7483c2173ef6b8f429d4742d5e]
 created_at: 2026-09-06T18:31:20Z
-updated_at: 2026-09-06T19:48:15Z
+updated_at: 2026-09-06T20:10:57Z
 questions: [q-006]
 base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
@@ -41,8 +41,6 @@ The recipe under `justfile` runs the walk to completion against a running `just 
 
 ### Findings
 
-1. With a placeholder account the walk passed every assertion on `/login` and `/signup` and stopped at sign in. Nothing past sign in has run: `.env` has no values for the keys. Step 5 runs once they are filled.
-2. `just env` refused the empty walk keys in b5178ca; `env` now checks only the `VITE_` keys, and `just env` passes with them empty.
-3. A second pointer press on the bar sigil lands on the dialog backdrop, z-index 1000 over the bar at 20, which closes the dialog. The toggle holds from the pointer's side; the sigil is unreachable while the dialog is open.
-4. The dev server listens on `[::1]:5173` only.
-5. b5178ca carried the `firebase` shim recipe, its comment and the `just firebase` rewrite of `rules`, `deploy` and `storage-rules`, none of it in `## Scope`. This commit removes the shim and restores the three recipes to `firebase deploy`, so `justfile` differs from `3ae793d` only in `env` and `walk`.
+1. `test/walk.sh:90` with the keys filled, `/login` and `/signup` pass, then every `js` call after the Sign In click prints `The browser 'walk' is not open`; the walk never reaches `/main`. Find why the session is lost at sign in and run `just walk` through before review.
+2. `test/walk.sh:15` `js` pipes the cli's error text into `jq`, 57 `jq: parse error` lines for one lost session; test `pw eval` before `jq` and exit once with the cli's message.
+3. `## Done when` says the walk runs to completion; Summary Finding 1 said step 5 never ran. A task lands in review after its `## Done when` has been run, not before.
