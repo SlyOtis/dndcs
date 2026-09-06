@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: doing
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,13 +13,13 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T18:32:54Z
+updated_at: 2026-09-06T19:13:34Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
 
 ## Intent
-The gothic pass, the drawer rebuild, the portrait frames, the glyph set, the shared chat, and since then the global search shortcut and bar button of 111, the board layout of 113 and the frame dialog of 115 are all confirmed only by `just gate`. A type check is not a behaviour and a build is not a run. Nothing has been seen rendering. `playwright-cli` at `/opt/homebrew/bin/playwright-cli` is the scripted driver; the playwright MCP driving Brave is the visual one, and the Chrome extension is never used. This task runs solo in a worker session, not through an agent, because only the main conversation holds the MCP tools.
+Everything since the gothic pass, 111, 113 and 115 included, is confirmed only by `just gate`; a build is not a run. This task sees every screen render through the playwright MCP driving Brave, with `playwright-cli` as the scripted driver, and runs solo because only the main conversation holds the MCP tools.
 
 ## Scope
 No source unless a defect is found, and then a defect is boarded rather than fixed in place. This task is verification and a findings list. Not 117, which already carries the sheet overflow, and not `test/`, which is 118. It runs solo: `/lcp-worker solo`, never dispatched to an agent.
@@ -38,3 +38,17 @@ No source unless a defect is found, and then a defect is boarded rather than fix
 Every screen has been seen through the playwright MCP in Brave, the console is clean on each, the search shortcut and button work on every page, and every defect found is a task on the board.
 
 ## Summary
+Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `WALK_EMAIL`: sign in, sign up, hearth, Testy's sheet and its tabs, create, class catalog and detail, race catalog and detail, profile, campaign create. No document scrolls horizontally. Cmd K, a second Cmd K, Escape and the bar button work on every routed page. The crown has no picker and the portrait opens Choose Your Frame. Level up and theme dialogs open centred and close on Escape, also in a full 1728 by 1003 window; the off centre look was the pinned test viewport. Export downloads JSON, a portrait previews on create, the source import takes a class JSON.
+
+### Findings
+- A drawer open keeps the board at its 850px max-content width; the ability column drops to 263px with the chat, 12px with both, and the board covers it. 121.
+- The sheet shows the fixture Lucky Lars until the routed character loads. 122.
+- Three characters carry `blob:http://localhost:5174/` as `imageUrl`; a console error on every page. 123.
+- SoundManager preloads nineteen missing `.wav` files: nineteen warnings per sheet. 124.
+- The import sources dialog puts `role=dialog` on the backdrop, lacks `#dialog-title`, ignores Escape, and its emoji buttons leave the gothic language. 125.
+- Roll Dice and the attack hit button leave the chat log empty. 126.
+- Buttons, panels and frames drift from `docs/inspiration`; sizes are fixed where the user wants all dynamic. 127.
+- Testy reads Gunslinger Gunslinger: the race field holds the class. Data or the create flow, unsettled.
+- Not walked: the campaign page. The account owns no campaign and creation is AI generation only.
+- 118: sign in lands on `/`, the alias of `/main`, so its wait times out. `.playwright-cli/` and `.playwright-mcp/` are not ignored.
+- The shell is 6px wider than the viewport, hidden. The video iframe is a fixed 1600px.
