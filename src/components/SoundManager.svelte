@@ -1,45 +1,33 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   
-  // Environment variable for sound path
   const SOUND_PATH = import.meta.env.VITE_SOUND_PATH || '/sounds';
   
-  // Sound files mapping
-  const soundFiles = {
-    // Roll sounds
-    diceRoll: 'dice-roll.wav',
-    criticalHit: 'critical-hit.wav',
-    criticalFail: 'critical-fail.wav',
-    
-    // UI sounds
-    buttonClick: 'button-click.wav',
-    pageFlip: 'page-flip.wav',
-    quillWrite: 'quill-write.wav',
-    
-    // Ambient sounds
-    levelUp: 'level-up.wav',
-    spellCast: 'spell-cast.wav',
-    coinDrop: 'coin-drop.wav',
-    
-    // Achievement sounds
-    questComplete: 'quest-complete.wav',
-    itemFound: 'item-found.wav',
-    doorOpen: 'door-open.wav',
-    inspiration: 'inspiration.wav',
-    
-    // Combat sounds
-    swordHit: 'sword-hit.wav',
-    arrowShoot: 'arrow-shoot.wav',
-    shieldBlock: 'shield-block.wav',
-    
-    // Magic sounds
-    healSpell: 'heal-spell.wav',
-    fireSpell: 'fire-spell.wav',
-    restoreEnergy: 'restore-energy.wav'
-  };
+  const soundEvents = [
+    { event: 'playDiceRoll', sound: 'diceRoll' },
+    { event: 'playCriticalHit', sound: 'criticalHit' },
+    { event: 'playCriticalFail', sound: 'criticalFail' },
+    { event: 'playButtonClick', sound: 'buttonClick' },
+    { event: 'playPageFlip', sound: 'pageFlip' },
+    { event: 'playQuillWrite', sound: 'quillWrite' },
+    { event: 'playLevelUp', sound: 'levelUp' },
+    { event: 'playSpellCast', sound: 'spellCast' },
+    { event: 'playCoinDrop', sound: 'coinDrop' },
+    { event: 'playQuestComplete', sound: 'questComplete' },
+    { event: 'playItemFound', sound: 'itemFound' },
+    { event: 'playDoorOpen', sound: 'doorOpen' },
+    { event: 'playSwordHit', sound: 'swordHit' },
+    { event: 'playArrowShoot', sound: 'arrowShoot' },
+    { event: 'playShieldBlock', sound: 'shieldBlock' },
+    { event: 'playHealSpell', sound: 'healSpell' },
+    { event: 'playFireSpell', sound: 'fireSpell' },
+    { event: 'playRestoreEnergy', sound: 'restoreEnergy' },
+    { event: 'playInspiration', sound: 'inspiration' }
+  ] as const;
   
-  // Audio cache
-  const audioCache = new Map<string, HTMLAudioElement>();
+  type SoundKey = (typeof soundEvents)[number]['sound'];
+  
+  const audioCache = new Map<SoundKey, Promise<HTMLAudioElement | null>>();
   
   // Funny random texts for different actions
   const funnyTexts = {
@@ -129,92 +117,50 @@
     localStorage.setItem('dnd_sound_enabled', soundEnabled.toString());
   });
   
-  // Preload audio files
-  function preloadAudio(filename: string): HTMLAudioElement {
-    if (audioCache.has(filename)) {
-      return audioCache.get(filename)!;
+  function getAudio(sound: SoundKey): Promise<HTMLAudioElement | null> {
+    if (!audioCache.has(sound)) {
+      const url = `${SOUND_PATH}/${sound.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)}.wav`;
+      audioCache.set(sound, fetch(url, { method: 'HEAD' })
+        .then(res => {
+          if (!res.ok || !res.headers.get('content-type')?.startsWith('audio/')) return null;
+          const audio = new Audio(url);
+          audio.volume = volume;
+          return audio;
+        })
+        .catch(() => null));
     }
-    
-    const audio = new Audio(`${SOUND_PATH}/${filename}`);
-    audio.volume = volume;
-    audio.preload = 'auto';
-    
-    // Handle loading errors gracefully
-    audio.onerror = () => {
-      console.warn(`Could not load sound file: ${filename}`);
-    };
-    
-    audioCache.set(filename, audio);
-    return audio;
+    return audioCache.get(sound)!;
   }
   
-  // Play sound function
-  function playSound(soundKey: keyof typeof soundFiles, showText: boolean = true) {
+  async function playSound(sound: SoundKey, showText: boolean = true) {
     if (!soundEnabled) return;
     
-    const filename = soundFiles[soundKey];
-    if (!filename) return;
-    
-    try {
-      const audio = preloadAudio(filename);
-      audio.volume = volume;
-      audio.currentTime = 0;
-      audio.play().catch(error => {
-        console.warn(`Could not play sound ${soundKey}:`, error);
-      });
-      
-      // Show funny text if requested
-      if (showText && funnyTexts[soundKey as keyof typeof funnyTexts]) {
-        showRandomText(soundKey as keyof typeof funnyTexts);
-      }
-    } catch (error) {
-      console.warn(`Error playing sound ${soundKey}:`, error);
+    if (showText && sound in funnyTexts) {
+      showRandomText(sound as keyof typeof funnyTexts);
     }
+    
+    const audio = await getAudio(sound);
+    if (!audio) return;
+    
+    audio.volume = volume;
+    audio.currentTime = 0;
+    audio.play().catch(error => {
+      console.warn(`Could not play sound ${sound}:`, error);
+    });
   }
   
-  // Show random funny text
   function showRandomText(category: keyof typeof funnyTexts) {
     const texts = funnyTexts[category];
     if (!texts || texts.length === 0) return;
     
     const randomText = texts[Math.floor(Math.random() * texts.length)];
     
-    // Dispatch custom event to show text
     window.dispatchEvent(new CustomEvent('showFunnyText', {
       detail: { text: randomText, category }
     }));
   }
   
-  // Global sound event listeners
   onMount(() => {
-    // Preload commonly used sounds
-    Object.values(soundFiles).forEach(filename => {
-      preloadAudio(filename);
-    });
-    
-    // Listen for sound events
-    const soundEvents = [
-      { event: 'playDiceRoll', sound: 'diceRoll' as const },
-      { event: 'playCriticalHit', sound: 'criticalHit' as const },
-      { event: 'playCriticalFail', sound: 'criticalFail' as const },
-      { event: 'playButtonClick', sound: 'buttonClick' as const },
-      { event: 'playPageFlip', sound: 'pageFlip' as const },
-      { event: 'playQuillWrite', sound: 'quillWrite' as const },
-      { event: 'playLevelUp', sound: 'levelUp' as const },
-      { event: 'playSpellCast', sound: 'spellCast' as const },
-      { event: 'playCoinDrop', sound: 'coinDrop' as const },
-      { event: 'playQuestComplete', sound: 'questComplete' as const },
-      { event: 'playItemFound', sound: 'itemFound' as const },
-      { event: 'playDoorOpen', sound: 'doorOpen' as const },
-      { event: 'playSwordHit', sound: 'swordHit' as const },
-      { event: 'playArrowShoot', sound: 'arrowShoot' as const },
-      { event: 'playShieldBlock', sound: 'shieldBlock' as const },
-      { event: 'playHealSpell', sound: 'healSpell' as const },
-      { event: 'playFireSpell', sound: 'fireSpell' as const },
-      { event: 'playRestoreEnergy', sound: 'restoreEnergy' as const },
-      { event: 'playInspiration', sound: 'inspiration' as const }
-    ];
-    
     const listeners: Array<() => void> = [];
     
     soundEvents.forEach(({ event, sound }) => {
@@ -228,19 +174,19 @@
       listeners.push(() => window.removeEventListener(event, listener));
     });
     
-    // Cleanup
     return () => {
       listeners.forEach(cleanup => cleanup());
     };
   });
   
-  // Expose sound controls globally
   (globalThis as any).soundManager = {
     playSound,
     setVolume: (newVolume: number) => {
       volume = Math.max(0, Math.min(1, newVolume));
-      audioCache.forEach(audio => {
-        audio.volume = volume;
+      audioCache.forEach(pending => {
+        pending.then(audio => {
+          if (audio) audio.volume = volume;
+        });
       });
     },
     toggleSound: () => {
