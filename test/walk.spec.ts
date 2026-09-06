@@ -50,3 +50,44 @@ describe('the walk keys', () => {
     expect(recipe('env').join('\n')).toContain("grep -oE '^VITE_[A-Z_]+' .env.example")
   })
 })
+
+describe('the walk measures the sideways run', () => {
+  const walk = read('test/walk.sh')
+  const check = walk.slice(walk.indexOf('check_page() {'), walk.indexOf('\n}\n', walk.indexOf('check_page() {')))
+  const sweep = [...check.matchAll(/for w in ([0-9 ]+); do/g)].flatMap((found) =>
+    found[1].trim().split(/\s+/).map(Number)
+  )
+
+  it('resizes the viewport and reads the document against it', () => {
+    expect(sweep.length).toBeGreaterThan(0)
+    expect(check).toContain('pw resize "$w" 900')
+    expect(check).toContain(
+      'Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth'
+    )
+  })
+
+  it('sweeps under the narrowest breakpoint the shell declares, where an auto track loses its floor', () => {
+    const breakpoints = [...read('src/components/ui/Shell.svelte').matchAll(/@media \(max-width: (\d+)px\)/g)].map(
+      (found) => Number(found[1])
+    )
+
+    expect(breakpoints.length).toBeGreaterThan(0)
+    expect(Math.min(...sweep)).toBeLessThan(Math.min(...breakpoints))
+  })
+
+  it('visits every page the gothic pass carried', () => {
+    for (const route of [
+      '/main',
+      '/main/create/character',
+      '/main/create/character/class',
+      '/main/create/character/race',
+      '/main/create/campaign',
+      '/user'
+    ]) {
+      expect(walk, route).toContain(`visit ${route} "`)
+    }
+
+    expect(walk).toContain("location.pathname.startsWith('/campaign/')")
+    expect(walk).toContain("document.querySelector('.source-crown') !== null")
+  })
+})

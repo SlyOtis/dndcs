@@ -44,16 +44,17 @@ export const component = (path: string) => {
 
   const prelude = (rule: Node) => flat(span(rule.prelude))
 
-  const style = (selector: string): Record<string, string> | null => {
-    const rule = rules.find((entry) => prelude(entry) === selector)
-    if (!rule) return null
-
-    return Object.fromEntries(
+  const blocks = rules.map((rule) => ({
+    selector: prelude(rule),
+    declared: Object.fromEntries(
       (rule.block.children as Node[])
         .filter((child) => child.type === 'Declaration')
         .map((child) => [child.property as string, flat(child.value as string)])
-    )
-  }
+    ) as Record<string, string>
+  }))
+
+  const style = (selector: string): Record<string, string> | null =>
+    blocks.find((entry) => entry.selector === selector)?.declared ?? null
 
   const tracks = (selector: string) => {
     const declared = style(selector)?.['grid-template-columns']
@@ -97,8 +98,10 @@ export const component = (path: string) => {
   }
 
   return {
+    source,
     parsed,
     nodes,
+    blocks,
     style,
     tracks,
     selectors: rules.map(prelude),

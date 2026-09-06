@@ -51,7 +51,7 @@ check_page() {
     fail "console carries $errors errors and $warnings warnings"
     pw console warning | sed -n '/^\[/p' | sed 's/^/    /'
   fi
-  for w in 1280 1600 2000; do
+  for w in 360 640 900 1280 1600 2000; do
     pw resize "$w" 900 >/dev/null
     over="$(js "Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth")"
     [ "$over" -gt 0 ] && fail "document is ${over}px wider than the viewport at $w"
@@ -211,6 +211,8 @@ if visit /main/create/character/race "$catalog" "the race catalog"; then
   [ -z "$strays" ] || fail "the race catalog offers a class as a race: $strays"
   visit "$(first_href '.dnd-catalog-more')" "document.querySelector('.source-crown') !== null" "the race detail" && check_page bar
 fi
+
+visit /main/create/campaign "document.querySelector('#campaign-prompt') !== null" "the campaign form" && check_page bar
 
 visit /user "document.querySelector('.dnd-shell-mark')?.textContent.trim() === 'Profile'" "the profile" && check_page bar
 
