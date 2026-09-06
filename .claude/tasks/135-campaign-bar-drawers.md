@@ -5,17 +5,19 @@ depends: [105]
 relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
-status: staged
-blocked_from:
+status: blocked
+blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-06T19:49:27Z
-questions: []
+updated_at: 2026-09-06T22:06:19Z
+questions: [q-009]
 images: []
+agent: ad7be3fac24c3f1a7
+base: 195e21ad49f99605f5f12249820a10e80a98622a
 ---
 
 ## Intent
@@ -33,3 +35,12 @@ The 110 walk on The Shadow of Blackwood: the campaign bar has no menu and no cha
 On the campaign page both handles show in the bar, the drawer opens with the encounter section live, the chat opens and a posted message lands in the campaign's log, the console is clean, and `just gate` is clean.
 
 ## Summary
+
+Written in the working tree, not landed: q-009 holds the landing.
+
+- `src/pages/CampaignPage.svelte`: imports `MenuPanel` and `Chat`, sets the `dialogState` context the way `MainPage` does, and passes `menu` and `chat` snippets to `Shell` so both handles render in the bar.
+- `src/components/MenuPanel.svelte`: `getContext<CharacterContext | undefined>` so a page without a character store does not throw; the soundboard view and its `onNavigateToSoundboard` are offered only when `soundBoard` exists.
+- `src/components/MainMenu.svelte`: `onNavigateToSoundboard` is optional and the Table section renders only when it is given.
+- `src/components/chat/Chat.svelte`: untouched; `getChatLog` in `src/lib/chat.ts` already scopes off `/campaign/:id`.
+
+`just check` 0 errors 0 warnings, `just build` passes with the pre-existing chunk size notice.
