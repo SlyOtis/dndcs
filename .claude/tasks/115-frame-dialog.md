@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The portrait frame picker leaves the crown for a dialog
 type: task
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [82087071ad4024733f7ba3ae1fc78ec20ca91791]
 created_at: 2026-09-05T15:41:59Z
-updated_at: 2026-09-05T15:58:24Z
+updated_at: 2026-09-06T19:36:24Z
 questions: []
 base: 57fef3f3bca747e4fea3ae843a44329b927197b5
 ---
