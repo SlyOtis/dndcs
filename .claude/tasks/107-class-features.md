@@ -5,7 +5,7 @@ depends: []
 relations: [108, 109]
 title: Author level features for the thirteen core classes
 type: task
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [engine]
 commits: [1031c428f1d4ed52cf88518710643b3dc39ffd8e]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-05T15:30:06Z
+updated_at: 2026-09-06T19:30:00Z
 questions: []
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
