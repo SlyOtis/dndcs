@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The import sources dialog closes on Escape, carries its title, and its buttons follow the gothic language
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [073bb8b535f6677c340af3183ca6ff926217324d]
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-06T19:21:04Z
+updated_at: 2026-09-06T19:39:33Z
 questions: []
 base: d32b80c645e6bfe46355798c42feca0d1210fce4
 ---
@@ -41,3 +41,7 @@ The dialog opens from the bar in the same language as the theme and frame dialog
 ### Findings
 
 `just build` prints the rolldown chunk size warning for `index` and `sources`, which this change does not touch.
+- `src/components/CharacterSourceImport.svelte:9` imports `$lib/sources`; `src/lib/sources.ts` is untracked and not in `073bb8b`, so the landed commit does not resolve on its own tree.
+- `src/components/CharacterSourceImport.svelte:8` and `:733` call `aiService.postPrediction`; `src/lib/ai.ts` at `073bb8b` has no such method, it exists only in the uncommitted working copy.
+- `src/components/CharacterSourceImport.svelte:596-610` and `:728-750`: the Summary claims source parsing is untouched and the Scope excludes it, but `getFileType`, `extractTextFromPDF`, `fileToBase64`, `processWithReplicate` and the size checks are replaced by `getSource` and `postClassProgression`, the prompt changes, and an image is now read to text first by `aiService.postImageReading` instead of sent to the vision model directly.
+- `## Done when` names `just gate` clean; on the commit as landed the build cannot pass, and the working tree changes it depends on sit outside `## Scope`.
