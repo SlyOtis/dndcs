@@ -53,7 +53,6 @@ export interface CharacterDocument {
   permissions: CharacterPermissions;
 }
 
-/** Whether a character has been configured far enough to play. */
 export type CharacterStatus = 'draft' | 'ready';
 
 export interface CharacterMetadata {

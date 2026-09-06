@@ -173,7 +173,6 @@ export const userService = {
   }
 };
 
-/** A character is ready once the wizard has settled its name, its class and its race. */
 export function getCharacterStatus(document: CharacterDocument): CharacterStatus {
   const info = document.character?.info;
   const named = Boolean(info?.name?.trim());
