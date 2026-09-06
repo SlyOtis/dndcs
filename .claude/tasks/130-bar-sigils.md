@@ -2,7 +2,7 @@
 id: 130
 parent:
 depends: []
-relations: []
+relations: [135]
 title: Every tool in the bar is one sigil design drawn from the forged HUD reference
 type: task
 status: staged
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:28:07Z
-updated_at: 2026-09-06T19:28:07Z
+updated_at: 2026-09-06T19:48:16Z
 questions: []
 ---
 
