@@ -18,7 +18,7 @@ env:
             echo "missing or empty in .env: $key"
             missing=1
         fi
-    done < <(grep -oE '^[A-Z_]+' .env.example)
+    done < <(grep -oE '^VITE_[A-Z_]+' .env.example)
     if [ "$missing" -ne 0 ]; then exit 1; fi
     echo ".env carries every key .env.example names"
 
@@ -49,23 +49,14 @@ gate:
 update:
     pnpm update --latest
 
-# node 24 removed SlowBuffer and firebase-tools still reaches it through jwa
-firebase +ARGS:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    shim="$(mktemp -t slowbuffer)".cjs
-    printf "%s\n" "const b=require('buffer'); if(!b.SlowBuffer) b.SlowBuffer=b.Buffer;" > "$shim"
-    trap 'rm -f "$shim"' EXIT
-    NODE_OPTIONS="--require $shim" firebase {{ARGS}}
-
 rules:
-    just firebase deploy --only firestore:rules,firestore:indexes
+    firebase deploy --only firestore:rules,firestore:indexes
 
 deploy: gate
-    just firebase deploy --only hosting,firestore:rules,firestore:indexes
+    firebase deploy --only hosting,firestore:rules,firestore:indexes
 
 storage-rules:
-    just firebase deploy --only storage:rules
+    firebase deploy --only storage:rules
 
 reference kind *ARGS:
     bash scripts/reference.sh {{kind}} {{ARGS}}
