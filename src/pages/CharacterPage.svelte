@@ -56,16 +56,17 @@
 
   const {info} = chStore;
 
+  let loaded = $state(false);
+
   onMount(() => {
     setTheme(getTheme());
 
-    if (route?.params?.id) {
-      characterService.getCharacter(route.params.id)
-        .then((document) => {
-          if (document?.character) applyStateToCharacter(document.character);
-        })
-        .catch((error) => console.error('Character did not load:', error));
-    }
+    characterService.getCharacter(characterId)
+      .then((document) => {
+        if (document?.character) applyStateToCharacter(document.character);
+      })
+      .catch((error) => console.error('Character did not load:', error))
+      .finally(() => (loaded = true));
   });
 
   onDestroy(() => {
@@ -120,83 +121,85 @@
     <Chat />
   {/snippet}
 
-  <header class="sheet-crown">
-    <button
-      type="button"
-      class="sheet-face"
-      title="Choose the portrait frame"
-      onclick={() => postUIAction('openFrameDialog')}
-    >
-      <Portrait
-        src={imageUrl}
-        alt={$info.name || 'Character'}
-        frame={($info.imageFrame as PortraitFrame) ?? 'lancet'}
-        size="sm"
-      />
-    </button>
+  {#if loaded}
+    <header class="sheet-crown">
+      <button
+        type="button"
+        class="sheet-face"
+        title="Choose the portrait frame"
+        onclick={() => postUIAction('openFrameDialog')}
+      >
+        <Portrait
+          src={imageUrl}
+          alt={$info.name || 'Character'}
+          frame={($info.imageFrame as PortraitFrame) ?? 'lancet'}
+          size="sm"
+        />
+      </button>
 
-    <span class="sheet-lines">
-      <h1 class="dnd-heading sheet-name">{$info.name || 'Unnamed Character'}</h1>
-      <span class="sheet-meta">
-        <span class="sheet-level">Level {$info.level || 1}</span>
-        <span class="sheet-kin">{$info.class?.name || 'Unknown'} {$info.race?.name || 'Unknown'}</span>
+      <span class="sheet-lines">
+        <h1 class="dnd-heading sheet-name">{$info.name || 'Unnamed Character'}</h1>
+        <span class="sheet-meta">
+          <span class="sheet-level">Level {$info.level || 1}</span>
+          <span class="sheet-kin">{$info.class?.name || 'Unknown'} {$info.race?.name || 'Unknown'}</span>
+        </span>
       </span>
-    </span>
-  </header>
+    </header>
 
-  <div class="sheet-grid">
-    <div class="sheet-column">
-      <Abilities/>
-      <SavingThrows/>
-      <Skills/>
-      <Special/>
-      <Senses/>
-      <Proficiencies/>
-      <RulePanels skip={['abilities', 'defence', 'saves', 'senses']}/>
-    </div>
-
-    <div class="sheet-board">
-      <div class="sheet-stats">
-        <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
-                  title="Proficiency"
-                  subTitle="bonus"
-                  prefix="+"
-        />
-        <PlainBox bind:value={$info.speed}
-                  title="Walking"
-                  subTitle="speed"
-        />
-        <Inspiration />
-        <HitPoints bind:hp={$info.hp}/>
-        <Initiative bind:initiative={$info.initiative}/>
-        <PlainBox bind:value={$info.ac}
-                  title="Armor"
-                  subTitle="class"
-        />
-        <DefensesNConditions
-                bind:conditions={$info.conditions}
-                bind:defences={$info.defences}
-        />
+    <div class="sheet-grid">
+      <div class="sheet-column">
+        <Abilities/>
+        <SavingThrows/>
+        <Skills/>
+        <Special/>
+        <Senses/>
+        <Proficiencies/>
+        <RulePanels skip={['abilities', 'defence', 'saves', 'senses']}/>
       </div>
 
-      <div class="sheet-tabs">
-        <MainTabs initialTab="actionsTab">
-          {#snippet actionsTab()}
-            <ActionsTab/>
-          {/snippet}
-          {#snippet inventoryTab()}
-            <InventoryTab/>
-          {/snippet}
-          {#snippet featsTab()}
-            <FeaturesTab/>
-          {/snippet}
-          {#snippet backgroundTab()}
-            <BackgroundTab />
-          {/snippet}
-        </MainTabs>
+      <div class="sheet-board">
+        <div class="sheet-stats">
+          <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
+                    title="Proficiency"
+                    subTitle="bonus"
+                    prefix="+"
+          />
+          <PlainBox bind:value={$info.speed}
+                    title="Walking"
+                    subTitle="speed"
+          />
+          <Inspiration />
+          <HitPoints bind:hp={$info.hp}/>
+          <Initiative bind:initiative={$info.initiative}/>
+          <PlainBox bind:value={$info.ac}
+                    title="Armor"
+                    subTitle="class"
+          />
+          <DefensesNConditions
+                  bind:conditions={$info.conditions}
+                  bind:defences={$info.defences}
+          />
+        </div>
+
+        <div class="sheet-tabs">
+          <MainTabs initialTab="actionsTab">
+            {#snippet actionsTab()}
+              <ActionsTab/>
+            {/snippet}
+            {#snippet inventoryTab()}
+              <InventoryTab/>
+            {/snippet}
+            {#snippet featsTab()}
+              <FeaturesTab/>
+            {/snippet}
+            {#snippet backgroundTab()}
+              <BackgroundTab />
+            {/snippet}
+          </MainTabs>
+        </div>
       </div>
     </div>
-  </div>
+  {/if}
 </Shell>
 
 <style>

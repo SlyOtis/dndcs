@@ -1,5 +1,4 @@
 import type {CharacterContext, CharacterStore, RollLog, RollResult} from "./types";
-import testCharacter from './character.fixture'
 import {writable, type Unsubscriber, type Writable} from "svelte/store";
 import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo} from "./character.types";
 import { addChangeLogEntry, createStateSnapshot, type ChangeAction } from "./changelog";
@@ -412,8 +411,24 @@ export function resetCharacterLevel(targetLevel: number = 4) {
   return targetLevel;
 }
 
-export function getCharacter(): Character {
-  return testCharacter
+export function getEmptyCharacter(): Character {
+  return {
+    info: getEmptyCharacterInfo(),
+    feats: [],
+    abilities: [],
+    savingThrows: [],
+    skills: [],
+    senses: [],
+    actions: [],
+    spells: [],
+    proficients: [],
+    inventory: [],
+    currency: {},
+    background: {title: '', description: ''},
+    special: {name: '', regain: '', current: 0, max: 0},
+    equipped: [],
+    soundBoard: {id: 'default_soundboard', name: 'Sound Board', clips: []}
+  }
 }
 
 let characterStoreInstance: CharacterStore | null = null;
@@ -480,7 +495,7 @@ export function applyStateToCharacter(partialState: Partial<Character>) {
 // Inject the state application function into global scope for changelog
 (globalThis as any).__applyCharacterState = applyStateToCharacter;
 
-export function getCharacterStore(id: string = 'local', character: Character = getCharacter()): CharacterStore {
+export function getCharacterStore(id: string = 'local', character: Character = getEmptyCharacter()): CharacterStore {
   if (characterStoreInstance && characterStoreId === id) {
     return characterStoreInstance;
   }
