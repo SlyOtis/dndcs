@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A playwright-cli walk under test/ drives every screen without the extension
 type: task
-status: blocked
+status: doing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [test]
 commits: []
 created_at: 2026-09-06T18:31:20Z
-updated_at: 2026-09-06T18:33:27Z
+updated_at: 2026-09-06T18:37:47Z
 questions: [q-006]
 base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
