@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A playwright-cli walk under test/ drives every screen without the extension
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [test]
 commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0]
 created_at: 2026-09-06T18:31:20Z
-updated_at: 2026-09-06T18:50:05Z
+updated_at: 2026-09-06T19:37:43Z
 questions: [q-006]
 base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
@@ -46,3 +46,5 @@ The recipe under `justfile` runs the walk to completion against a running `just 
 3. A second pointer press on the bar sigil lands on the dialog backdrop, z-index 1000 over the bar at 20, which closes the dialog. The toggle holds from the pointer's side; the sigil is unreachable while the dialog is open.
 4. The dev server listens on `[::1]:5173` only.
 5. `justfile` carried an uncommitted `firebase` shim recipe; `land` stages the whole file, so it rides in this commit.
+6. `justfile:52-69`: the `firebase` shim recipe, its comment and the `rules`, `deploy` and `storage-rules` rewrite are outside `## Scope` and ride in b5178ca; `code.md` forbids the comment. Land the walk without them.
+7. `.env.example:7-8` with `justfile:18`: `just env` reads every key `.env.example` names and refuses an empty one, so `just dev`, `just build` and `just gate` now fail on every clone until walk credentials are filled. `## Order` step 4 keeps the gate free of the walk, `## Done when` needs `just gate` clean, and `setup.md` names the six Firebase values as what a build needs.
