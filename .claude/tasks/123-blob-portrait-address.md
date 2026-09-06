@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [577230226a1a6458a463579a08831dc5ab849cb1]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T19:20:29Z
+updated_at: 2026-09-06T19:39:20Z
 questions: []
 base: d32b80c645e6bfe46355798c42feca0d1210fce4
 ---
@@ -48,3 +48,9 @@ The write that persisted a `blob:` left the tree in f5fcdd6: the old `CharacterC
 No code writes a loaded character back to Firestore: `characterService.updateCharacter` has no caller and the sheet store in `engine.ts` persists to `localStorage` under `ch_<id>_*` only. There is no save on which the dead address could be dropped, so the three documents keep `blob:` until a write-back exists; they render the fallback in the meantime. A scrub would sit in `applyStateToCharacter` in `engine.ts` or in `firestore.service.ts`, both outside scope.
 
 `src/lib/characterInfo.ts` and `src/components/CharacterInfo.svelte` are not imported by anything; `characterUtils.getCharacterImage` and the `/default-character.png` it names are dead. `src/components/CharacterInfoPanel.svelte` is also unmounted and holds a bare `<img src>` against the data rule.
+
+Reviewer:
+- `src/lib/storage.service.ts` 1-368: the landed commit replaces Firebase Storage with a Firestore chunk record, block hashing, a webp floor and a swarm pull, about 300 lines the Summary does not claim; the claim is `BLOB_PREFIX`, `isDeadFile` and one guard in `getFileUrl`. Land the claimed change alone or claim what landed.
+- `src/lib/storage.service.ts` 12: imports `./swarm`, and `src/lib/swarm.ts` is untracked, so commit 5772302 does not resolve on a checkout; the gate passed only against the working tree.
+- Order 2: the next save dropping the dead address is not delivered; reasoned out of scope in the findings instead of asked as a question.
+- `src/lib/storage.service.ts` 62: `""` in a single-quote file.
