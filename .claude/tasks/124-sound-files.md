@@ -5,15 +5,15 @@ depends: []
 relations: []
 title: The sound manager stops preloading the nineteen wav files that do not exist under public/
 type: bug
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: [1c13f50b8d7df84c4e5b2f721bea47cb8195a630]
+commits: [1c13f50b8d7df84c4e5b2f721bea47cb8195a630, d9106008b98ba977c2dc1071d733d443dab60086]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T19:19:39Z
+updated_at: 2026-09-06T19:38:59Z
 questions: []
 base: d32b80c645e6bfe46355798c42feca0d1210fce4
 ---
