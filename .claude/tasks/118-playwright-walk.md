@@ -5,15 +5,15 @@ depends: []
 relations: [136]
 title: A playwright-cli walk under test/ drives every screen without the extension
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [test]
-commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0, 31a074c313831a7483c2173ef6b8f429d4742d5e]
+commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0, 31a074c313831a7483c2173ef6b8f429d4742d5e, 9fc5342a941ab6c34a8532c02783caba699bbfee]
 created_at: 2026-09-06T18:31:20Z
-updated_at: 2026-09-06T20:10:57Z
+updated_at: 2026-09-06T20:25:31Z
 questions: [q-006]
 base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
@@ -41,6 +41,7 @@ The recipe under `justfile` runs the walk to completion against a running `just 
 
 ### Findings
 
-1. `test/walk.sh:90` with the keys filled, `/login` and `/signup` pass, then every `js` call after the Sign In click prints `The browser 'walk' is not open`; the walk never reaches `/main`. Find why the session is lost at sign in and run `just walk` through before review.
-2. `test/walk.sh:15` `js` pipes the cli's error text into `jq`, 57 `jq: parse error` lines for one lost session; test `pw eval` before `jq` and exit once with the cli's message.
-3. `## Done when` says the walk runs to completion; Summary Finding 1 said step 5 never ran. A task lands in review after its `## Done when` has been run, not before.
+1. `just walk` ran to completion twice against `just dev` with the keys filled: `the walk is clean`, exit 0, no output but that line, about four minutes a run.
+2. Sign in lands on `/`: `LoginPage.svelte:22` calls `navigate("/")` and the router renders the hearth there without moving the URL to `/main`, so the old wait for `location.pathname === '/main'` timed out and line 90 exited. `walk.sh` now waits for the hearth itself, `.hall-hero-name` present and `.dnd-loading` gone, or `.gate-error`. The URL after sign in is a `src/**` matter and is not changed here.
+3. `js` reads `pw eval` into a variable and, on a non zero exit, prints `playwright-cli: <message>` to stderr and sends the script `TERM`, so a lost session is one line and the `EXIT` trap still closes the browser. The two `.click()` evals return `?? null`, since `--raw` prints `undefined` for a void result and `jq` refused it.
+4. The `browser 'walk' is not open` run was against a dev server answering 504 `Outdated Optimize Dep` on every module: `just build` runs `rm -rf node_modules/.vite` and a `just dev` already running never re-optimizes, so every page is blank until it restarts. `touch vite.config.ts` restarts it. `justfile:29` is outside `## Scope`.
