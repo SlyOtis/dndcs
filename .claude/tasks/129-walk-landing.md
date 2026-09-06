@@ -3,7 +3,7 @@ id: 129
 parent:
 depends: [118]
 relations: []
-title: The walk's sign in waits for the hearth at / and the playwright folders are ignored
+title: The walk's sign in waits for the hearth at /
 type: bug
 status: staged
 blocked_from:
