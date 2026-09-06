@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { navigate } from "sly-svelte-location-router";
-  import { aiService, type CharacterImport } from "$lib/ai";
-  import { getCatalog, postCatalogReading, putCatalogEntry, type CatalogEntry } from "$lib/catalog";
+  import { getCatalog, postCatalogReading, type CatalogEntry } from "$lib/catalog";
   import { getSource } from "$lib/sources";
   import CatalogList from "$components/CatalogList.svelte";
   import { characterService } from "$lib/firestore.service";
@@ -28,13 +27,17 @@
   let characterData = $state<CharacterData | null>(null);
   let isAnalyzing = $state(true);
   let error = $state<string | null>(null);
-  let aiAnalysis = $state<CharacterImport | null>(null);
   let availableRaces = $state<CatalogEntry[]>([]);
   let selectedRace = $state<string>('');
   let reading = $state<string | null>(null);
   let picking = $state(false);
 
-  const settled = $derived(Boolean(characterData?.suggestedRace) && !picking);
+  const suggestedRace = $derived.by(() => {
+    const suggested = characterData?.suggestedRace?.trim();
+    if (!suggested) return '';
+    return suggested.toLowerCase() === characterData?.selectedClass?.trim().toLowerCase() ? '' : suggested;
+  });
+  const settled = $derived(Boolean(suggestedRace) && !picking);
 
   onMount(async () => {
     const savedData = sessionStorage.getItem('characterCreationData');
@@ -44,10 +47,10 @@
     }
 
     characterData = JSON.parse(savedData);
-    await analyzeCharacterSources();
+    await getRaces();
   });
 
-  async function analyzeCharacterSources() {
+  async function getRaces() {
     if (!characterData) return;
 
     try {
@@ -58,42 +61,12 @@
       return;
     }
 
-    if (characterData.suggestedRace) {
-      const named = availableRaces.find(
-        (entry) => entry.name.toLowerCase() === characterData!.suggestedRace!.toLowerCase()
-      );
-      selectedRace = named?.name ?? characterData.suggestedRace;
+    if (suggestedRace) {
+      const named = availableRaces.find((entry) => entry.name.toLowerCase() === suggestedRace.toLowerCase());
+      selectedRace = named?.name ?? suggestedRace;
     }
 
-    if (!characterData.sources?.length) {
-      isAnalyzing = false;
-      return;
-    }
-
-    try {
-      aiAnalysis = await aiService.analyzeCharacterSources(
-        characterData.sources,
-        characterData.name,
-        characterData.level
-      );
-
-      for (const found of aiAnalysis?.classes ?? []) {
-        if (availableRaces.some((entry) => entry.name.toLowerCase() === found.name.toLowerCase())) continue;
-        availableRaces.push({
-          id: found.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
-          name: found.name,
-          description: found.description,
-          hitDie: Number(String(found.hitDie).replace(/\D/g, '')) || 8,
-          primaryAbility: found.primaryAbility.split(/,\s*/),
-          savingThrows: found.savingThrows.split(/,\s*/),
-          source: 'uploaded'
-        });
-      }
-    } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
-    } finally {
-      isAnalyzing = false;
-    }
+    isAnalyzing = false;
   }
 
   function selectRace(raceName: string) {
@@ -137,17 +110,13 @@
             name: characterData.selectedClass ?? "Unknown",
             hitDice: { amount: characterData.level, die: characterData.hitDie ?? 8 }
           },
-          race: { name: selectedRace, type: selectedRace }
+          race: { name: selectedRace, type: "Unknown" }
         },
         abilities: getAbilities(characterData.abilityScores),
         background: { title: "Unknown", description: "" }
       };
 
       const characterId = await characterService.createCharacter(character as Character, {
-        name: characterData.name,
-        level: characterData.level,
-        class: characterData.selectedClass ?? "Unknown",
-        race: selectedRace,
         tags: characterData.sources.length > 0 ? ["ai-generated", "sources-uploaded"] : ["manually-created"]
       });
 
@@ -156,10 +125,6 @@
       }
 
       await characterService.setCharacterDetails(characterId, {
-        name: characterData.name,
-        level: characterData.level,
-        selectedClass: characterData.selectedClass,
-        selectedRace,
         abilityScores: characterData.abilityScores,
         attributes: characterData.attributes ?? [],
         imageUrl: characterData.imageUrl,
@@ -192,7 +157,7 @@
     <div class="dnd-loading pick-wait">
       <span class="dnd-spinner"></span>
       <p class="pick-wait-note">
-        Reading the races{characterData?.sources?.length ? ' and the material you brought' : ''}…
+        Reading the races…
       </p>
     </div>
   {:else if error}
