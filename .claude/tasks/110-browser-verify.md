@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T20:11:43Z
+updated_at: 2026-09-06T20:12:27Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 images: [110/hearth.jpeg, 110/sheet-1280.jpeg, 110/sheet-1600.jpeg, 110/sheet-both-drawers.jpeg, 110/chat-open.jpeg, 110/menu-open.jpeg, 110/import-dialog.jpeg, 110/theme-dialog.jpeg, 110/dialog-unpinned.jpeg, 110/class-detail.jpeg, 110/race.jpeg, 110/race-detail.jpeg, 110/profile.jpeg, 110/create-portrait.jpeg, 110/campaign-create.jpeg, 110/campaign.jpeg]
@@ -44,6 +44,6 @@ Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `
 Boarded: 121 the board keeps 850px with a drawer open and covers the ability column; 122 the fixture Lucky Lars shows until the routed character loads; 123 three characters carry a `blob:` `imageUrl`, a console error on every page; 124 SoundManager preloads nineteen missing `.wav`, nineteen warnings per sheet; 125 the import sources dialog, `role=dialog` on the backdrop, no `#dialog-title`, no Escape, emoji buttons; 126 Roll Dice and the attack hit button leave the chat log empty; 127 buttons, panels and frames drift from `docs/inspiration`, the shell 6px wider than the viewport, the video iframe a fixed 1600px, sizes fixed; 128 Testy reads Gunslinger Gunslinger, the race field holding the class; 135 the campaign bar has no menu or chat toggle; 136 `.playwright-cli/` and `.playwright-mcp/` unignored; 129 the sign in lands on `/` and 118 waits on `/main`.
 
 ### Findings
-- `/character/<unknown id>` keeps Lucky Lars on screen for good and logs `Character did not load: Missing or insufficient permissions` plus two `Campaign scope did not resolve` errors; not boarded, 122 covers only the flash. Board it.
-- `/login` and `/signup` carry no search button and Cmd K opens the palette signed out with Toggle Chat, Level Up and Save Character on it; the summary says every routed page. Board it or record the decision.
-- `.claude/tasks/129-walk-landing.md` title still names the playwright folders that 136 owns. Retitle 129.
+- `/character/<unknown id>` keeps Lucky Lars on screen for good and logs a permissions error plus two scope errors. 137.
+- `/login` and `/signup` carry no search button and Cmd K opens the palette signed out with signed in commands on it. 138.
+- 129 retitled to the sign in landing alone; 136 owns the folders.
