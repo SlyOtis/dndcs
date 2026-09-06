@@ -273,7 +273,7 @@
 
   .sheet-grid {
     display: grid;
-    grid-template-columns: minmax(min-content, max-content) minmax(min-content, 1fr);
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
     align-items: start;
     gap: var(--space-3);
     min-width: 0;
@@ -298,7 +298,7 @@
 
   .sheet-stats {
     display: grid;
-    grid-template-columns: repeat(5, minmax(min-content, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-auto-rows: min-content;
     align-items: stretch;
     justify-items: stretch;

@@ -59,6 +59,7 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
+    min-width: 0;
     padding: var(--space-3) var(--space-2) var(--space-4);
     --stat-light: var(--metal);
     --stat-brace: var(--metal);
@@ -124,9 +125,8 @@
   }
 
   .dnd-stat-label {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
+    display: block;
+    max-width: 100%;
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: 700;
@@ -135,21 +135,25 @@
     color: var(--metal);
     text-align: center;
     line-height: 1.2;
+    overflow-wrap: anywhere;
   }
 
   .dnd-stat-label::before,
   .dnd-stat-label::after {
     content: '';
-    flex: none;
+    display: inline-block;
     width: var(--space-3);
     height: var(--border-hair);
+    vertical-align: middle;
   }
 
   .dnd-stat-label::before {
+    margin-inline-end: var(--space-2);
     background: linear-gradient(90deg, transparent, var(--metal-dim));
   }
 
   .dnd-stat-label::after {
+    margin-inline-start: var(--space-2);
     background: linear-gradient(90deg, var(--metal-dim), transparent);
   }
 

@@ -31,9 +31,11 @@
         justify-content: center;
         align-items: center;
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 16px;
         width: auto;
         height: auto;
+        min-width: 0;
         grid-column: 1 / 3;
         grid-row: 1;
     }
