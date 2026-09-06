@@ -10,7 +10,7 @@ blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
-skills: [claude-in-chrome]
+skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
 updated_at: 2026-09-06T18:32:54Z
