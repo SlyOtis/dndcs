@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: review
+status: done
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T20:12:27Z
+updated_at: 2026-09-06T21:11:41Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 images: [110/hearth.jpeg, 110/sheet-1280.jpeg, 110/sheet-1600.jpeg, 110/sheet-both-drawers.jpeg, 110/chat-open.jpeg, 110/menu-open.jpeg, 110/import-dialog.jpeg, 110/theme-dialog.jpeg, 110/dialog-unpinned.jpeg, 110/class-detail.jpeg, 110/race.jpeg, 110/race-detail.jpeg, 110/profile.jpeg, 110/create-portrait.jpeg, 110/campaign-create.jpeg, 110/campaign.jpeg]
