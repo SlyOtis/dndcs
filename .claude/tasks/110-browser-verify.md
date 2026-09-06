@@ -22,7 +22,7 @@ base: 9c6454279d0caeb611188943bc943798452fdb7b
 The gothic pass, the drawer rebuild, the portrait frames, the glyph set, the shared chat, and since then the global search shortcut and bar button of 111, the board layout of 113 and the frame dialog of 115 are all confirmed only by `just gate`. A type check is not a behaviour and a build is not a run. Nothing has been seen rendering: the Chrome extension has never paired with this account, `list_connected_browsers` returns empty, and the Playwright MCP server fails to connect. `playwright-cli` at `/opt/homebrew/bin/playwright-cli` is installed and is the scripted driver; the extension is the visual one. This task runs solo in a worker session, not through an agent, because only the main conversation holds the `mcp__claude-in-chrome__*` tools.
 
 ## Scope
-No source unless a defect is found, and then a defect is boarded rather than fixed in place. This task is verification and a findings list. Not 117, which already carries the sheet overflow.
+No source unless a defect is found, and then a defect is boarded rather than fixed in place. This task is verification and a findings list. Not 117, which already carries the sheet overflow, and not `test/`, which is 118. It runs solo: `/lcp-worker solo`, never dispatched to an agent.
 
 ## Order
 1. dndcs: pair the Chrome extension with the account this session runs as, and confirm `list_connected_browsers` returns a device. Then `playwright-cli open` against the dev server and confirm it drives a page.
@@ -31,10 +31,10 @@ No source unless a defect is found, and then a defect is boarded rather than fix
 4. dndcs: on every routed page, Cmd K opens the search dialog, Cmd K again and Escape close it, and the bar search button toggles it, per 111.
 5. dndcs: on the character sheet Testy, the crown carries no frame picker and clicking the portrait opens the frame dialog, per 115; the stat boxes and the tabs panel are read against 113 and 117 and any remaining clip or overflow is noted, not fixed.
 6. dndcs: exercise the features: upload a portrait, import a source, pick a class and a race, roll dice, open each dialog.
-7. dndcs: repeat steps 2 to 5 as a `playwright-cli` script, so the walk is repeatable without the extension, and keep the script under `test/` beside the existing suite.
+7. dndcs: the `playwright-cli` walk is 118, a sub task an agent can run; this task does not write it.
 8. dndcs: board a task for every defect found.
 
 ## Done when
-Every screen has been seen through the extension and driven once by `playwright-cli`, the console is clean on each, the search shortcut and button work on every page, and every defect found is a task on the board.
+Every screen has been seen through the extension, the console is clean on each, the search shortcut and button work on every page, and every defect found is a task on the board.
 
 ## Summary
