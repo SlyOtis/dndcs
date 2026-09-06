@@ -29,7 +29,6 @@
   
   const audioCache = new Map<SoundKey, Promise<HTMLAudioElement | null>>();
   
-  // Funny random texts for different actions
   const funnyTexts = {
     criticalHit: [
       "By the gods! What a strike!",
@@ -107,11 +106,9 @@
     ]
   };
   
-  // Volume setting from localStorage
   let volume = $state(parseFloat(localStorage.getItem('dnd_sound_volume') || '0.7'));
   let soundEnabled = $state(localStorage.getItem('dnd_sound_enabled') !== 'false');
   
-  // Update localStorage when settings change
   $effect(() => {
     localStorage.setItem('dnd_sound_volume', volume.toString());
     localStorage.setItem('dnd_sound_enabled', soundEnabled.toString());
