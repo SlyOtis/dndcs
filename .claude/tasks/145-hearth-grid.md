@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: epic
-status: blocked
+status: draft
 blocked_from: staged
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-06T22:43:42Z
+updated_at: 2026-09-06T22:45:00Z
 questions: [q-011]
 images: []
 agent: lcp-worker-145
