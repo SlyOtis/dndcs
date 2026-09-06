@@ -5,16 +5,16 @@ depends: [101]
 relations: []
 title: writeRollLog posts the shared entry instead of mirroring it
 type: task
-status: failed
-blocked_from:
+status: blocked
+blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data]
 commits: [4bbadba01f07862e54a564cdd70b92f3b80d4503]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-06T23:20:12Z
-questions: []
+updated_at: 2026-09-06T23:21:57Z
+questions: [q-016]
 agent: aa046906ca5b4827c
 base: 2678b268945262a10d6eaae22f3799bfb3e1d07a
 ---
