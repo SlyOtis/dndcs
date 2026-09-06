@@ -1,7 +1,7 @@
 ---
 id: 127
 parent:
-depends: [117, 114, 131, 132, 133, 134]
+depends: [117, 114, 131, 132, 133, 134, 141, 142]
 relations: [116, 117]
 title: The sheet's panels, frames and buttons follow the inspiration layouts under docs/inspiration and nothing is sized fixed
 type: task
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-06T19:29:49Z
+updated_at: 2026-09-06T21:24:25Z
 questions: []
 ---
 
