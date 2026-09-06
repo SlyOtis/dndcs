@@ -1,7 +1,7 @@
 ---
 id: 139
 parent:
-depends: []
+depends: [140, 141, 142, 143]
 relations: []
 title: A second design round: the fantasy UI language is researched again and carried through tokens, type, frames and the bar
 type: epic
@@ -13,9 +13,10 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-06T21:24:25Z
+updated_at: 2026-09-06T22:41:17Z
 questions: []
 images: []
+agent: lcp-worker-139
 ---
 
 ## Intent
