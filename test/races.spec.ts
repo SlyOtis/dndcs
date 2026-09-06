@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import index from '../public/sources/races/index.json'
 import dragonborn from '../public/sources/races/dragonborn.json'
 import dwarf from '../public/sources/races/dwarf.json'
@@ -12,7 +14,7 @@ import tiefling from '../public/sources/races/tiefling.json'
 
 type Trait = { id: string; name: string; description: string; source: string }
 
-const races: Record<string, { traits: Trait[] }> = {
+const races: Record<string, { image: string; traits: Trait[] }> = {
   dragonborn, dwarf, elf, gnome, 'half-elf': halfElf, 'half-orc': halfOrc, halfling, human, tiefling
 }
 
@@ -32,6 +34,11 @@ describe('every core race carries its traits', () => {
         expect(trait.source).toBe('base')
       }
       expect(new Set(race.traits.map((t) => t.id)).size).toBe(race.traits.length)
+    })
+
+    it(`${id} carries an image that resolves under public`, () => {
+      expect(race.image).toMatch(/^\/sources\/art\/races\/[a-z-]+\.svg$/)
+      expect(existsSync(resolve(__dirname, `../public${race.image}`))).toBe(true)
     })
   }
 })

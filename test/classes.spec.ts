@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { Class, ClassFeature } from '../src/lib/class.types'
 
@@ -42,6 +42,11 @@ describe('every class the index names carries its level features', () => {
 
     it(`${id} arrives with a level 1 feature`, () => {
       expect(features.some((feature) => feature.level === 1)).toBe(true)
+    })
+
+    it(`${id} carries an image that resolves under public`, () => {
+      expect(entry.image).toMatch(/^\/sources\/art\/classes\/[a-z-]+\.svg$/)
+      expect(existsSync(resolve(__dirname, `../public${entry.image}`))).toBe(true)
     })
   }
 })
