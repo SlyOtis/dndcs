@@ -5,17 +5,17 @@ depends: []
 relations: []
 title: Carry the gothic language onto the remaining pages
 type: task
-status: blocked
+status: review
 blocked_from: review
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: [f5fcdd692af15055ec924c6c766901f82430d1df, f6653512726c84b6fceb1b18877bb3b9947e4af4]
+commits: [959cf3cc97bdfaaef9164ed9d1a2c0c49acfdc75, f6653512726c84b6fceb1b18877bb3b9947e4af4]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T23:03:46Z
+updated_at: 2026-09-06T23:26:31Z
 questions: [q-012]
-base: 9c6454279d0caeb611188943bc943798452fdb7b
+base: 8f4236eb81694b4812d9369bc4a3ee32b31f666b
 agent: lcp-worker-106
 ---
 
@@ -23,7 +23,7 @@ agent: lcp-worker-106
 The gothic pass reached the shared primitives, the dialogs and the left drawer. The pages themselves still carry the older page-level styling, so the app reads as two design languages depending on the screen.
 
 ## Scope
-`src/pages/MainPage.svelte`, `src/pages/CampaignPage.svelte`, `src/pages/CharacterCreatePage.svelte`, `src/pages/CharacterClassPage.svelte`, `src/pages/CharacterRacePage.svelte`, `src/pages/CampaignCreatePage.svelte`, `src/pages/SourcePage.svelte`, `src/pages/UserPage.svelte`. Not `src/components/ui/**`, which is done.
+`src/pages/MainPage.svelte`, `src/pages/CampaignPage.svelte`, `src/pages/CharacterCreatePage.svelte`, `src/pages/CharacterClassPage.svelte`, `src/pages/CharacterRacePage.svelte`, `src/pages/CampaignCreatePage.svelte`, `src/pages/SourcePage.svelte`, `src/pages/UserPage.svelte`, and per q-012 the fifteen files under `src/components/ui/` the landing carried: `Shell.svelte`, `Glyph.svelte` and `Portrait.svelte` authored new, `Banner.svelte`, `Button.svelte`, `Card.svelte`, `Field.svelte`, `Frame.svelte`, `Ornament.svelte`, `Panel.svelte`, `Rail.svelte`, `Sigil.svelte`, `Slot.svelte`, `Stat.svelte` and `StoredImage.svelte` redrawn. Nothing else under `src/components/`.
 
 ## Order
 1. dndcs: read `docs/inspiration/gothic-borders.png`, `gothic-ui-kit.png` and `gothic-elements.png` before changing anything.

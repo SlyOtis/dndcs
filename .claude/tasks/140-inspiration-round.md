@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A second reference set is gathered from fantasy UI online and its vocabulary written into the inspiration README
 type: task
-status: blocked
+status: doing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236]
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-06T23:07:26Z
+updated_at: 2026-09-06T23:26:31Z
 questions: [q-013]
 images: []
 agent: ad0522f10348db90a

@@ -5,7 +5,7 @@ depends: [113]
 relations: []
 title: The actions and inventory tables fit their columns at every width
 type: task
-status: testing
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [165841af5ccbeebc99d4b995983206d940b1834c]
 created_at: 2026-09-05T15:41:59Z
-updated_at: 2026-09-06T23:14:09Z
+updated_at: 2026-09-06T23:34:41Z
 questions: []
 agent: lcp-worker-114
 base: 57d079d606f529c9a96735f1b3ac30b67751201e
