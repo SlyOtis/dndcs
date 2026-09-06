@@ -5,7 +5,7 @@ depends: [113]
 relations: [121, 127]
 title: The sheet never exceeds the viewport and a stat title fits by wrapping inside its box
 type: epic
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [570e1b332f5ae31e0b674a964f53e136b8c3667e]
 created_at: 2026-09-05T16:22:55Z
-updated_at: 2026-09-06T23:09:00Z
+updated_at: 2026-09-06T23:14:29Z
 questions: []
 agent: lcp-worker-117
 base: 792b48564eca3fa72f6f3f263ad3e00e17efd0b0
@@ -47,3 +47,7 @@ At 1280, 1600 and 2000 wide the sheet's left edge and right edge are both inside
 Outside `## Scope`, noted and not changed: `.vitals` in `HitPoints.svelte` spans two stat columns and `.root` in `DefensesNConditions.svelte` spans three with `width: 100%; min-width: 100%`, so both are sized by the `.sheet-stats` tracks this task capped.
 
 The three-width read on Testy in `## Order` step 3 was not done; it is part of `## Done when`.
+
+### Findings
+1. `## Done when` unproven: the 1280, 1600 and 2000 read on Testy was never taken, so no evidence the edges are inside the window and the page does not scroll sideways. `just dev`, open Testy's sheet at each width, confirm both edges and the ability row.
+2. `just gate` is not clean: check is 0 errors 0 warnings, the two failures are `src/lib/chat.spec.ts` 184 and 209, outside `## Scope`. `test/117/20260906T231419Z-just-gate.md`
