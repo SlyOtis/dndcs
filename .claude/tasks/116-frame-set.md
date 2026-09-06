@@ -1,8 +1,8 @@
 ---
 id: 116
 parent: 112
-depends: [115]
-relations: []
+depends: [115, 140]
+relations: [127]
 title: The portrait frame set gains the complex gothic frame designs
 type: epic
 status: staged
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-05T16:22:55Z
-updated_at: 2026-09-05T16:22:55Z
+updated_at: 2026-09-06T21:24:25Z
 questions: []
 ---
 
