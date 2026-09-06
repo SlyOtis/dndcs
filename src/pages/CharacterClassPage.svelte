@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { navigate } from "sly-svelte-location-router";
   import { aiService, type CharacterImport } from "$lib/ai";
-  import { getCatalog, postCatalogReading, putCatalogEntry, type CatalogEntry } from "$lib/catalog";
+  import { getCatalog, postCatalogReading, type CatalogEntry } from "$lib/catalog";
   import { getSource } from "$lib/sources";
   import CatalogList from "$components/CatalogList.svelte";
   import Button from "$components/ui/Button.svelte";
