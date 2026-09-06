@@ -5,16 +5,18 @@ depends: []
 relations: [137]
 title: The sheet shows nothing until the routed character loads instead of the fixture character
 type: bug
-status: staged
+status: review
 blocked_from:
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: []
+commits: [4e9495eaa7e8dc7b9fa48cdbeecb84c6d1345701]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T20:12:27Z
+updated_at: 2026-09-06T22:48:54Z
 questions: []
+agent: lcp-worker-122
+base: e9863db94b2d0c16886f25e21191702959d4890c
 ---
 
 ## Intent
@@ -32,3 +34,10 @@ The 110 walk: the sheet renders the fixture character, Lucky Lars, until the rou
 No frame of Testy's sheet shows Lucky Lars or any fixture value, `character.fixture` is imported from no file under `src/` other than a `*.spec.ts`, and `just gate` is clean.
 
 ## Summary
+`src/lib/engine.ts`: the `character.fixture` import is gone. `getCharacter` is now `getEmptyCharacter` and returns a `Character` with every key present and no values: `getEmptyCharacterInfo()` for `info`, empty arrays for `feats`, `abilities`, `savingThrows`, `skills`, `senses`, `actions`, `spells`, `proficients`, `inventory` and `equipped`, `{}` for `currency`, empty strings for `background` and `special`, and an empty `soundBoard`. It is the default `character` argument of `getCharacterStore`, so the store still builds one writable per key and `MainPage` gets the same empty context.
+
+`src/pages/CharacterPage.svelte`: `loaded` is `$state(false)` and set in a `.finally()` on `characterService.getCharacter(characterId)`, which now runs unconditionally on `characterId` instead of behind an `if (route?.params?.id)`. `sheet-crown` and `sheet-grid` are inside `{#if loaded}`, so until the read settles the page is the `Shell` chrome alone, with its title falling to `Character`. No new loading markup was added.
+
+`just check` is 88 files, 0 errors, 0 warnings. `just build` is clean; the only note is the pre-existing 500 kB chunk-size advisory. `Lucky Lars` appears nowhere in `dist`, and `character.fixture` is imported only by `src/lib/rules/store.spec.ts` and `src/lib/rules/sheet.spec.ts`.
+
+Noticed outside `## Scope`: a failed or missing read leaves `loaded` true with an empty store, so the sheet renders blank rather than saying anything. That is 137's work.
