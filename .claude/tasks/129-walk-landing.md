@@ -5,16 +5,16 @@ depends: [118]
 relations: []
 title: The walk's sign in waits for the hearth at /
 type: bug
-status: review
-blocked_from:
+status: blocked
+blocked_from: review
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [test]
 commits: []
 created_at: 2026-09-06T19:16:40Z
-updated_at: 2026-09-06T22:13:17Z
-questions: []
+updated_at: 2026-09-06T23:11:15Z
+questions: [q-014]
 agent: a48f97b062271a32f
 base: 99b174e5782b45f6a6793253edf584c1586d436d
 ---
