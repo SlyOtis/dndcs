@@ -60,7 +60,7 @@ function getUserId(): string {
 
 
 function getRecordPath(scope: UploadScope, name: string): string {
-  const tail = /\.[A-Za-z0-9]{1,8}$/.exec(name)?.[0]?.toLowerCase() ?? ""
+  const tail = /\.[A-Za-z0-9]{1,8}$/.exec(name)?.[0]?.toLowerCase() ?? ''
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${tail}`
 
   if (scope.kind === 'user') return `users/${getUserId()}/files/${id}`
