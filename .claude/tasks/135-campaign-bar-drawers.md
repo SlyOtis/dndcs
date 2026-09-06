@@ -5,7 +5,7 @@ depends: [105]
 relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
-status: blocked
+status: doing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-06T22:06:19Z
+updated_at: 2026-09-06T22:55:37Z
 questions: [q-009]
 images: []
 agent: ad7be3fac24c3f1a7

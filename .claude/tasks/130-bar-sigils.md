@@ -5,7 +5,7 @@ depends: []
 relations: [135]
 title: Every tool in the bar is one sigil design drawn from the forged HUD reference
 type: task
-status: testing
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [19d1fd18b57f6f92d8ac4481d597e90188a1f7c5]
 created_at: 2026-09-06T19:28:07Z
-updated_at: 2026-09-06T23:09:21Z
+updated_at: 2026-09-06T23:22:14Z
 questions: []
 agent: lcp-worker-130
 base: c3147a5da0b9ac4d69a391f7a75aafae72df253f

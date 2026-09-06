@@ -5,7 +5,7 @@ depends: [119]
 relations: []
 title: The same script pulls every race and its images from D&D Beyond
 type: task
-status: review
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: [8aa853e1d4f157c00ecf9c49671a05462ad0d772]
 created_at: 2026-09-06T19:09:43Z
-updated_at: 2026-09-06T21:43:43Z
+updated_at: 2026-09-06T23:22:13Z
 questions: []
 agent: a026a758720fb4809
 base: 35dc6b6eb991d7cce11695aea909726806fd4ae0

@@ -5,7 +5,7 @@ depends: []
 relations: [137]
 title: The sheet shows nothing until the routed character loads instead of the fixture character
 type: bug
-status: testing
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [4e9495eaa7e8dc7b9fa48cdbeecb84c6d1345701]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T23:09:09Z
+updated_at: 2026-09-06T23:22:13Z
 questions: []
 agent: lcp-worker-122
 base: e9863db94b2d0c16886f25e21191702959d4890c
