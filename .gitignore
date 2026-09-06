@@ -21,3 +21,5 @@ serviceAccount*.json
 CLAUDE.local.md
 .claude/settings.local.json
 *.tmp.mjs
+
+reference/

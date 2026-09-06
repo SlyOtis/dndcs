@@ -66,3 +66,6 @@ deploy: gate
 
 storage-rules:
     just firebase deploy --only storage:rules
+
+reference kind *ARGS:
+    bash scripts/reference.sh {{kind}} {{ARGS}}
