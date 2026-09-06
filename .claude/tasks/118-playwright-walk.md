@@ -5,15 +5,15 @@ depends: []
 relations: []
 title: A playwright-cli walk under test/ drives every screen without the extension
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [test]
-commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0]
+commits: [b5178ca3f8332b0ffaa3ef8645c13280570f08e0, 31a074c313831a7483c2173ef6b8f429d4742d5e]
 created_at: 2026-09-06T18:31:20Z
-updated_at: 2026-09-06T19:37:43Z
+updated_at: 2026-09-06T19:46:49Z
 questions: [q-006]
 base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
@@ -37,14 +37,12 @@ The recipe under `justfile` runs the walk to completion against a running `just 
 ## Summary
 `test/walk.sh` reads `WALK_EMAIL` and `WALK_PASSWORD` from `.env`, stops when either is empty or nothing answers on 5173, and drives a headless `playwright-cli` session named `walk`. It checks `/login` and `/signup`, signs in, then visits the hearth, Testy through its card, the first campaign card, the character form, the class catalog after `Continue`, the first class detail, the race catalog after picking the first class, the first race detail and `/user`. Every page is a fresh `goto`, so the console read is that page alone. On each: zero console errors and warnings, `scrollWidth` within `innerWidth` at 1280, 1600 and 2000, Cmd K opens `#search-command`, Cmd K closes, Cmd K opens, Escape closes, and where a bar exists a pointer press on the search sigil opens and a second closes. On the sheet `.sheet-crown` holds no `select`, `.trace` or `aria-pressed` control and names no frame, and the portrait opens `Choose Your Frame`. Failures are listed at the end, exit 1.
 
-`justfile`: `walk` runs `bash test/walk.sh`; `gate` unchanged. `.env.example` names the two keys; `.env` carries them empty.
+`justfile`: `walk` runs `bash test/walk.sh`; `gate` unchanged; `env` reads only the `VITE_` keys `.env.example` names, so an empty `WALK_EMAIL` or `WALK_PASSWORD` stops `just walk` alone and never `just dev`, `just build` or `just gate`. `.env.example` names the two keys after the six Firebase values; `.env` carries them empty.
 
 ### Findings
 
 1. With a placeholder account the walk passed every assertion on `/login` and `/signup` and stopped at sign in. Nothing past sign in has run: `.env` has no values for the keys. Step 5 runs once they are filled.
-2. `just env` now requires both keys, so `just dev`, `just build` and `just gate` refuse until `.env` carries them.
+2. `just env` refused the empty walk keys in b5178ca; `env` now checks only the `VITE_` keys, and `just env` passes with them empty.
 3. A second pointer press on the bar sigil lands on the dialog backdrop, z-index 1000 over the bar at 20, which closes the dialog. The toggle holds from the pointer's side; the sigil is unreachable while the dialog is open.
 4. The dev server listens on `[::1]:5173` only.
-5. `justfile` carried an uncommitted `firebase` shim recipe; `land` stages the whole file, so it rides in this commit.
-6. `justfile:52-69`: the `firebase` shim recipe, its comment and the `rules`, `deploy` and `storage-rules` rewrite are outside `## Scope` and ride in b5178ca; `code.md` forbids the comment. Land the walk without them.
-7. `.env.example:7-8` with `justfile:18`: `just env` reads every key `.env.example` names and refuses an empty one, so `just dev`, `just build` and `just gate` now fail on every clone until walk credentials are filled. `## Order` step 4 keeps the gate free of the walk, `## Done when` needs `just gate` clean, and `setup.md` names the six Firebase values as what a build needs.
+5. b5178ca carried the `firebase` shim recipe, its comment and the `just firebase` rewrite of `rules`, `deploy` and `storage-rules`, none of it in `## Scope`. This commit removes the shim and restores the three recipes to `firebase deploy`, so `justfile` differs from `3ae793d` only in `env` and `walk`.
