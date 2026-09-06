@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The import sources dialog closes on Escape, carries its title, and its buttons follow the gothic language
 type: task
-status: review
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [073bb8b535f6677c340af3183ca6ff926217324d]
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-06T19:47:54Z
+updated_at: 2026-09-06T21:31:06Z
 questions: []
 base: d32b80c645e6bfe46355798c42feca0d1210fce4
 ---

@@ -32,7 +32,7 @@
   import { uiStore, anyDialogOpen } from "$lib/stores/ui.store";
   import { navigate } from "sly-svelte-location-router";
   import Shell from "$components/ui/Shell.svelte";
-  import Portrait, { type PortraitFrame } from "$components/ui/Portrait.svelte";
+  import Portrait, { PORTRAIT_FRAMES, type PortraitFrame } from "$components/ui/Portrait.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
   import Glyph from "$components/ui/Glyph.svelte";
   import { postUIAction } from "$lib/chat";
@@ -121,19 +121,12 @@
   {/snippet}
 
   <header class="sheet-crown">
-    <button
-      type="button"
-      class="sheet-face"
-      title="Choose the portrait frame"
-      onclick={() => postUIAction('openFrameDialog')}
-    >
-      <Portrait
-        src={imageUrl}
-        alt={$info.name || 'Character'}
-        frame={($info.imageFrame as PortraitFrame) ?? 'lancet'}
-        size="sm"
-      />
-    </button>
+    <Portrait
+      src={imageUrl}
+      alt={$info.name || 'Character'}
+      frame={($info.imageFrame as PortraitFrame) ?? 'lancet'}
+      size="sm"
+    />
 
     <span class="sheet-lines">
       <h1 class="dnd-heading sheet-name">{$info.name || 'Unnamed Character'}</h1>
@@ -141,6 +134,21 @@
         <span class="sheet-level">Level {$info.level || 1}</span>
         <span class="sheet-kin">{$info.class?.name || 'Unknown'} {$info.race?.name || 'Unknown'}</span>
       </span>
+    </span>
+
+    <span class="sheet-frames" role="group" aria-label="Portrait frame">
+      {#each PORTRAIT_FRAMES as choice (choice.id)}
+        <button
+          type="button"
+          class="sheet-frame"
+          class:sheet-frame-taken={(($info.imageFrame as PortraitFrame) ?? 'lancet') === choice.id}
+          aria-pressed={(($info.imageFrame as PortraitFrame) ?? 'lancet') === choice.id}
+          title={choice.title}
+          onclick={() => ($info.imageFrame = choice.id)}
+        >
+          <Portrait src={imageUrl} alt={choice.title} frame={choice.id} size="sm" />
+        </button>
+      {/each}
     </span>
   </header>
 
@@ -156,29 +164,36 @@
     </div>
 
     <div class="sheet-board">
-      <div class="sheet-stats">
+      <div style:grid-column="1">
         <PlainBox value={$rules.resolved?.proficiency ?? $info.proficiencyBonus}
                   title="Proficiency"
                   subTitle="bonus"
                   prefix="+"
         />
+      </div>
+      <div style:grid-column="2">
         <PlainBox bind:value={$info.speed}
                   title="Walking"
                   subTitle="speed"
         />
+      </div>
+      <div style:grid-column="3">
         <Inspiration />
-        <HitPoints bind:hp={$info.hp}/>
+      </div>
+      <HitPoints bind:hp={$info.hp}/>
+      <div style:grid-column="1" style:grid-row="2">
         <Initiative bind:initiative={$info.initiative}/>
+      </div>
+      <div style:grid-column="2" style:grid-row="2">
         <PlainBox bind:value={$info.ac}
                   title="Armor"
                   subTitle="class"
         />
-        <DefensesNConditions
-                bind:conditions={$info.conditions}
-                bind:defences={$info.defences}
-        />
       </div>
-
+      <DefensesNConditions
+              bind:conditions={$info.conditions}
+              bind:defences={$info.defences}
+      />
       <div class="sheet-tabs">
         <MainTabs initialTab="actionsTab">
           {#snippet actionsTab()}
@@ -217,26 +232,6 @@
       inset 0 0 40px -14px var(--ember-glow);
   }
 
-  .sheet-face {
-    display: flex;
-    flex: none;
-    padding: 0;
-    border: none;
-    border-radius: var(--radius-md);
-    background: none;
-    cursor: pointer;
-    transition: transform 0.15s ease;
-  }
-
-  .sheet-face:hover {
-    transform: translateY(-2px);
-  }
-
-  .sheet-face:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
   .sheet-lines {
     display: flex;
     flex: 1;
@@ -268,9 +263,44 @@
     font-style: italic;
   }
 
+  .sheet-frames {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    padding-inline-start: var(--space-4);
+    border-inline-start: var(--border-hair) solid var(--metal-dim);
+  }
+
+  .sheet-frame {
+    display: flex;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    opacity: 0.4;
+    transform: scale(0.55);
+    transform-origin: center;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .sheet-frame:hover {
+    opacity: 0.75;
+  }
+
+  .sheet-frame-taken {
+    opacity: 1;
+    transform: scale(0.68);
+  }
+
+  .sheet-frame:focus-visible {
+    outline: none;
+    opacity: 1;
+  }
+
   .sheet-grid {
     display: grid;
-    grid-template-columns: minmax(min-content, max-content) minmax(min-content, 1fr);
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
     align-items: start;
     gap: var(--space-3);
     min-width: 0;
@@ -287,27 +317,24 @@
   }
 
   .sheet-board {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: var(--space-3);
-  }
-
-  .sheet-stats {
     display: grid;
-    grid-template-columns: repeat(5, minmax(min-content, 1fr));
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-rows: min-content;
+    align-content: start;
     align-items: stretch;
     justify-items: stretch;
     gap: var(--space-3);
   }
 
   .sheet-tabs {
+    grid-column: 1 / -1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    min-width: 0;
+    align-self: stretch;
+    justify-self: stretch;
     min-height: 0;
-    contain: inline-size;
   }
 
   @media (max-width: 1400px) {
