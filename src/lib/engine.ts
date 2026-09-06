@@ -1,7 +1,11 @@
-import type {CharacterContext, CharacterStore, RollLog, RollResult} from "./types";
-import {writable, type Unsubscriber, type Writable} from "svelte/store";
+import type {CharacterContext, CharacterStore, RollLog, RollLogItem, RollResult} from "./types";
+import {writable, get, type Unsubscriber, type Writable} from "svelte/store";
 import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo} from "./character.types";
 import { addChangeLogEntry, createStateSnapshot, type ChangeAction } from "./changelog";
+import { user, userProfile } from "./stores/auth.store";
+import { currentCampaignId } from "./stores/campaign.store";
+import { campaignService } from "./firestore.service";
+import type { CampaignChatEntry } from "./firestore.types";
 
 const rollStore = writable<RollLog>(JSON.parse(localStorage.getItem('roll_log') || '[]'))
 const sidebarStore = writable(JSON.parse(localStorage.getItem('sidebar') || 'true'))
@@ -326,6 +330,38 @@ export function consumeAmmunition(ammoId: string) {
   });
 }
 
+export type ChatEntryFields = Omit<CampaignChatEntry, 'id' | 'created_at' | 'updated_at'>
+
+export function getAuthor(): { author_id: string, author_name: string } {
+  const account = get(user);
+  const profile = get(userProfile);
+
+  return {
+    author_id: account?.uid ?? '',
+    author_name: profile?.display_name || account?.displayName || account?.email || 'Someone'
+  }
+}
+
+export function asRollEntry(item: RollLogItem): ChatEntryFields {
+  const dice = (item.details ?? '')
+    .split(',')
+    .map(part => parseInt(part.trim(), 10))
+    .filter(part => !isNaN(part));
+
+  return {
+    ...getAuthor(),
+    kind: 'roll',
+    body: item.text ?? '',
+    query: '',
+    is_hidden: false,
+    roll_kind: item.type ?? 'roll',
+    formula: item.formula ?? '',
+    dice: dice.length ? dice : [item.roll ?? 0],
+    roll: item.roll ?? 0,
+    total: item.total ?? 0
+  }
+}
+
 export function writeRollLog(
   type: string,
   text: string,
@@ -334,8 +370,17 @@ export function writeRollLog(
   total: number,
   details?: string
 ) {
+  const item: RollLogItem = {type, text, formula, roll, total, details, rolledAt: Date()}
+  const campaignId = get(currentCampaignId);
+
+  if (campaignId) {
+    campaignService.postChatEntry(campaignId, asRollEntry(item))
+      .catch(error => console.error('Campaign chat entry did not save:', error));
+    return
+  }
+
   rollStore.update(state => {
-    state.push({type, text, formula, roll, total, details, rolledAt: Date()})
+    state.push(item)
     return state
   })
 }

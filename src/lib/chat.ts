@@ -1,10 +1,10 @@
 import {type Readable, type Unsubscriber, type Writable, writable, get} from "svelte/store";
 import {currentRoute} from "sly-svelte-location-router";
 import type {RollLog, RollLogItem} from "./types";
-import {rollDie, writeRollLog, getRollLog, getCharacterStore, updateCharacterWithChangeLog} from "./engine";
+import {rollDie, writeRollLog, getRollLog, getAuthor, getCharacterStore, updateCharacterWithChangeLog, type ChatEntryFields} from "./engine";
 import type {Character} from "./character.types";
 import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
-import { user, userProfile, userDetails } from "./stores/auth.store";
+import { userDetails } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
 import { campaignService, characterService } from "./firestore.service";
 import type { CampaignChatEntry } from "./firestore.types";
@@ -69,38 +69,6 @@ function getReplicateLog(): { replicateStore: Writable<ReplicateLog>, unsubscrib
     unsubscribeReplicate: replicateStore.subscribe(value => {
       localStorage.setItem('replicate_log', JSON.stringify(value));
     })
-  }
-}
-
-type ChatEntryFields = Omit<CampaignChatEntry, 'id' | 'created_at' | 'updated_at'>
-
-function getAuthor(): { author_id: string, author_name: string } {
-  const account = get(user);
-  const profile = get(userProfile);
-
-  return {
-    author_id: account?.uid ?? '',
-    author_name: profile?.display_name || account?.displayName || account?.email || 'Someone'
-  }
-}
-
-function asRollEntry(item: RollLogItem): ChatEntryFields {
-  const dice = (item.details ?? '')
-    .split(',')
-    .map(part => parseInt(part.trim(), 10))
-    .filter(part => !isNaN(part));
-
-  return {
-    ...getAuthor(),
-    kind: 'roll',
-    body: item.text ?? '',
-    query: '',
-    is_hidden: false,
-    roll_kind: item.type ?? 'roll',
-    formula: item.formula ?? '',
-    dice: dice.length ? dice : [item.roll ?? 0],
-    roll: item.roll ?? 0,
-    total: item.total ?? 0
   }
 }
 
@@ -202,7 +170,6 @@ export function getChatLog(): { chatStore: Readable<ChatLog>, unsubscribeChat: U
   let scope: string | null = null;
   let shared: ChatLog = [];
   let unsubscribeShared: (() => void) | null = null;
-  let publishedRolls = get(rollStore).length;
   let publishedChats = get(localStore).length;
 
   const render = () => chatStore.set(scope ? shared : asLocalLog(get(rollStore), get(localStore)));
@@ -215,13 +182,7 @@ export function getChatLog(): { chatStore: Readable<ChatLog>, unsubscribeChat: U
       .catch(error => console.error('Campaign chat entry did not save:', error));
   }
 
-  const unsubscribeRolls = rollStore.subscribe(value => {
-    if (scope) {
-      value.slice(publishedRolls).forEach(item => postEntry(asRollEntry(item)));
-    }
-    publishedRolls = value.length;
-    render();
-  });
+  const unsubscribeRolls = rollStore.subscribe(render);
 
   const unsubscribeChats = localStore.subscribe(value => {
     if (scope) {
@@ -238,7 +199,6 @@ export function getChatLog(): { chatStore: Readable<ChatLog>, unsubscribeChat: U
     unsubscribeShared = null;
     scope = campaignId;
     shared = [];
-    publishedRolls = get(rollStore).length;
     publishedChats = get(localStore).length;
 
     if (campaignId) {
