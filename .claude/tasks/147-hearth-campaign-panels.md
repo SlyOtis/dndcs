@@ -5,7 +5,7 @@ depends: [146]
 relations: []
 title: The hearth carries Maps, Cast, Places and Encounters panels drawn across the user's campaigns
 type: task
-status: staged
+status: draft
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: []
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-06T22:31:15Z
+updated_at: 2026-09-06T22:56:40Z
 questions: []
 images: []
 ---
