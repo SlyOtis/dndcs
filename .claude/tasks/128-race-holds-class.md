@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The race a character carries is the race picked and never the class
 type: bug
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [1191b8c978537c27757e54ca7cc1530595d54a94]
 created_at: 2026-09-06T19:16:40Z
-updated_at: 2026-09-06T19:34:56Z
+updated_at: 2026-09-06T19:38:57Z
 questions: []
 base: bc7e2dd83666a57d992c24497743477eb1697605
 ---
