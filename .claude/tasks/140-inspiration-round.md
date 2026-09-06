@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A second reference set is gathered from fantasy UI online and its vocabulary written into the inspiration README
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: [26b632a98c8ac029cbf421aac8a1bd05950f4b64]
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-06T21:45:52Z
+updated_at: 2026-09-06T23:03:47Z
 questions: []
 images: []
 agent: a6d5fee1901136faa
@@ -41,7 +41,7 @@ The first reference set, `docs/inspiration/1.png` through `11.png`, gave the lan
 `docs/inspiration/README.md`: an entry per new image with what it contributes, the primitive that carries it, the source URL and the licence; a new `## The language` section with the frame anatomy (keyline, rail, corner in four grades, boss, fill), the texture set including a proposed `--texture-parchment`, the type hierarchy as six roles over the seven `--text-*` steps at a 1.25 ratio, the four palette families and their reading per theme, and the bar as a rail. Web references gained OpenGameArt and Behance.
 
 ### Findings
-- `gothic-borders.png`, `gothic-elements.png` and `gothic-ui-kit.png` were untracked in the folder with no entry; each now has one, with source marked as not recorded. The user knows where they came from and the three lines want the URL and licence filled in.
-- Licences: `28` is CC0, `26` CC-BY 3.0, `17` Figma Community CC BY 4.0, `22` a free single entity licence; the Behance, Steam and paid itch.io images are all rights reserved and are references to look at, never assets.
-- The tree carried modifications outside `docs/inspiration/` before this task was taken; none are this task's.
-- Docs only, nothing to build or lint.
+- README `### The type` gives the steps as xs 0.64 to 3xl 2.44 at a 1.25 ratio; `src/app.css:6-12` declares 0.78, 0.9, 1.06, 1.28, 1.6, 2.1, 2.9rem at no fixed ratio. Write the declared values, or mark the scale as what 141 sets.
+- README, under the type table: "`Frame.svelte` takes `variant` for the corner grade and `fill` for the fill, and nothing in it is a pixel literal" is false of `src/components/ui/Frame.svelte`, where `variant` is cathedral|dragon|iron|timber|hairline, `fill` stretches the frame to its container, and lines 132, 133 and 168 are px. Write it as what 141 changes.
+- README `19.jpg`: `Frame.svelte` variant `filigree` does not exist. Name the corner grade, not a variant.
+- `gothic-borders.png`, `gothic-elements.png` and `gothic-ui-kit.png` carry no source and no licence; Order 4 wants one per entry. Ask the user for the three URLs.
