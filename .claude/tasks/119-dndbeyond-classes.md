@@ -34,3 +34,14 @@ The class documents under `public/sources/classes/` were authored from memory: 1
 `just reference classes` fills a folder per class D&D Beyond lists, every class in `public/sources/classes/index.json` that D&D Beyond has a page for among them, each folder holding the markdown and at least one image, `git status` shows nothing under `reference/`, and `just gate` is clean.
 
 ## Summary
+`scripts/reference.sh <kind> [--refresh]`: bash, `curl`, `jq`, one awk pass for HTML to markdown. Reads the listing, and for every `/<kind>/<id>-<slug>` link writes `reference/dndbeyond/<kind>/<id>-<slug>/<id>-<slug>.md` and every image the content carries under its original name. The folder is D&D Beyond's URL slug because the listing carries a 2024 and a 2014 page per core class. Headings, tables, lists, bold, italic and sidebars are kept. The driver is decided on the first fetch and printed: `curl`, or `playwright-cli` when curl is refused; this run went through `curl`. A link that lands off a class page is reported as `skip <slug>: not a class page`. `kind` is a `case`.
+
+`justfile`: `reference kind *ARGS`. `.gitignore`: `reference/`. `land` took only `scripts/reference.sh`; `justfile` and `.gitignore` are committed beside it.
+
+38 links, 25 class folders each with markdown and one image, nothing under `reference/` in `git status`. `just check` and `just build` clean; the chunk size warning in build predates this task.
+
+### Findings
+- 13 links redirect to `marketplace.dndbeyond.com`: illrigger, warden, treasure-hunter, captain, scholar, messenger, champion, gunslinger, both artificers, monster-hunter, pugilist, kindred. `artificer` and `gunslinger` from `index.json` have no public page.
+- Anonymous pages carry one free subclass per class; the rest sit behind a purchase.
+- `.gitignore` has no `media/` line and no `media/` folder exists.
+- The first run, before the redirect check, left empty folders for the 13 marketplace links: `rm -r reference/dndbeyond/classes/{2289517-illrigger,2297348-warden,2297349-treasure-hunter,2297350-captain,2297351-scholar,2297352-messenger,2297353-champion,2498109-gunslinger,252717-artificer,2566877-monster-hunter,2656866-artificer,2717895-pugilist,2854543-kindred}`
