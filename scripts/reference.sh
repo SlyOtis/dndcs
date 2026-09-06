@@ -13,11 +13,12 @@ done
 
 site="https://www.dndbeyond.com"
 case "$kind" in
-  classes) listing="$site/classes"; path="classes"; one="class" ;;
-  *) echo "usage: scripts/reference.sh <classes> [--refresh]"; exit 1 ;;
+  classes) listing="$site/classes"; path="classes"; folder="classes"; one="class" ;;
+  races) listing="$site/species"; path="species"; folder="races"; one="species" ;;
+  *) echo "usage: scripts/reference.sh <classes|races> [--refresh]"; exit 1 ;;
 esac
 
-root="reference/dndbeyond/$path"
+root="reference/dndbeyond/$folder"
 agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
 driver=""
 pw() { /opt/homebrew/bin/playwright-cli -s=reference --raw "$@" 2>/dev/null; }
