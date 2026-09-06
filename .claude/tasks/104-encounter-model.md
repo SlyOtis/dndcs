@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Encounter tracker data model, service and rules
 type: feature
-status: review
+status: done
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [1559f69e070ee53f6c6c80bb4b844080b008d00c, cabc587d3586cd06b16efe187fdfe79ab7bf4375]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T19:38:20Z
+updated_at: 2026-09-06T20:47:54Z
 questions: []
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
