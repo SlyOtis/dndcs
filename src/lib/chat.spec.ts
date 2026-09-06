@@ -49,7 +49,7 @@ vi.mock('./firestore.service', () => ({
 }))
 
 import { getChatLog } from './chat'
-import { getRollLog } from './engine'
+import { getRollLog, writeRollLog } from './engine'
 import { user, userProfile } from './stores/auth.store'
 import { currentCampaignId } from './stores/campaign.store'
 
@@ -179,10 +179,11 @@ describe('the shared roll log inside a campaign', () => {
     close = log.unsubscribeChat
 
     currentCampaignId.set('camp-1')
-    rollStore.set([rolled('2026-09-06T10:02:00.000Z', 'Lars rolls stealth')])
+    writeRollLog('skill', 'Lars rolls stealth', '1d20+3', 14, 17, '14')
 
     expect(wire.posted).toHaveLength(1)
     expect(wire.posted[0].campaignId).toBe('camp-1')
+    expect(get(rollStore)).toEqual([])
     expect(wire.posted[0].entry).toEqual({
       author_id: 'lars',
       author_name: 'Lars',
@@ -204,7 +205,7 @@ describe('the shared roll log inside a campaign', () => {
     close = log.unsubscribeChat
 
     currentCampaignId.set('camp-1')
-    rollStore.set([rolled('2026-09-06T10:02:00.000Z', 'Lars rolls stealth')])
+    writeRollLog('skill', 'Lars rolls stealth', '1d20+3', 14, 17, '14')
 
     expect(wire.posted).toHaveLength(1)
     expect(get(log.chatStore)).toEqual([])
