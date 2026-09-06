@@ -5,7 +5,7 @@ depends: [106]
 relations: []
 title: The hearth lays its hero and panels on one grid divided by panel instead of a single column
 type: task
-status: staged
+status: draft
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-06T22:31:15Z
+updated_at: 2026-09-06T22:56:40Z
 questions: []
 images: []
 ---
