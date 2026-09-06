@@ -1,510 +1,681 @@
 <script lang="ts">
-  import { postUIAction } from "$lib/chat";
-  import { user, userProfile } from "$lib/stores/auth.store";
-  import { userCharacters } from "$lib/stores/character.store";
-  import { userCampaigns } from "$lib/stores/campaign.store";
-  import { authService } from "$lib/auth.service";
-  import { navigate, currentRoute } from "sly-svelte-location-router";
-  import StoredImage from "$components/ui/StoredImage.svelte";
+  import type { Snippet } from 'svelte'
+  import { navigate, currentRoute } from 'sly-svelte-location-router'
+  import { campaignService } from '$lib/firestore.service'
+  import type {
+    Campaign,
+    CampaignEncounter,
+    CampaignLocation,
+    CampaignMap,
+    CampaignNpc,
+    CampaignQuest,
+    CharacterDocument,
+    EncounterCombatant
+  } from '$lib/firestore.types'
+  import { user } from '$lib/stores/auth.store'
+  import { userCampaigns } from '$lib/stores/campaign.store'
+  import Ornament from '$components/ui/Ornament.svelte'
 
-  let { onNavigateToSoundboard, onSelectCharacter } = $props<{
-    onNavigateToSoundboard: () => void;
-    onSelectCharacter?: (characterId: string) => void;
-  }>();
+  const { onNavigateToSoundboard }: {
+    /** Swaps the drawer over to the soundboard view. */
+    onNavigateToSoundboard: () => void
+  } = $props()
 
-  let campaignsExpanded = $state(false);
-  let charactersExpanded = $state(false);
-  
-  // Get current section from route
-  const currentSection = $derived.by(() => {
-    if ($currentRoute.path.includes('/campaign')) return 'campaign';
-    return 'character';
-  });
+  let campaign = $state<Campaign | null>(null)
+  let characters = $state<CharacterDocument[]>([])
+  let quests = $state<CampaignQuest[]>([])
+  let npcs = $state<CampaignNpc[]>([])
+  let places = $state<CampaignLocation[]>([])
+  let maps = $state<CampaignMap[]>([])
+  let encounters = $state<CampaignEncounter[]>([])
+  let loading = $state(false)
+  let error = $state<string | null>(null)
+  let open = $state('campaign')
 
-  function exportCharacter() {
-    postUIAction('exportCharacter');
-  }
+  const campaignId = $derived(
+    $currentRoute.path.startsWith('/campaign/')
+      ? $currentRoute.params.id ?? ''
+      : $userCampaigns[0]?.id ?? ''
+  )
 
-  function levelUp() {
-    postUIAction('openLevelUpDialog');
-  }
+  const isDm = $derived(Boolean(campaign && $user && campaign.dm_id === $user.uid))
+  const activeQuests = $derived(quests.filter((quest) => quest.state === 'active' && (isDm || quest.is_known)))
+  const knownNpcs = $derived(npcs.filter((npc) => isDm || npc.is_known))
+  const knownPlaces = $derived(places.filter((place) => isDm || place.is_known))
+  const lore = $derived(knownNpcs.length + knownPlaces.length)
+  const knownEncounters = $derived(
+    encounters
+      .filter((entry) => isDm || entry.is_known)
+      .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0))
+  )
+  const encounter = $derived(knownEncounters.find((entry) => entry.is_active) ?? knownEncounters[0] ?? null)
+  const combatants = $derived(encounter ? [...encounter.combatants].sort((a, b) => b.initiative - a.initiative) : [])
+  const turn = $derived(encounter && combatants.length > 0 ? encounter.turn % combatants.length : -1)
 
-  function openThemes() {
-    postUIAction('openThemeDialog');
-  }
+  $effect(() => {
+    const id = campaignId
+    let live = true
 
-  function openSources() {
-    postUIAction('openSourceImport');
-  }
-
-  function toggleCampaigns() {
-    campaignsExpanded = !campaignsExpanded;
-  }
-
-  function toggleCharacters() {
-    charactersExpanded = !charactersExpanded;
-  }
-
-  function selectCharacter(characterId: string) {
-    if (onSelectCharacter) {
-      onSelectCharacter(characterId);
+    if (!id) {
+      campaign = null
+      characters = []
+      quests = []
+      npcs = []
+      places = []
+      maps = []
+      encounters = []
+      error = null
+      loading = false
+      return
     }
-    navigate(`/character/${characterId}`);
-  }
 
-  function createNewCharacter() {
-    navigate('/main/create/character');
-  }
+    loading = true
+    const release = campaignService.postEncountersListener(id, (entries) => {
+      if (live) encounters = entries
+    })
+    error = null
 
-  function createNewCampaign() {
-    navigate('/main/create/campaign');
-  }
+    void (async () => {
+      try {
+        const [record, party, errands, cast, sites, charts] = await Promise.all([
+          campaignService.getCampaign(id),
+          campaignService.getCampaignCharacters(id),
+          campaignService.getQuests(id),
+          campaignService.getNpcs(id),
+          campaignService.getLocations(id),
+          campaignService.getMaps(id)
+        ])
+        if (!live) return
+        campaign = record
+        characters = party
+        quests = errands
+        npcs = cast
+        places = sites
+        maps = charts
+      } catch (reason) {
+        if (!live) return
+        error = reason instanceof Error ? reason.message : String(reason)
+      } finally {
+        if (live) loading = false
+      }
+    })()
 
-  function selectCampaign(campaignId: string) {
-    navigate(`/campaign/${campaignId}`);
-  }
-
-  async function signOut() {
-    try {
-      await authService.signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
+    return () => {
+      live = false
+      release()
     }
+  })
+
+  function toggle(id: string) {
+    open = open === id ? '' : id
+  }
+
+  function openCampaign() {
+    if (campaign) navigate(`/campaign/${campaign.id}`)
+  }
+
+  function openCharacter(characterId: string) {
+    navigate(`/character/${characterId}`)
+  }
+
+  function openCombatant(combatant: EncounterCombatant) {
+    if (combatant.character_id) openCharacter(combatant.character_id)
+    else openCampaign()
+  }
+
+  function hitPoints(combatant: EncounterCombatant) {
+    return isDm || combatant.is_hit_points_known ? `${combatant.hit_points}/${combatant.max_hit_points}` : 'Hidden'
   }
 </script>
 
-<div class="main-menu">
-  <!-- User Info Section -->
-  <div class="user-info">
-    {#if $userProfile}
-      <div class="user-avatar">
-        {#if $userProfile.photo_url}
-          <StoredImage src={$userProfile.photo_url} alt="Your picture" />
-        {:else}
-          <div class="avatar-placeholder">
-            {$userProfile.display_name?.charAt(0) || $userProfile.email?.charAt(0) || '?'}
-          </div>
-        {/if}
-      </div>
-      <div class="user-details">
-        <h3>{$userProfile.display_name || 'User'}</h3>
-        <p>{$userProfile.email}</p>
-        <div class="user-actions">
-          <button class="sign-out-btn" onclick={() => navigate('/user')}>Account and integrations</button>
-          <button class="sign-out-btn" onclick={signOut}>Sign Out</button>
-        </div>
-      </div>
+<nav class="dnd-menu" aria-label="Campaign navigator">
+  <header class="dnd-menu-head">
+    <span class="dnd-menu-crest" aria-hidden="true"><Ornament name="tracery" size="xs" tone="metal" /></span>
+    <p class="dnd-label dnd-menu-eyebrow">Navigator</p>
+    {#if campaign}
+      <button type="button" class="dnd-menu-name" onclick={openCampaign}>{campaign.name}</button>
     {:else}
-      <div class="user-loading">Loading user info...</div>
+      <p class="dnd-menu-name dnd-menu-name-void">No campaign in scope</p>
     {/if}
+    <span class="dnd-menu-rule" aria-hidden="true"><Ornament name="divider" size="sm" tone="metal" /></span>
+  </header>
+
+  <div class="dnd-scroll dnd-menu-body">
+    {#if error}
+      <p class="dnd-menu-note" role="alert">{error}</p>
+    {/if}
+
+    {@render section('campaign', 'Campaign details', activeQuests.length, details)}
+    {@render section('encounter', 'Encounter tracker', combatants.length, tracker)}
+    {@render section('lore', 'Lore', lore, chronicle)}
+    {@render section('resources', 'Resources', maps.length, resources)}
   </div>
 
-  <div class="menu-sections">
-    <!-- Campaigns Section -->
-    <div class="menu-section" class:active={currentSection === 'campaign'}>
-      <button class="section-header" onclick={toggleCampaigns}>
-        <svg class="expand-icon" class:expanded={campaignsExpanded} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-        </svg>
-        <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12,2L13.09,6.26L18,7L13.09,7.74L12,12L10.91,7.74L6,7L10.91,6.26L12,2M12,15L13.09,19.26L18,20L13.09,20.74L12,25L10.91,20.74L6,20L10.91,19.26L12,15Z" />
-        </svg>
-        Campaigns ({$userCampaigns.length})
-      </button>
-      
-      {#if campaignsExpanded}
-        <div class="section-content">
-          {#each $userCampaigns as campaign}
-            <button class="item-button campaign-item" onclick={() => selectCampaign(campaign.id)}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,2A3,3 0 0,1 15,5V11A3,3 0 0,1 12,14A3,3 0 0,1 9,11V5A3,3 0 0,1 12,2M19,11C19,14.53 16.39,17.44 13,17.93V21H11V17.93C7.61,17.44 5,14.53 5,11H7A5,5 0 0,0 12,16A5,5 0 0,0 17,11H19Z" />
-              </svg>
-              <div class="item-details">
-                <span class="item-name">{campaign.name}</span>
-                <span class="item-meta">{campaign.player_ids.length} players</span>
-              </div>
+  <footer class="dnd-menu-foot">
+    {#if loading}
+      <p class="dnd-menu-foot-line">Reading the archive</p>
+    {:else if campaign}
+      <p class="dnd-menu-foot-line">{isDm ? 'Dungeon Master. Unrevealed lore is shown.' : 'Player. Revealed lore only.'}</p>
+    {:else}
+      <p class="dnd-menu-foot-line">Open a campaign to fill the navigator.</p>
+    {/if}
+  </footer>
+</nav>
+
+{#snippet section(id: string, title: string, count: number, body: Snippet)}
+  <section class="dnd-menu-section" class:dnd-menu-section-open={open === id}>
+    <button type="button" class="dnd-menu-band" aria-expanded={open === id} onclick={() => toggle(id)}>
+      <span class="dnd-menu-caret" aria-hidden="true">›</span>
+      <span class="dnd-menu-band-title">{title}</span>
+      <span class="dnd-menu-band-count">{count}</span>
+    </button>
+
+    {#if open === id}
+      <div class="dnd-menu-section-body">{@render body()}</div>
+    {/if}
+  </section>
+{/snippet}
+
+{#snippet details()}
+  {#if !campaign}
+    <p class="dnd-menu-empty">No campaign is in scope.</p>
+  {:else}
+    <dl class="dnd-menu-facts">
+      <div class="dnd-menu-fact">
+        <dt>Players</dt>
+        <dd>{campaign.player_ids.length}</dd>
+      </div>
+      <div class="dnd-menu-fact">
+        <dt>Heroes</dt>
+        <dd>{characters.length}</dd>
+      </div>
+      <div class="dnd-menu-fact">
+        <dt>Quests</dt>
+        <dd>{activeQuests.length}</dd>
+      </div>
+    </dl>
+
+    {#if campaign.description}
+      <p class="dnd-menu-lede">{campaign.description}</p>
+    {/if}
+
+    <p class="dnd-menu-title">Party</p>
+    {#if characters.length === 0}
+      <p class="dnd-menu-empty">No hero has joined yet.</p>
+    {:else}
+      <ul class="dnd-scroll dnd-menu-list">
+        {#each characters as entry (entry.id)}
+          <li class="dnd-menu-item">
+            <button type="button" class="dnd-menu-row" onclick={() => openCharacter(entry.id)}>
+              <span class="dnd-menu-row-mark" aria-hidden="true">◆</span>
+              <span class="dnd-menu-row-name">{entry.metadata.name}</span>
+              <span class="dnd-menu-row-meta">{entry.metadata.level} {entry.metadata.class}</span>
             </button>
-          {:else}
-            <div class="empty-state">No campaigns yet</div>
-          {/each}
-          
-          <button class="create-button" onclick={createNewCampaign}>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
-            Create New Campaign
-          </button>
-        </div>
-      {/if}
-    </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
 
-    <!-- Characters Section -->
-    <div class="menu-section" class:active={currentSection === 'character'}>
-      <button class="section-header" onclick={toggleCharacters}>
-        <svg class="expand-icon" class:expanded={charactersExpanded} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
-        </svg>
-        <svg class="section-icon" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-        </svg>
-        Characters ({$userCharacters.length})
-      </button>
-      
-      {#if charactersExpanded}
-        <div class="section-content">
-          {#each $userCharacters as character}
-            <button class="item-button character-item" onclick={() => selectCharacter(character.id)}>
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
-              </svg>
-              <div class="item-details">
-                <span class="item-name">{character.metadata.name}</span>
-                <span class="item-meta">Level {character.metadata.level} {character.metadata.class}</span>
-              </div>
+    <p class="dnd-menu-title">Active quests</p>
+    {#if activeQuests.length === 0}
+      <p class="dnd-menu-empty">No quest is open.</p>
+    {:else}
+      <ul class="dnd-scroll dnd-menu-list">
+        {#each activeQuests as quest (quest.id)}
+          <li class="dnd-menu-item">
+            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
+              <span class="dnd-menu-row-mark" aria-hidden="true">✦</span>
+              <span class="dnd-menu-row-name">{quest.title}</span>
+              <span class="dnd-menu-row-meta">{quest.level ? `Lv ${quest.level}` : 'Open'}</span>
             </button>
-          {:else}
-            <div class="empty-state">No characters yet</div>
-          {/each}
-          
-          <button class="create-button" onclick={createNewCharacter}>
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
-            </svg>
-            Create New Character
-          </button>
-        </div>
-      {/if}
-    </div>
-  </div>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  {/if}
+{/snippet}
 
-  <!-- Action Buttons -->
-  <div class="menu-actions">
-    <button class="menu-button" onclick={exportCharacter}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-      </svg>
-      Export Character
-    </button>
-    <button class="menu-button" onclick={levelUp}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M15,20A1,1 0 0,0 16,19V4H20A1,1 0 0,0 21,3A1,1 0 0,0 20,2H16C14.89,2 14,2.9 14,4V19A1,1 0 0,0 15,20M8,20A1,1 0 0,0 9,19V4H13A1,1 0 0,0 14,3A1,1 0 0,0 13,2H9C7.89,2 7,2.9 7,4V19A1,1 0 0,0 8,20M2,20A1,1 0 0,0 3,19V4H7A1,1 0 0,0 8,3A1,1 0 0,0 7,2H3C1.89,2 1,2.9 1,4V19A1,1 0 0,0 2,20Z" />
-      </svg>
-      Level Up
-    </button>
-    <button class="menu-button" onclick={openThemes}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A1.02,1.02 0 0,0 13,20C13,19.75 12.9,19.5 12.8,19.3L12.5,18.9C12.5,18.6 12.6,18.3 12.8,18.1C13,17.9 13.3,17.8 13.6,17.8H16.2A4.8,4.8 0 0,0 21,13C21,7.04 16.96,3 12,3M6.5,12A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 9.5,12A1.5,1.5 0 0,1 8,13.5A1.5,1.5 0 0,1 6.5,12M10,7.5A1.5,1.5 0 0,1 11.5,6A1.5,1.5 0 0,1 13,7.5A1.5,1.5 0 0,1 11.5,9A1.5,1.5 0 0,1 10,7.5M16,7.5A1.5,1.5 0 0,1 17.5,6A1.5,1.5 0 0,1 19,7.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 16,7.5M14.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,12A1.5,1.5 0 0,1 16,13.5A1.5,1.5 0 0,1 14.5,12Z" />
-      </svg>
-      Change Theme
-    </button>
-    <button class="menu-button" onclick={openSources}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z" />
-      </svg>
-      Import Sources
-    </button>
-    <button class="menu-button" onclick={onNavigateToSoundboard}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12,3V13.55C11.41,13.21 10.73,13 10,13A3,3 0 0,0 7,16A3,3 0 0,0 10,19A3,3 0 0,0 13,16V7H17V5H12Z" />
-      </svg>
-      Soundboard
-    </button>
-  </div>
-</div>
+{#snippet tracker()}
+  {#if !campaign}
+    <p class="dnd-menu-empty">No campaign is in scope.</p>
+  {:else if !encounter}
+    <p class="dnd-menu-empty">No encounter is under way.</p>
+  {:else}
+    <dl class="dnd-menu-facts">
+      <div class="dnd-menu-fact">
+        <dt>Round</dt>
+        <dd>{encounter.round}</dd>
+      </div>
+      <div class="dnd-menu-fact">
+        <dt>Turn</dt>
+        <dd>{turn + 1}</dd>
+      </div>
+      <div class="dnd-menu-fact">
+        <dt>Foes</dt>
+        <dd>{combatants.filter((entry) => entry.kind === 'npc').length}</dd>
+      </div>
+    </dl>
+
+    <p class="dnd-menu-title">{encounter.title}</p>
+    {#if combatants.length === 0}
+      <p class="dnd-menu-empty">No combatant has rolled yet.</p>
+    {:else}
+      <ul class="dnd-scroll dnd-menu-list">
+        {#each combatants as combatant, index (combatant.id)}
+          <li class="dnd-menu-item">
+            <button
+              type="button"
+              class="dnd-menu-row"
+              class:dnd-menu-row-turn={index === turn}
+              aria-current={index === turn ? 'true' : undefined}
+              onclick={() => openCombatant(combatant)}
+            >
+              <span class="dnd-menu-row-mark" aria-hidden="true">{combatant.initiative}</span>
+              <span class="dnd-menu-row-name">
+                {combatant.name}
+                {#if combatant.conditions.length > 0}
+                  <em class="dnd-menu-row-state">{combatant.conditions.join(', ')}</em>
+                {/if}
+              </span>
+              <span class="dnd-menu-row-meta">{hitPoints(combatant)}</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  {/if}
+{/snippet}
+
+{#snippet chronicle()}
+  {#if !campaign}
+    <p class="dnd-menu-empty">No campaign is in scope.</p>
+  {:else}
+    <p class="dnd-menu-title">Known faces</p>
+    {#if knownNpcs.length === 0}
+      <p class="dnd-menu-empty">No face has been revealed.</p>
+    {:else}
+      <ul class="dnd-scroll dnd-menu-list">
+        {#each knownNpcs as npc (npc.id)}
+          <li class="dnd-menu-item">
+            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
+              <span class="dnd-menu-row-mark" aria-hidden="true">☗</span>
+              <span class="dnd-menu-row-name">{npc.name}</span>
+              <span class="dnd-menu-row-meta">{npc.role || npc.disposition}</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
+    <p class="dnd-menu-title">Known places</p>
+    {#if knownPlaces.length === 0}
+      <p class="dnd-menu-empty">No place has been revealed.</p>
+    {:else}
+      <ul class="dnd-scroll dnd-menu-list">
+        {#each knownPlaces as place (place.id)}
+          <li class="dnd-menu-item">
+            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
+              <span class="dnd-menu-row-mark" aria-hidden="true">⌂</span>
+              <span class="dnd-menu-row-name">{place.name}</span>
+              <span class="dnd-menu-row-meta">{place.kind}</span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+  {/if}
+{/snippet}
+
+{#snippet resources()}
+  <p class="dnd-menu-title">Maps</p>
+  {#if maps.length === 0}
+    <p class="dnd-menu-empty">No map has been drawn.</p>
+  {:else}
+    <ul class="dnd-scroll dnd-menu-list">
+      {#each maps as chart (chart.id)}
+        <li class="dnd-menu-item">
+          <button type="button" class="dnd-menu-row" onclick={openCampaign}>
+            <span class="dnd-menu-row-mark" aria-hidden="true">✧</span>
+            <span class="dnd-menu-row-name">{chart.title}</span>
+            <span class="dnd-menu-row-meta">{chart.is_visible ? `${chart.markers.length} pins` : 'Hidden'}</span>
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+
+  <p class="dnd-menu-title">Table</p>
+  <ul class="dnd-menu-list">
+    <li class="dnd-menu-item">
+      <button type="button" class="dnd-menu-row" onclick={onNavigateToSoundboard}>
+        <span class="dnd-menu-row-mark" aria-hidden="true">♪</span>
+        <span class="dnd-menu-row-name">Soundboard</span>
+        <span class="dnd-menu-row-meta">Open</span>
+      </button>
+    </li>
+  </ul>
+{/snippet}
 
 <style>
-  .main-menu {
+  .dnd-menu {
+    --menu-row: 2.6rem;
+    --menu-rows: 5;
+    --menu-gap: var(--space-3);
+    --menu-pad: var(--space-4);
+    --menu-cusp: 9px;
+    --menu-line: var(--metal-dim);
+    --menu-line-strong: var(--metal);
+    --menu-surface: var(--ground-raised);
+    --menu-surface-lift: var(--ground-lift);
+    --menu-surface-sunk: var(--ground-deep);
+    --menu-text: var(--ink);
+    --menu-text-muted: var(--ink-dim);
+    --menu-text-faint: var(--ink-faint);
+    --menu-accent: var(--metal-bright);
+    --menu-radius: var(--radius-md);
+
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    height: 100%;
+    gap: var(--menu-gap);
+    padding: var(--menu-pad);
+    overflow: hidden;
+    color: var(--menu-text);
+  }
+
+  .dnd-menu-head {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+    text-align: center;
+  }
+
+  .dnd-menu-crest {
+    display: block;
+    opacity: 0.8;
+  }
+
+  .dnd-menu-eyebrow {
+    margin: 0;
+  }
+
+  .dnd-menu-name {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: var(--space-1) var(--space-2);
+    border: none;
+    background: none;
+    color: var(--menu-accent);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    line-height: 1.2;
+    text-shadow: 0 1px 0 var(--shade-hard);
+    cursor: pointer;
+  }
+
+  .dnd-menu-name:hover {
+    filter: brightness(1.12);
+    text-shadow: var(--glow-metal);
+  }
+
+  .dnd-menu-name-void {
+    color: var(--menu-text-faint);
+    cursor: default;
+  }
+
+  .dnd-menu-rule {
+    display: block;
+    width: 100%;
+  }
+
+  .dnd-menu-body {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 1rem;
-    gap: 1rem;
-    overflow-y: auto;
+    gap: var(--menu-gap);
+    min-height: 0;
+    padding-inline-end: var(--space-1);
   }
 
-  /* User Info Section */
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: var(--ground-raised);
-    border-radius: 8px;
-    border: 1px solid var(--metal);
-  }
-
-  .user-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .user-avatar :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    background: var(--metal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ground);
-    font-weight: bold;
-    font-size: 1.2rem;
-  }
-
-  .user-details {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .user-details h3 {
-    margin: 0 0 0.25rem 0;
-    color: var(--metal);
-    font-size: 1.1rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .user-details p {
-    margin: 0 0 0.5rem 0;
-    color: var(--ink-dim);
-    font-size: 0.85rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .user-actions {
-    display: flex;
-    flex-wrap: wrap;
+  .dnd-menu-section {
+    display: grid;
     gap: var(--space-2);
   }
 
-  .sign-out-btn {
-    background: transparent;
-    border: 1px solid var(--ember);
-    color: var(--ink-dim);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .sign-out-btn:hover {
-    background: var(--ember);
-    color: var(--ink);
-  }
-
-  .user-loading {
-    color: var(--ink-dim);
-    font-style: italic;
-    text-align: center;
-    padding: 1rem;
-  }
-
-  /* Menu Sections */
-  .menu-sections {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    min-height: 0;
-  }
-
-  .menu-section {
-    background: var(--ground);
-    border: 1px solid var(--sheen-soft);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-  }
-
-  .menu-section.active {
-    border-color: var(--metal);
-    background: var(--ground-raised);
-    box-shadow: 0 0 0 1px var(--metal);
-  }
-
-  .section-header {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: var(--ground-raised);
-    border: none;
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
+  .dnd-menu-band {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.95rem;
-    font-weight: 500;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: var(--menu-row);
+    padding: 0 var(--space-3);
+    background: linear-gradient(180deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
+    border: var(--border-hair) solid var(--menu-line);
+    border-radius: 0;
+    clip-path: polygon(
+      var(--menu-cusp) 0,
+      calc(100% - var(--menu-cusp)) 0,
+      100% 50%,
+      calc(100% - var(--menu-cusp)) 100%,
+      var(--menu-cusp) 100%,
+      0 50%
+    );
+    color: var(--menu-accent);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-align: start;
+    cursor: pointer;
+    transition: filter 0.15s ease;
   }
 
-  .section-header:hover {
-    background: var(--ground-lift);
+  .dnd-menu-band:hover {
+    filter: brightness(1.15) drop-shadow(0 0 8px var(--ember-glow));
   }
 
-  .expand-icon {
-    width: 16px;
-    height: 16px;
-    transition: transform 0.2s ease;
+  .dnd-menu-section-open .dnd-menu-band {
+    border-color: var(--menu-line-strong);
+    color: var(--menu-accent);
   }
 
-  .expand-icon.expanded {
+  .dnd-menu-caret {
+    display: inline-block;
+    color: var(--menu-line-strong);
+    transition: transform 0.15s ease;
+  }
+
+  .dnd-menu-section-open .dnd-menu-caret {
     transform: rotate(90deg);
   }
 
-  .section-icon {
-    width: 18px;
-    height: 18px;
-    color: var(--metal);
+  .dnd-menu-band-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
-  .section-content {
-    padding: 0.5rem;
+  .dnd-menu-band-count {
+    color: var(--menu-text-muted);
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .dnd-menu-section-body {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: linear-gradient(180deg, var(--menu-surface) 0%, var(--menu-surface-sunk) 100%);
+    border: var(--border-hair) solid var(--menu-line);
+    border-radius: var(--menu-radius);
+    box-shadow: inset 0 1px 0 var(--metal-edge);
+  }
+
+  .dnd-menu-facts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .dnd-menu-fact {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-1);
+    background: linear-gradient(180deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
+    border: var(--border-hair) solid var(--menu-line);
+    border-radius: var(--radius-sm);
+  }
+
+  .dnd-menu-fact dt {
+    color: var(--menu-text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+  }
+
+  .dnd-menu-fact dd {
+    margin: 0;
+    color: var(--menu-accent);
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .dnd-menu-lede {
+    margin: 0;
+    color: var(--menu-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.45;
+  }
+
+  .dnd-menu-title {
+    margin: 0;
+    color: var(--menu-line-strong);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+  }
+
+  .dnd-menu-list {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    max-height: 200px;
+    gap: var(--space-1);
+    max-height: calc(var(--menu-row) * var(--menu-rows));
+    margin: 0;
+    padding: 0;
     overflow-y: auto;
+    list-style: none;
+    scroll-snap-type: y proximity;
   }
 
-  .item-button {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
+  .dnd-menu-item {
     display: flex;
+    min-height: var(--menu-row);
+    scroll-snap-align: start;
+  }
+
+  .dnd-menu-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.5rem;
-    text-align: left;
-  }
-
-  .item-button:hover {
-    background: var(--ground-lift);
-    border-color: var(--metal);
-    transform: translateX(2px);
-  }
-
-  .item-button svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    color: var(--ember);
-  }
-
-  .item-details {
+    gap: var(--space-3);
     flex: 1;
-    min-width: 0;
+    min-height: var(--menu-row);
+    padding: 0 var(--space-3);
+    background: linear-gradient(90deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
+    border: var(--border-hair) solid transparent;
+    border-inline-start: var(--border-width) solid var(--menu-line);
+    border-radius: var(--radius-sm);
+    color: var(--menu-text);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    text-align: start;
+    cursor: pointer;
+    transition: border-color 0.15s ease, filter 0.15s ease;
   }
 
-  .item-name {
-    display: block;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 0.1rem;
+  .dnd-menu-row:hover {
+    border-color: var(--menu-line);
+    border-inline-start-color: var(--menu-line-strong);
+    filter: brightness(1.18);
   }
 
-  .item-meta {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--ink-dim);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .dnd-menu-row-mark {
+    color: var(--menu-line-strong);
+    font-size: var(--text-xs);
   }
 
-  .empty-state {
-    padding: 1rem;
-    text-align: center;
-    color: var(--ink-dim);
+  .dnd-menu-row-turn {
+    border-color: var(--menu-line);
+    border-inline-start-color: var(--menu-accent);
+    box-shadow: inset 0 0 0 1px var(--metal-edge);
+    filter: brightness(1.12);
+  }
+
+  .dnd-menu-row-turn .dnd-menu-row-mark {
+    color: var(--menu-accent);
+  }
+
+  .dnd-menu-row-state {
+    color: var(--menu-text-faint);
+    font-size: var(--text-xs);
     font-style: italic;
-    font-size: 0.9rem;
   }
 
-  .create-button {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background: var(--metal);
-    border: 1px solid var(--metal-bright);
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+  .dnd-menu-row-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
-  .create-button:hover {
-    background: var(--metal-bright);
-    transform: translateX(2px);
-    box-shadow: 2px 2px 8px var(--shade-soft);
+  .dnd-menu-row-meta {
+    color: var(--menu-text-muted);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    white-space: nowrap;
   }
 
-  .create-button svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
+  .dnd-menu-empty {
+    margin: 0;
+    color: var(--menu-text-faint);
+    font-size: var(--text-sm);
+    font-style: italic;
   }
 
-  /* Action Buttons */
-  .menu-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: auto;
-    padding-top: 1rem;
-    border-top: 1px solid var(--sheen-soft);
+  .dnd-menu-note {
+    margin: 0;
+    padding: var(--space-3);
+    background: linear-gradient(180deg, var(--menu-surface-sunk) 0%, var(--menu-surface) 100%);
+    border-inline-start: var(--border-width) solid var(--menu-line);
+    border-radius: var(--radius-sm);
+    color: var(--menu-text-muted);
+    font-size: var(--text-sm);
+    line-height: 1.45;
   }
 
-  .menu-button {
-    padding: 0.75rem 1rem;
-    background: var(--ground-raised);
-    border: 1px solid var(--metal);
-    border-radius: 8px;
-    color: var(--ink);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
-    font-size: 0.95rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  .dnd-menu-foot {
+    padding-top: var(--space-2);
+    border-top: var(--border-hair) solid var(--menu-line);
   }
 
-  .menu-button:hover {
-    background: var(--metal);
-    transform: translateX(4px);
-    box-shadow: 2px 2px 8px var(--shade-soft);
-  }
-
-  .menu-button svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    transition: transform 0.2s ease;
-  }
-
-  .menu-button:hover svg {
-    transform: scale(1.1);
+  .dnd-menu-foot-line {
+    margin: 0;
+    color: var(--menu-text-faint);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-align: center;
   }
 </style>
