@@ -5,7 +5,7 @@ depends: [101]
 relations: []
 title: writeRollLog posts the shared entry instead of mirroring it
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [4bbadba01f07862e54a564cdd70b92f3b80d4503]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-06T23:13:25Z
+updated_at: 2026-09-06T23:20:12Z
 questions: []
 agent: aa046906ca5b4827c
 base: 2678b268945262a10d6eaae22f3799bfb3e1d07a
@@ -43,4 +43,7 @@ A roll is written to the local `rollStore` by `writeRollLog`, and `getChatLog` o
 A roll in a campaign is now one write at the source, so a second `getChatLog` instance cannot republish it, and nothing lands in `roll_log` in localStorage while a campaign is in scope.
 
 ### Findings
-`src/lib/chat.spec.ts` is outside `## Scope` and two of its cases now assert the removed behaviour: "publishes a local roll with the author id the create rule tests" and "publishes a roll once and shows it through the stream, never twice" both drive `rollStore.set(...)` while in scope and expect `wire.posted` to fill. They must call `writeRollLog` instead, and the mock of `./firestore.service` has to be in place for `engine.ts` as well as `chat.ts`. `just test` fails until they are rewritten.
+`just gate` fails at `just test`, 2 of 263: test/102/20260906T231951Z-just-gate.md
+`src/lib/chat.spec.ts:184` drives `rollStore.set(...)` in scope and expects `wire.posted` to hold 1; call `writeRollLog` so the post happens at the source.
+`src/lib/chat.spec.ts:209` same, and the "never twice" case no longer covers the removed republish; assert one `wire.posted` from one `writeRollLog`.
+`src/lib/chat.spec.ts` mocks `./firestore.service` for `chat.ts` only; the mock must cover `engine.ts`, which now owns `campaignService.postChatEntry`.
