@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T19:13:34Z
+updated_at: 2026-09-06T19:37:04Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
@@ -48,7 +48,9 @@ Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `
 - The import sources dialog puts `role=dialog` on the backdrop, lacks `#dialog-title`, ignores Escape, and its emoji buttons leave the gothic language. 125.
 - Roll Dice and the attack hit button leave the chat log empty. 126.
 - Buttons, panels and frames drift from `docs/inspiration`; sizes are fixed where the user wants all dynamic. 127.
-- Testy reads Gunslinger Gunslinger: the race field holds the class. Data or the create flow, unsettled.
+- Testy reads Gunslinger Gunslinger: the race field holds the class. 128.
 - Not walked: the campaign page. The account owns no campaign and creation is AI generation only.
 - 118: sign in lands on `/`, the alias of `/main`, so its wait times out. `.playwright-cli/` and `.playwright-mcp/` are not ignored.
-- The shell is 6px wider than the viewport, hidden. The video iframe is a fixed 1600px.
+- The shell is 6px wider than the viewport, hidden. The video iframe is a fixed 1600px. 127.
+- Review: eighteen `*.jpeg` at the repo root, `campaign-create.jpeg` through `theme-dialog.jpeg`, untracked, while `images: []`. The walk's evidence enters through `task.sh image 110 <file ...>` and nothing else; then `rm` the originals.
+- Review: `## Done when` says every screen was seen and the campaign page was not. `118-playwright-walk.md:28` says the `WALK_EMAIL` account owns a campaign. One of the two is wrong; settle it and walk the page, or record why it cannot be.
