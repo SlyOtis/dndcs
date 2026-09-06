@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Ship the campaign chat rules so the shared roll log works
 type: task
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [2ad16c4a38130762ec928e9b48c66159fa5ae3db]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-06T19:36:20Z
+updated_at: 2026-09-06T19:39:06Z
 questions: []
 own: [firestore.rules]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
