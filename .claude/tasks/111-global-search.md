@@ -5,7 +5,7 @@ depends: []
 relations: [138]
 title: Cmd or Ctrl K opens the search dialog on every page and the top bar carries a search button
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [b079e38c30723a95ca6449120036e681cbdb45f9, f8a5d41c710eddf728712b5862a54f48f6f50e93]
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-06T22:40:37Z
+updated_at: 2026-09-06T23:03:46Z
 questions: []
 base: f301e68d9d164beb849903552dcd3fb755b383d3
 agent: lcp-worker-111
@@ -52,3 +52,7 @@ Outside this task, in the same files and not this task's work: `requireSignIn` a
 `src/components/search/Search.svelte` still holds a hardcoded sample command list whose shortcuts read `Ctrl+K`, `Ctrl+L`, `Ctrl+Z`, `Ctrl+Y` regardless of platform. Out of scope, it is the later command-list task.
 
 `src/lib/navigation.ts` exports `createDialogState`, which nothing calls now that `uiStore` owns dialog state.
+
+### Findings
+1. `just gate` is not clean, so `## Done when` fails: `src/lib/chat.spec.ts:160,240,254` read `author` and `text` off `ReplicateLogItem | RollLogItem` without narrowing the union, 4 errors, 89 files. Narrow on the item kind before reading either field. `test/111/20260906T230057Z-just-gate.md`.
+2. `src/components/search/Search.svelte:7,13,61,68,75,81` carry comments in a scoped file; `code.md` and `components.md` forbid them, and the same rule was applied to `src/App.svelte`. Delete them.
