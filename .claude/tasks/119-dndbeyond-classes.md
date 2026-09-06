@@ -5,16 +5,17 @@ depends: []
 relations: []
 title: One script pulls every class, its full content and its images from D&D Beyond into a local reference set
 type: task
-status: staged
+status: review
 blocked_from:
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: []
-commits: []
+commits: [e35601ca717571b16e0f75aaefe6f75f74580eb8]
 created_at: 2026-09-06T19:09:43Z
-updated_at: 2026-09-06T19:09:44Z
+updated_at: 2026-09-06T19:27:20Z
 questions: []
+base: 6674294702e4cfaa6b99d5adcac48e707689beeb
 ---
 
 ## Intent
