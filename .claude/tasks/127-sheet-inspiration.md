@@ -27,8 +27,8 @@ The 110 walk: the sheet's buttons, panels and frames drift from `docs/inspiratio
 1. dndcs: read `docs/inspiration/README.md` and its eleven images before changing anything.
 2. dndcs: the roll buttons, the saving throws, the stats board and the crown are 131, 132, 133 and 134 and land first; this task is the pass over what they leave.
 3. dndcs: every panel, frame and button on the sheet reaches for the primitive the README names for it, `Frame`, `Ornament`, `Button`, `Glyph`, instead of a page-local box.
-3. dndcs: no fixed pixel size remains on the sheet: a size is a token from `src/app.css`, a fraction of its container, or a `clamp`; the shell is never wider than the viewport; the background iframe fills its layer.
-4. verify: `just gate`, then `just dev` on Testy at 1280, 1600 and 2000 wide, each drawer open and closed.
+4. dndcs: no fixed pixel size remains on the sheet: a size is a token from `src/app.css`, a fraction of its container, or a `clamp`; the shell is never wider than the viewport; the background iframe fills its layer.
+5. verify: `just gate`, then `just dev` on Testy at 1280, 1600 and 2000 wide, each drawer open and closed.
 
 ## Done when
 `grep -rn "[0-9]px" src/pages/CharacterPage.svelte src/components/character_sheet/` returns only hairline borders, `document.documentElement.scrollWidth` equals the viewport width on the sheet at the three widths, every panel reads as the README's language, and `just gate` is clean.
