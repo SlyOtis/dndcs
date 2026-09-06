@@ -194,7 +194,7 @@
     .attack {
         position: relative;
         display: grid;
-        grid-template-columns: auto auto auto auto 1fr;
+        grid-template-columns: 2fr auto auto auto 2fr;
         grid-column-gap: 16px;
         grid-row-gap: 4px;
         grid-auto-rows: auto;
@@ -208,6 +208,10 @@
         height: auto;
         font-size: 0.8em;
         opacity: 0.75;
+    }
+
+    .attack-header span {
+        white-space: nowrap;
     }
 
     .special {

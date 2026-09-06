@@ -77,6 +77,8 @@
   // Disable buttons if ranged weapon but no ammo
   let buttonsDisabled = $derived(isRanged && !equippedAmmo)
 
+  let properties = $derived((action.properties || ['None']).join(', '))
+
   const renderDamage = (dmg: Damage) => {
     const die = `${dmg.amount}d${dmg.dice}`
     if (dmg.bonus > 0) {
@@ -90,7 +92,7 @@
 
 <li>
     <div class="title">
-        <h4>{action.name}</h4>
+        <h4 title={action.name}>{action.name}</h4>
         {#if action.range}
             <span class="sub">Ranged Attack</span>
         {:else}
@@ -125,9 +127,7 @@
             <div class="button-ornament"></div>
         </button>
         {#if isRanged && buttonsDisabled}
-            <div class="debug-info">
-                <div class="ammo-warning">No ammo!</div>
-            </div>
+            <span class="ammo-warning">No ammo!</span>
         {/if}
     </div>
     <div class="attack">
@@ -154,13 +154,11 @@
             <div class="button-ornament"></div>
         </button>
         {#if isRanged && buttonsDisabled}
-            <div class="debug-info">
-                <div class="ammo-warning">No ammo!</div>
-            </div>
+            <span class="ammo-warning">No ammo!</span>
         {/if}
     </div>
     <div class="properties">
-        <span>{(action.properties || ['None']).join(', ')}</span>
+        <span title={properties}>{properties}</span>
     </div>
 </li>
 
@@ -173,14 +171,28 @@
         padding: 0;
     }
 
+    .title {
+        position: relative;
+        min-width: 0;
+        overflow: hidden;
+    }
+
     h4 {
         position: relative;
         margin: 0;
         padding: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .sub {
         font-size: 0.8em;
+        white-space: nowrap;
+    }
+
+    .range {
+        white-space: nowrap;
     }
 
     button {
@@ -232,18 +244,20 @@
 
     .properties {
         position: relative;
-        width: 100%;
+        min-width: 0;
+        overflow: hidden;
         font-size: 0.6em;
         opacity: 0.75;
     }
 
-
+    .properties > span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
 
     .ammo-warning {
-        position: absolute;
-        top: -20px;
-        left: 50%;
-        transform: translateX(-50%);
         background: var(--state-bad);
         color: var(--ink);
         padding: 2px 6px;
@@ -251,7 +265,7 @@
         font-size: 0.7em;
         font-weight: 600;
         white-space: nowrap;
-        z-index: 10;
+        text-align: center;
         animation: pulse 1s ease-in-out infinite;
     }
 
@@ -262,16 +276,9 @@
 
     .hit, .attack {
         position: relative;
-    }
-
-    .debug-info {
-        position: absolute;
-        top: -25px;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        z-index: 10;
-        font-size: 0.7em;
-        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
     }
 </style>

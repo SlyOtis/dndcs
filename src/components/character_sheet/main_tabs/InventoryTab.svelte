@@ -263,7 +263,7 @@
                         {/if}
                     </div>
                     <div class="name">
-                        <h4>{item.title}</h4>
+                        <h4 title={item.title}>{item.title}</h4>
                         <span>{getDisplayType(item)}</span>
                     </div>
                     <div class="weight center">
@@ -276,7 +276,7 @@
                         <span><b>{item.value.amount}</b> {item.value.currency}</span>
                     </div>
                     <div class="notes">
-                        <p>{item.description}</p>
+                        <p title={item.description}>{item.description}</p>
                     </div>
                 </li>
             {/each}
@@ -362,8 +362,7 @@
         list-style: none;
         display: grid;
         align-items: center;
-        justify-items: start;
-        grid-template-columns: auto auto auto auto auto auto;
+        grid-template-columns: auto 2fr auto auto auto 3fr;
         grid-auto-rows: auto;
         grid-column-gap: 8px;
         grid-row-gap: 8px;
@@ -379,6 +378,10 @@
     .items-header {
         position: sticky;
         top: 0;
+    }
+
+    .items-header span {
+        white-space: nowrap;
     }
 
     .scroll {
@@ -398,19 +401,35 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
+        white-space: nowrap;
     }
 
     .name {
         position: relative;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .name > * {
+        display: block;
         margin: 0;
         padding: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .notes {
+        min-width: 0;
+        overflow: hidden;
         font-size: 0.6em;
+    }
+
+    .notes > p {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .toggle:hover, .consume:hover {
