@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Carry the gothic language onto the remaining pages
 type: task
-status: review
+status: testing
 blocked_from: review
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [959cf3cc97bdfaaef9164ed9d1a2c0c49acfdc75, f6653512726c84b6fceb1b18877bb3b9947e4af4]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T23:26:31Z
+updated_at: 2026-09-06T23:35:23Z
 questions: [q-012]
 base: 8f4236eb81694b4812d9369bc4a3ee32b31f666b
 agent: lcp-worker-106
