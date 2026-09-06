@@ -5,7 +5,7 @@ depends: []
 relations: [107]
 title: Author traits for the nine core races
 type: task
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [engine]
 commits: [5d96ed82a6ac2a680f0ec2479e5d58e14072ba41]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-05T15:33:41Z
+updated_at: 2026-09-06T19:30:33Z
 questions: []
 base: eb072f02fc2429875246cb253145577d4fa78546
 ---
