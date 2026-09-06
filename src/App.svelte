@@ -14,7 +14,6 @@
   const requireSignIn: RouteGuard = async () =>
     get(isAuthenticated) ? null : { path: "/login", state: { from: window.location.pathname } };
 
-  // the router swallows a failed dynamic import and renders the previous page, so name it first
   function page(name: string, load: () => Promise<unknown>) {
     return async () => {
       try {
