@@ -1,7 +1,7 @@
 ---
 id: 127
 parent:
-depends: [117, 114]
+depends: [117, 114, 131, 132, 133, 134]
 relations: [116, 117]
 title: The sheet's panels, frames and buttons follow the inspiration layouts under docs/inspiration and nothing is sized fixed
 type: task
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-06T19:16:42Z
+updated_at: 2026-09-06T19:29:49Z
 questions: []
 ---
 
@@ -25,7 +25,8 @@ The 110 walk: the sheet's buttons, panels and frames drift from `docs/inspiratio
 
 ## Order
 1. dndcs: read `docs/inspiration/README.md` and its eleven images before changing anything.
-2. dndcs: every panel, frame and button on the sheet reaches for the primitive the README names for it, `Frame`, `Ornament`, `Button`, `Glyph`, instead of a page-local box.
+2. dndcs: the roll buttons, the saving throws, the stats board and the crown are 131, 132, 133 and 134 and land first; this task is the pass over what they leave.
+3. dndcs: every panel, frame and button on the sheet reaches for the primitive the README names for it, `Frame`, `Ornament`, `Button`, `Glyph`, instead of a page-local box.
 3. dndcs: no fixed pixel size remains on the sheet: a size is a token from `src/app.css`, a fraction of its container, or a `clamp`; the shell is never wider than the viewport; the background iframe fills its layer.
 4. verify: `just gate`, then `just dev` on Testy at 1280, 1600 and 2000 wide, each drawer open and closed.
 
