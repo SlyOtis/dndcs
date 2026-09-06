@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,9 +13,10 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T19:37:04Z
+updated_at: 2026-09-06T19:44:41Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
+images: [110/hearth.jpeg, 110/sheet-1280.jpeg, 110/sheet-1600.jpeg, 110/sheet-both-drawers.jpeg, 110/chat-open.jpeg, 110/menu-open.jpeg, 110/import-dialog.jpeg, 110/theme-dialog.jpeg, 110/dialog-unpinned.jpeg, 110/class-detail.jpeg, 110/race.jpeg, 110/race-detail.jpeg, 110/profile.jpeg, 110/create-portrait.jpeg, 110/campaign-create.jpeg, 110/campaign.jpeg]
 ---
 
 ## Intent
@@ -49,8 +50,7 @@ Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `
 - Roll Dice and the attack hit button leave the chat log empty. 126.
 - Buttons, panels and frames drift from `docs/inspiration`; sizes are fixed where the user wants all dynamic. 127.
 - Testy reads Gunslinger Gunslinger: the race field holds the class. 128.
-- Not walked: the campaign page. The account owns no campaign and creation is AI generation only.
+- Campaign page The Shadow of Blackwood, raised through the forge because the account owned none: clean console, no overflow, search works. Its bar carries no menu or chat toggle, so the navigator drawer cannot open on the page meant to fill it. 118 line 28 and q-006 are wrong: the hearth listed 0 campaigns before this walk.
 - 118: sign in lands on `/`, the alias of `/main`, so its wait times out. `.playwright-cli/` and `.playwright-mcp/` are not ignored.
 - The shell is 6px wider than the viewport, hidden. The video iframe is a fixed 1600px. 127.
-- Review: eighteen `*.jpeg` at the repo root, `campaign-create.jpeg` through `theme-dialog.jpeg`, untracked, while `images: []`. The walk's evidence enters through `task.sh image 110 <file ...>` and nothing else; then `rm` the originals.
-- Review: `## Done when` says every screen was seen and the campaign page was not. `118-playwright-walk.md:28` says the `WALK_EMAIL` account owns a campaign. One of the two is wrong; settle it and walk the page, or record why it cannot be.
+- Review answered: sixteen screenshots attached through `task.sh image`, the campaign page walked and the ownership claim corrected above.
