@@ -226,6 +226,8 @@ export interface CampaignLocation {
 
 export type CampaignChatKind = 'message' | 'roll';
 
+export type CampaignCardKind = '' | 'item_card' | 'npc_card';
+
 export interface CampaignChatEntry {
   id: string;
   author_id: string;
@@ -234,6 +236,7 @@ export interface CampaignChatEntry {
   body: string;
   query: string;
   is_hidden: boolean;
+  card_kind?: CampaignCardKind;
   roll_kind: string;
   formula: string;
   dice: number[];

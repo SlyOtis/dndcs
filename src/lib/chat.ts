@@ -7,7 +7,7 @@ import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
 import { userDetails } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
 import { campaignService, characterService } from "./firestore.service";
-import type { CampaignChatEntry } from "./firestore.types";
+import type { CampaignCardKind, CampaignChatEntry } from "./firestore.types";
 
 export type ReplicateLogItem = {
   returnedAt: Date,
@@ -72,6 +72,10 @@ function getReplicateLog(): { replicateStore: Writable<ReplicateLog>, unsubscrib
   }
 }
 
+function asCardKind(type: unknown): CampaignCardKind {
+  return type === 'item_card' || type === 'npc_card' ? type : '';
+}
+
 function asMessageEntry(item: ReplicateLogItem): ChatEntryFields {
   return {
     ...getAuthor(),
@@ -79,6 +83,7 @@ function asMessageEntry(item: ReplicateLogItem): ChatEntryFields {
     body: item.message ?? item.response ?? '',
     query: item.query ?? '',
     is_hidden: item.hidden === true,
+    card_kind: asCardKind(item.data?.type),
     roll_kind: '',
     formula: '',
     dice: [],
@@ -108,6 +113,8 @@ function asLogItem(entry: CampaignChatEntry): LogItem {
     }
   }
 
+  const cardKind = asCardKind(entry.card_kind);
+
   return {
     createdAt,
     type: 'chat',
@@ -117,7 +124,8 @@ function asLogItem(entry: CampaignChatEntry): LogItem {
       hidden: entry.is_hidden,
       query: `${author}: ${entry.query}`,
       response: entry.body,
-      message: entry.body
+      message: entry.body,
+      data: cardKind ? { type: cardKind } : undefined
     }
   }
 }
