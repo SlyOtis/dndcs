@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
-  import { deleteFilePlace, getFileUrl, isStoredFile } from '$lib/storage.service'
+  import { deleteFilePlace, getFileUrl, isDeadFile, isStoredFile } from '$lib/storage.service'
 
   const {
     src,
     alt,
     draggable
   }: {
-    /** A hosted address, or a local: reference held in this browser. */
+    /** A hosted address, a file: record or a local: reference. A blob: address is dead and draws the missing mark. */
     src: string
     /** Alternative text for the image. */
     alt: string
@@ -32,7 +32,7 @@
 
     if (!isStoredFile(address)) {
       release()
-      resolved = address
+      resolved = isDeadFile(address) ? '' : address
       return
     }
 

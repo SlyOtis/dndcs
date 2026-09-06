@@ -1,5 +1,6 @@
 <script lang="ts">
   import StoredImage from './StoredImage.svelte'
+  import { isDeadFile } from '$lib/storage.service'
 
   const {
     src,
@@ -21,6 +22,7 @@
   } = $props()
 
   const shape = $derived(SHAPES[frame])
+  const picture = $derived(src && !isDeadFile(src) ? src : '')
 </script>
 
 <script lang="ts" module>
@@ -54,8 +56,8 @@
   </svg>
 
   <span class="dnd-portrait-glass" style="clip-path: url(#dnd-portrait-{frame})">
-    {#if src}
-      <StoredImage {src} {alt} />
+    {#if picture}
+      <StoredImage src={picture} {alt} />
     {:else}
       <span class="dnd-portrait-initial">{initial ?? alt.charAt(0).toUpperCase()}</span>
     {/if}
