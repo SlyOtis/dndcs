@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Verify every screen end to end in the browser
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T19:44:41Z
+updated_at: 2026-09-06T19:46:48Z
 questions: [q-001, q-005]
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 images: [110/hearth.jpeg, 110/sheet-1280.jpeg, 110/sheet-1600.jpeg, 110/sheet-both-drawers.jpeg, 110/chat-open.jpeg, 110/menu-open.jpeg, 110/import-dialog.jpeg, 110/theme-dialog.jpeg, 110/dialog-unpinned.jpeg, 110/class-detail.jpeg, 110/race.jpeg, 110/race-detail.jpeg, 110/profile.jpeg, 110/create-portrait.jpeg, 110/campaign-create.jpeg, 110/campaign.jpeg]
@@ -39,18 +39,10 @@ No source unless a defect is found, and then a defect is boarded rather than fix
 Every screen has been seen through the playwright MCP in Brave, the console is clean on each, the search shortcut and button work on every page, and every defect found is a task on the board.
 
 ## Summary
-Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `WALK_EMAIL`: sign in, sign up, hearth, Testy's sheet and its tabs, create, class catalog and detail, race catalog and detail, profile, campaign create. No document scrolls horizontally. Cmd K, a second Cmd K, Escape and the bar button work on every routed page. The crown has no picker and the portrait opens Choose Your Frame. Level up and theme dialogs open centred and close on Escape, also in a full 1728 by 1003 window; the off centre look was the pinned test viewport. Export downloads JSON, a portrait previews on create, the source import takes a class JSON.
+Walked through the playwright MCP driving Brave at 1280, 1600 and 2000 wide as `WALK_EMAIL`: sign in, sign up, hearth, Testy's sheet and its tabs, create, class catalog and detail, race catalog and detail, profile, campaign create, and The Shadow of Blackwood, raised through the forge because the account owned none, so 118 line 28 and q-006 assumed a campaign the hearth listed 0 of. No document scrolls horizontally. Cmd K, a second Cmd K, Escape and the bar button work on every routed page. The crown has no picker and the portrait opens Choose Your Frame. Level up and theme dialogs open centred and close on Escape, also in a full 1728 by 1003 window; the off centre look was the pinned test viewport. Export downloads JSON, a portrait previews on create, the source import takes a class JSON. Sixteen screenshots attached through `task.sh image`.
+
+Boarded: 121 the board keeps 850px with a drawer open and covers the ability column; 122 the fixture Lucky Lars shows until the routed character loads; 123 three characters carry a `blob:` `imageUrl`, a console error on every page; 124 SoundManager preloads nineteen missing `.wav`, nineteen warnings per sheet; 125 the import sources dialog, `role=dialog` on the backdrop, no `#dialog-title`, no Escape, emoji buttons; 126 Roll Dice and the attack hit button leave the chat log empty; 127 buttons, panels and frames drift from `docs/inspiration`, the shell 6px wider than the viewport, the video iframe a fixed 1600px, sizes fixed; 128 Testy reads Gunslinger Gunslinger, the race field holding the class.
 
 ### Findings
-- A drawer open keeps the board at its 850px max-content width; the ability column drops to 263px with the chat, 12px with both, and the board covers it. 121.
-- The sheet shows the fixture Lucky Lars until the routed character loads. 122.
-- Three characters carry `blob:http://localhost:5174/` as `imageUrl`; a console error on every page. 123.
-- SoundManager preloads nineteen missing `.wav` files: nineteen warnings per sheet. 124.
-- The import sources dialog puts `role=dialog` on the backdrop, lacks `#dialog-title`, ignores Escape, and its emoji buttons leave the gothic language. 125.
-- Roll Dice and the attack hit button leave the chat log empty. 126.
-- Buttons, panels and frames drift from `docs/inspiration`; sizes are fixed where the user wants all dynamic. 127.
-- Testy reads Gunslinger Gunslinger: the race field holds the class. 128.
-- Campaign page The Shadow of Blackwood, raised through the forge because the account owned none: clean console, no overflow, search works. Its bar carries no menu or chat toggle, so the navigator drawer cannot open on the page meant to fill it. 118 line 28 and q-006 are wrong: the hearth listed 0 campaigns before this walk.
-- 118: sign in lands on `/`, the alias of `/main`, so its wait times out. `.playwright-cli/` and `.playwright-mcp/` are not ignored.
-- The shell is 6px wider than the viewport, hidden. The video iframe is a fixed 1600px. 127.
-- Review answered: sixteen screenshots attached through `task.sh image`, the campaign page walked and the ownership claim corrected above.
+- The campaign bar has no menu or chat toggle, so the navigator drawer never opens on the page meant to fill it: a defect with no task. Board it.
+- `.playwright-cli/` and `.playwright-mcp/` are unignored, and 118's wait on `/main` after a sign in that lands on `/` times out: written here, which 118 never reads. Board them.
