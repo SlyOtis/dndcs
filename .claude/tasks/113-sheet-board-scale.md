@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: The stat boxes fit their titles and the board and tabs take the full remaining width
 type: task
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [a59b94f014a8c611202a68fda3af812f8af89761, 0925e0dc3aaac49a394ce8432a74e46999d6a3e3]
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-05T15:54:56Z
+updated_at: 2026-09-06T19:36:43Z
 questions: []
 base: 60f7513206c7f23f7eae9786964b58becf626147
 ---
