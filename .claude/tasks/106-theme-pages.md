@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: Carry the gothic language onto the remaining pages
 type: task
-status: review
+status: failed
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [f5fcdd692af15055ec924c6c766901f82430d1df]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-05T15:34:27Z
+updated_at: 2026-09-06T19:35:04Z
 questions: []
 base: 9c6454279d0caeb611188943bc943798452fdb7b
 ---
@@ -32,8 +32,6 @@ The gothic pass reached the shared primitives, the dialogs and the left drawer. 
 
 ## Done when
 No page carries a literal colour or a magic pixel size, no text character is used as an icon, no page scrolls horizontally at any width, and `just gate` is clean.
-
-## Summary
 
 ## Summary
 
@@ -66,3 +64,10 @@ The `mark` prop on `src/components/ui/Rail.svelte` still defaults to the `✦` c
 `.dnd-shell-hold-full` has no rule in `src/components/ui/Shell.svelte`; `width="full"` falls through to the base `max-width: 100%`, which is what it wants, but the variant is undeclared.
 
 Horizontal scroll was reasoned from the layout, not measured in a browser: every page behind the router needs a signed-in Firebase session and this session had no way to drive one.
+
+Review:
+
+- `f5fcdd6` lands 15 files under `src/components/ui/**`, which Scope excludes: `Shell.svelte`, `Glyph.svelte` and `Portrait.svelte` do not exist at base `9c64542` and are created here; `Banner`, `Button`, `Card`, `Field`, `Frame`, `Ornament`, `Panel`, `Rail`, `Sigil`, `Slot`, `Stat` and `StoredImage` are modified. The summary claims none of it.
+- Summary line "`Shell`'s backstop is untouched" has no diff behind it: `src/components/ui/Shell.svelte` is new in this commit, 423 lines.
+- `src/pages/CharacterClassPage.svelte:5` and `src/pages/CharacterRacePage.svelte:5` import `putCatalogEntry` unused.
+- Every page claim checked against the commit holds: `Ornament` skull, lancet, quatrefoil, crest and divider; `Glyph name="close"`; `Portrait` lancet, ogee and shield; `dnd-shield` and `dnd-arch` plates; `--hall-*`, `--camp-*`, `--pick-*`, `--raise-*`, `--source-*`, `--make-*`, `--user-*` over `--space-*`; `minmax(min(var(--col), 100%), 1fr)`; `min-width: 0` and `overflow-wrap: anywhere`; no `overflow-x`, `vw`, hex, `rgb`, `hsl` or `px` box size in any page; Class and Race style blocks identical.
