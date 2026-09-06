@@ -12,7 +12,14 @@ failures=()
 page=""
 
 pw() { playwright-cli -s=walk --raw "$@" 2>/dev/null; }
-js() { pw eval "$1" | jq -r .; }
+js() {
+  local out
+  if ! out="$(pw eval "$1")"; then
+    echo "playwright-cli: $out" >&2
+    kill -s TERM $$
+  fi
+  jq -r . <<<"$out"
+}
 fail() { failures+=("$page: $1"); echo "FAIL $page: $1"; }
 
 wait_for() {
@@ -80,21 +87,21 @@ pw open "$base/login" >/dev/null
 visit /login "document.querySelector('#login-email') !== null" "the sign in form" && check_page gate
 visit /signup "document.querySelector('#signup-email') !== null" "the sign up form" && check_page gate
 
+hearth="document.querySelector('.hall-hero-name') !== null && document.querySelector('.dnd-loading') === null"
 page="sign in"
 pw goto "$base/login" >/dev/null
 wait_for "document.querySelector('#login-email') !== null" "the sign in form"
 pw fill "#login-email" "$email" >/dev/null
 pw fill "#login-password" "$password" >/dev/null
 pw click "getByRole('button', { name: 'Sign In' })" >/dev/null
-wait_for "location.pathname === '/main' || document.querySelector('.gate-error') !== null" "the hearth after sign in"
-[ "$(js "location.pathname")" = "/main" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.gate-error')?.textContent.trim() ?? ''")"; exit 1; }
+wait_for "($hearth) || document.querySelector('.gate-error') !== null" "the hearth after sign in"
+[ "$(js "$hearth")" = "true" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.gate-error')?.textContent.trim() ?? ''")"; exit 1; }
 
-hearth="document.querySelector('.hall-hero-name') !== null && document.querySelector('.dnd-loading') === null"
 visit /main "$hearth" "the hearth" && check_page bar
 
 page="/main"
 wait_for "[...document.querySelectorAll('.dnd-card-title')].some((e) => e.textContent.trim() === 'Testy')" "Testy on the hearth"
-js "[...document.querySelectorAll('.dnd-card')].find((e) => e.querySelector('.dnd-card-title').textContent.trim() === 'Testy').click()" >/dev/null
+js "[...document.querySelectorAll('.dnd-card')].find((e) => e.querySelector('.dnd-card-title').textContent.trim() === 'Testy').click() ?? null" >/dev/null
 wait_for "location.pathname.startsWith('/character/')" "the character sheet"
 sheet="$(js "location.pathname")"
 campaign_card="document.querySelector('section[aria-label=\"Campaigns\"] .dnd-card')"
@@ -113,7 +120,7 @@ fi
 
 visit /main "$hearth" "the hearth"
 if [ "$(js "$campaign_card !== null")" = "true" ]; then
-  js "$campaign_card.click()" >/dev/null
+  js "$campaign_card.click() ?? null" >/dev/null
   wait_for "location.pathname.startsWith('/campaign/')" "a campaign"
   visit "$(js "location.pathname")" "document.querySelector('.dnd-shell-mark') !== null && document.querySelector('.dnd-loading') === null" "the campaign" && check_page bar
 else
