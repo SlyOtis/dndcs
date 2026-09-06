@@ -5,7 +5,7 @@ depends: [101]
 relations: []
 title: Persist the card payload so item and NPC cards survive the shared log
 type: bug
-status: blocked
+status: testing
 blocked_from: review
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [986c89369f2f830b251f575bbeee96e985f42f90]
 created_at: 2026-09-05T15:10:52Z
-updated_at: 2026-09-06T23:21:12Z
+updated_at: 2026-09-06T23:28:15Z
 questions: [q-015]
 agent: af273ec30366da1b4
 base: d317c82e4f83feef6c051a8023c13408571cc975
