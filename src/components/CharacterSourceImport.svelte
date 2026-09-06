@@ -1,10 +1,12 @@
 <script lang="ts">
   import type { CharacterSourceData } from '../lib/character.types';
-  import * as pdfjsLib from 'pdfjs-dist';
-  import { userProfile } from '../lib/stores/auth.store';
-  
-  // Configure PDF.js worker - use local copy
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+  import BaseDialog from './BaseDialog.svelte';
+  import Button from '$components/ui/Button.svelte';
+  import Field from '$components/ui/Field.svelte';
+  import Glyph from '$components/ui/Glyph.svelte';
+  import Ornament from '$components/ui/Ornament.svelte';
+  import { aiService } from '$lib/ai';
+  import { getSource, getSourceKind, SOURCE_ACCEPT } from '$lib/sources';
 
   let { isOpen = $bindable(false) } = $props();
 
@@ -451,16 +453,6 @@
     saveSources();
   }
 
-  function getFileIcon(type: string): string {
-    switch (type) {
-      case 'pdf': return '📄';
-      case 'image': return '🖼️';
-      case 'json': return '📊';
-      case 'text': return '📝';
-      default: return '📄';
-    }
-  }
-
   function getFileName(source: any): string {
     return source.fileName || source.extractedData?.className || 'Unknown Source';
   }
@@ -481,18 +473,6 @@
     errorMessage = undefined;
     successMessage = undefined;
   }
-  
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      closeDialog();
-    }
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeDialog();
-    }
-  }
 
   function openImportDialog() {
     showImportDialog = true;
@@ -505,20 +485,7 @@
     errorMessage = undefined;
     successMessage = undefined;
   }
-  
-  function handleImportBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      closeImportDialog();
-    }
-  }
 
-  function handleImportKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      closeImportDialog();
-    }
-  }
-
-  // Import dialog functions
   function handleDragOver(e: DragEvent) {
     e.preventDefault();
     dragActive = true;
@@ -553,14 +520,7 @@
     successMessage = undefined;
 
     try {
-      // Validate file size early
-      const fileType = getFileType(file);
-      if (fileType === 'pdf' && file.size > 10 * 1024 * 1024) {
-        throw new Error('PDF file too large. Please use files smaller than 10MB.');
-      }
-      if (fileType === 'image' && file.size > 5 * 1024 * 1024) {
-        throw new Error('Image file too large. Please use files smaller than 5MB.');
-      }
+      const fileType = getSourceKind(file);
 
       const sourceData: CharacterSourceData = {
         type: fileType,
@@ -596,12 +556,6 @@
     }
   }
 
-  function getFileType(file: File): 'json' | 'text' | 'pdf' | 'image' {
-    if (file.type.includes('json')) return 'json';
-    if (file.type.includes('pdf')) return 'pdf';
-    if (file.type.includes('image')) return 'image';
-    return 'text';
-  }
 
   function storeCharacterSource(sourceData: CharacterSourceData, extractedData: any) {
     try {
@@ -639,38 +593,21 @@
   }
 
   async function processCharacterSource(sourceData: CharacterSourceData) {
-    let content: string;
-    
-    if (sourceData.content instanceof File) {
-      if (sourceData.type === 'json') {
-        // Handle JSON files locally
-        content = await sourceData.content.text();
-        try {
-          const parsedJson = JSON.parse(content);
-          return validateAndNormalizeSchema(parsedJson);
-        } catch (error) {
-          throw new Error('Invalid JSON format in uploaded file');
-        }
-      } else if (sourceData.type === 'text') {
-        // Handle text files locally with basic parsing
-        content = await sourceData.content.text();
-        return parseTextToClassData(content, sourceData.content.name);
-      } else if (sourceData.type === 'pdf') {
-        // Process PDF directly in browser
-        content = await extractTextFromPDF(sourceData.content);
-        return await processWithReplicate(content, sourceData.content.name, 'pdf');
-      } else if (sourceData.type === 'image') {
-        // Process image by converting to base64 and sending to Replicate
-        const base64 = await fileToBase64(sourceData.content);
-        return await processWithReplicate(base64, sourceData.content.name, 'image');
-      } else {
-        content = await sourceData.content.text();
-        return parseTextToClassData(content, 'Unknown');
-      }
-    } else {
-      content = sourceData.content;
-      return parseTextToClassData(content, 'Text Input');
+    if (!(sourceData.content instanceof File)) {
+      return parseTextToClassData(sourceData.content, 'Text Input');
     }
+
+    const source = await getSource(sourceData.content);
+
+    if (source.kind === 'json') {
+      return validateAndNormalizeSchema(JSON.parse(source.text));
+    }
+
+    if (source.kind === 'text') {
+      return parseTextToClassData(source.text, source.name);
+    }
+
+    return postClassProgression(source.text, source.name);
   }
 
   function validateAndNormalizeSchema(data: any) {
@@ -789,851 +726,519 @@
     };
   }
 
-  async function extractTextFromPDF(file: File): Promise<string> {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += pageText + '\n';
-      }
-      
-      return fullText.trim();
-    } catch (error) {
-      console.error('PDF extraction error:', error);
-      throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  }
-  
-  async function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
+  async function postClassProgression(content: string, fileName: string): Promise<any> {
+    const output = await aiService.postPrediction({
+      prompt: `Read this D&D class or character material and pull out the level progression.
+
+Material:
+${content}
+
+Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThrowProficiencies, and a levels array carrying level, features, abilityScoreImprovement, featChoice and subclassChoice for each level named.`
     });
-  }
-  
-  async function processWithReplicate(content: string, fileName: string, type: 'pdf' | 'image'): Promise<any> {
-    const apiKey = $userProfile?.replicate_api_key;
-    if (!apiKey) {
-      throw new Error('Replicate API key is required. Please set your API key in the login page.');
+
+    const match = output.text.match(/\{[\s\S]*\}/);
+
+    if (match) {
+      try {
+        return validateAndNormalizeSchema(JSON.parse(match[0]));
+      } catch {
+        return parseTextToClassData(output.text, fileName);
+      }
     }
 
-    try {
-      let input;
-      
-      if (type === 'image') {
-        // For images, use Claude 4 Sonnet with vision capabilities
-        input = {
-          prompt: "Analyze this D&D character sheet or sourcebook page and extract character class progression data including level features, abilities, and any level-up choices. Return structured JSON with className, hitDie, and levels array with level-by-level features and choices.",
-          image: content,
-          max_tokens: 4000,
-          temperature: 0.3,
-          top_p: 0.9
-        };
-      } else {
-        // For text/PDF content, also use Claude 4 Sonnet
-        input = {
-          prompt: `Parse this D&D character class text and extract level progression data. Return structured JSON with className, hitDie, and levels array with level-by-level features and choices.
-
-Text content:
-${content}`,
-          max_tokens: 4000,
-          temperature: 0.3,
-          top_p: 0.9
-        };
-      }
-
-      const req = await fetch("/replicate/models/anthropic/claude-4-sonnet/predictions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + apiKey
-        },
-        body: JSON.stringify({
-          stream: false,
-          input
-        })
-      });
-
-      if (!req.ok) {
-        throw new Error(`Replicate API error: ${req.status} ${req.statusText}`);
-      }
-
-      const resp = await req.json();
-      let getUrl: string | undefined = resp?.urls?.get;
-      getUrl = getUrl?.replace('https://api.replicate.com/v1', '/replicate');
-
-      if (!getUrl) {
-        throw new Error('Invalid response from Replicate API');
-      }
-
-      // Poll for result
-      let attempts = 0;
-      while (attempts < 30) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const res = await fetch(getUrl, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + apiKey
-          },
-        });
-
-        if (res.ok) {
-          const body = await res.json();
-          // Claude 4 Sonnet returns output as a string, not an array
-          const output = typeof body.output === 'string' ? body.output : body.output?.join('');
-          
-          if (output) {
-            // Try to parse JSON from the response
-            const jsonMatch = output.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              try {
-                const parsedData = JSON.parse(jsonMatch[0]);
-                return validateAndNormalizeSchema(parsedData);
-              } catch (parseError) {
-                console.warn('Failed to parse Claude 4 Sonnet JSON response, falling back to text parsing');
-              }
-            }
-            
-            // Fallback to text parsing
-            return parseTextToClassData(output, fileName);
-          }
-        }
-        
-        attempts++;
-      }
-      
-      throw new Error('Processing timeout - please try again');
-      
-    } catch (error) {
-      console.error('Replicate processing error:', error);
-      throw error;
-    }
+    return parseTextToClassData(output.text, fileName);
   }
 </script>
 
 {#if isOpen && !showImportDialog}
-  <div class="backdrop" onclick={handleBackdropClick} onkeydown={handleKeydown} role="dialog" aria-modal="true" tabindex="-1">
-    <div class="dialog">
-      <div class="header">
-        <h2>Character Sources</h2>
-        <button class="close-btn" onclick={closeDialog} aria-label="Close dialog">×</button>
+  <BaseDialog bind:isOpen title="Character Sources" onClose={closeDialog} width="760px" zIndex={9999}>
+    <div class="content">
+      <div class="crest">
+        <Ornament name="crest" size="md" tone="metal" />
       </div>
-      
-      <div class="content">
-        <div class="sources-header">
-          <p class="description">Manage character progression sources for level-up capabilities</p>
-          <div class="header-actions">
-            <button class="import-btn" onclick={openImportDialog}>
-              <span class="btn-icon">📁</span>
-              Import New Source
-            </button>
-            <button class="rebuild-btn" onclick={buildAndSaveStructuredData}>
-              <span class="btn-icon">🔄</span>
-              Rebuild Database
-            </button>
-            <button class="export-btn" onclick={exportStructuredData}>
-              <span class="btn-icon">📤</span>
-              Export Database
-            </button>
-          </div>
-        </div>
 
-        {#if sources.length === 0}
-          <div class="empty-state">
-            <div class="empty-icon">📚</div>
-            <h3>No Sources Imported</h3>
-            <p>Import D&D sourcebooks, class descriptions, or character sheets to unlock level-up capabilities.</p>
-            <button class="import-empty-btn" onclick={openImportDialog}>Import Your First Source</button>
-          </div>
-        {:else}
-          <div class="sources-list">
-            {#each sources as source, index}
-              <div class="source-item" class:disabled={!source.enabled}>
-                <div class="source-main">
-                  <div class="source-checkbox">
-                    <input 
-                      type="checkbox" 
-                      checked={source.enabled} 
-                      onchange={() => toggleSource(index)}
-                      id="source-{index}"
-                    />
-                    <label for="source-{index}"></label>
-                  </div>
-                  
-                  <div class="source-icon">
-                    {getFileIcon(source.type)}
-                  </div>
-                  
-                  <div class="source-info">
-                    <h4 class="source-name">{getFileName(source)}</h4>
-                    <p class="source-description">{getSourceDescription(source)}</p>
-                    {#if source.extractedData?.levels}
-                      <span class="source-levels">
-                        {source.extractedData.levels.length} levels available
-                      </span>
-                    {/if}
-                  </div>
-                </div>
-                
-                <div class="source-actions">
-                  <button 
-                    class="remove-btn" 
-                    onclick={() => removeSource(index)}
-                    title="Remove source"
-                  >
-                    🗑️
-                  </button>
-                </div>
+      <p class="description">Manage character progression sources for level-up capabilities</p>
+
+      <div class="actions">
+        <Button variant="primary" onclick={openImportDialog}>
+          <Glyph name="sources" size="sm" />
+          Import New Source
+        </Button>
+        <Button variant="secondary" onclick={buildAndSaveStructuredData}>Rebuild Database</Button>
+        <Button variant="secondary" onclick={exportStructuredData}>
+          <Glyph name="export" size="sm" />
+          Export Database
+        </Button>
+      </div>
+
+      {#if sources.length === 0}
+        <div class="niche">
+          <span class="niche-arch">
+            <Ornament name="lancet" size="lg" tone="metal" />
+          </span>
+          <h3 class="niche-title">No Sources Imported</h3>
+          <p class="niche-note">Import D&D sourcebooks, class descriptions, or character sheets to unlock level-up capabilities.</p>
+          <Button variant="primary" onclick={openImportDialog}>Import Your First Source</Button>
+        </div>
+      {:else}
+        <ul class="sources">
+          {#each sources as source, index}
+            <li class="source" class:source-dim={!source.enabled}>
+              <input
+                class="source-toggle"
+                type="checkbox"
+                id="source-{index}"
+                checked={source.enabled}
+                aria-label="Use {getFileName(source)}"
+                onchange={() => toggleSource(index)}
+              />
+
+              <span class="source-rune">
+                <Ornament name="rune" size="sm" tone={source.enabled ? 'metal' : 'ink'} />
+              </span>
+
+              <div class="source-info">
+                <h4 class="source-name">{getFileName(source)}</h4>
+                <p class="source-note">{getSourceDescription(source)}</p>
+                {#if source.extractedData?.levels}
+                  <span class="source-levels">{source.extractedData.levels.length} levels available</span>
+                {/if}
               </div>
-            {/each}
-          </div>
-        {/if}
 
-        <div class="footer-info">
-          <small>
-            <strong>Enabled sources:</strong> {sources.filter(s => s.enabled).length} / {sources.length}
-            • Only enabled sources are used for level-up calculations
-          </small>
-        </div>
-      </div>
+              <Button variant="danger" size="sm" title="Remove source" onclick={() => removeSource(index)}>
+                <Glyph name="close" size="sm" />
+              </Button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+
+      <p class="tally">
+        <strong>Enabled sources:</strong> {sources.filter(s => s.enabled).length} / {sources.length}
+        <span class="tally-sep" aria-hidden="true"><Ornament name="quatrefoil" size="xs" tone="metal" /></span>
+        Only enabled sources are used for level-up calculations
+      </p>
     </div>
-  </div>
+  </BaseDialog>
 {/if}
 
-<!-- Import Dialog -->
 {#if showImportDialog}
-  <div class="backdrop" onclick={handleImportBackdropClick} onkeydown={handleImportKeydown} role="dialog" aria-modal="true" tabindex="-1">
-    <div class="dialog import-dialog">
-      <div class="header">
-        <h2>Import Character Source</h2>
-        <button class="close-btn" onclick={closeImportDialog} aria-label="Close dialog">×</button>
+  <BaseDialog bind:isOpen={showImportDialog} title="Import Character Source" onClose={closeImportDialog} width="600px" zIndex={9999}>
+    <div class="content">
+      <div class="crest">
+        <Ornament name="crest" size="md" tone="metal" />
       </div>
-      
-      <div class="content">
-        <p class="description">Upload character class descriptions, PDFs, or images to extract level progression data</p>
-        
-        {#if processing}
-          <div class="processing">
-            <div class="spinner"></div>
-            <p>{processingMessage}</p>
-          </div>
-        {:else}
-          <div 
-            class="drop-zone" 
-            class:active={dragActive}
-            ondragover={handleDragOver}
-            ondragleave={handleDragLeave}
-            ondrop={handleDrop}
-            role="button"
-            tabindex="0"
-          >
-            <div class="drop-content">
-              <span class="upload-icon">📄</span>
-              <h3>Drop files here or click to browse</h3>
-              <p>Supports JSON, TXT, PDF, and images</p>
-              <input 
-                type="file" 
-                class="file-input" 
-                accept=".json,.txt,.pdf,.png,.jpg,.jpeg"
-                onchange={handleFileInput}
-              />
-            </div>
-          </div>
-        {/if}
 
-        {#if errorMessage}
-          <div class="message error">
-            <span class="icon">❌</span>
-            <p>{errorMessage}</p>
-          </div>
-        {/if}
+      <p class="description">Upload character class descriptions, PDFs, or images to extract level progression data</p>
 
-        {#if successMessage}
-          <div class="message success">
-            <span class="icon">✅</span>
-            <p>{successMessage}</p>
-            <button class="close-success-btn" onclick={closeImportDialog}>Done</button>
-          </div>
-        {/if}
+      {#if processing}
+        <div class="reading">
+          <span class="dnd-spinner"></span>
+          <p class="reading-note">{processingMessage}</p>
+        </div>
+      {:else}
+        <div
+          class="drop"
+          class:drop-live={dragActive}
+          role="region"
+          aria-label="Character source drop zone"
+          ondragover={handleDragOver}
+          ondragleave={handleDragLeave}
+          ondrop={handleDrop}
+        >
+          <h3 class="drop-title">Drop files here or click to browse</h3>
+          <Field label="Source file" id="source-file" help="Supports JSON, TXT, PDF, and images">
+            <input id="source-file" type="file" accept={SOURCE_ACCEPT} onchange={handleFileInput} />
+          </Field>
+        </div>
+      {/if}
 
-        <div class="supported-formats">
-          <h4>Supported Formats:</h4>
-          <ul>
-            <li><strong>JSON:</strong> ✅ Structured character class data (recommended)</li>
-            <li><strong>Text:</strong> ✅ Plain text class descriptions with level info</li>
-            <li><strong>PDF:</strong> ✅ Extract text and process with Claude 4 Sonnet</li>
-            <li><strong>Images:</strong> ✅ Analyze character sheets with Claude 4 Sonnet</li>
-          </ul>
-          <div class="format-note">
-            <h5>📋 JSON Schema Example:</h5>
-            <small>Your JSON should include: <code>className</code>, <code>hitDie</code>, and <code>levels[]</code> array with level progression data.</small>
-          </div>
-          <div class="file-size-note">
-            <small>💡 <strong>Tip:</strong> For best results, use the JSON format with structured level progression data.</small>
-          </div>
+      {#if errorMessage}
+        <div class="message message-bad" role="alert">
+          <span class="message-mark"><Glyph name="close" size="sm" /></span>
+          <p class="message-text">{errorMessage}</p>
+        </div>
+      {/if}
+
+      {#if successMessage}
+        <div class="message message-good" role="status">
+          <span class="message-mark"><Ornament name="quatrefoil" size="xs" tone="metal" /></span>
+          <p class="message-text">{successMessage}</p>
+          <Button variant="secondary" size="sm" onclick={closeImportDialog}>Done</Button>
+        </div>
+      {/if}
+
+      <div class="formats">
+        <h4 class="formats-title">Supported Formats:</h4>
+        <ul class="formats-list">
+          <li><strong>JSON:</strong> Structured character class data (recommended)</li>
+          <li><strong>Text:</strong> Plain text class descriptions with level info</li>
+          <li><strong>PDF:</strong> Extract text and process with Claude 4 Sonnet</li>
+          <li><strong>Images:</strong> Analyze character sheets with Claude 4 Sonnet</li>
+        </ul>
+        <div class="formats-note formats-note-schema">
+          <h5 class="formats-note-title">JSON Schema Example:</h5>
+          <small>Your JSON should include: <code>className</code>, <code>hitDie</code>, and <code>levels[]</code> array with level progression data.</small>
+        </div>
+        <div class="formats-note formats-note-tip">
+          <small><strong>Tip:</strong> For best results, use the JSON format with structured level progression data.</small>
         </div>
       </div>
     </div>
-  </div>
+  </BaseDialog>
 {/if}
 
 <style>
-  .backdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: var(--shade-hard);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    backdrop-filter: blur(5px);
-    padding: 1rem;
-    box-sizing: border-box;
-  }
-
-  .dialog {
-    background: linear-gradient(145deg, var(--ground-raised), var(--ground-deep));
-    border: 2px solid var(--metal);
-    border-radius: 20px;
-    max-width: 800px;
-    max-height: calc(100vh - 2rem);
-    width: 100%;
+  .content {
     display: flex;
     flex-direction: column;
-    box-shadow: 
-      0 25px 50px var(--shade-hard),
-      inset 0 1px 0 var(--sheen-soft);
-    overflow: hidden;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6) var(--space-6);
   }
 
-  .import-dialog {
-    max-width: 600px;
-  }
-
-  .header {
+  .crest {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--metal) 32%, transparent);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--metal) 12%, transparent), transparent);
-  }
-
-  .header h2 {
-    margin: 0;
-    color: var(--metal);
-    font-size: 1.8rem;
-    font-weight: 700;
-    text-shadow: 0 2px 4px var(--shade);
-  }
-
-  .close-btn {
-    background: none;
-    border: none;
-    color: var(--metal);
-    font-size: 2rem;
-    cursor: pointer;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-  }
-
-  .close-btn:hover {
-    background: color-mix(in srgb, var(--metal) 22%, transparent);
-    transform: scale(1.1);
-  }
-
-  .content {
-    padding: 2rem;
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .sources-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    gap: 1rem;
+    opacity: 0.9;
   }
 
   .description {
-    margin: 0;
-    color: var(--ink-dim);
-    flex: 1;
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-  }
-
-  .import-btn, .rebuild-btn, .export-btn {
-    border: none;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    font-size: 0.9rem;
-    color: white;
-  }
-
-  .import-btn {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-  }
-
-  .import-btn:hover {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--ember-glow);
-  }
-
-  .rebuild-btn {
-    background: linear-gradient(45deg, var(--state-good), var(--state-good));
-  }
-
-  .rebuild-btn:hover {
-    background: linear-gradient(45deg, var(--state-good), var(--state-good));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px color-mix(in srgb, var(--state-good) 32%, transparent);
-  }
-
-  .export-btn {
-    background: linear-gradient(45deg, var(--verdigris), var(--verdigris));
-  }
-
-  .export-btn:hover {
-    background: linear-gradient(45deg, var(--verdigris), var(--verdigris));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px color-mix(in srgb, var(--verdigris) 40%, transparent);
-  }
-
-  .btn-icon {
-    font-size: 1.1rem;
-  }
-
-  .empty-state {
+    margin: calc(var(--space-2) * -1) 0 0;
     text-align: center;
-    padding: 3rem 2rem;
     color: var(--ink-dim);
+    font-style: italic;
+    font-size: var(--text-sm);
+    letter-spacing: var(--tracking-wide);
   }
 
-  .empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.7;
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
   }
 
-  .empty-state h3 {
-    margin: 0 0 1rem 0;
-    color: var(--metal);
-    font-size: 1.5rem;
-  }
-
-  .empty-state p {
-    margin: 0 0 2rem 0;
-    font-size: 1.1rem;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .import-empty-btn {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .import-empty-btn:hover {
-    background: linear-gradient(45deg, var(--ember), var(--ember));
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--ember-glow);
-  }
-
-  .sources-list {
+  .niche {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-  }
-
-  .source-item {
-    background: var(--shade-soft);
-    border: 1px solid var(--sheen-soft);
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    transition: all 0.2s ease;
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-4);
+    text-align: center;
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-sm);
+    box-shadow: var(--shadow-inset);
   }
 
-  .source-item:hover {
-    background: var(--shade-soft);
-    border-color: color-mix(in srgb, var(--metal) 32%, transparent);
+  .niche-arch {
+    display: flex;
+    opacity: 0.85;
   }
 
-  .source-item.disabled {
-    opacity: 0.5;
+  .niche-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--metal-bright);
   }
 
-  .source-main {
+  .niche-note {
+    max-width: 46ch;
+    margin: 0 0 var(--space-2);
+    color: var(--ink-dim);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .sources {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .source {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    flex: 1;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+    transition: border-color 0.15s ease, opacity 0.15s ease;
   }
 
-  .source-checkbox {
-    position: relative;
-  }
-
-  .source-checkbox input[type="checkbox"] {
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid color-mix(in srgb, var(--metal) 52%, transparent);
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease;
-  }
-
-  .source-checkbox input[type="checkbox"]:checked {
-    background: var(--metal);
+  .source:hover {
     border-color: var(--metal);
   }
 
-  .source-checkbox input[type="checkbox"]:checked::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: black;
-    font-weight: bold;
-    font-size: 14px;
+  .source-dim {
+    opacity: 0.55;
   }
 
-  .source-checkbox label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+  .source-toggle {
+    flex: none;
+    width: var(--space-5);
+    height: var(--space-5);
+    margin: 0;
+    appearance: none;
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+    box-shadow: inset 0 var(--border-width) var(--space-2) var(--shade-hard);
     cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .source-icon {
-    font-size: 2rem;
-    opacity: 0.8;
+  .source-toggle:hover {
+    border-color: var(--metal);
+  }
+
+  .source-toggle:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .source-toggle:checked {
+    border-color: var(--metal);
+    background: radial-gradient(circle at 50% 50%, var(--ember) 0%, var(--ember) 32%, transparent 38%),
+      linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    box-shadow: inset 0 var(--border-width) var(--space-2) var(--shade-hard), var(--glow-ember);
+  }
+
+  .source-rune {
+    display: flex;
+    flex: none;
   }
 
   .source-info {
     flex: 1;
+    min-width: 0;
   }
 
   .source-name {
-    margin: 0 0 0.25rem 0;
-    color: var(--ink);
-    font-size: 1.1rem;
-    font-weight: 600;
+    margin: 0 0 var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    color: var(--metal-bright);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .source-description {
-    margin: 0 0 0.5rem 0;
-    color: var(--ink-dim);
-    font-size: 0.9rem;
+  .source-note {
+    margin: 0;
+    color: var(--ink-faint);
+    font-size: var(--text-xs);
   }
 
   .source-levels {
-    background: color-mix(in srgb, var(--metal) 22%, transparent);
-    color: var(--metal);
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    display: inline-block;
+    margin-top: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    background: color-mix(in srgb, var(--verdigris) 18%, transparent);
+    border: var(--border-hair) solid var(--verdigris-dim);
+    border-radius: var(--radius-sm);
+    color: var(--verdigris);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
   }
 
-  .source-actions {
+  .tally {
     display: flex;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0;
+    padding-top: var(--space-4);
+    border-top: var(--border-hair) solid var(--metal-edge);
+    color: var(--ink-faint);
+    font-size: var(--text-xs);
+    text-align: center;
   }
 
-  .remove-btn {
-    background: none;
-    border: none;
-    color: var(--state-bad);
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-  }
-
-  .remove-btn:hover {
-    background: color-mix(in srgb, var(--state-bad) 26%, transparent);
-    transform: scale(1.1);
-  }
-
-  .footer-info {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--sheen-soft);
+  .tally strong {
     color: var(--ink-dim);
   }
 
-  /* Import dialog styles */
-  .processing {
-    text-align: center;
-    padding: 3rem 2rem;
+  .tally-sep {
+    display: flex;
+    opacity: 0.7;
   }
 
-  .spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid color-mix(in srgb, var(--metal) 32%, transparent);
-    border-top: 4px solid var(--metal);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
+  .reading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-7) var(--space-4);
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .processing p {
-    color: var(--metal);
-    font-weight: 600;
-  }
-
-  .drop-zone {
-    border: 2px dashed color-mix(in srgb, var(--metal) 52%, transparent);
-    border-radius: 12px;
-    padding: 3rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    background: var(--shade-soft);
-  }
-
-  .drop-zone:hover,
-  .drop-zone.active {
-    border-color: var(--metal);
-    background: color-mix(in srgb, var(--metal) 6%, transparent);
-    transform: scale(1.02);
-  }
-
-  .drop-content {
-    pointer-events: none;
-  }
-
-  .upload-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    display: block;
-    opacity: 0.8;
-  }
-
-  .drop-zone h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--ink);
-    font-size: 1.3rem;
-  }
-
-  .drop-zone p {
+  .reading-note {
     margin: 0;
     color: var(--ink-dim);
+    font-size: var(--text-sm);
+    text-align: center;
   }
 
-  .file-input {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
+  .drop {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background:
+      var(--texture-weave),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: var(--border-width) dashed var(--metal-dim);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-inset);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .drop-live,
+  .drop:focus-within {
+    border-color: var(--metal);
+    box-shadow: var(--shadow-inset), var(--glow-metal);
+  }
+
+  .drop-title {
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: var(--text-md);
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    color: var(--metal-bright);
+  }
+
+  .drop :global(input[type='file']) {
     cursor: pointer;
-    pointer-events: all;
   }
 
   .message {
-    margin: 1.5rem 0;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-hair) solid var(--message-rim);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--message-rim) 12%, transparent);
   }
 
-  .message.error {
-    background: color-mix(in srgb, var(--state-bad) 26%, transparent);
-    border: 1px solid color-mix(in srgb, var(--state-bad) 26%, transparent);
+  .message-bad {
+    --message-rim: var(--state-bad);
   }
 
-  .message.success {
-    background: color-mix(in srgb, var(--state-good) 32%, transparent);
-    border: 1px solid color-mix(in srgb, var(--state-good) 32%, transparent);
-    flex-direction: column;
-    align-items: flex-start;
+  .message-good {
+    --message-rim: var(--state-good);
   }
 
-  .message .icon {
-    font-size: 1.5rem;
+  .message-mark {
+    display: flex;
+    flex: none;
+    color: var(--message-rim);
   }
 
-  .message p {
-    margin: 0;
+  .message-text {
     flex: 1;
-  }
-
-  .close-success-btn {
-    background: color-mix(in srgb, var(--state-good) 32%, transparent);
-    color: var(--state-good);
-    border: 1px solid color-mix(in srgb, var(--state-good) 32%, transparent);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: all 0.2s ease;
-  }
-
-  .close-success-btn:hover {
-    background: color-mix(in srgb, var(--state-good) 32%, transparent);
-  }
-
-  .supported-formats {
-    margin-top: 2rem;
-    padding: 1rem;
-    background: var(--shade-soft);
-    border-radius: 8px;
-    border: 1px solid var(--sheen-soft);
-  }
-
-  .supported-formats h4 {
-    margin: 0 0 0.75rem 0;
-    color: var(--metal);
-    font-size: 1rem;
-  }
-
-  .supported-formats ul {
     margin: 0;
-    padding-left: 1.5rem;
-    color: var(--ink-dim);
+    color: var(--ink);
+    font-size: var(--text-sm);
   }
 
-  .supported-formats li {
-    margin-bottom: 0.5rem;
+  .formats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid var(--metal-edge);
+    border-radius: var(--radius-md);
   }
 
-  .file-size-note {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: color-mix(in srgb, var(--state-warn) 26%, transparent);
-    border: 1px solid color-mix(in srgb, var(--state-warn) 26%, transparent);
-    border-radius: 6px;
-    text-align: center;
-  }
-
-  .file-size-note small {
-    color: var(--state-warn);
-    font-weight: 500;
-  }
-
-  .format-note {
-    margin: 1rem 0;
-    padding: 0.75rem;
-    background: color-mix(in srgb, var(--verdigris) 26%, transparent);
-    border: 1px solid color-mix(in srgb, var(--verdigris) 26%, transparent);
-    border-radius: 6px;
-  }
-
-  .format-note h5 {
-    margin: 0 0 0.5rem 0;
-    color: var(--verdigris);
-    font-size: 0.9rem;
-  }
-
-  .format-note small {
-    color: var(--ink-dim);
-  }
-
-  .format-note code {
-    background: var(--sheen-soft);
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
+  .formats-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
     color: var(--metal);
+  }
+
+  .formats-list {
+    margin: 0;
+    padding-left: var(--space-5);
+    color: var(--ink-dim);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+  }
+
+  .formats-list strong {
+    color: var(--ink);
+  }
+
+  .formats-note {
+    padding: var(--space-3);
+    border: var(--border-hair) solid var(--note-rim);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--note-rim) 10%, transparent);
+    color: var(--ink-dim);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+  }
+
+  .formats-note-schema {
+    --note-rim: var(--verdigris);
+  }
+
+  .formats-note-tip {
+    --note-rim: var(--state-warn);
+  }
+
+  .formats-note-title {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--verdigris);
+  }
+
+  .formats-note strong {
+    color: var(--state-warn);
+  }
+
+  .formats-note code {
+    padding: 0 var(--space-1);
+    background: var(--ground-deep);
+    border-radius: var(--radius-sm);
+    color: var(--metal-bright);
     font-family: var(--font-mono);
   }
 
   @media (max-width: 640px) {
-    .backdrop {
-      padding: 0.5rem;
-    }
-
-    .dialog {
-      max-height: calc(100vh - 1rem);
-    }
-
     .content {
-      padding: 1rem;
+      padding: var(--space-4);
     }
 
-    .sources-header {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 1rem;
-    }
-
-    .source-main {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
-
-    .source-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-
-    .source-actions {
-      align-self: flex-end;
+    .source {
+      flex-wrap: wrap;
     }
   }
 </style>
