@@ -38,6 +38,9 @@ check:
 test:
     pnpm test
 
+walk:
+    bash test/walk.sh
+
 gate:
     just check
     just test
@@ -46,11 +49,20 @@ gate:
 update:
     pnpm update --latest
 
+# node 24 removed SlowBuffer and firebase-tools still reaches it through jwa
+firebase +ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shim="$(mktemp -t slowbuffer)".cjs
+    printf "%s\n" "const b=require('buffer'); if(!b.SlowBuffer) b.SlowBuffer=b.Buffer;" > "$shim"
+    trap 'rm -f "$shim"' EXIT
+    NODE_OPTIONS="--require $shim" firebase {{ARGS}}
+
 rules:
-    firebase deploy --only firestore:rules,firestore:indexes
+    just firebase deploy --only firestore:rules,firestore:indexes
 
 deploy: gate
-    firebase deploy --only hosting,firestore:rules,firestore:indexes
+    just firebase deploy --only hosting,firestore:rules,firestore:indexes
 
 storage-rules:
-    firebase deploy --only storage:rules
+    just firebase deploy --only storage:rules
