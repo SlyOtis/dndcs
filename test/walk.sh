@@ -112,6 +112,8 @@ if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() ===
   [ "$crown_pickers" = "0" ] || fail "the crown carries $crown_pickers frame picker controls"
   crown_names="$(js "/\b(Lancet|Ogee|Trefoil|Shield|Round)\b/.test(document.querySelector('.sheet-crown').textContent)")"
   [ "$crown_names" = "false" ] || fail "the crown names a frame"
+  boxes="$(js "document.querySelectorAll('.sheet-stats > *').length")"
+  [ "$boxes" = "7" ] || fail "the stat board carries $boxes boxes"
   for w in 1280 1600 2000; do
     pw resize "$w" 900 >/dev/null
     spill="$(js "[...document.querySelectorAll('.sheet-stats *')].filter((e) => e.children.length === 0 && e.textContent.trim() && (() => { const b = e.closest('.sheet-stats > *').getBoundingClientRect(), r = e.getBoundingClientRect(); return r.left < b.left - 1 || r.right > b.right + 1 })()).map((e) => e.textContent.trim()).join(', ')")"
