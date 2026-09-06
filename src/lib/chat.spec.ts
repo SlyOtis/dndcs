@@ -3,9 +3,10 @@ import { get } from 'svelte/store'
 import type { Readable, Unsubscriber } from 'svelte/store'
 import type { User } from 'firebase/auth'
 import type { Timestamp } from 'firebase/firestore'
-import type { CampaignChatEntry, UserProfile } from './firestore.types'
+import type { CampaignCardKind, CampaignChatEntry, UserProfile } from './firestore.types'
 import type { RollLogItem } from './types'
-import type { ChatLog } from './chat'
+import type { ChatLog, ReplicateLogItem } from './chat'
+import chatItemSource from '../components/chat/ChatItem.svelte?raw'
 
 const wire = vi.hoisted(() => {
   const values: Record<string, string> = {}
@@ -92,6 +93,34 @@ const items = (store: Readable<ChatLog>) =>
 const signedIn = (uid: string, name: string) => {
   user.set({ uid } as unknown as User)
   userProfile.set({ display_name: name } as unknown as UserProfile)
+}
+
+const card = (fields: Partial<CampaignChatEntry>): CampaignChatEntry =>
+  shared({
+    id: 'shared-card',
+    kind: 'message',
+    body: '**Longsword**\n\nVersatile (1d10), 15 gp.',
+    query: 'Lookup Item: longsword',
+    roll_kind: '',
+    formula: '',
+    dice: [],
+    roll: 0,
+    total: 0,
+    ...fields
+  })
+
+const chats = (store: Readable<ChatLog>) =>
+  get(store) as unknown as Array<{ createdAt: Date, type: string, data: ReplicateLogItem }>
+
+const streamed = (entry: CampaignChatEntry) => {
+  signedIn('lars', 'Lars')
+  const log = getChatLog()
+  close = log.unsubscribeChat
+
+  currentCampaignId.set('camp-1')
+  wire.listeners[0].onChange([entry])
+
+  return chats(log.chatStore)[0]
 }
 
 let close: Unsubscriber | null = null
@@ -262,5 +291,71 @@ describe('the roll log outside a campaign', () => {
     currentCampaignId.set(null)
 
     expect(items(log.chatStore).map((item) => item.data.text)).toEqual(['Lars rolls alone'])
+  })
+})
+
+describe('the card payload another member reads off the shared log', () => {
+  it('rebuilds the item card payload the card treatment is bound to', () => {
+    expect(streamed(card({ card_kind: 'item_card' }))).toEqual({
+      createdAt: new Date('2026-09-06T10:00:00.000Z'),
+      type: 'chat',
+      data: {
+        sentAt: new Date('2026-09-06T10:00:00.000Z'),
+        returnedAt: new Date('2026-09-06T10:00:00.000Z'),
+        hidden: false,
+        query: 'Dis: Lookup Item: longsword',
+        response: '**Longsword**\n\nVersatile (1d10), 15 gp.',
+        message: '**Longsword**\n\nVersatile (1d10), 15 gp.',
+        data: { type: 'item_card' }
+      }
+    })
+  })
+
+  it('rebuilds the npc card payload the same way', () => {
+    const item = streamed(
+      card({
+        card_kind: 'npc_card',
+        body: '**Goblin**\n\nAC 15, 7 hp.',
+        query: 'Lookup NPC: goblin'
+      })
+    )
+
+    expect(item.type).toBe('chat')
+    expect(item.data.data).toEqual({ type: 'npc_card' })
+  })
+
+  it('carries the kind alone, never the item or npc blob the sender held', () => {
+    const item = streamed(card({ card_kind: 'item_card' }))
+
+    expect(Object.keys(item.data.data)).toEqual(['type'])
+  })
+
+  it('leaves a message that is no card without a payload, so it renders plain', () => {
+    const item = streamed(card({ card_kind: '' }))
+
+    expect(item.type).toBe('chat')
+    expect(item.data.data).toBeUndefined()
+  })
+
+  it('leaves an entry written before the kind was stored without a payload', () => {
+    expect(streamed(card({})).data.data).toBeUndefined()
+  })
+
+  it('narrows a kind the treatment does not know to no payload', () => {
+    const item = streamed(card({ card_kind: 'monster_card' as unknown as CampaignCardKind }))
+
+    expect(item.data.data).toBeUndefined()
+  })
+
+  it('keeps a roll off the card path, whatever the entry carries', () => {
+    const item = streamed(shared({ card_kind: 'item_card' }))
+
+    expect(item.type).toBe('roll')
+  })
+
+  it('binds the card class to the payload the rebuilt entry hands the item', () => {
+    expect(chatItemSource.replace(/\s+/g, ' ')).toContain(
+      "class:card={logItem.data.data?.type === 'item_card' || logItem.data.data?.type === 'npc_card'}"
+    )
   })
 })

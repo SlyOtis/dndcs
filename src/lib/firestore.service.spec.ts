@@ -150,6 +150,26 @@ describe('the campaign chat collection the rules govern', () => {
     ])
   })
 
+  it('stores the card kind on the entry, so the treatment survives another member read', async () => {
+    await campaignService.postChatEntry('camp-1', {
+      author_id: 'lars',
+      author_name: 'Lars',
+      kind: 'message',
+      body: '**Longsword**\n\nVersatile (1d10), 15 gp.',
+      query: 'Lookup Item: longsword',
+      is_hidden: false,
+      card_kind: 'item_card',
+      roll_kind: '',
+      formula: '',
+      dice: [],
+      roll: 0,
+      total: 0
+    })
+
+    expect(wire.writes[0].data.card_kind).toBe('item_card')
+    expect(Object.values(wire.writes[0].data)).not.toContain(undefined)
+  })
+
   it('reads back oldest first, whatever order the collection answers in', async () => {
     const late = entry({ id: 'shared-2', created_at: stamp('2026-09-06T10:05:00.000Z') })
     const early = entry({ id: 'shared-1', created_at: stamp('2026-09-06T10:00:00.000Z') })
