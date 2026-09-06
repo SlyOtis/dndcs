@@ -16,5 +16,4 @@ Where should a character's dead blob: imageUrl be dropped, given no code writes 
 ## Why it blocks
 
 `## Order` 2 says the next save of the character drops the dead address, and `## Scope` names no file that saves a character. `src/lib/characterInfo.ts` and `src/components/CharacterInfo.svelte` are imported by nothing; the only Firestore write of a character is `createCharacter`, and `updateCharacter` has no caller. Dropping the address needs a write in `src/lib/firestore.service.ts` or `src/lib/engine.ts`, both outside scope, and which of a scrub on read, a rewrite of the three documents, or nothing is a choice on live data the worker cannot make alone.
-<what cannot be decided without this>
 ## Answer
