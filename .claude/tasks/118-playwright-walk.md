@@ -19,7 +19,7 @@ base: 3ae793d4388082f5252e49011258a3bc9234e8d9
 ---
 
 ## Intent
-110 walks every screen through the Chrome extension, which only a paired main conversation holds, so an agent cannot take it. The scripted half does not need the extension: `playwright-cli` at `/opt/homebrew/bin/playwright-cli` drives a browser from the terminal, `playwright-cli open`, `goto`, `click`, `fill`, and an agent can write and run it. This task is that half, split out of 110 so each half has one owner and one commit.
+110 walks every screen through the playwright MCP driving Brave, which only a main conversation holds, so an agent cannot take it. The scripted half does not need the extension: `playwright-cli` at `/opt/homebrew/bin/playwright-cli` drives a browser from the terminal, `playwright-cli open`, `goto`, `click`, `fill`, and an agent can write and run it. This task is that half, split out of 110 so each half has one owner and one commit.
 
 ## Scope
 `test/walk.sh`, one script beside the existing suite, the `walk` recipe in `./justfile`, and the two key names in `./.env.example`. Not `src/**`: a defect the walk finds is boarded, never fixed here. Not the extension walk or the findings list, which stay in 110.
