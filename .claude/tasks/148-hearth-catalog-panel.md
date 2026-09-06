@@ -5,7 +5,7 @@ depends: [146]
 relations: []
 title: The hearth carries a Catalog panel listing the imported classes, races and documents
 type: task
-status: staged
+status: draft
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-06T22:31:15Z
+updated_at: 2026-09-06T22:56:40Z
 questions: []
 images: []
 ---
