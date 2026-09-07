@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: []
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-06T22:56:40Z
+updated_at: 2026-09-07T08:29:13Z
 questions: [q-011]
 images: []
 agent: lcp-worker-145
@@ -26,7 +26,7 @@ The user: the home screen needs to include and support all the new features and 
 `src/pages/MainPage.svelte`; `src/pages/main/**`, the five panels and the five new ones; `src/lib/firestore.service.ts` and `src/lib/firestore.types.ts` for the four aggregating reads and their row types; `src/lib/catalog.ts` only if no read of the recent entries across kinds exists. Not `src/components/ui/**`, which 139 owns, not `src/components/ui/Shell.svelte`, which 143 redesigns, not `src/components/campaign/**`, not `firestore.rules`. The drawers and the bar stay and the page keeps its `nav`, `tools`, `menu` and `chat` snippets. Runs after 106, which carries the gothic language onto this page.
 
 ## Order
-1. dndcs: read `docs/inspiration/README.md` for how a fantasy screen divides its ground before changing anything.
+1. dndcs: read the images under `docs/inspiration/` for how a fantasy screen divides its ground before changing anything.
 2. dndcs: four reads on `campaignService` shaped like `getRecentSessions`, a `Promise.all` over the campaigns stamping `campaign_id` and `campaign_name` onto each row, with row types beside `CampaignChronicle` and `CampaignErrand`.
 3. dndcs: `MapsPanel`, `CastPanel`, `PlacesPanel` and `EncountersPanel` under `src/pages/main/` shaped like `ChroniclesPanel`; a row names its campaign and opens `/campaign/:id`, an encounter row carries its combatant count. `CatalogPanel` shaped like `CampaignsPanel`, reading through `$lib/catalog`, a count per kind, a row opening `/sources/:kind/:id`, no import action. Each empty string in the hearth's voice.
 4. dndcs: replace `.hall-rails` with one grid on `MainPage.svelte` whose areas are named per panel, the hero one area among them. Characters and Campaigns are the primary areas, the rest secondary, spans following that. A panel in a column area stacks its entries; one in a row area keeps the sideways track, `Panel` or `Rail` from `src/components/ui/` as the frame. Columns collapse with width through the `minmax(min(var(--col), 100%), 1fr)` pattern the pages carry, `min-width: 0` on every track, no literal colour, no pixel size, page variables over `--space-*`.
