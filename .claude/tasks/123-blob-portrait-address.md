@@ -5,7 +5,7 @@ depends: []
 relations: [144]
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
-status: review
+status: testing
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [f8e0537fc777fe8ab71c1344bb42f066cd3050d3, 6f2697858bc510f80a7ad408562e0e6268d3f54a, fdf2a35c77584f416b59778887d4b1eea68df6a8, 507451a74a600c7e4c61d81e034581a2d415559d]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-07T09:05:22Z
+updated_at: 2026-09-07T09:11:00Z
 questions: [q-008]
 base: 0841be945ad7c5f1fa74c8114956919207319def
 agent: a072995e85f270246
