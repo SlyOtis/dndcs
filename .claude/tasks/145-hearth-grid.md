@@ -5,19 +5,19 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: review
+status: blocked
 goal: `just gate` is clean. With a campaign carrying at least one map, npc, location and encounter and classes and races imported, the hearth shots the walk takes at 1280 and 1600 show the hero and all ten panels in the grid, no empty column, no horizontal scroll, each campaign row under its campaign's name and the catalog counts per kind. A campaign with none shows the empty states.
 gate: just gate
 review: held
-blocked_from: draft
+blocked_from: review
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
 commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd, c91c66d01310d9f07d6d7ccbcd79116cbd6acbf1, b66342d126a9ce53fde5c61c349b909fd98c6f8a]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T11:03:44Z
-questions: [q-011]
+updated_at: 2026-09-07T11:08:00Z
+questions: [q-011, q-017]
 images: [145/page-2026-09-07t10-41-32-325z.png, 145/page-2026-09-07t10-44-37-964z.png]
 agent: af4354b045527bd4f
 base: f50c87eaeef442649bb505d162a07bbf08928f33
@@ -29,23 +29,3 @@ The user: the home screen needs to include and support all the new features and 
 ## Scope
 `src/pages/MainPage.svelte`; `src/pages/main`, the five panels and the five new ones; `src/lib/firestore.service.ts` and `src/lib/firestore.types.ts` for the four aggregating reads and their row types; `src/lib/catalog.ts` only if no read of the recent entries across kinds exists. Not `src/components/ui/**`, which 139 owns, not `src/components/ui/Shell.svelte`, which 143 redesigns, not `src/components/campaign/**`, not `firestore.rules`. The drawers and the bar stay and the page keeps its `nav`, `tools`, `menu` and `chat` snippets. Runs after 106, which carries the gothic language onto this page.
 
-## Summary
-`src/lib/firestore.types.ts`: `CampaignChart`, `CampaignFigure`, `CampaignHaunt` and `CampaignFray` beside `CampaignChronicle` and `CampaignErrand`, each stamping `campaign_id` and `campaign_name` onto a map, npc, location or encounter.
-
-`src/lib/firestore.service.ts`: `getChartedMaps`, `getKnownNpcs`, `getKnownLocations` and `getRecentEncounters` on `campaignService`, each a `Promise.all` over the campaigns shaped like `getRecentSessions`, `count = 12`. Each drops what the party has not seen with the `campaign.dm_id === self || is_known` test the campaign components carry, `is_visible` for a map. Maps sort by title, encounters by `created_at` descending.
-
-`src/pages/main/MapsPanel.svelte`, `CastPanel.svelte`, `PlacesPanel.svelte`, `EncountersPanel.svelte` and `CatalogPanel.svelte`: new, each a `Panel` stacking `Card` rows, a row subtitled with its campaign and opening `/campaign/:id`. An encounter row carries its combatant count and round, a map row its pins and layers, a cast row its part, a place row its kind and whether it is found. `CatalogPanel` takes the two kinds from `$lib/catalog`, carries the search input `CampaignsPanel` has and no import action, tallies `{n} classes, {n} races`, draws `getCatalogFacts` on each row and opens `/sources/:kind/:id`. Every empty state is a `.dnd-empty` line in the hearth's voice.
-
-`src/pages/MainPage.svelte`: `.hall-rails` is gone. `.hall-grid` is four tracks of `minmax(min(var(--hall-col), 100%), 1fr)` over four rows named `hero`, then `roll camps`, `chron quests party maps`, `cast places fights shelf`; the two primaries span two tracks each on the tall row and every secondary takes one, so no secondary is as wide as a primary and no row leaves a track empty. Each panel sits in a `.hall-plot` cell that carries the area and `min-width: 0`. Under 1200px the areas drop and the tracks become `repeat(auto-fit, ...)` with the hero across the full width. The `Promise.all` in `onMount` now carries the four campaign reads and `getCatalog` for both kinds beside the three it had.
-
-Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` into `src/pages/main/`, and `lcp_gate.sh` matches `"$s"|"$s"/*`, so a trailing slash never matches a file under it and every `Write` into the folder was denied. The `## Scope` line now reads `src/pages/main`, same set of files. Any task scoped with `/**` hits this.
-
-`just gate` was not run: the tester owns it. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
-
-`CatalogPanel` draws its empty state on `shown.length === 0`, so a search matching nothing shows the empty line and not a tally over a blank body, and the row no longer reads `entry.image`, a field no `CatalogEntry` carries. `just check` and `just build` are clean after both.
-
-The grid is now four tracks: Characters and Campaigns span two each as the row areas that keep the sideways `Rail`, and the eight secondaries take one track each over two rows. `ChroniclesPanel`, `QuestsPanel` and `PartyPanel` are framed with `Panel` and stack `Card` rows like the five new ones, since a one-track cell is a column area and the three sat at the same width as `maps` and `cast`. Party keeps its search in the `actions` snippet; the `Rail` notes and marks go, the empty lines stay. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
-
-`just walk` is clean against a restarted server, test/145/20260907T110322Z-just-walk.md, and the two shots in `images` are the hearth at 1280 and at 1600. Reading them found three things the grid alone did not show, all fixed. The last row grew to 2981px because `minmax(var(--hall-run), auto)` let the catalog's rows size the row instead of scrolling inside the panel, so both secondary rows are now the fixed `var(--hall-run)` and every panel scrolls in its own body. `.hall-plot` is `display: block`, since a grid item takes the min-content width of the `Panel` inside it and the catalog and party panels ran 72px past their cells. The four searches carry a panel class of their own with `width: 100%` and `min-width: 0`, since `.dnd-search` is a fixed 160px and no 286px cell fits a title beside it. Under 1200px the two rails take the whole width, `grid-column: 1 / -1`, so a 406px cell never cuts a rail header.
-
-Measured in the browser at 360, 640, 900, 1280, 1600 and 2000: no document overflow at any of them, and no element outside its cell except the rail header at 360, which `src/components/ui/Rail.svelte` has done at that width since before this task, its title, note and step buttons all `flex: none`. That file belongs to 139.
