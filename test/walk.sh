@@ -103,6 +103,22 @@ case "$landed" in
 esac
 
 visit /main "$hearth" "the hearth" && check_page bar
+page="/main at 1280 and 1600"
+for w in 1280 1600; do
+  pw resize "$w" 900 >/dev/null
+  wait_for "document.querySelectorAll('.hall-grid .hall-plot > section').length === 10 && document.querySelector('.hall-grid .dnd-loading') === null" "the ten hearth panels at $w" || continue
+  [ "$(js "document.querySelector('.hall-grid .hall-hero .hall-hero-name') !== null")" = "true" ] || fail "no hero over the grid at $w"
+  tracks="$(js "(() => { const grid = document.querySelector('.hall-grid'); const box = grid.getBoundingClientRect(); const style = getComputedStyle(grid); const widths = style.gridTemplateColumns.split(' ').map(parseFloat); const gap = parseFloat(style.columnGap) || 0; let x = box.left + (parseFloat(style.paddingLeft) || 0); const spans = widths.map((width) => { const span = [x, x + width]; x += width + gap; return span }); const plots = [...grid.querySelectorAll('.hall-plot')].map((e) => e.getBoundingClientRect()); const empty = spans.filter(([from, to]) => !plots.some((r) => r.left < to - 1 && r.right > from + 1)).length; return widths.length + ':' + empty })()")"
+  [ "${tracks%%:*}" -ge 2 ] || fail "the hearth grid has ${tracks%%:*} column at $w"
+  [ "${tracks##*:}" = "0" ] || fail "${tracks##*:} of the hearth grid's ${tracks%%:*} columns stand empty at $w"
+  over="$(js "Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth")"
+  [ "$over" -le 0 ] || fail "the hearth is ${over}px wider than the viewport at $w"
+  rows="$(js "(() => { const names = [...document.querySelectorAll('.hall-plot-camps .dnd-card-title')].map((e) => e.textContent.trim()); return ['maps', 'cast', 'places', 'fights'].map((kind) => { const plot = document.querySelector('.hall-plot-' + kind); const held = [...plot.querySelectorAll('.dnd-card-row')]; if (!held.length) return plot.querySelector('.dnd-empty') ? kind + ' empty' : kind + ' bare'; return held.every((row) => names.includes(row.querySelector('.dnd-card-sub')?.textContent.trim() ?? '')) ? kind + ' named' : kind + ' stray' }).join(', ') })()")"
+  case "$rows" in *bare*|*stray*) fail "a campaign panel shows neither its rows under a campaign's name nor its empty state: $rows" ;; esac
+  [ "$(js "(async () => { const classes = (await (await fetch('/sources/classes/index.json')).json()).classes.length; const races = (await (await fetch('/sources/races/index.json')).json()).races.length; return document.querySelector('.hall-plot-shelf .shelf-tally')?.textContent.trim() === classes + ' classes, ' + races + ' races' })()")" = "true" ] || fail "the catalog tally '$(js "document.querySelector('.hall-plot-shelf .shelf-tally')?.textContent.trim() ?? ''")' is not the count per kind in the source indexes at $w"
+  pw screenshot ".hall-grid" --filename=".playwright-cli/hearth-$w.png" >/dev/null
+done
+pw resize 1600 900 >/dev/null
 
 page="encounter tracker"
 campaign_id="$(js "(async () => { const { userCampaigns } = await import('/src/lib/stores/campaign.store.ts'); let held = []; userCampaigns.subscribe((entries) => (held = entries))(); return held[0]?.id ?? '' })()")"
@@ -182,6 +198,18 @@ if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() ===
   wait_for "document.querySelector('#dialog-title')?.textContent.trim() === 'Character Sources'" "the sources dialog after Escape on the import dialog"
   pw press Escape >/dev/null
   wait_for "document.querySelector('#dialog-title') === null" "the sources dialog to close"
+fi
+
+lost="document.querySelector('.sheet-lost-note')"
+if visit /character/does-not-exist "$lost !== null && document.querySelector('.dnd-loading') === null" "the lost character note"; then
+  note="$(js "$lost.textContent.trim()")"
+  [ "$note" = "That character was not found, or it is not yours." ] || fail "the lost note reads '$note'"
+  [ "$(js "[...document.querySelectorAll('button')].some((e) => e.textContent.trim() === 'Back to the hearth')")" = "true" ] || fail "the lost note carries no way back to the hearth"
+  [ "$(js "document.querySelector('.sheet-crown') === null && document.querySelectorAll('.dnd-shell-aside').length === 0")" = "true" ] || fail "the lost note still draws the sheet or its drawers"
+  [ "$(js "document.querySelector(\"[title='Toggle the menu']\") === null && document.querySelector(\"[title='Toggle the chat']\") === null")" = "true" ] || fail "the lost note still carries a menu or chat handle"
+  check_page gate
+  js "[...document.querySelectorAll('button')].find((e) => e.textContent.trim() === 'Back to the hearth').click() ?? null" >/dev/null
+  wait_for "$hearth" "the hearth after the way back"
 fi
 
 visit /main "$hearth" "the hearth"
