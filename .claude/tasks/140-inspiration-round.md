@@ -11,9 +11,9 @@ github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: []
-commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236]
+commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236, 1f7677bc179e2403a583d5c6b24b0bcaa6e8eaa5]
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T08:27:12Z
+updated_at: 2026-09-07T08:29:03Z
 questions: [q-013]
 images: []
 agent: ad0522f10348db90a
@@ -39,12 +39,10 @@ The first reference set, `docs/inspiration/1.png` through `11.png`, gave the lan
 
 `docs/inspiration/README.md` carried an entry per image and the written language of frames, textures, type and palette. Commit a00ec98 fixed the three review findings on it: `### The type` printed the seven `--text-*` values `src/app.css:6-12` declares instead of an invented 1.25 scale, the paragraph under the type table stated `Frame.svelte` as it is, and `19.jpg` named the `filigree` corner grade instead of a variant that does not exist.
 
-q-013 then answered that the folder carries no README at all and is images only, which voids Orders 2, 3 and 4 as they stood and the licence per entry condition in `## Done when`. `## Intent`, `## Scope`, `## Order` and `## Done when` are rewritten to that answer. The file itself is not removed here: a worker never deletes. The one command left is
-
-    rm docs/inspiration/README.md
+q-013 then answered that the folder carries no README at all and is images only, which voids Orders 2, 3 and 4 as they stood and the licence per entry condition in `## Done when`. `## Intent`, `## Scope`, `## Order` and `## Done when` are rewritten to that answer. The user removed the file and 1f7677b lands the deletion, 293 lines. `docs/inspiration` is thirty three images and nothing else.
 
 `## Scope` said `docs/inspiration/`; `lcp_gate.sh` matches a changed path with `case "$rel" in "$s"|"$s"/*`, so a trailing slash matched the folder and nothing in it and refused every edit to `README.md`. The line now reads `docs/inspiration`.
 
 `base` `6961342` and `commits` `26b632a` were both dangling, the branch having been rewritten under the task. They are now `a0d7a52` and `f530d57`, the real first landing.
 
-Outside `## Scope`, noticed and not touched. `test/sigils.spec.ts:249` reads `docs/inspiration/README.md` and asserts on the `8.png` block; the `rm` makes that test fail. Twelve task files name the README as required reading before work starts, 125, 127, 130, 131, 132, 133, 134, 145 and 139, and 141, 142 and 143 name the frame anatomy, type hierarchy and bar that 140 wrote into it as what they build from. The task `title` still says the vocabulary is written into the README.
+Outside `## Scope`, noticed and not touched. `test/sigils.spec.ts:249` reads `docs/inspiration/README.md` and asserts on the `8.png` block; that test now reads a file that is not there and fails. Twelve task files name the README as required reading before work starts, 125, 127, 130, 131, 132, 133, 134, 145 and 139, and 141, 142 and 143 name the frame anatomy, type hierarchy and bar that 140 wrote into it as what they build from. The task `title` still says the vocabulary is written into the README.
