@@ -253,19 +253,17 @@
     --hall-tall: calc(var(--space-8) * 5);
     --hall-run: calc(var(--space-8) * 4);
     display: grid;
-    grid-template-columns: repeat(6, minmax(min(var(--hall-col), 100%), 1fr));
+    grid-template-columns: repeat(4, minmax(min(var(--hall-col), 100%), 1fr));
     grid-template-rows:
       auto
       minmax(var(--hall-tall), auto)
       minmax(var(--hall-run), auto)
-      minmax(var(--hall-run), auto)
       minmax(var(--hall-run), auto);
     grid-template-areas:
-      'hero hero hero hero hero hero'
-      'roll roll roll camps camps camps'
-      'chron chron chron quests quests quests'
-      'party party maps maps cast cast'
-      'places places fights fights shelf shelf';
+      'hero hero hero hero'
+      'roll roll camps camps'
+      'chron quests party maps'
+      'cast places fights shelf';
     gap: var(--space-5);
     min-width: 0;
   }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { navigate } from "sly-svelte-location-router";
   import type { PartyMember } from "$lib/firestore.types";
-  import Rail from "$components/ui/Rail.svelte";
+  import Panel from "$components/ui/Panel.svelte";
   import Card from "$components/ui/Card.svelte";
 
   let { loading = false, members = [] as PartyMember[] } = $props();
@@ -19,15 +19,7 @@
   }
 </script>
 
-<Rail
-  title="Party"
-  note="{members.length} at the table"
-  tone="metal"
-  mark="🛡"
-  empty="Nobody rides with you yet"
-  count={shown.length}
-  {loading}
->
+<Panel title="Party" pad="sm">
   {#snippet actions()}
     <input
       type="text"
@@ -38,15 +30,23 @@
     />
   {/snippet}
 
-  {#each shown as entry (entry.campaign_id + entry.profile.uid)}
-    <Card
-      layout="tile"
-      title={entry.profile.display_name || entry.profile.email}
-      sub={entry.campaign_name}
-      image={entry.profile.photo_url}
-      badge={entry.is_dm ? 'DM' : undefined}
-      tone="metal"
-      onclick={() => openCampaign(entry.campaign_id)}
-    />
-  {/each}
-</Rail>
+  {#if loading}
+    <div class="dnd-loading"><span class="dnd-spinner"></span></div>
+  {:else if shown.length === 0}
+    <div class="dnd-empty">
+      <span class="dnd-empty-mark">🛡</span>
+      <span>Nobody rides with you yet</span>
+    </div>
+  {:else}
+    {#each shown as entry (entry.campaign_id + entry.profile.uid)}
+      <Card
+        title={entry.profile.display_name || entry.profile.email}
+        sub={entry.campaign_name}
+        image={entry.profile.photo_url}
+        badge={entry.is_dm ? 'DM' : undefined}
+        tone="metal"
+        onclick={() => openCampaign(entry.campaign_id)}
+      />
+    {/each}
+  {/if}
+</Panel>
