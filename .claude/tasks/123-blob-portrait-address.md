@@ -5,17 +5,17 @@ depends: []
 relations: [144]
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
-status: doing
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
-commits: [577230226a1a6458a463579a08831dc5ab849cb1, 899c92f0ff22b2372fdf25b55150ad006dec3ea6]
+commits: [f8e0537fc777fe8ab71c1344bb42f066cd3050d3, 6f2697858bc510f80a7ad408562e0e6268d3f54a, fdf2a35c77584f416b59778887d4b1eea68df6a8]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-06T22:55:32Z
+updated_at: 2026-09-07T08:50:53Z
 questions: [q-008]
-base: d32b80c645e6bfe46355798c42feca0d1210fce4
+base: 0841be945ad7c5f1fa74c8114956919207319def
 agent: a072995e85f270246
 ---
 
@@ -23,7 +23,7 @@ agent: a072995e85f270246
 The 110 walk: three characters carry `blob:http://localhost:5174/...` as `imageUrl` and every page that lists them logs a console error. `getFileUrl` in `src/lib/storage.service.ts` returns `URL.createObjectURL(...)` for a chunked, pulled or legacy file, an address that lives for one page in one browser, and somewhere that resolved address was written back onto the character instead of the file address it was resolved from.
 
 ## Scope
-`src/lib/storage.service.ts`, `src/lib/characterInfo.ts`, `src/components/CharacterInfo.svelte`, `src/components/ui/StoredImage.svelte`, `src/components/ui/Portrait.svelte`. Not `firestore.rules`.
+`src/lib/storage.service.ts`, `src/lib/firestore.service.ts`, `src/lib/characterInfo.ts`, `src/components/CharacterInfo.svelte`, `src/components/ui/StoredImage.svelte`, `src/components/ui/Portrait.svelte`. Not `firestore.rules`. `src/lib/firestore.service.ts` is here because q-008 answers that the scrub and the `updateDoc` that drops the address live in `getCharacter` and `getUserCharacters`.
 
 ## Order
 1. dndcs: find the write that persists a `blob:` address as `imageUrl` and make it persist the file address, `chunks:`, hosted or `local:`, that `getFileUrl` resolves at render.
@@ -40,10 +40,14 @@ No character can be saved with a `blob:` `imageUrl`, the hearth and the sheet lo
 
 `src/components/ui/Portrait.svelte`: `picture` is `$derived` from `src` and `isDeadFile`; a dead address falls to the initial letter, the portrait fallback on the sheet and the frame dialog. The hearth and campaign cards go through `Card` to `StoredImage` and draw the missing mark.
 
+`src/lib/firestore.service.ts`: q-008 answers Order 2. `deleteDeadPortrait(document)` sits beside `getCharacterStatus`, imports `isDeadFile` from `./storage.service`, blanks `document.character.info.imageUrl` on the object it returns and fires `updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), { 'character.info.imageUrl': '' })` with the same detached `.catch(() => undefined)` the status rewrite in `getUserCharacters` already uses. `getCharacter` calls it on the document it resolves, `getUserCharacters` on every document in the loop, so a first read renders correctly and cleans the three live documents once.
+
 `just check` 0 errors 0 warnings; `just build` passes with the pre-existing chunk size note.
 
 ### Findings
-- `src/lib/swarm.ts` is untracked and outside scope; `storage.service.ts` and `CampaignPage.svelte` (f5fcdd6, before `base`) import it, so HEAD does not resolve on a clean checkout until it is committed.
+- `base` and `commits` were unreachable shas when this was picked up again; history was rewritten under the task. `base` is now `0841be9` and the two commits are `f8e0537` and `6f26978`, the same work at its current shas.
+- `## Scope` gained `src/lib/firestore.service.ts`, the file q-008's answer names.
+- `task.sh land` found nothing to land: a concurrent `Update the board` commit, `fdf2a35`, had already swept `src/lib/firestore.service.ts` in. That sha is stamped as the third commit and the diff in it is this change alone.
 - No live path writes a `blob:` since f5fcdd6: `CharacterCreatePage` sets `creationData.imageUrl = await postFile(file, { kind: 'user' })` and `CharacterRacePage` carries it into `createCharacter`.
-- Order 2's drop on save has no save to sit on: `characterService.updateCharacter` in `src/lib/firestore.service.ts` has no caller and `engine.ts` persists the sheet to `localStorage` under `ch_<id>_*`. The question against this task asks where the address is dropped.
+- `subscribeToCharacter` and `getCharacterDetails` do not scrub; the answer named the two reads and the render side already draws the fallback for a dead address.
 - `src/lib/characterInfo.ts` and `src/components/CharacterInfo.svelte` are imported by nothing; `characterUtils.getCharacterImage` and `/default-character.png` are dead. `src/components/CharacterInfoPanel.svelte` is unmounted and holds a bare `<img src>`.
