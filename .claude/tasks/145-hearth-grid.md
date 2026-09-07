@@ -5,15 +5,15 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: failed
+status: review
 blocked_from: draft
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
-commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd]
+commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd, c91c66d01310d9f07d6d7ccbcd79116cbd6acbf1]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T09:58:20Z
+updated_at: 2026-09-07T10:02:15Z
 questions: [q-011]
 images: []
 agent: af4354b045527bd4f
@@ -44,7 +44,7 @@ The user: the home screen needs to include and support all the new features and 
 
 `src/pages/main/MapsPanel.svelte`, `CastPanel.svelte`, `PlacesPanel.svelte`, `EncountersPanel.svelte` and `CatalogPanel.svelte`: new, each a `Panel` stacking `Card` rows, a row subtitled with its campaign and opening `/campaign/:id`. An encounter row carries its combatant count and round, a map row its pins and layers, a cast row its part, a place row its kind and whether it is found. `CatalogPanel` takes the two kinds from `$lib/catalog`, carries the search input `CampaignsPanel` has and no import action, tallies `{n} classes, {n} races`, draws `getCatalogFacts` on each row and opens `/sources/:kind/:id`. Every empty state is a `.dnd-empty` line in the hearth's voice.
 
-`src/pages/MainPage.svelte`: `.hall-rails` is gone. `.hall-grid` is six tracks of `minmax(min(var(--hall-col), 100%), 1fr)` over five rows named `hero`, then `roll camps`, `chron quests`, `party maps cast`, `places fights shelf`; Characters and Campaigns span three tracks on the tall row, the rest two. Each panel sits in a `.hall-plot` cell that carries the area and `min-width: 0`. Under 1200px the areas drop and the tracks become `repeat(auto-fit, ...)` with the hero across the full width. The `Promise.all` in `onMount` now carries the four campaign reads and `getCatalog` for both kinds beside the three it had.
+`src/pages/MainPage.svelte`: `.hall-rails` is gone. `.hall-grid` is four tracks of `minmax(min(var(--hall-col), 100%), 1fr)` over four rows named `hero`, then `roll camps`, `chron quests party maps`, `cast places fights shelf`; the two primaries span two tracks each on the tall row and every secondary takes one, so no secondary is as wide as a primary and no row leaves a track empty. Each panel sits in a `.hall-plot` cell that carries the area and `min-width: 0`. Under 1200px the areas drop and the tracks become `repeat(auto-fit, ...)` with the hero across the full width. The `Promise.all` in `onMount` now carries the four campaign reads and `getCatalog` for both kinds beside the three it had.
 
 Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` into `src/pages/main/`, and `lcp_gate.sh` matches `"$s"|"$s"/*`, so a trailing slash never matches a file under it and every `Write` into the folder was denied. The `## Scope` line now reads `src/pages/main`, same set of files. Any task scoped with `/**` hits this.
 
@@ -52,8 +52,4 @@ Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` int
 
 `CatalogPanel` draws its empty state on `shown.length === 0`, so a search matching nothing shows the empty line and not a tally over a blank body, and the row no longer reads `entry.image`, a field no `CatalogEntry` carries. `just check` and `just build` are clean after both.
 
-### Findings
-`MainPage.svelte:266` spans `chron` and `quests` three tracks each, the same width as the primary Characters and Campaigns; `## Summary` claims the rest take two and `## Order` 4 wants spans following primary over secondary. Give both rows two tracks.
-`MainPage.svelte:267` leaves Party a `Rail` scrolling sideways in a two-track cell while `maps` and `cast`, the same width, stack; `## Order` 4 stacks a panel in a column area. Frame `PartyPanel` with `Panel`.
-`just walk` still cannot run, so the hearth at 1280 and 1600 that `## Done when` names is unproved: test/145/20260907T095808Z-just-walk.md.
-`just gate` is clean: test/145/20260907T095808Z-just-gate.md.
+The grid is now four tracks: Characters and Campaigns span two each as the row areas that keep the sideways `Rail`, and the eight secondaries take one track each over two rows. `ChroniclesPanel`, `QuestsPanel` and `PartyPanel` are framed with `Panel` and stack `Card` rows like the five new ones, since a one-track cell is a column area and the three sat at the same width as `maps` and `cast`. Party keeps its search in the `actions` snippet; the `Rail` notes and marks go, the empty lines stay. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
