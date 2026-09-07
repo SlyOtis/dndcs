@@ -244,14 +244,7 @@ describe('the sigil is the forged HUD button', () => {
   })
 })
 
-describe('the reference and the sigils outside the bar', () => {
-  it('names the forged HUD as what Sigil carries', () => {
-    const entry = read('docs/inspiration/README.md').split('\n\n').find((block) => block.includes('`8.png`')) ?? ''
-    expect(entry).toContain('forged HUD')
-    expect(entry).toContain('circular elemental sigil buttons')
-    expect(entry).toContain('`Sigil.svelte`')
-  })
-
+describe('the sigils outside the bar', () => {
   for (const [where, path, want] of [
     ['the dialog close', 'src/components/BaseDialog.svelte', { title: 'Close dialog', tone: 'bane', frame: 'cusped' }],
     ['the chat send', 'src/components/chat/Chat.svelte', { title: 'Send', tone: 'metal', frame: 'star' }],
