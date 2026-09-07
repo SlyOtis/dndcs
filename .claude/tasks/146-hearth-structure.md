@@ -5,10 +5,10 @@ depends: [142]
 relations: []
 title: The hearth follows the app's structure with panels of differing focus and size, no header plates, no party and nothing scrolling sideways or clipped
 type: task
-status: draft
+status: blocked
 session:
 review:
-blocked_from:
+blocked_from: staged
 github:
 assignee: Martin Ottersland
 scope: [src/pages/MainPage.svelte, src/pages/main, src/components/ui/Rail.svelte, src/lib/firestore.service.ts, src/lib/firestore.types.ts, firestore.rules, test/walk.sh]
@@ -16,8 +16,8 @@ repos: [dndcs]
 skills: []
 commits: []
 created_at: 2026-09-07T17:00:04Z
-updated_at: 2026-09-07T17:01:29Z
-questions: []
+updated_at: 2026-09-07T17:02:19Z
+questions: [q-018, q-019, q-020]
 images: [146/1.png]
 ---
 
