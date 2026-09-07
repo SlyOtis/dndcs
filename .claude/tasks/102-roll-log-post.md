@@ -5,7 +5,7 @@ depends: [101]
 relations: []
 title: writeRollLog posts the shared entry instead of mirroring it
 type: task
-status: doing
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data]
 commits: [4bbadba01f07862e54a564cdd70b92f3b80d4503]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-06T23:26:30Z
+updated_at: 2026-09-07T08:26:53Z
 questions: [q-016]
 agent: aa046906ca5b4827c
 base: 2678b268945262a10d6eaae22f3799bfb3e1d07a
@@ -23,7 +23,7 @@ base: 2678b268945262a10d6eaae22f3799bfb3e1d07a
 A roll is written to the local `rollStore` by `writeRollLog`, and `getChatLog` observes that append and republishes it to the campaign. The mirror exists because the two lived in different files during the original change, not because the design wants it. One write should reach both.
 
 ## Scope
-`src/lib/engine.ts`, `src/lib/chat.ts`. Do not change `RollLogItem` or the ten call sites: they already pass the formula.
+`src/lib/engine.ts`, `src/lib/chat.ts`, `src/lib/chat.spec.ts`. Do not change `RollLogItem` or the ten call sites: they already pass the formula. The spec is in by q-016: the two cases that drive `rollStore` inside a campaign call `writeRollLog` instead, and nothing else in it moves.
 
 ## Order
 1. dndcs: make `writeRollLog` post the shared entry directly when a campaign is in scope, and drop the observer in `getChatLog` that republishes local appends.
@@ -42,8 +42,6 @@ A roll is written to the local `rollStore` by `writeRollLog`, and `getChatLog` o
 
 A roll in a campaign is now one write at the source, so a second `getChatLog` instance cannot republish it, and nothing lands in `roll_log` in localStorage while a campaign is in scope.
 
-### Findings
-`just gate` fails at `just test`, 2 of 263: test/102/20260906T231951Z-just-gate.md
-`src/lib/chat.spec.ts:184` drives `rollStore.set(...)` in scope and expects `wire.posted` to hold 1; call `writeRollLog` so the post happens at the source.
-`src/lib/chat.spec.ts:209` same, and the "never twice" case no longer covers the removed republish; assert one `wire.posted` from one `writeRollLog`.
-`src/lib/chat.spec.ts` mocks `./firestore.service` for `chat.ts` only; the mock must cover `engine.ts`, which now owns `campaignService.postChatEntry`.
+`src/lib/chat.spec.ts` carries the two cases the review found stale, and q-016 put the file in this task's scope. Both now drive `writeRollLog('skill', 'Lars rolls stealth', '1d20+3', 14, 17, '14')` where they set `rollStore`, and "publishes a local roll with the author id the create rule tests" also asserts `get(rollStore)` stays empty, so the branch that skips the local store in scope is covered. Those lines reached the tree in `b093abc`, landed by the tester wave for 103 while this task was blocked on q-016, so this session wrote nothing further to the spec. The third finding, the mock reaching `engine.ts`, was not a defect: `vi.mock('./firestore.service')` is keyed by the resolved module id, which is the same module `engine.ts` imports.
+
+`just check` 0 errors 0 warnings and `just build` clean again on the moved tree; `986c893` (#103) touched `chat.ts` after `4bbadba` and did not disturb the branch or the subscriber.
