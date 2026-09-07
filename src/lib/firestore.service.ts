@@ -15,6 +15,7 @@ import {
   type Unsubscribe
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
+import { isDeadFile } from './storage.service';
 import type {
   UserProfile,
   Campaign,
@@ -173,6 +174,16 @@ export const userService = {
   }
 };
 
+function deleteDeadPortrait(document: CharacterDocument): void {
+  const info = document.character?.info;
+  if (!info?.imageUrl || !isDeadFile(info.imageUrl)) return;
+
+  info.imageUrl = '';
+  updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), { 'character.info.imageUrl': '' }).catch(
+    () => undefined
+  );
+}
+
 export function getCharacterStatus(document: CharacterDocument): CharacterStatus {
   const info = document.character?.info;
   const named = Boolean(info?.name?.trim());
@@ -221,8 +232,13 @@ export const characterService = {
   async getCharacter(characterId: string): Promise<CharacterDocument | null> {
     const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
     const characterSnap = await getDoc(characterRef);
-    
-    return characterSnap.exists() ? characterSnap.data() as CharacterDocument : null;
+
+    if (!characterSnap.exists()) return null;
+
+    const document = characterSnap.data() as CharacterDocument;
+    deleteDeadPortrait(document);
+
+    return document;
   },
 
   async updateCharacter(characterId: string, character: Character): Promise<void> {
@@ -253,6 +269,8 @@ export const characterService = {
     const found = querySnapshot.docs.map(entry => entry.data() as CharacterDocument);
 
     for (const document of found) {
+      deleteDeadPortrait(document);
+
       const status = getCharacterStatus(document);
       if (document.metadata.status === status) continue;
 
