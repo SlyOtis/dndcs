@@ -5,19 +5,19 @@ depends: [105]
 relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
-status: doing
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: []
+commits: [f247649a4b324a2def80d2335de7d42c73a4bc6f]
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-06T22:55:37Z
+updated_at: 2026-09-07T08:35:46Z
 questions: [q-009]
 images: []
-agent: ad7be3fac24c3f1a7
-base: 195e21ad49f99605f5f12249820a10e80a98622a
+agent: a9104dffa8eefa0ec
+base: c1d3a5d5830a435e42e4c0ee3888ae9f10f83e87
 ---
 
 ## Intent
@@ -36,7 +36,7 @@ On the campaign page both handles show in the bar, the drawer opens with the enc
 
 ## Summary
 
-Written in the working tree, not landed: q-009 holds the landing.
+Landed in `f247649` with the rest of the wave touching these files, the way q-009 was answered. `base` was `195e21a`, a sha no longer in the repo, and is restamped to `c1d3a5d`, the parent of the wave commit.
 
 - `src/pages/CampaignPage.svelte`: imports `MenuPanel` and `Chat`, sets the `dialogState` context the way `MainPage` does, and passes `menu` and `chat` snippets to `Shell` so both handles render in the bar.
 - `src/components/MenuPanel.svelte`: `getContext<CharacterContext | undefined>` so a page without a character store does not throw; the soundboard view and its `onNavigateToSoundboard` are offered only when `soundBoard` exists.
