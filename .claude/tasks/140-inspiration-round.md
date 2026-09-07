@@ -5,7 +5,7 @@ depends: []
 relations: []
 title: A second reference set is gathered from fantasy UI online and its vocabulary written into the inspiration README
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: []
 commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236, 1f7677bc179e2403a583d5c6b24b0bcaa6e8eaa5]
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T08:29:03Z
+updated_at: 2026-09-07T08:32:16Z
 questions: [q-013]
 images: []
 agent: ad0522f10348db90a
@@ -46,3 +46,7 @@ q-013 then answered that the folder carries no README at all and is images only,
 `base` `6961342` and `commits` `26b632a` were both dangling, the branch having been rewritten under the task. They are now `a0d7a52` and `f530d57`, the real first landing.
 
 Outside `## Scope`, noticed and not touched. `test/sigils.spec.ts:249` reads `docs/inspiration/README.md` and asserts on the `8.png` block; that test now reads a file that is not there and fails. Twelve task files name the README as required reading before work starts, 125, 127, 130, 131, 132, 133, 134, 145 and 139, and 141, 142 and 143 name the frame anatomy, type hierarchy and bar that 140 wrote into it as what they build from. The task `title` still says the vocabulary is written into the README.
+
+### Findings
+1. `test/sigils.spec.ts:249` reads the deleted `docs/inspiration/README.md`; `just gate` fails ENOENT, 1 of 445. Delete the `names the forged HUD as what Sigil carries` case and the `describe` line it needs. `test/140/20260907T083152Z-just-gate.md`.
+2. `## Scope` is `docs/inspiration`, `No source.`; widen it to `test/sigils.spec.ts` before fixing 1, or the gate refuses the write.
