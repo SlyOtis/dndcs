@@ -14,6 +14,7 @@ import {
   serverTimestamp,
   type Unsubscribe
 } from 'firebase/firestore';
+import type { FirebaseError } from 'firebase/app';
 import { auth, db } from './firebase';
 import { isDeadFile } from './storage.service';
 import type {
@@ -231,9 +232,12 @@ export const characterService = {
 
   async getCharacter(characterId: string): Promise<CharacterDocument | null> {
     const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
-    const characterSnap = await getDoc(characterRef);
+    const characterSnap = await getDoc(characterRef).catch((error: FirebaseError) => {
+      if (error.code !== 'permission-denied') throw error;
+      return null;
+    });
 
-    if (!characterSnap.exists()) return null;
+    if (!characterSnap?.exists()) return null;
 
     const document = characterSnap.data() as CharacterDocument;
     deleteDeadPortrait(document);

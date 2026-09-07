@@ -32,6 +32,7 @@
   import { uiStore, anyDialogOpen } from "$lib/stores/ui.store";
   import { navigate } from "sly-svelte-location-router";
   import Shell from "$components/ui/Shell.svelte";
+  import Button from "$components/ui/Button.svelte";
   import Portrait, { type PortraitFrame } from "$components/ui/Portrait.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
   import Glyph from "$components/ui/Glyph.svelte";
@@ -57,6 +58,7 @@
   const {info} = chStore;
 
   let loaded = $state(false);
+  let missing = $state(false);
 
   onMount(() => {
     setTheme(getTheme());
@@ -64,8 +66,9 @@
     characterService.getCharacter(characterId)
       .then((document) => {
         if (document?.character) applyStateToCharacter(document.character);
+        else missing = true;
       })
-      .catch((error) => console.error('Character did not load:', error))
+      .catch(() => (missing = true))
       .finally(() => (loaded = true));
   });
 
@@ -93,7 +96,21 @@
 <Overlay />
 <Dialogs />
 
-<Shell title={$info.name || 'Character'} width="full" back={() => navigate('/main')}>
+{#snippet menu()}
+  <MenuPanel />
+{/snippet}
+
+{#snippet chat()}
+  <Chat />
+{/snippet}
+
+<Shell
+  title={$info.name || 'Character'}
+  width="full"
+  back={() => navigate('/main')}
+  menu={missing ? undefined : menu}
+  chat={missing ? undefined : chat}
+>
   {#snippet tools()}
     <Sigil title="Export this character" size="sm" onclick={() => postUIAction('exportCharacter')}>
       <Glyph name="export" size="sm" />
@@ -113,15 +130,12 @@
     <Background />
   {/snippet}
 
-  {#snippet menu()}
-    <MenuPanel />
-  {/snippet}
-
-  {#snippet chat()}
-    <Chat />
-  {/snippet}
-
-  {#if loaded}
+  {#if missing}
+    <div class="sheet-lost">
+      <p class="sheet-lost-note">That character was not found, or it is not yours.</p>
+      <Button variant="primary" onclick={() => navigate('/main')}>Back to the hearth</Button>
+    </div>
+  {:else if loaded}
     <header class="sheet-crown">
       <button
         type="button"
@@ -203,6 +217,21 @@
 </Shell>
 
 <style>
+  .sheet-lost {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-8) var(--space-5);
+    text-align: center;
+  }
+
+  .sheet-lost-note {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
+  }
+
   .sheet-crown {
     display: flex;
     align-items: center;
