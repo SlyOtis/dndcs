@@ -5,7 +5,7 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: review
+status: failed
 blocked_from: draft
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd, c91c66d01310d9f07d6d7ccbcd79116cbd6acbf1]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T10:02:15Z
+updated_at: 2026-09-07T10:14:22Z
 questions: [q-011]
 images: []
 agent: af4354b045527bd4f
@@ -53,3 +53,8 @@ Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` int
 `CatalogPanel` draws its empty state on `shown.length === 0`, so a search matching nothing shows the empty line and not a tally over a blank body, and the row no longer reads `entry.image`, a field no `CatalogEntry` carries. `just check` and `just build` are clean after both.
 
 The grid is now four tracks: Characters and Campaigns span two each as the row areas that keep the sideways `Rail`, and the eight secondaries take one track each over two rows. `ChroniclesPanel`, `QuestsPanel` and `PartyPanel` are framed with `Panel` and stack `Card` rows like the five new ones, since a one-track cell is a column area and the three sat at the same width as `maps` and `cast`. Party keeps its search in the `actions` snippet; the `Rail` notes and marks go, the empty lines stay. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
+
+### Findings
+`just walk` never reaches the hearth, so the 1280 and 1600 shots `## Done when` names are unproved: test/145/20260907T101240Z-just-walk.md
+Cause: `just build` inside `just gate` runs `rm -rf node_modules/.vite`, and the dev server on 5173 then 404s every `/node_modules/.vite/deps/*` request, so the app never mounts. Restart `just dev`, run `just walk` and read the shots, and only then `just gate`.
+`just gate` is clean: test/145/20260907T100418Z-just-gate.md
