@@ -330,7 +330,7 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
   const resp = await req.json()
   let getUrl: string | undefined = resp?.urls?.get
   // https://api.replicate.com/v1/predictions/zc4xabca4hrj00cmsd9s1ps9xw
-  getUrl = getUrl?.replace('https://api.replicate.com/v1', 'replicate')
+  getUrl = getUrl?.replace('https://api.replicate.com/v1', '/replicate')
 
   if (!getUrl) {
     throw new Error(`Invalid response`)
