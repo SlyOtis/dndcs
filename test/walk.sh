@@ -96,6 +96,11 @@ pw fill "#login-password" "$password" >/dev/null
 pw click "getByRole('button', { name: 'Sign In' })" >/dev/null
 wait_for "($hearth) || document.querySelector('.gate-error') !== null" "the hearth after sign in"
 [ "$(js "$hearth")" = "true" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.gate-error')?.textContent.trim() ?? ''")"; exit 1; }
+landed="$(js "location.pathname")"
+case "$landed" in
+  /|/main) ;;
+  *) fail "sign in landed on $landed, neither the hearth nor its alias" ;;
+esac
 
 visit /main "$hearth" "the hearth" && check_page bar
 
