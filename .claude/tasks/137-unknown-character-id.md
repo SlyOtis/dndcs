@@ -5,7 +5,7 @@ depends: [122]
 relations: [122]
 title: An unknown character id shows an empty sheet with one message instead of the fixture and permission errors
 type: bug
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [7e35384beb73c8377f51930f5467114cb5f5b443]
 created_at: 2026-09-06T20:12:27Z
-updated_at: 2026-09-07T08:55:33Z
+updated_at: 2026-09-07T09:13:20Z
 questions: []
 images: []
 agent: ae33abd8e37d60435
