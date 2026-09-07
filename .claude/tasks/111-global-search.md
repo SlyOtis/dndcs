@@ -5,7 +5,7 @@ depends: []
 relations: [138]
 title: Cmd or Ctrl K opens the search dialog on every page and the top bar carries a search button
 type: task
-status: testing
+status: done
 session:
 review:
 blocked_from:
@@ -13,9 +13,9 @@ github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: [b079e38c30723a95ca6449120036e681cbdb45f9, f8a5d41c710eddf728712b5862a54f48f6f50e93, 02c18b8917c8e4b4a30bbc86c9d672f12ecb4add]
+commits: [b079e38c30723a95ca6449120036e681cbdb45f9, f8a5d41c710eddf728712b5862a54f48f6f50e93, 02c18b8917c8e4b4a30bbc86c9d672f12ecb4add, fc26e0f6592060d848b3d5deabb3b8d6b5dfc000]
 created_at: 2026-09-05T15:41:58Z
-updated_at: 2026-09-07T10:53:26Z
+updated_at: 2026-09-07T14:01:37Z
 questions: []
 base: f301e68d9d164beb849903552dcd3fb755b383d3
 agent: a35f466f328615425

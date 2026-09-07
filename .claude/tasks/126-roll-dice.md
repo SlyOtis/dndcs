@@ -5,7 +5,7 @@ depends: [102]
 relations: []
 title: Roll Dice and the attack hit button post a roll to the chat log
 type: bug
-status: doing
+status: done
 session: 8dec51df-8b9f-47a4-9877-00e448df3116
 review:
 blocked_from:
@@ -13,9 +13,9 @@ github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: []
+commits: [4997cd6df25b515bb0ee0f16b0f3dea9a09e21ae]
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-07T14:37:57Z
+updated_at: 2026-09-07T14:59:51Z
 questions: []
 base: 3cf051a21d310bec85863dd6f6d10041c437d302
 ---

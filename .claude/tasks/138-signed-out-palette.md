@@ -5,7 +5,7 @@ depends: [111]
 relations: [111]
 title: The command palette stays closed on the sign in and sign up pages
 type: bug
-status: doing
+status: done
 session: 8dec51df-8b9f-47a4-9877-00e448df3116
 review:
 blocked_from:
@@ -13,9 +13,9 @@ github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: []
+commits: [5747adecd427714a87afb77d6438fad4d12ffb85]
 created_at: 2026-09-06T20:12:27Z
-updated_at: 2026-09-07T15:00:30Z
+updated_at: 2026-09-07T15:09:09Z
 questions: []
 images: []
 base: 4997cd6df25b515bb0ee0f16b0f3dea9a09e21ae

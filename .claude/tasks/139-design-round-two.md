@@ -6,6 +6,8 @@ relations: []
 title: A second design round: the fantasy UI language is researched again and carried through tokens, type, frames and the bar
 type: epic
 status: staged
+session:
+review:
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +15,7 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-06T22:41:17Z
+updated_at: 2026-09-07T10:53:31Z
 questions: []
 images: []
 agent: lcp-worker-139
@@ -25,11 +27,6 @@ The user, after the first gothic pass and the 110 walk: the panel frames are bro
 ## Scope
 `docs/inspiration/`, `src/app.css`, `src/components/ui/**`. The pages and the sheet follow through 127 and its subs, which now depend on this round.
 
-## Order
-1. dndcs: this is the parent. 140 gathers the references, 141 the type scale, 142 the frames and textures, 143 the bar; 127 and 116 wait on them.
-2. verify: `just gate` once the four are done.
 
-## Done when
+## Goal
 140, 141, 142 and 143 are done.
-
-## Summary
