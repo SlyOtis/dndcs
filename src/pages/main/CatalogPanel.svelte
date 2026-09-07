@@ -36,7 +36,7 @@
 
   {#if loading}
     <div class="dnd-loading"><span class="dnd-spinner"></span></div>
-  {:else if shelf.length === 0}
+  {:else if shown.length === 0}
     <div class="dnd-empty">
       <span class="dnd-empty-mark">📖</span>
       <span>The shelf holds no lore yet</span>
@@ -48,7 +48,6 @@
       <Card
         title={row.entry.name}
         sub={row.entry.description}
-        image={row.entry.image ? String(row.entry.image) : undefined}
         badge={row.kind === 'classes' ? 'class' : 'race'}
         tone="metal"
         onclick={() => openSource(row.kind, row.entry.id)}
