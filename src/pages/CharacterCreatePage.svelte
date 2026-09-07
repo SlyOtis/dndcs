@@ -98,7 +98,6 @@
   let dragActive = $state(false);
   let portraitDragActive = $state(false);
   let backgroundDragActive = $state(false);
-  let imagePreview = $state<string | null>(null);
 
   let canContinue = $derived(creationData.name.trim().length > 0);
   let busy = $derived(Boolean(reading) || importing);
@@ -181,7 +180,6 @@
     const file = files.find((entry) => entry.type.startsWith('image/'));
     if (!file) return;
 
-    imagePreview = URL.createObjectURL(file);
     error = null;
 
     try {
@@ -273,8 +271,8 @@
         ondragleave={() => (portraitDragActive = false)}
         ondrop={handlePortraitDrop}
       >
-        {#if imagePreview}
-          <Portrait src={imagePreview} alt="Character" frame="lancet" size="lg" />
+        {#if creationData.imageUrl}
+          <Portrait src={creationData.imageUrl} alt="Character" frame="lancet" size="lg" />
         {:else}
           <span class="dnd-empty-mark"><Ornament name="quatrefoil" size="sm" tone="metal" /></span>
           <p class="make-drop-note">Drop a portrait, or pick one</p>
