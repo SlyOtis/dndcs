@@ -4,13 +4,11 @@
   import Ornament from "$components/ui/Ornament.svelte";
   import { uiStore, isSearchDialogOpen } from "$lib/stores/ui.store";
 
-  // Use global store instead of props
   let isOpen = $derived($isSearchDialogOpen);
 
   let searchInput: HTMLInputElement;
   let searchQuery = $state('');
 
-  // Sample commands for now - can be expanded later
   const commands = [
     { name: 'Toggle Chat', shortcut: 'Ctrl+L', action: 'toggle-chat' },
     { name: 'Search Everything', shortcut: 'Ctrl+K', action: 'search' },
@@ -58,27 +56,22 @@
 
   function executeCommand(action: string) {
     console.log('Executing command:', action);
-    // For now, just close the dialog
-    // Later this can be expanded to actually execute commands
     uiStore.closeSearchDialog();
     searchQuery = '';
     selectedIndex = 0;
   }
 
-  // Focus the input when dialog opens
   $effect(() => {
     if (isOpen && searchInput) {
       searchInput.focus();
     }
   });
 
-  // Reset selected index when search changes
   $effect(() => {
-    searchQuery; // dependency
+    searchQuery;
     selectedIndex = 0;
   });
 
-  // Reset state when dialog closes
   $effect(() => {
     if (!isOpen) {
       searchQuery = '';
