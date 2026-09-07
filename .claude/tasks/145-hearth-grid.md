@@ -5,9 +5,9 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: review
+status: testing
 session:
-review: held
+review: passed
 blocked_from: review
 github:
 assignee: Martin Ottersland
@@ -15,9 +15,9 @@ repos: [dndcs]
 skills: [data, components]
 commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd, c91c66d01310d9f07d6d7ccbcd79116cbd6acbf1, b66342d126a9ce53fde5c61c349b909fd98c6f8a]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T13:34:42Z
+updated_at: 2026-09-07T16:17:09Z
 questions: [q-011, q-017]
-images: [145/page-2026-09-07t10-41-32-325z.png, 145/page-2026-09-07t10-44-37-964z.png]
+images: [145/page-2026-09-07t10-41-32-325z.png, 145/page-2026-09-07t10-44-37-964z.png, 145/hearth-seeded-1280.png, 145/hearth-seeded-1600.png, 145/hearth-1280.png, 145/hearth-1600.png]
 agent: af4354b045527bd4f
 base: f50c87eaeef442649bb505d162a07bbf08928f33
 ---
