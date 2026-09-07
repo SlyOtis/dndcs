@@ -5,7 +5,7 @@ depends: [122]
 relations: [123]
 title: An edit on the character sheet is written to the character's Firestore document
 type: bug
-status: review
+status: testing
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [6e0473ebd7193200090423dc0c85c02029be80d8]
 created_at: 2026-09-06T21:39:01Z
-updated_at: 2026-09-07T09:03:24Z
+updated_at: 2026-09-07T09:06:51Z
 questions: []
 images: []
 agent: aac0b4cceff658ab2
