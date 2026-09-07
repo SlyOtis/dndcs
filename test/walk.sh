@@ -115,7 +115,7 @@ else
   wait_for "$tracker !== undefined" "the navigator drawer"
   js "$tracker.querySelector('.dnd-menu-band').click() ?? null" >/dev/null
   wait_for "$tracker.classList.contains('dnd-menu-section-open')" "the tracker to open"
-  [ "$(js "$tracker.textContent.includes('No encounter is under way.')")" = "true" ] || fail "the tracker carries no empty state while the campaign has no encounter"
+  wait_for "$tracker.textContent.includes('No encounter is under way.')" "the empty state while the campaign has no encounter"
   encounter_id="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); return campaignService.postEncounter('$campaign_id', { title: 'Walk Ambush', is_active: true, is_known: true, round: 3, turn: 1, combatants: [{ id: 'w1', name: 'Goblin Cutter', kind: 'npc', npc_id: 'w-n1', initiative: 8, hit_points: 5, max_hit_points: 12, conditions: ['prone'], is_hit_points_known: true }, { id: 'w2', name: 'Walk Hero', kind: 'character', character_id: 'w-c1', initiative: 17, hit_points: 22, max_hit_points: 30, conditions: [], is_hit_points_known: true }, { id: 'w3', name: 'Dire Wolf', kind: 'npc', npc_id: 'w-n2', initiative: 12, hit_points: 9, max_hit_points: 26, conditions: [], is_hit_points_known: true }] }) })()")"
   if wait_for "$rows.length === 3" "the combatants to stream into the tracker"; then
     order="$(js "$rows.map((e) => e.querySelector('.dnd-menu-row-mark').textContent.trim()).join(',')")"
