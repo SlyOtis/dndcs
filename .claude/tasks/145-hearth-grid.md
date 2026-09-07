@@ -5,25 +5,26 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: staged
+status: review
 blocked_from: draft
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
-commits: []
+commits: [a51974329a0f6713779f6b1072680012c6283176]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T08:29:13Z
+updated_at: 2026-09-07T09:18:49Z
 questions: [q-011]
 images: []
-agent: lcp-worker-145
+agent: af4354b045527bd4f
+base: f50c87eaeef442649bb505d162a07bbf08928f33
 ---
 
 ## Intent
 The user: the home screen needs to include and support all the new features and be more of a grid, the UI divided in a sensible way based on the panels. `src/pages/MainPage.svelte`, the hearth at `/main`, draws a centred hero and then stacks five `Rail` panels, Characters, Campaigns, Chronicles, Quests and Party, in one flex column, `.hall-rails`; each rail scrolls its own track sideways and a hearth with two characters is a long page of mostly empty rails. Since it was written the app gained maps, cast, places and encounters on a campaign, read by `getMaps`, `getNpcs`, `getLocations` and `getEncounters` on `campaignService` and shown only on `CampaignPage`, and a catalog of imported classes, races and documents in `src/lib/catalog.ts`, listed by `CatalogList.svelte` and shown at `/sources/:kind/:id`, reachable only from the class and race pick steps. None of it reaches the hearth. The features decided on 2026-09-06 and not built, the discover directory, friends, direct chat, shared resources and tags, get no panel here; each adds its own when it lands. Worked as one task by the answer to q-011.
 
 ## Scope
-`src/pages/MainPage.svelte`; `src/pages/main/**`, the five panels and the five new ones; `src/lib/firestore.service.ts` and `src/lib/firestore.types.ts` for the four aggregating reads and their row types; `src/lib/catalog.ts` only if no read of the recent entries across kinds exists. Not `src/components/ui/**`, which 139 owns, not `src/components/ui/Shell.svelte`, which 143 redesigns, not `src/components/campaign/**`, not `firestore.rules`. The drawers and the bar stay and the page keeps its `nav`, `tools`, `menu` and `chat` snippets. Runs after 106, which carries the gothic language onto this page.
+`src/pages/MainPage.svelte`; `src/pages/main`, the five panels and the five new ones; `src/lib/firestore.service.ts` and `src/lib/firestore.types.ts` for the four aggregating reads and their row types; `src/lib/catalog.ts` only if no read of the recent entries across kinds exists. Not `src/components/ui/**`, which 139 owns, not `src/components/ui/Shell.svelte`, which 143 redesigns, not `src/components/campaign/**`, not `firestore.rules`. The drawers and the bar stay and the page keeps its `nav`, `tools`, `menu` and `chat` snippets. Runs after 106, which carries the gothic language onto this page.
 
 ## Order
 1. dndcs: read the images under `docs/inspiration/` for how a fantasy screen divides its ground before changing anything.
@@ -37,3 +38,14 @@ The user: the home screen needs to include and support all the new features and 
 `just gate` is clean. With a campaign carrying at least one map, npc, location and encounter and classes and races imported, the hearth shots the walk takes at 1280 and 1600 show the hero and all ten panels in the grid, no empty column, no horizontal scroll, each campaign row under its campaign's name and the catalog counts per kind. A campaign with none shows the empty states.
 
 ## Summary
+`src/lib/firestore.types.ts`: `CampaignChart`, `CampaignFigure`, `CampaignHaunt` and `CampaignFray` beside `CampaignChronicle` and `CampaignErrand`, each stamping `campaign_id` and `campaign_name` onto a map, npc, location or encounter.
+
+`src/lib/firestore.service.ts`: `getChartedMaps`, `getKnownNpcs`, `getKnownLocations` and `getRecentEncounters` on `campaignService`, each a `Promise.all` over the campaigns shaped like `getRecentSessions`, `count = 12`. Each drops what the party has not seen with the `campaign.dm_id === self || is_known` test the campaign components carry, `is_visible` for a map. Maps sort by title, encounters by `created_at` descending.
+
+`src/pages/main/MapsPanel.svelte`, `CastPanel.svelte`, `PlacesPanel.svelte`, `EncountersPanel.svelte` and `CatalogPanel.svelte`: new, each a `Panel` stacking `Card` rows, a row subtitled with its campaign and opening `/campaign/:id`. An encounter row carries its combatant count and round, a map row its pins and layers, a cast row its part, a place row its kind and whether it is found. `CatalogPanel` takes the two kinds from `$lib/catalog`, carries the search input `CampaignsPanel` has and no import action, tallies `{n} classes, {n} races`, draws `getCatalogFacts` on each row and opens `/sources/:kind/:id`. Every empty state is a `.dnd-empty` line in the hearth's voice.
+
+`src/pages/MainPage.svelte`: `.hall-rails` is gone. `.hall-grid` is six tracks of `minmax(min(var(--hall-col), 100%), 1fr)` over five rows named `hero`, then `roll camps`, `chron quests`, `party maps cast`, `places fights shelf`; Characters and Campaigns span three tracks on the tall row, the rest two. Each panel sits in a `.hall-plot` cell that carries the area and `min-width: 0`. Under 1200px the areas drop and the tracks become `repeat(auto-fit, ...)` with the hero across the full width. The `Promise.all` in `onMount` now carries the four campaign reads and `getCatalog` for both kinds beside the three it had.
+
+Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` into `src/pages/main/`, and `lcp_gate.sh` matches `"$s"|"$s"/*`, so a trailing slash never matches a file under it and every `Write` into the folder was denied. The `## Scope` line now reads `src/pages/main`, same set of files. Any task scoped with `/**` hits this.
+
+`just gate` was not run: the tester owns it. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
