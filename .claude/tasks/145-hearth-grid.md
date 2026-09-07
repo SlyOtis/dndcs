@@ -5,7 +5,7 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: review
+status: failed
 blocked_from: draft
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [a51974329a0f6713779f6b1072680012c6283176]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T09:18:49Z
+updated_at: 2026-09-07T09:39:42Z
 questions: [q-011]
 images: []
 agent: af4354b045527bd4f
@@ -49,3 +49,9 @@ The user: the home screen needs to include and support all the new features and 
 Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` into `src/pages/main/`, and `lcp_gate.sh` matches `"$s"|"$s"/*`, so a trailing slash never matches a file under it and every `Write` into the folder was denied. The `## Scope` line now reads `src/pages/main`, same set of files. Any task scoped with `/**` hits this.
 
 `just gate` was not run: the tester owns it. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
+
+### Findings
+`CatalogPanel.svelte:39` tests `shelf.length === 0` but draws `shown`, so a search matching nothing leaves the tally over a blank body; test `shown.length === 0` as `CampaignsPanel` passes `count={shown.length}`.
+`CatalogPanel.svelte:51` reads `row.entry.image`, a field no `CatalogEntry` from `getCatalog` or `postCatalogReading` carries; drop the prop.
+`just walk` cannot run, so the hearth at 1280 and 1600 that `## Done when` names is unproved: test/145/20260907T093922Z-just-walk.md.
+`just gate` is clean: test/145/20260907T093914Z-just-gate.md.
