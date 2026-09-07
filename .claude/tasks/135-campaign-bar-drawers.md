@@ -5,7 +5,7 @@ depends: [105]
 relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [components]
 commits: [f247649a4b324a2def80d2335de7d42c73a4bc6f]
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-07T08:35:46Z
+updated_at: 2026-09-07T08:59:26Z
 questions: [q-009]
 images: []
 agent: a9104dffa8eefa0ec
@@ -44,3 +44,10 @@ Landed in `f247649` with the rest of the wave touching these files, the way q-00
 - `src/components/chat/Chat.svelte`: untouched; `getChatLog` in `src/lib/chat.ts` already scopes off `/campaign/:id`.
 
 `just check` 0 errors 0 warnings, `just build` passes with the pre-existing chunk size notice.
+
+### Findings
+
+1. `src/lib/chat.ts:333` rewrites the poll url to `replicate/predictions/...` with no leading slash, so on `/campaign/:id` it resolves to `/campaign/replicate/...`, misses the proxy, and `res.json()` parses index.html. A typed message never leaves "Thinking about it", never reaches the campaign log, and the console takes three SyntaxErrors. Make it `/replicate`. test/135/20260907T085915Z-campaign-chat-post.md
+2. Widen `## Scope` to `src/lib/chat.ts`, which `## Done when` reaches through the chat drawer.
+
+Handles, drawer, live encounter section and `/roll` into the campaign log all hold. `just gate` clean, test/135/20260907T085900Z-just-gate.md
