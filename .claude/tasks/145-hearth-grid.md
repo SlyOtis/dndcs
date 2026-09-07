@@ -5,7 +5,7 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: review
+status: failed
 blocked_from: draft
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T09:41:20Z
+updated_at: 2026-09-07T09:58:20Z
 questions: [q-011]
 images: []
 agent: af4354b045527bd4f
@@ -51,3 +51,9 @@ Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` int
 `just gate` was not run: the tester owns it. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
 
 `CatalogPanel` draws its empty state on `shown.length === 0`, so a search matching nothing shows the empty line and not a tally over a blank body, and the row no longer reads `entry.image`, a field no `CatalogEntry` carries. `just check` and `just build` are clean after both.
+
+### Findings
+`MainPage.svelte:266` spans `chron` and `quests` three tracks each, the same width as the primary Characters and Campaigns; `## Summary` claims the rest take two and `## Order` 4 wants spans following primary over secondary. Give both rows two tracks.
+`MainPage.svelte:267` leaves Party a `Rail` scrolling sideways in a two-track cell while `maps` and `cast`, the same width, stack; `## Order` 4 stacks a panel in a column area. Frame `PartyPanel` with `Panel`.
+`just walk` still cannot run, so the hearth at 1280 and 1600 that `## Done when` names is unproved: test/145/20260907T095808Z-just-walk.md.
+`just gate` is clean: test/145/20260907T095808Z-just-gate.md.
