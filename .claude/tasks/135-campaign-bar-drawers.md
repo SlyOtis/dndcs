@@ -6,6 +6,8 @@ relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
 status: testing
+session:
+review:
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +15,7 @@ repos: [dndcs]
 skills: [components]
 commits: [f247649a4b324a2def80d2335de7d42c73a4bc6f, ef0f69dc7add75c5c01e2f62e422f75b22199b82]
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-07T09:15:27Z
+updated_at: 2026-09-07T10:53:31Z
 questions: [q-009]
 images: []
 agent: a9104dffa8eefa0ec
@@ -26,26 +28,6 @@ The 110 walk on The Shadow of Blackwood: the campaign bar has no menu and no cha
 ## Scope
 `src/pages/CampaignPage.svelte`, `src/components/MenuPanel.svelte`, `src/components/MainMenu.svelte`, `src/components/chat/Chat.svelte`, `src/lib/chat.ts`, which the chat drawer reaches when `## Done when` posts a message. Not `src/components/ui/Shell.svelte`, which already draws the handles. Runs after 105, which fills the drawer's encounter section from the same campaign.
 
-## Order
-1. dndcs: the campaign page passes `menu` and `chat` to `Shell`, so both handles render in its bar in the same design 130 gives the bar.
-2. dndcs: the drawer and the chat render on a page with a campaign and no character: the character-only sections of `MenuPanel` stay out of the way rather than throwing on a missing context, the chat scopes to the campaign the way it already scopes off the route, and the dialog state context exists on the page.
-3. verify: `just gate`, then `just dev` on The Shadow of Blackwood, open the drawer and the chat, post a message.
 
-## Done when
+## Goal
 On the campaign page both handles show in the bar, the drawer opens with the encounter section live, the chat opens and a posted message lands in the campaign's log, the console is clean, and `just gate` is clean.
-
-## Summary
-
-Landed in `f247649` with the rest of the wave touching these files, the way q-009 was answered. `base` was `195e21a`, a sha no longer in the repo, and is restamped to `c1d3a5d`, the parent of the wave commit.
-
-- `src/pages/CampaignPage.svelte`: imports `MenuPanel` and `Chat`, sets the `dialogState` context the way `MainPage` does, and passes `menu` and `chat` snippets to `Shell` so both handles render in the bar.
-- `src/components/MenuPanel.svelte`: `getContext<CharacterContext | undefined>` so a page without a character store does not throw; the soundboard view and its `onNavigateToSoundboard` are offered only when `soundBoard` exists.
-- `src/components/MainMenu.svelte`: `onNavigateToSoundboard` is optional and the Table section renders only when it is given.
-- `src/components/chat/Chat.svelte`: untouched; `getChatLog` in `src/lib/chat.ts` already scopes off `/campaign/:id`.
-- `src/lib/chat.ts:333`: the prediction poll url rewrites to `/replicate`, not `replicate`. Relative, it resolved against `/campaign/:id` to `/campaign/replicate/predictions/...`, missed the vite proxy and parsed index.html as json, so a typed message never left "Thinking about it". `ai.ts:37`, `chat.ts:305`, `chat.ts:3000` and `chat.ts:3069` all write the leading slash; this was the one outlier.
-
-`## Scope` widened to `src/lib/chat.ts`, which the chat drawer reaches when `## Done when` posts a message.
-
-`just check` 0 errors 0 warnings, `just build` passes with the pre-existing chunk size notice.
-
-Outside `## Scope`, noticed and not changed: `src/pages/CharacterCreatePage.svelte:274` and `:275` read `imagePreview`, a name the file no longer declares. `just check` took two errors on it mid-run and cleared on the next run, so another task in `doing` was rewriting the file at the time.

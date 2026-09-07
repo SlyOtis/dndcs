@@ -401,49 +401,48 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
   } as ActionResponse
 }
 
+export async function rollFormula(formula: string): Promise<ActionResponse | undefined> {
+  const diceMatch = formula.trim().match(/(\d+)?d(\d+)(?:\s*([+-])\s*(\d+))?/);
+  if (!diceMatch) return undefined;
+
+  const amount = parseInt(diceMatch[1] || '1', 10);
+  const die = parseInt(diceMatch[2], 10);
+  const modifier = diceMatch[3] && diceMatch[4] ?
+    (diceMatch[3] === '+' ? parseInt(diceMatch[4], 10) : -parseInt(diceMatch[4], 10)) : 0;
+  const validDice = [4, 6, 8, 10, 12, 20, 100];
+  if (!validDice.includes(die) || amount <= 0 || amount > 20) return undefined;
+
+  const result = await rollDie(die, amount);
+  const total = result.sum + modifier;
+  const modifierText = modifier ? ` ${modifier > 0 ? '+' : ''}${modifier}` : '';
+
+  writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, `${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
+
+  return {
+    sentAt: new Date(),
+    returnedAt: new Date(),
+    explanation: `Direct /roll command: ${amount}d${die}${modifierText}`,
+    sources: [],
+    func: 'rollDie',
+    args: { die, amount, modifier }
+  } as ActionResponse;
+}
+
 export async function detectAction(query: string, modelId?: string) {
   // Simple pattern matching for only the most basic commands, everything else goes to AI
   const lowercaseQuery = query.toLowerCase().trim();
-  
+
   // Only keep the most direct commands, send everything else to AI for interpretation
   if (lowercaseQuery === 'level up' || lowercaseQuery === 'levelup') {
     console.log('Direct level up command detected');
     return await aiLevelUp({ explanation: 'Direct level up command', sources: [], func: 'levelUp', args: {} });
   }
-  
+
   // Direct /roll command bypass (doesn't go through AI)
   if (query.startsWith('/roll ')) {
-    const rollCommand = query.substring(6).trim(); // Remove '/roll '
-    const diceMatch = rollCommand.match(/(\d+)?d(\d+)(?:\s*([+-])\s*(\d+))?/);
-    
-    if (diceMatch) {
-      const amount = parseInt(diceMatch[1] || '1', 10);
-      const die = parseInt(diceMatch[2], 10);
-      const modifier = diceMatch[3] && diceMatch[4] ? 
-        (diceMatch[3] === '+' ? parseInt(diceMatch[4], 10) : -parseInt(diceMatch[4], 10)) : 0;
-      const validDice = [4, 6, 8, 10, 12, 20, 100];
-      
-      if (validDice.includes(die) && amount > 0 && amount <= 20) {
-        console.log(`Direct /roll command: ${amount}d${die}${modifier ? (modifier > 0 ? '+' + modifier : modifier) : ''}`);
-        
-        // Use the rollDie function directly and format the response
-        const result = await rollDie(die, amount);
-        const total = result.sum + modifier;
-        const modifierText = modifier ? ` ${modifier > 0 ? '+' : ''}${modifier}` : '';
-        
-        writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, `${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
-        
-        return {
-          sentAt: new Date(),
-          returnedAt: new Date(),
-          explanation: `Direct /roll command: ${amount}d${die}${modifierText}`,
-          sources: [],
-          func: 'rollDie',
-          args: { die, amount, modifier }
-        } as ActionResponse;
-      }
-    }
-    
+    const rolled = await rollFormula(query.substring(6));
+    if (rolled) return rolled;
+
     // If /roll command is malformed, still process through AI
     console.log('Malformed /roll command, sending to AI');
   }
