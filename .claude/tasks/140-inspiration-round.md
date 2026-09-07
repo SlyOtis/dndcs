@@ -5,15 +5,15 @@ depends: []
 relations: []
 title: A second reference set is gathered from fantasy UI online and its vocabulary written into the inspiration README
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: []
-commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236, 1f7677bc179e2403a583d5c6b24b0bcaa6e8eaa5]
+commits: [f530d570c701e4da712522fcb0964ae036794d4c, a00ec987b47c393a5e111fa9143521d61be28236, 1f7677bc179e2403a583d5c6b24b0bcaa6e8eaa5, eedcfeede62b9e24d24f8eb15f0c5c5259ed20ef]
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T08:32:16Z
+updated_at: 2026-09-07T08:33:35Z
 questions: [q-013]
 images: []
 agent: ad0522f10348db90a
@@ -24,7 +24,7 @@ base: a0d7a52d59080641cb36267c7df4899abc54abbe
 The first reference set, `docs/inspiration/1.png` through `11.png`, gave the language its first vocabulary. The user wants a second round found online: colouring, theming, texture, frames, complete screen layouts, a top bar, type treatment. Nothing is copied; an image is a reference to look at. q-013: the folder is images only and carries no README, and a reference that needs a source is replaced by a similar image found on the web that has one. This task runs `/lcp-worker solo`, because it needs `WebSearch` and `WebFetch`, which a worker agent does not hold.
 
 ## Scope
-`docs/inspiration`. No source.
+`docs/inspiration` and `test/sigils.spec.ts`, which reads the removed README. No other source.
 
 ## Order
 1. dndcs: search fantasy and dark fantasy game UI online, itch.io, ArtStation, Figma community, Behance, Dribbble and shipped RPG interfaces, for full screens as well as parts: frames with their corner anatomy, panel textures, bars and headers, typographic hierarchy, colour systems across several themes, meters, tabs, dialogs.
@@ -45,8 +45,6 @@ q-013 then answered that the folder carries no README at all and is images only,
 
 `base` `6961342` and `commits` `26b632a` were both dangling, the branch having been rewritten under the task. They are now `a0d7a52` and `f530d57`, the real first landing.
 
-Outside `## Scope`, noticed and not touched. `test/sigils.spec.ts:249` reads `docs/inspiration/README.md` and asserts on the `8.png` block; that test now reads a file that is not there and fails. Twelve task files name the README as required reading before work starts, 125, 127, 130, 131, 132, 133, 134, 145 and 139, and 141, 142 and 143 name the frame anatomy, type hierarchy and bar that 140 wrote into it as what they build from. The task `title` still says the vocabulary is written into the README.
+`test/sigils.spec.ts`: the `names the forged HUD as what Sigil carries` case read the removed README and failed ENOENT, 1 of 445 in `test/140/20260907T083152Z-just-gate.md`. It is gone and its `describe` is now `the sigils outside the bar`, holding the four call site cases that remain. `## Scope` was widened to the file first, or the gate would have refused the write. `read` is still used by those four. `just check` 88 files 0 errors 0 warnings, `just build` clean apart from the standing chunk size advisory.
 
-### Findings
-1. `test/sigils.spec.ts:249` reads the deleted `docs/inspiration/README.md`; `just gate` fails ENOENT, 1 of 445. Delete the `names the forged HUD as what Sigil carries` case and the `describe` line it needs. `test/140/20260907T083152Z-just-gate.md`.
-2. `## Scope` is `docs/inspiration`, `No source.`; widen it to `test/sigils.spec.ts` before fixing 1, or the gate refuses the write.
+Outside `## Scope`, noticed and not touched. Twelve task files name the README as required reading before work starts, 125, 127, 130, 131, 132, 133, 134, 145 and 139, and 141, 142 and 143 name the frame anatomy, type hierarchy and bar that 140 wrote into it as what they build from. The task `title` still says the vocabulary is written into the README.
