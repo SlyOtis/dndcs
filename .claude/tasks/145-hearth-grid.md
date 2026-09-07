@@ -5,15 +5,15 @@ depends: [106]
 relations: []
 title: The hearth is a grid of panels carrying every feature the app has
 type: task
-status: failed
+status: review
 blocked_from: draft
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
-commits: [a51974329a0f6713779f6b1072680012c6283176]
+commits: [a51974329a0f6713779f6b1072680012c6283176, 059fe25cbf8b7bad468a1c64dea917eb10710ddd]
 created_at: 2026-09-06T22:29:21Z
-updated_at: 2026-09-07T09:39:42Z
+updated_at: 2026-09-07T09:41:20Z
 questions: [q-011]
 images: []
 agent: af4354b045527bd4f
@@ -50,8 +50,4 @@ Noticed: `task.sh scope` turns a `## Scope` path written `src/pages/main/**` int
 
 `just gate` was not run: the tester owns it. `just check` is 93 files, 0 errors, 0 warnings, and `just build` is clean.
 
-### Findings
-`CatalogPanel.svelte:39` tests `shelf.length === 0` but draws `shown`, so a search matching nothing leaves the tally over a blank body; test `shown.length === 0` as `CampaignsPanel` passes `count={shown.length}`.
-`CatalogPanel.svelte:51` reads `row.entry.image`, a field no `CatalogEntry` from `getCatalog` or `postCatalogReading` carries; drop the prop.
-`just walk` cannot run, so the hearth at 1280 and 1600 that `## Done when` names is unproved: test/145/20260907T093922Z-just-walk.md.
-`just gate` is clean: test/145/20260907T093914Z-just-gate.md.
+`CatalogPanel` draws its empty state on `shown.length === 0`, so a search matching nothing shows the empty line and not a tally over a blank body, and the row no longer reads `entry.image`, a field no `CatalogEntry` carries. `just check` and `just build` are clean after both.
