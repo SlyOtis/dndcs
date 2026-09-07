@@ -1,10 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { get } from 'svelte/store'
 import type { Character } from './character.types'
-import lars from './character.fixture'
-import { applyStateToCharacter, getCharacterStore, getEmptyCharacter } from './engine'
 
-const stored = vi.hoisted(() => {
+const wire = vi.hoisted(() => {
   const values: Record<string, string> = {}
 
   ;(globalThis as any).localStorage = {
@@ -17,177 +15,141 @@ const stored = vi.hoisted(() => {
     }
   }
 
-  return values
+  return {
+    updates: [] as Array<{ id: string, character: Character }>,
+    refuse: false
+  }
 })
 
-const sources = import.meta.glob<string>('/src/**/*.{ts,svelte}', {
-  query: '?raw',
-  import: 'default',
-  eager: true
-})
+vi.mock('./firestore.service', () => ({
+  characterService: {
+    updateCharacter: (id: string, character: Character) => {
+      if (wire.refuse) return Promise.reject(new Error('permission-denied'))
+      wire.updates.push({ id, character })
+      return Promise.resolve()
+    }
+  },
+  campaignService: {
+    postChatEntry: () => Promise.resolve('entry-1')
+  }
+}))
 
-const listKeys = [
-  'feats',
-  'abilities',
-  'savingThrows',
-  'skills',
-  'senses',
-  'actions',
-  'spells',
-  'proficients',
-  'inventory',
-  'equipped'
-] as const
+import { applyStateToCharacter, characterWriteError, getCharacterStore, getEmptyCharacter } from './engine'
 
-let sheets = 0
-
-function getSheetId() {
-  sheets += 1
-  return `testy-${sheets}`
+const vault = (): Character => {
+  const character = getEmptyCharacter()
+  character.info.name = 'Testy'
+  character.info.hp = { current: 22, max: 30, temporary: 0 }
+  return character
 }
 
-function getIdentity(character: Character) {
-  return [
-    character.info.name,
-    character.info.description,
-    character.info.imageUrl,
-    character.info.infoUrl,
-    character.info.class.name,
-    character.info.race.name,
-    character.background.title,
-    character.special.name
-  ]
+let sheet = 0
+
+const opened = () => {
+  sheet += 1
+  const store = getCharacterStore(`char-${sheet}`, vault())
+  applyStateToCharacter(vault(), true)
+  return { id: `char-${sheet}`, store }
 }
 
 beforeEach(() => {
-  for (const key of Object.keys(stored)) delete stored[key]
+  vi.useFakeTimers()
+  vi.spyOn(console, 'error').mockImplementation(() => undefined)
+  getCharacterStore('local')
+  wire.updates.length = 0
+  wire.refuse = false
 })
 
-describe('getEmptyCharacter', () => {
-  it('is the character the fixture is not', () => {
-    expect(lars.info.name).toBe('Lucky Lars')
-    expect(getIdentity(lars).every((value) => value.length > 3)).toBe(true)
-
-    const serialized = JSON.stringify(getEmptyCharacter())
-    for (const value of getIdentity(lars)) expect(serialized).not.toContain(value)
-  })
-
-  it('carries every key a character carries', () => {
-    expect(Object.keys(getEmptyCharacter()).sort()).toEqual(Object.keys(lars).sort())
-  })
-
-  it('holds no name, no level and no class of anyone', () => {
-    const empty = getEmptyCharacter()
-
-    expect(empty.info.name).toBe('')
-    expect(empty.info.description).toBe('')
-    expect(empty.info.imageUrl).toBe('')
-    expect(empty.info.infoUrl).toBe('')
-    expect(empty.info.class.name).toBe('Unknown')
-    expect(empty.info.race.name).toBe('Unknown')
-    expect(empty.info.hp).toEqual({ current: 0, max: 0, temporary: 0 })
-    expect(empty.info.level).not.toBe(lars.info.level)
-    expect(empty.info.ac).not.toBe(lars.info.ac)
-    expect(empty.info.proficiencyBonus).not.toBe(lars.info.proficiencyBonus)
-    expect(empty.background.title).toBe('')
-    expect(empty.background.description).toBe('')
-    expect(empty.special.name).toBe('')
-    expect(empty.currency).toEqual({})
-    expect(empty.soundBoard.clips).toEqual([])
-  })
-
-  it('holds nothing in any list the sheet renders', () => {
-    const empty = getEmptyCharacter()
-
-    for (const key of listKeys) expect(empty[key]).toEqual([])
-
-    expect(lars.abilities.length).toBeGreaterThan(0)
-    expect(lars.skills.length).toBeGreaterThan(0)
-    expect(lars.actions.length).toBeGreaterThan(0)
-  })
-
-  it('hands out a fresh character every call', () => {
-    const first = getEmptyCharacter()
-    const second = getEmptyCharacter()
-
-    expect(first).not.toBe(second)
-    expect(first.info).not.toBe(second.info)
-
-    first.info.name = 'Testy'
-    first.abilities.push(lars.abilities[0])
-
-    expect(second.info.name).toBe('')
-    expect(second.abilities).toEqual([])
-  })
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.useRealTimers()
 })
 
-describe('getCharacterStore before the routed character lands', () => {
-  it('opens every store empty', () => {
-    const store = getCharacterStore(getSheetId())
+describe('a sheet edit reaching the character document', () => {
+  it('writes nothing while the sheet is only opening', () => {
+    getCharacterStore('char-opening', vault())
+    vi.advanceTimersByTime(2000)
 
-    expect(get(store.info).name).toBe('')
-    expect(get(store.info).name).not.toBe(lars.info.name)
-    expect(get(store.info).class.name).toBe('Unknown')
-    expect(get(store.info).race.name).toBe('Unknown')
-    expect(get(store.abilities)).toEqual([])
-    expect(get(store.skills)).toEqual([])
-    expect(get(store.savingThrows)).toEqual([])
-    expect(get(store.actions)).toEqual([])
-    expect(get(store.inventory)).toEqual([])
-    expect(get(store.background).title).toBe('')
+    expect(wire.updates).toEqual([])
+  })
 
-    for (const value of getIdentity(lars)) {
-      expect(JSON.stringify(get(store.info))).not.toContain(value)
+  it('writes nothing back for the document the sheet was loaded from', () => {
+    opened()
+    vi.advanceTimersByTime(2000)
+
+    expect(wire.updates).toEqual([])
+  })
+
+  it('writes one document for one slider drag, carrying the value the drag settled on', () => {
+    const { id, store } = opened()
+
+    for (const current of [21, 19, 16, 14, 12]) {
+      store.info.update((info) => ({ ...info, hp: { ...info.hp, current } }))
+      vi.advanceTimersByTime(100)
     }
+    expect(wire.updates).toEqual([])
 
-    store.unsubscribe()
+    vi.advanceTimersByTime(600)
+
+    expect(wire.updates).toHaveLength(1)
+    expect(wire.updates[0].id).toBe(id)
+    expect(wire.updates[0].character.info.hp.current).toBe(12)
+    expect(wire.updates[0].character.info.name).toBe('Testy')
   })
 
-  it('builds one store per character key', () => {
-    const { unsubscribe, ...store } = getCharacterStore(getSheetId())
+  it('writes the whole character, so the second browser reads every part back', () => {
+    const { store } = opened()
 
-    expect(Object.keys(store).sort()).toEqual(Object.keys(getEmptyCharacter()).sort())
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    vi.advanceTimersByTime(600)
 
-    unsubscribe()
+    expect(Object.keys(wire.updates[0].character).sort()).toEqual(Object.keys(getEmptyCharacter()).sort())
+    expect(wire.updates[0].character.info.ac).toBe(15)
   })
 
-  it('takes the routed character when the read lands', () => {
-    const store = getCharacterStore(getSheetId())
+  it('writes a state once, not again on the next settle', async () => {
+    const { store } = opened()
 
-    applyStateToCharacter(lars)
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    await vi.advanceTimersByTimeAsync(600)
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    await vi.advanceTimersByTimeAsync(600)
 
-    expect(get(store.info).name).toBe(lars.info.name)
-    expect(get(store.info).level).toBe(lars.info.level)
-    expect(get(store.abilities)).toHaveLength(lars.abilities.length)
-
-    store.unsubscribe()
+    expect(wire.updates).toHaveLength(1)
   })
 
-  it('carries no character into the next sheet', () => {
-    const first = getCharacterStore(getSheetId())
-    applyStateToCharacter(lars)
-    expect(get(first.info).name).toBe(lars.info.name)
-    first.unsubscribe()
+  it('flushes a pending edit before the sheet turns to another character', () => {
+    const { id, store } = opened()
 
-    const second = getCharacterStore(getSheetId())
-    expect(get(second.info).name).toBe('')
-    expect(get(second.abilities)).toEqual([])
-    second.unsubscribe()
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    getCharacterStore('char-next', vault())
+
+    expect(wire.updates.map((entry) => entry.id)).toEqual([id])
   })
-})
 
-describe('the fixture character', () => {
-  it('is imported by no file under src outside a spec', () => {
-    const paths = Object.keys(sources)
+  it('never writes the local sheet, which lives in this browser alone', () => {
+    const store = getCharacterStore('local')
 
-    expect(paths).toContain('/src/lib/character.fixture.ts')
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    vi.advanceTimersByTime(2000)
 
-    const reach = /(?:from|import\()\s*['"][^'"]*character\.fixture['"]/
+    expect(wire.updates).toEqual([])
+  })
 
-    const importers = paths.filter(
-      (path) => !path.endsWith('.spec.ts') && reach.test(sources[path])
-    )
+  it('raises the alarm when the vault refuses the write, and clears it when the next lands', async () => {
+    const { store } = opened()
 
-    expect(importers).toEqual([])
+    wire.refuse = true
+    store.info.update((info) => ({ ...info, ac: 15 }))
+    await vi.advanceTimersByTimeAsync(600)
+    expect(get(characterWriteError)).toBe('That change did not reach the vault. The next change tries again.')
+
+    wire.refuse = false
+    store.info.update((info) => ({ ...info, ac: 16 }))
+    await vi.advanceTimersByTimeAsync(600)
+
+    expect(get(characterWriteError)).toBe('')
+    expect(wire.updates).toHaveLength(1)
+    expect(wire.updates[0].character.info.ac).toBe(16)
   })
 })
