@@ -5,15 +5,15 @@ depends: [105]
 relations: [130]
 title: The campaign bar carries the menu and chat toggles so the navigator and chat open on the campaign page
 type: task
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [components]
-commits: [f247649a4b324a2def80d2335de7d42c73a4bc6f]
+commits: [f247649a4b324a2def80d2335de7d42c73a4bc6f, ef0f69dc7add75c5c01e2f62e422f75b22199b82]
 created_at: 2026-09-06T19:47:50Z
-updated_at: 2026-09-07T08:59:26Z
+updated_at: 2026-09-07T09:07:06Z
 questions: [q-009]
 images: []
 agent: a9104dffa8eefa0ec
@@ -24,7 +24,7 @@ base: c1d3a5d5830a435e42e4c0ee3888ae9f10f83e87
 The 110 walk on The Shadow of Blackwood: the campaign bar has no menu and no chat toggle, so the navigator drawer never opens on the page meant to fill it. `Shell` renders a handle only when a page passes the `menu` or `chat` snippet, and `CampaignPage.svelte` passes `nav` alone. `CharacterPage` passes `MenuPanel` and `Chat`, but `MenuPanel` reads `getContext('character')` and `Chat` reads the `dialogState` context, neither of which the campaign page provides.
 
 ## Scope
-`src/pages/CampaignPage.svelte`, `src/components/MenuPanel.svelte`, `src/components/MainMenu.svelte`, `src/components/chat/Chat.svelte`. Not `src/components/ui/Shell.svelte`, which already draws the handles. Runs after 105, which fills the drawer's encounter section from the same campaign.
+`src/pages/CampaignPage.svelte`, `src/components/MenuPanel.svelte`, `src/components/MainMenu.svelte`, `src/components/chat/Chat.svelte`, `src/lib/chat.ts`, which the chat drawer reaches when `## Done when` posts a message. Not `src/components/ui/Shell.svelte`, which already draws the handles. Runs after 105, which fills the drawer's encounter section from the same campaign.
 
 ## Order
 1. dndcs: the campaign page passes `menu` and `chat` to `Shell`, so both handles render in its bar in the same design 130 gives the bar.
@@ -42,12 +42,10 @@ Landed in `f247649` with the rest of the wave touching these files, the way q-00
 - `src/components/MenuPanel.svelte`: `getContext<CharacterContext | undefined>` so a page without a character store does not throw; the soundboard view and its `onNavigateToSoundboard` are offered only when `soundBoard` exists.
 - `src/components/MainMenu.svelte`: `onNavigateToSoundboard` is optional and the Table section renders only when it is given.
 - `src/components/chat/Chat.svelte`: untouched; `getChatLog` in `src/lib/chat.ts` already scopes off `/campaign/:id`.
+- `src/lib/chat.ts:333`: the prediction poll url rewrites to `/replicate`, not `replicate`. Relative, it resolved against `/campaign/:id` to `/campaign/replicate/predictions/...`, missed the vite proxy and parsed index.html as json, so a typed message never left "Thinking about it". `ai.ts:37`, `chat.ts:305`, `chat.ts:3000` and `chat.ts:3069` all write the leading slash; this was the one outlier.
+
+`## Scope` widened to `src/lib/chat.ts`, which the chat drawer reaches when `## Done when` posts a message.
 
 `just check` 0 errors 0 warnings, `just build` passes with the pre-existing chunk size notice.
 
-### Findings
-
-1. `src/lib/chat.ts:333` rewrites the poll url to `replicate/predictions/...` with no leading slash, so on `/campaign/:id` it resolves to `/campaign/replicate/...`, misses the proxy, and `res.json()` parses index.html. A typed message never leaves "Thinking about it", never reaches the campaign log, and the console takes three SyntaxErrors. Make it `/replicate`. test/135/20260907T085915Z-campaign-chat-post.md
-2. Widen `## Scope` to `src/lib/chat.ts`, which `## Done when` reaches through the chat drawer.
-
-Handles, drawer, live encounter section and `/roll` into the campaign log all hold. `just gate` clean, test/135/20260907T085900Z-just-gate.md
+Outside `## Scope`, noticed and not changed: `src/pages/CharacterCreatePage.svelte:274` and `:275` read `imagePreview`, a name the file no longer declares. `just check` took two errors on it mid-run and cleared on the next run, so another task in `doing` was rewriting the file at the time.
