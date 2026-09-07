@@ -4,7 +4,7 @@ import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo} from
 import { addChangeLogEntry, createStateSnapshot, type ChangeAction } from "./changelog";
 import { user, userProfile } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
-import { campaignService } from "./firestore.service";
+import { campaignService, characterService } from "./firestore.service";
 import type { CampaignChatEntry } from "./firestore.types";
 
 const rollStore = writable<RollLog>(JSON.parse(localStorage.getItem('roll_log') || '[]'))
@@ -476,8 +476,14 @@ export function getEmptyCharacter(): Character {
   }
 }
 
+const characterWriteDelay = 600;
+
+export const characterWriteError = writable('');
+
 let characterStoreInstance: CharacterStore | null = null;
 let characterStoreId: string | null = null;
+let characterWriteTimer: ReturnType<typeof setTimeout> | undefined;
+let characterWritten = '';
 
 // Helper function to update character store with change tracking
 export function updateCharacterWithChangeLog<K extends keyof Character>(
@@ -525,8 +531,41 @@ export function updateCharacterWithChangeLog<K extends keyof Character>(
   });
 }
 
+function getCharacterState(store: CharacterStore): Character {
+  const {unsubscribe, ...rest} = store;
+
+  return Object.entries(rest).reduce(
+    (prev, [key, value]) => ({...prev, [key]: get(value as Writable<unknown>)}),
+    {} as Character
+  );
+}
+
+function putCharacter() {
+  clearTimeout(characterWriteTimer);
+  characterWriteTimer = undefined;
+
+  const id = characterStoreId;
+  if (!characterStoreInstance || !id || !characterWritten) return;
+
+  const character = getCharacterState(characterStoreInstance);
+  const written = JSON.stringify(character);
+  if (written === characterWritten) return;
+
+  characterService.updateCharacter(id, character)
+    .then(() => {
+      if (characterStoreId !== id) return;
+      characterWritten = written;
+      characterWriteError.set('');
+    })
+    .catch(error => {
+      console.error('Character did not save:', error);
+      if (characterStoreId !== id) return;
+      characterWriteError.set('That change did not reach the vault. The next change tries again.');
+    });
+}
+
 // Helper function to apply state changes to character (for undo/redo)
-export function applyStateToCharacter(partialState: Partial<Character>) {
+export function applyStateToCharacter(partialState: Partial<Character>, fromDocument = false) {
   const store = characterStoreInstance ?? getCharacterStore();
 
   Object.entries(partialState).forEach(([key, value]) => {
@@ -535,6 +574,13 @@ export function applyStateToCharacter(partialState: Partial<Character>) {
       (store[propertyKey] as any).set(value);
     }
   });
+
+  if (!fromDocument) return;
+
+  clearTimeout(characterWriteTimer);
+  characterWriteTimer = undefined;
+  characterWritten = JSON.stringify(getCharacterState(store));
+  characterWriteError.set('');
 }
 
 // Inject the state application function into global scope for changelog
@@ -546,8 +592,11 @@ export function getCharacterStore(id: string = 'local', character: Character = g
   }
 
   if (characterStoreInstance) {
+    if (characterWriteTimer) putCharacter();
     characterStoreInstance.unsubscribe();
     characterStoreInstance = null;
+    characterWritten = '';
+    characterWriteError.set('');
   }
 
   const prefix = `ch_${id}_`
@@ -574,6 +623,11 @@ export function getCharacterStore(id: string = 'local', character: Character = g
 
     const unsubscribe = propStore.subscribe(state => {
       localStorage.setItem(prefix + curr, JSON.stringify(state))
+
+      if (id === 'local') return
+
+      clearTimeout(characterWriteTimer)
+      characterWriteTimer = setTimeout(putCharacter, characterWriteDelay)
     })
 
     return {

@@ -19,7 +19,7 @@
   import ActionsTab from "$character-sheet/main_tabs/ActionsTab.svelte";
   import Special from "$character-sheet/Special.svelte";
   import Background from "$components/Background.svelte";
-  import { applyStateToCharacter, getCharacterStore } from "$lib/engine";
+  import { applyStateToCharacter, characterWriteError, getCharacterStore } from "$lib/engine";
   import { characterService } from "$lib/firestore.service";
   import { getRulesStore } from "$lib/rules/store";
   import { setContext, onDestroy, onMount, untrack } from "svelte";
@@ -65,7 +65,7 @@
 
     characterService.getCharacter(characterId)
       .then((document) => {
-        if (document?.character) applyStateToCharacter(document.character);
+        if (document?.character) applyStateToCharacter(document.character, true);
         else missing = true;
       })
       .catch(() => (missing = true))
@@ -160,6 +160,10 @@
       </span>
     </header>
 
+    {#if $characterWriteError}
+      <p class="sheet-alarm" role="alert">{$characterWriteError}</p>
+    {/if}
+
     <div class="sheet-grid">
       <div class="sheet-column">
         <Abilities/>
@@ -230,6 +234,16 @@
     margin: 0;
     font-size: var(--text-sm);
     color: var(--ink-dim);
+  }
+
+  .sheet-alarm {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    font-size: var(--text-sm);
+    color: var(--ink);
   }
 
   .sheet-crown {
