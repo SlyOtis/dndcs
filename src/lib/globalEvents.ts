@@ -1,12 +1,14 @@
 import { get } from 'svelte/store';
 import { sidebarStore } from './navigation';
 import { uiStore } from './stores/ui.store';
+import { isAuthenticated } from './stores/auth.store';
 
 export function handleGlobalKeydown(event: KeyboardEvent) {
   const command = event.ctrlKey || event.metaKey;
   const key = event.key.toLowerCase();
 
   if (command && key === 'k') {
+    if (!get(isAuthenticated)) return;
     event.preventDefault();
     uiStore.toggleSearchDialog();
     return;
