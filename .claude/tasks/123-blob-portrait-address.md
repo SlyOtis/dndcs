@@ -5,7 +5,7 @@ depends: []
 relations: [144]
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
-status: review
+status: failed
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +13,7 @@ repos: [dndcs]
 skills: [data, components]
 commits: [f8e0537fc777fe8ab71c1344bb42f066cd3050d3, 6f2697858bc510f80a7ad408562e0e6268d3f54a, fdf2a35c77584f416b59778887d4b1eea68df6a8]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-07T08:50:53Z
+updated_at: 2026-09-07T08:56:51Z
 questions: [q-008]
 base: 0841be945ad7c5f1fa74c8114956919207319def
 agent: a072995e85f270246
@@ -45,9 +45,5 @@ No character can be saved with a `blob:` `imageUrl`, the hearth and the sheet lo
 `just check` 0 errors 0 warnings; `just build` passes with the pre-existing chunk size note.
 
 ### Findings
-- `base` and `commits` were unreachable shas when this was picked up again; history was rewritten under the task. `base` is now `0841be9` and the two commits are `f8e0537` and `6f26978`, the same work at its current shas.
-- `## Scope` gained `src/lib/firestore.service.ts`, the file q-008's answer names.
-- `task.sh land` found nothing to land: a concurrent `Update the board` commit, `fdf2a35`, had already swept `src/lib/firestore.service.ts` in. That sha is stamped as the third commit and the diff in it is this change alone.
-- No live path writes a `blob:` since f5fcdd6: `CharacterCreatePage` sets `creationData.imageUrl = await postFile(file, { kind: 'user' })` and `CharacterRacePage` carries it into `createCharacter`.
-- `subscribeToCharacter` and `getCharacterDetails` do not scrub; the answer named the two reads and the render side already draws the fallback for a dead address.
-- `src/lib/characterInfo.ts` and `src/components/CharacterInfo.svelte` are imported by nothing; `characterUtils.getCharacterImage` and `/default-character.png` are dead. `src/components/CharacterInfoPanel.svelte` is unmounted and holds a bare `<img src>`.
+- `src/pages/CharacterCreatePage.svelte:184` sets `imagePreview = URL.createObjectURL(file)` and line 277 draws it through `Portrait`. `isDeadFile` now blanks every `blob:`, so a just picked portrait shows the initial letter instead of the picture. Drive the preview off the `file:` address `postFile` returns at line 188 and drop `imagePreview`.
+- `just gate` clean, `test/123/20260907T085634Z-just-gate.md`.
