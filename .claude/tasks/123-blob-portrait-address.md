@@ -5,15 +5,15 @@ depends: []
 relations: [144]
 title: A blob: portrait address is never persisted and an existing one renders as missing without a console error
 type: bug
-status: failed
+status: review
 blocked_from: doing
 github:
 assignee: Martin Ottersland
 repos: [dndcs]
 skills: [data, components]
-commits: [f8e0537fc777fe8ab71c1344bb42f066cd3050d3, 6f2697858bc510f80a7ad408562e0e6268d3f54a, fdf2a35c77584f416b59778887d4b1eea68df6a8]
+commits: [f8e0537fc777fe8ab71c1344bb42f066cd3050d3, 6f2697858bc510f80a7ad408562e0e6268d3f54a, fdf2a35c77584f416b59778887d4b1eea68df6a8, 507451a74a600c7e4c61d81e034581a2d415559d]
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-07T08:56:51Z
+updated_at: 2026-09-07T09:05:22Z
 questions: [q-008]
 base: 0841be945ad7c5f1fa74c8114956919207319def
 agent: a072995e85f270246
@@ -23,7 +23,7 @@ agent: a072995e85f270246
 The 110 walk: three characters carry `blob:http://localhost:5174/...` as `imageUrl` and every page that lists them logs a console error. `getFileUrl` in `src/lib/storage.service.ts` returns `URL.createObjectURL(...)` for a chunked, pulled or legacy file, an address that lives for one page in one browser, and somewhere that resolved address was written back onto the character instead of the file address it was resolved from.
 
 ## Scope
-`src/lib/storage.service.ts`, `src/lib/firestore.service.ts`, `src/lib/characterInfo.ts`, `src/components/CharacterInfo.svelte`, `src/components/ui/StoredImage.svelte`, `src/components/ui/Portrait.svelte`. Not `firestore.rules`. `src/lib/firestore.service.ts` is here because q-008 answers that the scrub and the `updateDoc` that drops the address live in `getCharacter` and `getUserCharacters`.
+`src/lib/storage.service.ts`, `src/lib/firestore.service.ts`, `src/lib/characterInfo.ts`, `src/components/CharacterInfo.svelte`, `src/components/ui/StoredImage.svelte`, `src/components/ui/Portrait.svelte`. `src/pages/CharacterCreatePage.svelte`. Not `firestore.rules`. `src/lib/firestore.service.ts` is here because q-008 answers that the scrub and the `updateDoc` that drops the address live in `getCharacter` and `getUserCharacters`; `src/pages/CharacterCreatePage.svelte` is here because the review found its `blob:` preview is what `isDeadFile` blanks.
 
 ## Order
 1. dndcs: find the write that persists a `blob:` address as `imageUrl` and make it persist the file address, `chunks:`, hosted or `local:`, that `getFileUrl` resolves at render.
@@ -42,8 +42,6 @@ No character can be saved with a `blob:` `imageUrl`, the hearth and the sheet lo
 
 `src/lib/firestore.service.ts`: q-008 answers Order 2. `deleteDeadPortrait(document)` sits beside `getCharacterStatus`, imports `isDeadFile` from `./storage.service`, blanks `document.character.info.imageUrl` on the object it returns and fires `updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), { 'character.info.imageUrl': '' })` with the same detached `.catch(() => undefined)` the status rewrite in `getUserCharacters` already uses. `getCharacter` calls it on the document it resolves, `getUserCharacters` on every document in the loop, so a first read renders correctly and cleans the three live documents once.
 
-`just check` 0 errors 0 warnings; `just build` passes with the pre-existing chunk size note.
+`src/pages/CharacterCreatePage.svelte`: the review's defect. `imagePreview` and its `URL.createObjectURL(file)` are gone; `postPortrait` only awaits `postFile(file, { kind: 'user' })` into `creationData.imageUrl`, and the drop zone draws `<Portrait src={creationData.imageUrl}>`, so the preview is the `file:` address the character is created with and `StoredImage` resolves it. No `blob:` is made on the page any more.
 
-### Findings
-- `src/pages/CharacterCreatePage.svelte:184` sets `imagePreview = URL.createObjectURL(file)` and line 277 draws it through `Portrait`. `isDeadFile` now blanks every `blob:`, so a just picked portrait shows the initial letter instead of the picture. Drive the preview off the `file:` address `postFile` returns at line 188 and drop `imagePreview`.
-- `just gate` clean, `test/123/20260907T085634Z-just-gate.md`.
+`just check` 0 errors 0 warnings; `just build` passes with the pre-existing chunk size note.
