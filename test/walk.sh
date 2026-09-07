@@ -188,7 +188,29 @@ visit /main "$hearth" "the hearth"
 if [ "$(js "$campaign_card !== null")" = "true" ]; then
   js "$campaign_card.click() ?? null" >/dev/null
   wait_for "location.pathname.startsWith('/campaign/')" "a campaign"
-  visit "$(js "location.pathname")" "document.querySelector('.dnd-shell-mark') !== null && document.querySelector('.dnd-loading') === null" "the campaign" && check_page bar
+  if visit "$(js "location.pathname")" "document.querySelector('.dnd-shell-mark') !== null && document.querySelector('.dnd-loading') === null" "the campaign"; then
+    campaign_page="$page"
+    page="campaign drawers"
+    pw click "getByTitle('Toggle the menu')" >/dev/null
+    wait_for "document.querySelector('.dnd-shell-menu-open .dnd-shell-aside-menu') !== null" "the navigator drawer on the campaign"
+    wait_for "[...document.querySelectorAll('.dnd-shell-aside-menu .dnd-menu-section')].some((e) => /Encounter tracker/.test(e.textContent))" "the encounter section in the campaign drawer"
+    pw click "getByTitle('Toggle the menu')" >/dev/null
+    wait_for "document.querySelector('.dnd-shell-menu-open') === null" "the navigator drawer to close"
+    pw click "getByTitle('Toggle the chat')" >/dev/null
+    wait_for "document.querySelector('.dnd-shell-chat-open .dnd-shell-aside-chat textarea') !== null" "the chat composer on the campaign"
+    rolls="document.querySelectorAll('.dnd-shell-aside-chat li.roll').length"
+    before="$(js "$rolls")"
+    pw fill ".dnd-shell-aside-chat textarea" "/roll 1d20" >/dev/null
+    pw press Enter >/dev/null
+    if wait_for "$rolls > $before" "the roll to show in the campaign chat"; then
+      logged="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); const held = await campaignService.getChatEntries('$campaign_id'); return String(held.filter((e) => e.kind === 'roll' && e.formula === '1d20').length) })()")"
+      [ "${logged:-0}" -gt 0 ] || fail "the roll shows in the chat but the campaign log holds no 1d20 roll entry"
+    fi
+    pw click "getByTitle('Toggle the chat')" >/dev/null
+    wait_for "document.querySelector('.dnd-shell-chat-open') === null" "the chat drawer to close"
+    page="$campaign_page"
+    check_page bar
+  fi
 else
   fail "no campaign on the hearth"
 fi
