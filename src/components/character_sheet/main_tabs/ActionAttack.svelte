@@ -4,6 +4,7 @@
   import {rollAttack, rollDamage, rollAttackWithAmmo, rollDamageWithAmmo} from "$lib/engine";
   import {getContext} from "svelte";
   import type {CharacterContext} from "$lib/types";
+  import Button from "$components/ui/Button.svelte";
 
   let {action}: { action: CharacterAction } = $props()
 
@@ -88,6 +89,26 @@
     return die
   }
 
+  async function rollToHit() {
+    window.dispatchEvent(new CustomEvent('playButtonClick'))
+    if (isRanged && equippedAmmo) {
+      await rollAttackWithAmmo(action.name, action.toHit || 0, equippedAmmo.id)
+    } else {
+      await rollAttack(action.name, action.toHit || 0)
+    }
+  }
+
+  async function rollAttackDamage() {
+    const damage = action.damage?.[0]
+    if (!damage) return
+    window.dispatchEvent(new CustomEvent('playButtonClick'))
+    if (isRanged && equippedAmmo) {
+      await rollDamageWithAmmo(action.name, damage.dice, damage.amount, damage.bonus, equippedAmmo.id)
+    } else {
+      await rollDamage(action.name, damage.dice, damage.amount, damage.bonus)
+    }
+  }
+
 </script>
 
 <li>
@@ -107,52 +128,31 @@
         {/if}
     </div>
     <div class="hit">
-        <button class="dnd-plate dnd-plate-chamfer" 
-                class:disabled={buttonsDisabled}
-                disabled={buttonsDisabled}
-                onclick={e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (buttonsDisabled) return;
-                    const button = e.target as HTMLButtonElement;
-                    button.classList.add('pressed');
-                    setTimeout(() => button.classList.remove('pressed'), 150);
-                    if (isRanged && equippedAmmo) {
-                        rollAttackWithAmmo(action.name, action.toHit || 0, equippedAmmo.id)
-                    } else {
-                        rollAttack(action.name, action.toHit || 0)
-                    }
-                }}>
-            <span class="button-content">+{action.toHit || 0}</span>
-            <div class="button-ornament"></div>
-        </button>
+        <Button
+            variant="secondary"
+            size="sm"
+            fill
+            disabled={buttonsDisabled}
+            title="Roll {action.name} to hit"
+            onclick={rollToHit}
+        >
+            +{action.toHit || 0}
+        </Button>
         {#if isRanged && buttonsDisabled}
             <span class="ammo-warning">No ammo!</span>
         {/if}
     </div>
     <div class="attack">
-        <button class="dnd-plate dnd-plate-chamfer" 
-                class:disabled={buttonsDisabled}
-                disabled={buttonsDisabled}
-                onclick={e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (buttonsDisabled) return;
-                    const button = e.target as HTMLButtonElement;
-                    button.classList.add('pressed');
-                    setTimeout(() => button.classList.remove('pressed'), 150);
-                    const damage = action.damage?.[0]
-                    if (damage) {
-                        if (isRanged && equippedAmmo) {
-                            rollDamageWithAmmo(action.name, damage.dice, damage.amount, damage.bonus, equippedAmmo.id)
-                        } else {
-                            rollDamage(action.name, damage.dice, damage.amount, damage.bonus)
-                        }
-                    }
-                }}>
-            <span class="button-content">{action.damage?.[0] ? renderDamage(action.damage[0]) : 'No damage'}</span>
-            <div class="button-ornament"></div>
-        </button>
+        <Button
+            variant="secondary"
+            size="sm"
+            fill
+            disabled={buttonsDisabled || !action.damage?.[0]}
+            title="Roll {action.name} damage"
+            onclick={rollAttackDamage}
+        >
+            {action.damage?.[0] ? renderDamage(action.damage[0]) : 'No damage'}
+        </Button>
         {#if isRanged && buttonsDisabled}
             <span class="ammo-warning">No ammo!</span>
         {/if}
@@ -193,53 +193,6 @@
 
     .range {
         white-space: nowrap;
-    }
-
-    button {
-        position: relative;
-        justify-content: center;
-        align-items: center;
-        color: var(--ink);
-        cursor: pointer;
-        outline: none;
-        width: 100%;
-        height: 100%;
-    }
-    
-    
-    
-    
-    .button-ornament {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-        background: 
-            radial-gradient(ellipse at center, 
-                color-mix(in srgb, var(--metal) 10%, transparent) 0%, 
-                transparent 60%),
-            conic-gradient(from 0deg at center,
-                transparent 0deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 45deg,
-                transparent 90deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 135deg,
-                transparent 180deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 225deg,
-                transparent 270deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 315deg,
-                transparent 360deg);
-        pointer-events: none;
-        opacity: 0.6;
-    }
-    
-    
-    
-    
-    @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
     }
 
     .properties {

@@ -3,6 +3,8 @@
   import type {CharacterContext} from "$lib/types";
   import type {CharacterCurrency} from "$lib/character.types";
   import {addCurrencies, asGold} from "$lib/engine";
+  import Button from "$components/ui/Button.svelte";
+  import Sigil from "$components/ui/Sigil.svelte";
 
   const {inventory, info, currency, equipped} = getContext<CharacterContext>('character')
 
@@ -222,11 +224,7 @@
     </div>
     <div class="search">
         <input placeholder="search" bind:value={searchInput}/>
-        <button onclick={e => {
-            e.preventDefault()
-            e.stopPropagation()
-        }}>Search
-        </button>
+        <Button variant="secondary" size="sm" title="Search the inventory">Search</Button>
     </div>
     <div class="scroll">
         <ul>
@@ -242,24 +240,24 @@
                 <li class="item">
                     <div class="equippable center">
                         {#if item.type === 'consumable' && !isAmmunition(item)}
-                            <button class="consume"
-                                    onclick={e => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    consumeItem(item)
-                                }}
-                            >🧪
-                            </button>
+                            <Sigil
+                                size="sm"
+                                tone="verdigris"
+                                title="Consume {item.title}"
+                                onclick={() => consumeItem(item)}
+                            >
+                                🧪
+                            </Sigil>
                         {:else}
-                            <button class="toggle"
-                                    class:equipped={isItemEquipped(item.id)}
-                                    onclick={e => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    equipItem(item)
-                                }}
-                            >{isAmmunition(item) ? '🏹' : getEquipIcon(item.type)}
-                            </button>
+                            <Sigil
+                                size="sm"
+                                tone="ember"
+                                active={isItemEquipped(item.id)}
+                                title="{isItemEquipped(item.id) ? 'Unequip' : 'Equip'} {item.title}"
+                                onclick={() => equipItem(item)}
+                            >
+                                {isAmmunition(item) ? '🏹' : getEquipIcon(item.type)}
+                            </Sigil>
                         {/if}
                     </div>
                     <div class="name">
@@ -343,16 +341,6 @@
         padding: 8px;
     }
 
-    .search > button {
-        position: relative;
-        width: auto;
-        height: 100%;
-        padding: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
     ul {
         position: relative;
         width: 100%;
@@ -430,72 +418,6 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
-
-    .toggle:hover, .consume:hover {
-        background: linear-gradient(145deg, var(--metal-dim), var(--ground-raised));
-        border-color: var(--ember);
-        transform: translateY(-1px);
-        box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--metal) 30%, transparent),
-            inset -1px -1px 3px var(--shade-soft),
-            0 2px 4px var(--shade-soft);
-    }
-
-    .toggle:active, .consume:active {
-        transform: translateY(0);
-        box-shadow: 
-            inset 2px 2px 4px var(--shade-soft),
-            inset -1px -1px 2px color-mix(in srgb, var(--metal) 15%, transparent),
-            0 1px 2px var(--shade-soft);
-    }
-
-    .equipped {
-        background: linear-gradient(145deg, var(--metal), var(--ember));
-        border-color: var(--ink);
-        color: var(--ground-raised);
-        font-weight: bold;
-        box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--ink) 20%, transparent),
-            inset -1px -1px 3px var(--shade),
-            0 0 8px color-mix(in srgb, var(--metal) 40%, transparent);
-        animation: equipped-glow 2s ease-in-out infinite;
-    }
-
-    .equipped:hover {
-        background: linear-gradient(145deg, var(--ember), var(--metal));
-        transform: translateY(-1px);
-    }
-
-    .consume {
-        background: linear-gradient(145deg, var(--metal-dim), var(--metal-dim));
-        border-color: var(--metal-dim);
-        color: white;
-    }
-
-    .consume:hover {
-        background: linear-gradient(145deg, var(--metal-dim), var(--metal-dim));
-        border-color: var(--metal);
-        transform: translateY(-1px);
-        box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--metal) 32%, transparent),
-            inset -1px -1px 3px var(--shade-soft),
-            0 2px 4px var(--shade-soft);
-    }
-
-    @keyframes equipped-glow {
-        0%, 100% { 
-            box-shadow: 
-                inset 1px 1px 3px color-mix(in srgb, var(--ink) 20%, transparent),
-                inset -1px -1px 3px var(--shade),
-                0 0 8px color-mix(in srgb, var(--metal) 40%, transparent);
-        }
-        50% { 
-            box-shadow: 
-                inset 1px 1px 3px color-mix(in srgb, var(--ink) 30%, transparent),
-                inset -1px -1px 3px var(--shade),
-                0 0 12px color-mix(in srgb, var(--metal) 60%, transparent);
-        }
     }
 
 </style>

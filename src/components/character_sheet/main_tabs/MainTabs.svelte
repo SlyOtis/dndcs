@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onDestroy, untrack, type Snippet} from "svelte";
   import {writable} from "svelte/store";
+  import Button from "$components/ui/Button.svelte";
 
   let {
     initialTab,
@@ -23,6 +24,13 @@
 
   onDestroy(() => unsubscribe())
 
+  const tabList: { id: Tabs, title: string }[] = [
+    {id: 'actionsTab', title: 'Actions'},
+    {id: 'inventoryTab', title: 'Inventory'},
+    {id: 'featsTab', title: 'Feats'},
+    {id: 'backgroundTab', title: 'Background'}
+  ]
+
   function selectTab(e: Event, tab: Tabs) {
     e.stopPropagation()
     e.preventDefault()
@@ -33,18 +41,17 @@
 
 <div class="root dnd-panel dnd-keyline">
     <div class="header">
-        <button onclick={e => selectTab(e, 'actionsTab')} class:selected={$selectedTab === 'actionsTab'}>
-            Actions
-        </button>
-        <button onclick={e => selectTab(e, 'inventoryTab')} class:selected={$selectedTab === 'inventoryTab'}>
-            Inventory
-        </button>
-        <button onclick={e => selectTab(e, 'featsTab')} class:selected={$selectedTab === 'featsTab'}>
-            Feats
-        </button>
-        <button onclick={e => selectTab(e, 'backgroundTab')} class:selected={$selectedTab === 'backgroundTab'}>
-            Background
-        </button>
+        {#each tabList as tab (tab.id)}
+            <Button
+                variant={$selectedTab === tab.id ? 'primary' : 'ghost'}
+                size="sm"
+                fill
+                title={tab.title}
+                onclick={e => selectTab(e, tab.id)}
+            >
+                {tab.title}
+            </Button>
+        {/each}
     </div>
     <div class="content">
         {@render tabs[$selectedTab]()}
@@ -75,56 +82,11 @@
         width: 100%;
         height: auto;
         grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-1);
+        padding: var(--space-1);
         background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
         border-bottom: var(--border-width) solid var(--metal-dim);
         box-shadow: inset 0 1px 0 var(--metal-edge), 0 3px 12px var(--shade);
-    }
-
-    button {
-        position: relative;
-        padding: var(--space-3) var(--space-4);
-        background: transparent;
-        border: none;
-        border-right: var(--border-hair) solid var(--ground-deep);
-        cursor: pointer;
-        font-family: var(--font-display);
-        font-size: var(--text-xs);
-        font-weight: 700;
-        letter-spacing: var(--tracking-caps);
-        text-transform: uppercase;
-        color: var(--ink-faint);
-        transition: color 0.15s ease, background 0.15s ease;
-    }
-
-    button:last-child {
-        border-right: none;
-    }
-
-    button:hover {
-        color: var(--metal-bright);
-        background: linear-gradient(180deg, transparent, var(--ground-veil));
-    }
-
-    button:focus-visible {
-        outline: none;
-        box-shadow: var(--focus-ring);
-    }
-
-    .selected {
-        color: var(--ember-core);
-        background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--ember) 22%, transparent) 100%);
-        text-shadow: 0 0 10px var(--ember-glow);
-    }
-
-    .selected::after {
-        content: '';
-        position: absolute;
-        left: 12%;
-        right: 12%;
-        bottom: -2px;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, var(--ember-core), transparent);
-        box-shadow: 0 0 10px var(--ember);
     }
 
     .content {

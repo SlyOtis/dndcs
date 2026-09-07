@@ -2,6 +2,7 @@
   import type {CharacterContext} from "$lib/types";
   import {getContext} from "svelte";
   import Ornament from "$components/ui/Ornament.svelte";
+  import Sigil from "$components/ui/Sigil.svelte";
 
   const {special} = getContext<CharacterContext>('character')
 
@@ -27,15 +28,15 @@
 
   <div class="pool-pips">
     {#each Array.from({ length: $special.max }, (_, i) => i) as index (index)}
-      <button
-        type="button"
-        class="pool-pip"
-        class:pool-pip-spent={index >= $special.current}
+      <Sigil
+        size="sm"
+        tone="ember"
+        active={index < $special.current}
+        title={`Toggle ${$special.name} point ${index + 1}`}
         onclick={() => togglePoint(index)}
-        aria-label={`Toggle ${$special.name} point ${index + 1}`}
       >
         <Ornament name="quatrefoil" size="xs" tone={index >= $special.current ? 'ink' : 'ember'} />
-      </button>
+      </Sigil>
     {/each}
   </div>
 </div>
@@ -99,35 +100,4 @@
     min-width: 0;
   }
 
-  .pool-pip {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    background: radial-gradient(circle at 50% 50%, var(--ground-lift) 0%, var(--ground-deep) 82%);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    filter: drop-shadow(0 0 6px var(--ember-glow));
-    transition: transform 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
-  }
-
-  .pool-pip:hover {
-    transform: scale(1.15);
-  }
-
-  .pool-pip:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .pool-pip-spent {
-    border-color: var(--ground-lift);
-    filter: none;
-    text-shadow: none;
-    opacity: 0.55;
-  }
 </style>

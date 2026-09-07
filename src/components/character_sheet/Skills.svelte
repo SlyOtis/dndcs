@@ -1,10 +1,11 @@
 <script lang="ts">
-  import type {CharacterContext} from "$lib/types";
+  import type {CharacterContext, CharacterSkill} from "$lib/types";
     import type {RulesState} from "$lib/rules/store";
     import {getSkillId} from "$lib/rules/sheet";
     import {rollSkill} from "$lib/engine";
     import {getContext} from "svelte";
     import type {Readable} from "svelte/store";
+    import Button from "$components/ui/Button.svelte";
 
     const {skills} = getContext<CharacterContext>('character')
     const rules = getContext<Readable<RulesState>>('rules')
@@ -17,26 +18,14 @@
         })
     )
 
-    async function handleSkillRoll(e: Event, skill: any) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Get click position
-        const rect = (e.target as HTMLElement).getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top + rect.height / 2;
-        
-        // Add medieval button animation
-        const button = e.target as HTMLButtonElement;
-        button.classList.add('pressed');
-        setTimeout(() => button.classList.remove('pressed'), 150);
-        
-        // Play button click sound
-        if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('playButtonClick'));
-        }
-        
-        await rollSkill(skill.name, skill.modifier, skill.proficiency, x, y);
+    async function rollSkillCheck(event: MouseEvent, skill: CharacterSkill) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+        window.dispatchEvent(new CustomEvent('playButtonClick'));
+
+        await rollSkill(skill.name, skill.modifier, skill.proficiency, rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
 
 </script>
@@ -51,10 +40,15 @@
             <span>{skill.proficiency}</span>
             <span>{skill.ability}</span>
             <span class="name">{skill.name}</span>
-            <button class="medieval-button" onclick={e => handleSkillRoll(e, skill)}>
-                <span class="button-content">{skill.modifier}</span>
-                <div class="button-ornament"></div>
-            </button>
+            <Button
+                variant={skill.proficiency ? 'secondary' : 'ghost'}
+                size="sm"
+                fill
+                title="Roll {skill.name}"
+                onclick={event => rollSkillCheck(event, skill)}
+            >
+                {skill.modifier}
+            </Button>
         {/each}
     </div>
     <span>Skills</span>
@@ -82,6 +76,7 @@
         position: relative;
         display: grid;
         grid-template-columns: auto auto 1fr auto;
+        align-items: center;
         gap: 4px;
         font-size: 0.8em;
         width: 100%;
@@ -97,113 +92,4 @@
     .name {
         justify-content: end;
     }
-
-    .medieval-button {
-        position: relative;
-        cursor: pointer;
-        background: linear-gradient(145deg, var(--metal-dim), var(--ground-raised));
-        border: 2px solid var(--metal);
-        border-radius: 8px;
-        padding: 6px 12px;
-        min-width: 40px;
-        min-height: 32px;
-        transition: all 0.15s ease;
-        box-shadow: 
-            inset 1px 1px 3px color-mix(in srgb, var(--metal) 30%, transparent),
-            inset -1px -1px 3px var(--shade-soft),
-            0 2px 4px var(--shade-soft);
-        font-family: var(--font-display);
-        font-weight: 600;
-        text-shadow: 1px 1px 2px var(--shade-hard);
-        color: var(--ink);
-        overflow: hidden;
-    }
-    
-    .medieval-button:hover {
-        background: linear-gradient(145deg, var(--ember), var(--metal-dim));
-        border-color: var(--metal);
-        box-shadow: 
-            inset 1px 1px 4px color-mix(in srgb, var(--metal) 40%, transparent),
-            inset -1px -1px 4px var(--shade),
-            0 3px 6px var(--shade-soft);
-        transform: translateY(-1px);
-        filter: brightness(1.1);
-    }
-    
-    .medieval-button:active,
-    
-    .button-content {
-        position: relative;
-        z-index: 2;
-        display: block;
-        font-size: 0.9em;
-        letter-spacing: 0.5px;
-    }
-    
-    .button-ornament {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%;
-        height: 100%;
-        background: 
-            radial-gradient(ellipse at center, 
-                color-mix(in srgb, var(--metal) 10%, transparent) 0%, 
-                transparent 60%),
-            conic-gradient(from 0deg at center,
-                transparent 0deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 45deg,
-                transparent 90deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 135deg,
-                transparent 180deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 225deg,
-                transparent 270deg,
-                color-mix(in srgb, var(--metal) 5%, transparent) 315deg,
-                transparent 360deg);
-        pointer-events: none;
-        opacity: 0.6;
-    }
-    
-    .medieval-button::before {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        right: 2px;
-        bottom: 2px;
-        background: linear-gradient(45deg, 
-            color-mix(in srgb, var(--metal) 10%, transparent) 0%,
-            transparent 50%,
-            color-mix(in srgb, var(--metal) 5%, transparent) 100%);
-        border-radius: 6px;
-        pointer-events: none;
-        z-index: 1;
-    }
-    
-    .medieval-button::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: 
-            linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--metal) 10%, transparent) 50%, transparent 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        pointer-events: none;
-        z-index: 3;
-    }
-    
-    .medieval-button:hover::after {
-        opacity: 1;
-        animation: shimmer 1.5s ease-in-out infinite;
-    }
-    
-    @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
 </style>
-

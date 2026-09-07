@@ -2,8 +2,10 @@
   import type {CharacterContext} from "$lib/types";
   import type {RulesState} from "$lib/rules/store";
   import {getSkillId} from "$lib/rules/sheet";
+  import {rollPassive} from "$lib/engine";
   import {getContext} from "svelte";
   import type {Readable} from "svelte/store";
+  import Button from "$components/ui/Button.svelte";
 
   const {senses} = getContext<CharacterContext>('character')
   const rules = getContext<Readable<RulesState>>('rules')
@@ -15,6 +17,13 @@
       return {...sense, score: derivedSense.value}
     })
   )
+
+  async function rollSense(event: MouseEvent, title: string, score: number | string) {
+    event.preventDefault()
+    event.stopPropagation()
+    window.dispatchEvent(new CustomEvent('playButtonClick'))
+    await rollPassive(title, Number(score))
+  }
 </script>
 
 
@@ -22,7 +31,14 @@
     <div class="senses">
         {#each resolved as sense}
             <div class="sense dnd-panel dnd-keyline">
-                <button class="value dnd-plate dnd-plate-chamfer">{sense.score}</button>
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    title="Roll {sense.title}"
+                    onclick={event => rollSense(event, sense.title, sense.score)}
+                >
+                    {sense.score}
+                </Button>
                 <span class="title">{sense.title}</span>
             </div>
         {/each}
@@ -66,21 +82,5 @@
     .title {
         position: relative;
         padding-left: 16px;
-    }
-
-    .value {
-        position: relative;
-        width: min-content;
-        height: calc(100% + 8px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: var(--ink);
-        background: var(--ground-raised);
-        padding: 4px;
-        min-width: 64px;
-        cursor: pointer;
-        margin: -4px;
-        border-radius: 16px;
     }
 </style>
