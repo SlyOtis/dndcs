@@ -27,7 +27,7 @@
   {#snippet actions()}
     <input
       type="text"
-      class="dnd-search"
+      class="dnd-search shelf-search"
       placeholder="Search the shelf..."
       aria-label="Search the catalog"
       bind:value={search}
@@ -61,6 +61,11 @@
 </Panel>
 
 <style>
+  .shelf-search {
+    width: 100%;
+    min-width: 0;
+  }
+
   .shelf-tally {
     margin: 0;
     font-family: var(--font-mono);

@@ -251,14 +251,15 @@
     --hall-col: var(--space-8);
     --hall-wide: calc(var(--space-8) * 5);
     --hall-tall: calc(var(--space-8) * 5);
-    --hall-run: calc(var(--space-8) * 4);
+    --hall-run: calc(var(--space-8) * 5);
+    --hall-cap: calc(var(--space-8) * 8);
     display: grid;
     grid-template-columns: repeat(4, minmax(min(var(--hall-col), 100%), 1fr));
     grid-template-rows:
       auto
       minmax(var(--hall-tall), auto)
-      minmax(var(--hall-run), auto)
-      minmax(var(--hall-run), auto);
+      var(--hall-run)
+      var(--hall-run);
     grid-template-areas:
       'hero hero hero hero'
       'roll roll camps camps'
@@ -269,7 +270,7 @@
   }
 
   .hall-plot {
-    display: grid;
+    display: block;
     min-width: 0;
     min-height: 0;
   }
@@ -324,6 +325,12 @@
     .hall-plot {
       grid-area: auto;
       min-height: var(--hall-run);
+      max-height: var(--hall-cap);
+    }
+
+    .hall-plot-roll,
+    .hall-plot-camps {
+      grid-column: 1 / -1;
     }
 
     .hall-hero {

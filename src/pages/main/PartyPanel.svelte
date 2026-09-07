@@ -23,7 +23,7 @@
   {#snippet actions()}
     <input
       type="text"
-      class="dnd-search"
+      class="dnd-search party-search"
       placeholder="Search the party..."
       aria-label="Search the party"
       bind:value={search}
@@ -50,3 +50,10 @@
     {/each}
   {/if}
 </Panel>
+
+<style>
+  .party-search {
+    width: 100%;
+    min-width: 0;
+  }
+</style>

@@ -37,7 +37,7 @@
   {#snippet actions()}
     <input
       type="text"
-      class="dnd-search"
+      class="dnd-search roll-search"
       placeholder="Search the roll..."
       aria-label="Search characters"
       bind:value={search}
@@ -66,6 +66,11 @@
 </Rail>
 
 <style>
+  .roll-search {
+    width: 100%;
+    min-width: 0;
+  }
+
   .roll-draft {
     font-family: var(--font-display);
     letter-spacing: var(--tracking-caps);

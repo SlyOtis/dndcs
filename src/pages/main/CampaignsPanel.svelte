@@ -36,7 +36,7 @@
   {#snippet actions()}
     <input
       type="text"
-      class="dnd-search"
+      class="dnd-search camps-search"
       placeholder="Search the chronicles..."
       aria-label="Search campaigns"
       bind:value={search}
@@ -58,3 +58,10 @@
     </Card>
   {/each}
 </Rail>
+
+<style>
+  .camps-search {
+    width: 100%;
+    min-width: 0;
+  }
+</style>
