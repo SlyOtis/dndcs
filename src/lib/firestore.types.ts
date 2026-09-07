@@ -161,6 +161,30 @@ export interface CampaignErrand {
   quest: CampaignQuest;
 }
 
+export interface CampaignChart {
+  campaign_id: string;
+  campaign_name: string;
+  map: CampaignMap;
+}
+
+export interface CampaignFigure {
+  campaign_id: string;
+  campaign_name: string;
+  npc: CampaignNpc;
+}
+
+export interface CampaignHaunt {
+  campaign_id: string;
+  campaign_name: string;
+  location: CampaignLocation;
+}
+
+export interface CampaignFray {
+  campaign_id: string;
+  campaign_name: string;
+  encounter: CampaignEncounter;
+}
+
 export interface PartyMember {
   profile: UserProfile;
   campaign_id: string;

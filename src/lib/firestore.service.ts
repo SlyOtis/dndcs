@@ -29,6 +29,10 @@ import type {
   CampaignSession,
   CampaignChronicle,
   CampaignErrand,
+  CampaignChart,
+  CampaignFigure,
+  CampaignHaunt,
+  CampaignFray,
   PartyMember,
   CharacterDocument,
   CharacterStatus,
@@ -385,6 +389,28 @@ export const campaignService = {
     return snapshot.docs.map((entry) => entry.data() as CampaignMap);
   },
 
+  async getChartedMaps(campaigns: Campaign[], count = 12): Promise<CampaignChart[]> {
+    const self = getCurrentUserId();
+
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const maps = await this.getMaps(campaign.id);
+        return maps
+          .filter((map) => campaign.dm_id === self || map.is_visible)
+          .map((map) => ({
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            map
+          }));
+      })
+    );
+
+    return runs
+      .flat()
+      .sort((a, b) => a.map.title.localeCompare(b.map.title))
+      .slice(0, count);
+  },
+
   async postMap(campaignId: string, map: Pick<CampaignMap, 'title' | 'image_url'>): Promise<string> {
     const mapsRef = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS);
     const mapRef = doc(mapsRef);
@@ -509,6 +535,25 @@ export const campaignService = {
     return entries.sort((a, b) => a.name.localeCompare(b.name));
   },
 
+  async getKnownNpcs(campaigns: Campaign[], count = 12): Promise<CampaignFigure[]> {
+    const self = getCurrentUserId();
+
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const npcs = await this.getNpcs(campaign.id);
+        return npcs
+          .filter((npc) => campaign.dm_id === self || npc.is_known)
+          .map((npc) => ({
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            npc
+          }));
+      })
+    );
+
+    return runs.flat().slice(0, count);
+  },
+
   async postNpc(campaignId: string, npc: Partial<CampaignNpc>): Promise<string> {
     return postRecord<CampaignNpc>(campaignId, COLLECTIONS.NPCS, {
       name: npc.name ?? 'Unnamed',
@@ -535,6 +580,25 @@ export const campaignService = {
     return entries.sort((a, b) => a.name.localeCompare(b.name));
   },
 
+  async getKnownLocations(campaigns: Campaign[], count = 12): Promise<CampaignHaunt[]> {
+    const self = getCurrentUserId();
+
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const locations = await this.getLocations(campaign.id);
+        return locations
+          .filter((location) => campaign.dm_id === self || location.is_known)
+          .map((location) => ({
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            location
+          }));
+      })
+    );
+
+    return runs.flat().slice(0, count);
+  },
+
   async postLocation(campaignId: string, location: Partial<CampaignLocation>): Promise<string> {
     return postRecord<CampaignLocation>(campaignId, COLLECTIONS.LOCATIONS, {
       name: location.name ?? 'Unnamed place',
@@ -557,6 +621,28 @@ export const campaignService = {
   async getEncounters(campaignId: string): Promise<CampaignEncounter[]> {
     const entries = await getRecords<CampaignEncounter>(campaignId, COLLECTIONS.ENCOUNTERS);
     return entries.sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
+  },
+
+  async getRecentEncounters(campaigns: Campaign[], count = 12): Promise<CampaignFray[]> {
+    const self = getCurrentUserId();
+
+    const runs = await Promise.all(
+      campaigns.map(async (campaign) => {
+        const encounters = await this.getEncounters(campaign.id);
+        return encounters
+          .filter((encounter) => campaign.dm_id === self || encounter.is_known)
+          .map((encounter) => ({
+            campaign_id: campaign.id,
+            campaign_name: campaign.name,
+            encounter
+          }));
+      })
+    );
+
+    return runs
+      .flat()
+      .sort((a, b) => (b.encounter.created_at?.toMillis() ?? 0) - (a.encounter.created_at?.toMillis() ?? 0))
+      .slice(0, count);
   },
 
   async postEncounter(campaignId: string, encounter: Partial<CampaignEncounter>): Promise<string> {
