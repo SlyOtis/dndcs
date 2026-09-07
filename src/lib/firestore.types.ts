@@ -7,6 +7,7 @@ export interface UserProfile {
   email: string;
   display_name: string;
   photo_url?: string;
+  friends: string[];
   created_at: Timestamp;
   updated_at: Timestamp;
   preferences: UserPreferences;

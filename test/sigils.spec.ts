@@ -248,8 +248,8 @@ describe('the sigils outside the bar', () => {
   for (const [where, path, want] of [
     ['the dialog close', 'src/components/BaseDialog.svelte', { title: 'Close dialog', tone: 'bane', frame: 'cusped' }],
     ['the chat send', 'src/components/chat/Chat.svelte', { title: 'Send', tone: 'metal', frame: 'star' }],
-    ['the character create', 'src/pages/main/CharactersPanel.svelte', { title: 'Forge a new character', tone: 'ember', frame: 'star' }],
-    ['the campaign create', 'src/pages/main/CampaignsPanel.svelte', { title: 'Raise a new campaign', tone: 'verdigris', frame: 'plate' }]
+    ['the character create', 'src/pages/MainPage.svelte', { title: 'Forge a new character', tone: 'ember', frame: 'star' }],
+    ['the campaign create', 'src/pages/MainPage.svelte', { title: 'Raise a new campaign', tone: 'verdigris', frame: 'plate' }]
   ] as const) {
     it(`${where} keeps its own frame`, () => {
       const found = sigils(read(path)).find((attrs) => attrs.title === want.title)

@@ -57,6 +57,10 @@ check_page() {
     [ "$over" -gt 0 ] && fail "document is ${over}px wider than the viewport at $w"
   done
   pw resize 1600 900 >/dev/null
+  if [ "$bar" = "out" ]; then
+    pw press Meta+k >/dev/null; expect_search false "Cmd K while signed out"
+    return 0
+  fi
   pw press Meta+k >/dev/null; expect_search true "Cmd K"
   pw press Meta+k >/dev/null; expect_search false "a second Cmd K"
   pw press Meta+k >/dev/null; expect_search true "Cmd K"
@@ -84,8 +88,8 @@ first_href() { js "document.querySelector('$1')?.getAttribute('href') ?? ''"; }
 trap 'pw close >/dev/null' EXIT
 pw open "$base/login" >/dev/null
 
-visit /login "document.querySelector('#login-email') !== null" "the sign in form" && check_page gate
-visit /signup "document.querySelector('#signup-email') !== null" "the sign up form" && check_page gate
+visit /login "document.querySelector('#login-email') !== null" "the sign in form" && check_page out
+visit /signup "document.querySelector('#signup-email') !== null" "the sign up form" && check_page out
 
 hearth="document.querySelector('.hall-hero-name') !== null && document.querySelector('.dnd-loading') === null"
 page="sign in"
@@ -106,17 +110,40 @@ visit /main "$hearth" "the hearth" && check_page bar
 page="/main at 1280 and 1600"
 for w in 1280 1600; do
   pw resize "$w" 900 >/dev/null
-  wait_for "document.querySelectorAll('.hall-grid .hall-plot > section').length === 10 && document.querySelector('.hall-grid .dnd-loading') === null" "the ten hearth panels at $w" || continue
-  [ "$(js "document.querySelector('.hall-grid .hall-hero .hall-hero-name') !== null")" = "true" ] || fail "no hero over the grid at $w"
-  tracks="$(js "(() => { const grid = document.querySelector('.hall-grid'); const box = grid.getBoundingClientRect(); const style = getComputedStyle(grid); const widths = style.gridTemplateColumns.split(' ').map(parseFloat); const gap = parseFloat(style.columnGap) || 0; let x = box.left + (parseFloat(style.paddingLeft) || 0); const spans = widths.map((width) => { const span = [x, x + width]; x += width + gap; return span }); const plots = [...grid.querySelectorAll('.hall-plot')].map((e) => e.getBoundingClientRect()); const empty = spans.filter(([from, to]) => !plots.some((r) => r.left < to - 1 && r.right > from + 1)).length; return widths.length + ':' + empty })()")"
-  [ "${tracks%%:*}" -ge 2 ] || fail "the hearth grid has ${tracks%%:*} column at $w"
-  [ "${tracks##*:}" = "0" ] || fail "${tracks##*:} of the hearth grid's ${tracks%%:*} columns stand empty at $w"
+  wait_for "document.querySelectorAll('.hall-grid .hall-plot').length === 4 && document.querySelector('.hall-grid .dnd-loading') === null" "the four hearth regions at $w" || continue
+  [ "$(js "document.querySelector('.hall-grid .hall-hero .hall-hero-name') !== null")" = "true" ] || fail "no hero over the regions at $w"
+  regions="$(js "[...document.querySelectorAll('.hall-grid .hall-plot')].map((e) => e.getAttribute('aria-label')).join(',')")"
+  [ "$regions" = "Campaigns,Characters,Lore,Friends" ] || fail "the hearth regions are $regions at $w"
+  plates="$(js "document.querySelectorAll('.hall-grid .dnd-panelbox-head, .hall-grid .dnd-rail-head, .hall-grid .dnd-rail-step').length")"
+  [ "$plates" = "0" ] || fail "$plates header plates, rail heads or step arrows stand on the hearth at $w"
+  gone="$(js "[...document.querySelectorAll('.hall-grid [aria-label]')].map((e) => e.getAttribute('aria-label')).filter((n) => /^(Party|Cast|Catalog)$/.test(n)).join(',')")"
+  [ -z "$gone" ] || fail "the hearth still carries $gone at $w"
+  laid="$(js "(() => { const g = document.querySelector('.hall-grid').getBoundingClientRect(); const f = document.querySelector('.hall-plot-friends').getBoundingClientRect(); const c = document.querySelector('.hall-plot-camps').getBoundingClientRect(); const r = document.querySelector('.hall-plot-roll').getBoundingClientRect(); const l = document.querySelector('.hall-plot-lore').getBoundingClientRect(); const side = f.left >= r.right && f.left >= c.right && f.left >= l.right && Math.abs(f.right - g.right) < 1; const tall = Math.round(g.height - f.height); const under = c.bottom <= r.top && r.bottom <= l.top; return (side ? 'side' : 'strayed') + ':' + tall + ':' + (under ? 'stacked' : 'shuffled') })()")"
+  [ "${laid%%:*}" = "side" ] || fail "the friends list is not a column along the right edge at $w"
+  tall="${laid#*:}"; tall="${tall%%:*}"
+  [ "$tall" = "0" ] || fail "the friends column stops ${tall}px short of the page's height at $w"
+  [ "${laid##*:}" = "stacked" ] || fail "campaigns, characters and lore do not stack in that order at $w"
   over="$(js "Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth")"
   [ "$over" -le 0 ] || fail "the hearth is ${over}px wider than the viewport at $w"
-  rows="$(js "(() => { const names = [...document.querySelectorAll('.hall-plot-camps .dnd-card-title')].map((e) => e.textContent.trim()); return ['maps', 'cast', 'places', 'fights'].map((kind) => { const plot = document.querySelector('.hall-plot-' + kind); const held = [...plot.querySelectorAll('.dnd-card-row')]; if (!held.length) return plot.querySelector('.dnd-empty') ? kind + ' empty' : kind + ' bare'; return held.every((row) => names.includes(row.querySelector('.dnd-card-sub')?.textContent.trim() ?? '')) ? kind + ' named' : kind + ' stray' }).join(', ') })()")"
-  case "$rows" in *bare*|*stray*) fail "a campaign panel shows neither its rows under a campaign's name nor its empty state: $rows" ;; esac
-  [ "$(js "(async () => { const classes = (await (await fetch('/sources/classes/index.json')).json()).classes.length; const races = (await (await fetch('/sources/races/index.json')).json()).races.length; return document.querySelector('.hall-plot-shelf .shelf-tally')?.textContent.trim() === classes + ' classes, ' + races + ' races' })()")" = "true" ] || fail "the catalog tally '$(js "document.querySelector('.hall-plot-shelf .shelf-tally')?.textContent.trim() ?? ''")' is not the count per kind in the source indexes at $w"
+  wide="$(js "[...document.querySelector('.hall-grid').querySelectorAll('*')].filter((e) => { const s = getComputedStyle(e); return (s.overflowX === 'auto' || s.overflowX === 'scroll') && e.scrollWidth > e.clientWidth }).length")"
+  [ "$wide" = "0" ] || fail "$wide elements inside the hearth scroll sideways at $w"
+  inner="$(js "[...document.querySelector('.hall-grid').querySelectorAll('*')].filter((e) => { const s = getComputedStyle(e); return (s.overflowY === 'auto' || s.overflowY === 'scroll') && e.scrollHeight > e.clientHeight }).length")"
+  [ "$inner" = "0" ] || fail "$inner elements inside the hearth scroll within their cell at $w"
+  clipped="$(js "(() => { const scroll = document.querySelector('.dnd-shell-scroll'); return [...document.querySelectorAll('.hall-grid .dnd-card')].filter((e) => { const r = e.getBoundingClientRect(); return r.right > window.innerWidth + 1 || r.bottom > scroll.scrollHeight + scroll.getBoundingClientRect().top - scroll.scrollTop + 1 }).length })()")"
+  [ "$clipped" = "0" ] || fail "$clipped cards on the hearth cannot be reached by the page's own scroll at $w"
+  kinds="$(js "[...document.querySelectorAll('.hall-plot-lore .lore-kind')].map((e) => e.getAttribute('aria-label')).join(',')")"
+  [ "$kinds" = "Quests,Chronicles,Maps,Characters,Places,Encounters" ] || fail "the Lore dividers read $kinds at $w"
+  headed="$(js "[...document.querySelectorAll('.hall-plot-lore .lore-kind')].every((e) => e.firstElementChild.classList.contains('lore-divide') && e.querySelector('.lore-divide-name').textContent.trim() === e.getAttribute('aria-label'))")"
+  [ "$headed" = "true" ] || fail "a Lore kind does not open with the divider naming it at $w"
+  stray="$(js "[...document.querySelectorAll('.hall-plot-lore .dnd-card')].filter((e) => !e.closest('.lore-kind')).length")"
+  [ "$stray" = "0" ] || fail "$stray Lore rows stand under no divider at $w"
+  rows="$(js "(() => { const names = [...document.querySelectorAll('.hall-plot-camps .dnd-card-title')].map((e) => e.textContent.trim()); return [...document.querySelectorAll('.hall-plot-lore .lore-kind')].map((kind) => { const held = [...kind.querySelectorAll('.dnd-card')]; const name = kind.getAttribute('aria-label'); if (!held.length) return kind.querySelector('.lore-none') ? name + ' empty' : name + ' bare'; return held.every((row) => names.includes(row.querySelector('.dnd-card-sub')?.textContent.trim() ?? '')) ? name + ' named' : name + ' stray' }).join(', ') })()")"
+  case "$rows" in *bare*|*stray*) fail "a Lore kind shows neither its rows under a campaign's name nor its empty line: $rows" ;; esac
+  [ "$(js "document.querySelector('.hall-plot-friends .dnd-card') !== null || document.querySelector('.hall-plot-friends .dnd-empty') !== null")" = "true" ] || fail "the friends list shows neither a friend nor its empty state at $w"
+  tall="$(js "(() => { const scroll = document.querySelector('.dnd-shell-scroll'); return String(Math.ceil(scroll.scrollHeight + scroll.getBoundingClientRect().top)) })()")"
+  pw resize "$w" "$tall" >/dev/null
   pw screenshot ".hall-grid" --filename=".playwright-cli/hearth-$w.png" >/dev/null
+  pw resize "$w" 900 >/dev/null
 done
 pw resize 1600 900 >/dev/null
 

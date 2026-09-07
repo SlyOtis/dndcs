@@ -93,6 +93,7 @@ export const userService = {
       email: userData.email || '',
       display_name: userData.display_name || '',
       photo_url: userData.photo_url,
+      friends: [],
       created_at: serverTimestamp() as any,
       updated_at: serverTimestamp() as any,
       preferences: {

@@ -10,28 +10,21 @@
     CampaignFigure,
     CampaignFray,
     CampaignHaunt,
-    PartyMember
+    UserProfile
   } from "$lib/firestore.types";
-  import { getCatalog, type CatalogEntry } from "$lib/catalog";
   import MenuPanel from "$components/MenuPanel.svelte";
   import Chat from "$chat/Chat.svelte";
   import { sidebarStore } from "$lib/navigation";
   import { uiStore, anyDialogOpen } from "$lib/stores/ui.store";
   import { userCharacters } from "$lib/stores/character.store";
   import { userCampaigns } from "$lib/stores/campaign.store";
-  import { characterService, campaignService } from "$lib/firestore.service";
+  import { characterService, campaignService, userService } from "$lib/firestore.service";
   import { userProfile, userDetails } from "$lib/stores/auth.store";
   import { navigate } from "sly-svelte-location-router";
   import CharactersPanel from "./main/CharactersPanel.svelte";
   import CampaignsPanel from "./main/CampaignsPanel.svelte";
-  import ChroniclesPanel from "./main/ChroniclesPanel.svelte";
-  import QuestsPanel from "./main/QuestsPanel.svelte";
-  import PartyPanel from "./main/PartyPanel.svelte";
-  import MapsPanel from "./main/MapsPanel.svelte";
-  import CastPanel from "./main/CastPanel.svelte";
-  import PlacesPanel from "./main/PlacesPanel.svelte";
-  import EncountersPanel from "./main/EncountersPanel.svelte";
-  import CatalogPanel from "./main/CatalogPanel.svelte";
+  import LorePanel from "./main/LorePanel.svelte";
+  import FriendsPanel from "./main/FriendsPanel.svelte";
   import Button from "$components/ui/Button.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
   import Shell from "$components/ui/Shell.svelte";
@@ -55,13 +48,13 @@
   let error = $state<string | null>(null);
   let chronicles = $state<CampaignChronicle[]>([]);
   let errands = $state<CampaignErrand[]>([]);
-  let party = $state<PartyMember[]>([]);
   let charts = $state<CampaignChart[]>([]);
   let figures = $state<CampaignFigure[]>([]);
   let haunts = $state<CampaignHaunt[]>([]);
   let frays = $state<CampaignFray[]>([]);
-  let classes = $state<CatalogEntry[]>([]);
-  let races = $state<CatalogEntry[]>([]);
+  let friends = $state<UserProfile[]>([]);
+  let campaignSearch = $state('');
+  let characterSearch = $state('');
 
   const name = $derived($userDetails?.display_name || $userProfile?.display_name || 'Adventurer');
 
@@ -69,34 +62,29 @@
     setTheme(getTheme());
 
     try {
-      const [characters, campaigns] = await Promise.all([
+      const [characters, campaigns, known] = await Promise.all([
         characterService.getUserCharacters(),
-        campaignService.getUserCampaigns()
+        campaignService.getUserCampaigns(),
+        userService.getProfiles($userProfile?.friends ?? [])
       ]);
       userCharacters.set(characters);
       userCampaigns.set(campaigns);
+      friends = known;
 
-      const [sessions, quests, members, maps, npcs, locations, encounters, shelfClasses, shelfRaces] =
-        await Promise.all([
-          campaignService.getRecentSessions(campaigns),
-          campaignService.getActiveQuests(campaigns),
-          campaignService.getPartyMembers(campaigns),
-          campaignService.getChartedMaps(campaigns),
-          campaignService.getKnownNpcs(campaigns),
-          campaignService.getKnownLocations(campaigns),
-          campaignService.getRecentEncounters(campaigns),
-          getCatalog('classes'),
-          getCatalog('races')
-        ]);
+      const [sessions, quests, maps, npcs, locations, encounters] = await Promise.all([
+        campaignService.getRecentSessions(campaigns),
+        campaignService.getActiveQuests(campaigns),
+        campaignService.getChartedMaps(campaigns),
+        campaignService.getKnownNpcs(campaigns),
+        campaignService.getKnownLocations(campaigns),
+        campaignService.getRecentEncounters(campaigns)
+      ]);
       chronicles = sessions;
       errands = quests;
-      party = members;
       charts = maps;
       figures = npcs;
       haunts = locations;
       frays = encounters;
-      classes = shelfClasses;
-      races = shelfRaces;
     } catch (err) {
       error = err instanceof Error ? err.message : 'The archive did not answer';
     } finally {
@@ -151,43 +139,92 @@
   {/if}
 
   <div class="hall-grid">
-    <section class="hall-hero">
-      <p class="dnd-label hall-hero-eyebrow">The hearth is lit</p>
-      <h1 class="dnd-heading dnd-heading-hero hall-hero-name">{name}</h1>
-      <span class="hall-hero-rule"><Ornament name="divider" tone="metal" /></span>
-      <p class="hall-hero-note">
-        {$userCharacters.length} characters, {$userCampaigns.length} campaigns, {errands.length} quests open.
-      </p>
+    <section class="hall-hero" aria-label="Hearth">
+      <div class="hall-hero-word">
+        <p class="dnd-label hall-hero-eyebrow">The hearth is lit</p>
+        <h1 class="dnd-heading hall-hero-name">{name}</h1>
+        <p class="hall-hero-note">
+          {$userCharacters.length} characters, {$userCampaigns.length} campaigns, {errands.length} quests open.
+        </p>
+      </div>
       <div class="hall-hero-acts">
         <Button variant="primary" size="md" onclick={createCharacter}>Forge a Character</Button>
         <Button variant="secondary" size="md" onclick={createCampaign}>Raise a Campaign</Button>
       </div>
     </section>
 
-    <div class="hall-plot hall-plot-roll"><CharactersPanel {loading} /></div>
-    <div class="hall-plot hall-plot-camps"><CampaignsPanel {loading} /></div>
-    <div class="hall-plot hall-plot-chron"><ChroniclesPanel {loading} {chronicles} /></div>
-    <div class="hall-plot hall-plot-quests"><QuestsPanel {loading} {errands} /></div>
-    <div class="hall-plot hall-plot-party"><PartyPanel {loading} members={party} /></div>
-    <div class="hall-plot hall-plot-maps"><MapsPanel {loading} {charts} /></div>
-    <div class="hall-plot hall-plot-cast"><CastPanel {loading} {figures} /></div>
-    <div class="hall-plot hall-plot-places"><PlacesPanel {loading} {haunts} /></div>
-    <div class="hall-plot hall-plot-fights"><EncountersPanel {loading} {frays} /></div>
-    <div class="hall-plot hall-plot-shelf"><CatalogPanel {loading} {classes} {races} /></div>
+    <section class="hall-plot hall-plot-camps" aria-label="Campaigns">
+      <header class="hall-divide">
+        <h2 class="dnd-label hall-divide-name">Campaigns</h2>
+        <span class="hall-divide-note">{$userCampaigns.length} under way</span>
+        <span class="hall-divide-run"></span>
+        <input
+          type="text"
+          class="dnd-search hall-divide-search"
+          placeholder="Search the chronicles..."
+          aria-label="Search campaigns"
+          bind:value={campaignSearch}
+        />
+        <Sigil title="Raise a new campaign" tone="verdigris" size="sm" onclick={createCampaign} frame="plate"><Glyph name="campaign" size="sm" /></Sigil>
+      </header>
+      <CampaignsPanel {loading} search={campaignSearch} />
+    </section>
+
+    <section class="hall-plot hall-plot-roll" aria-label="Characters">
+      <header class="hall-divide">
+        <h2 class="dnd-label hall-divide-name">Characters</h2>
+        <span class="hall-divide-note">{$userCharacters.length} on the roll</span>
+        <span class="hall-divide-run"></span>
+        <input
+          type="text"
+          class="dnd-search hall-divide-search"
+          placeholder="Search the roll..."
+          aria-label="Search characters"
+          bind:value={characterSearch}
+        />
+        <Sigil title="Forge a new character" tone="ember" size="sm" onclick={createCharacter} frame="star"><Glyph name="character" size="sm" /></Sigil>
+      </header>
+      <CharactersPanel {loading} search={characterSearch} />
+    </section>
+
+    <section class="hall-plot hall-plot-lore" aria-label="Lore">
+      <header class="hall-divide">
+        <h2 class="dnd-label hall-divide-name">Lore</h2>
+        <span class="hall-divide-note">what the campaigns hold</span>
+        <span class="hall-divide-run"></span>
+      </header>
+      <LorePanel {loading} {errands} {chronicles} {charts} {figures} {haunts} {frays} />
+    </section>
+
+    <aside class="hall-plot hall-plot-friends" aria-label="Friends">
+      <header class="hall-divide">
+        <h2 class="dnd-label hall-divide-name">Friends</h2>
+        <span class="hall-divide-note">{friends.length} known</span>
+        <span class="hall-divide-run"></span>
+      </header>
+      <FriendsPanel {loading} {friends} />
+    </aside>
   </div>
 </Shell>
 
 <style>
   .hall-hero {
-    --hall-rule-run: calc(var(--space-8) * 6);
-    --hall-rule-share: 70%;
     grid-area: hero;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2);
+    justify-content: space-between;
+    gap: var(--space-4);
     min-width: 0;
-    text-align: center;
+    padding-bottom: var(--space-4);
+    border-bottom: var(--border-hair) solid var(--metal-dim);
+  }
+
+  .hall-hero-word {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
   }
 
   .hall-hero-eyebrow {
@@ -197,11 +234,8 @@
 
   .hall-hero-name {
     font-size: var(--text-2xl);
-  }
-
-  .hall-hero-rule {
-    display: block;
-    width: min(var(--hall-rule-run), var(--hall-rule-share));
+    letter-spacing: var(--tracking-caps);
+    overflow-wrap: anywhere;
   }
 
   .hall-hero-note {
@@ -214,9 +248,7 @@
   .hall-hero-acts {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
     gap: var(--space-3);
-    margin-top: var(--space-3);
   }
 
   .hall-error {
@@ -248,94 +280,98 @@
   }
 
   .hall-grid {
-    --hall-col: var(--space-8);
-    --hall-wide: calc(var(--space-8) * 5);
-    --hall-tall: calc(var(--space-8) * 5);
-    --hall-run: calc(var(--space-8) * 5);
-    --hall-cap: calc(var(--space-8) * 8);
+    --hall-side: calc(var(--space-8) * 3);
+    --hall-side-share: 22%;
+    --hall-search: calc(var(--space-8) * 3);
     display: grid;
-    grid-template-columns: repeat(4, minmax(min(var(--hall-col), 100%), 1fr));
-    grid-template-rows:
-      auto
-      minmax(var(--hall-tall), auto)
-      var(--hall-run)
-      var(--hall-run);
+    grid-template-columns: minmax(0, 1fr) minmax(min(var(--hall-side), 100%), var(--hall-side-share));
+    grid-template-rows: auto auto auto minmax(0, 1fr);
     grid-template-areas:
-      'hero hero hero hero'
-      'roll roll camps camps'
-      'chron quests party maps'
-      'cast places fights shelf';
-    gap: var(--space-5);
+      'hero friends'
+      'camps friends'
+      'roll friends'
+      'lore friends';
+    column-gap: var(--space-6);
+    row-gap: var(--space-6);
     min-width: 0;
   }
 
   .hall-plot {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
     min-width: 0;
-    min-height: 0;
-  }
-
-  .hall-plot-roll {
-    grid-area: roll;
   }
 
   .hall-plot-camps {
     grid-area: camps;
   }
 
-  .hall-plot-chron {
-    grid-area: chron;
+  .hall-plot-roll {
+    grid-area: roll;
   }
 
-  .hall-plot-quests {
-    grid-area: quests;
+  .hall-plot-lore {
+    grid-area: lore;
   }
 
-  .hall-plot-party {
-    grid-area: party;
+  .hall-plot-friends {
+    grid-area: friends;
+    align-self: stretch;
+    padding-inline-start: var(--space-5);
+    border-inline-start: var(--border-hair) solid var(--metal-dim);
   }
 
-  .hall-plot-maps {
-    grid-area: maps;
+  .hall-divide {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
   }
 
-  .hall-plot-cast {
-    grid-area: cast;
+  .hall-divide-name {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--metal-bright);
   }
 
-  .hall-plot-places {
-    grid-area: places;
+  .hall-divide-note {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--ink-faint);
   }
 
-  .hall-plot-fights {
-    grid-area: fights;
+  .hall-divide-run {
+    flex: 1;
+    min-width: 0;
+    height: var(--border-hair);
+    background: linear-gradient(90deg, var(--metal-dim), transparent);
   }
 
-  .hall-plot-shelf {
-    grid-area: shelf;
+  .hall-divide-search {
+    flex: 0 1 var(--hall-search);
+    width: auto;
+    min-width: 0;
   }
 
-  @media (max-width: 1200px) {
+  @media (max-width: 1100px) {
     .hall-grid {
-      grid-template-columns: repeat(auto-fit, minmax(min(var(--hall-wide), 100%), 1fr));
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: none;
-      grid-template-areas: none;
+      grid-template-areas:
+        'hero'
+        'camps'
+        'roll'
+        'lore'
+        'friends';
     }
 
-    .hall-plot {
-      grid-area: auto;
-      min-height: var(--hall-run);
-      max-height: var(--hall-cap);
-    }
-
-    .hall-plot-roll,
-    .hall-plot-camps {
-      grid-column: 1 / -1;
-    }
-
-    .hall-hero {
-      grid-area: auto;
-      grid-column: 1 / -1;
+    .hall-plot-friends {
+      padding-inline-start: 0;
+      padding-top: var(--space-5);
+      border-inline-start: none;
+      border-top: var(--border-hair) solid var(--metal-dim);
     }
   }
 </style>
