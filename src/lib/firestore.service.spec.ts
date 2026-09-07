@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Timestamp } from 'firebase/firestore'
-import type { CampaignChatEntry } from './firestore.types'
+import type { CampaignChatEntry, CharacterDocument } from './firestore.types'
 
 const wire = vi.hoisted(() => ({
   paths: [] as unknown[][],
@@ -11,7 +11,9 @@ const wire = vi.hoisted(() => ({
     onChange: (snapshot: { docs: Array<{ data: () => unknown }> }) => void
   }>,
   stopped: [] as string[],
-  docs: [] as unknown[]
+  docs: [] as unknown[],
+  held: null as null | { exists: () => boolean, data: () => unknown },
+  updates: [] as Array<{ id: string, data: Record<string, unknown> }>
 }))
 
 vi.mock('./firebase', () => ({
@@ -29,13 +31,16 @@ vi.mock('firebase/firestore', () => ({
     wire.paths.push(segments)
     return { id: String(segments[segments.length - 1]), segments }
   },
-  getDoc: () => Promise.resolve({ exists: () => false, data: () => null }),
+  getDoc: () => Promise.resolve(wire.held ?? { exists: () => false, data: () => null }),
   getDocs: () => Promise.resolve({ docs: wire.docs.map((entry) => ({ data: () => entry })) }),
   setDoc: (target: { id: string }, data: Record<string, unknown>) => {
     wire.writes.push({ id: target.id, data })
     return Promise.resolve()
   },
-  updateDoc: () => Promise.resolve(),
+  updateDoc: (target: { id: string }, data: Record<string, unknown>) => {
+    wire.updates.push({ id: target.id, data })
+    return Promise.resolve()
+  },
   deleteDoc: () => Promise.resolve(),
   query: (target: unknown, ...constraints: unknown[]) => ({ kind: 'query', target, constraints }),
   where: (...args: unknown[]) => ({ kind: 'where', args }),
@@ -54,7 +59,7 @@ vi.mock('firebase/firestore', () => ({
   serverTimestamp: () => 'server-time'
 }))
 
-import { campaignService } from './firestore.service'
+import { campaignService, characterService } from './firestore.service'
 
 const stamp = (at: string) =>
   ({ toDate: () => new Date(at), toMillis: () => new Date(at).getTime() }) as unknown as Timestamp
@@ -84,6 +89,8 @@ beforeEach(() => {
   wire.streams.length = 0
   wire.stopped.length = 0
   wire.docs.length = 0
+  wire.held = null
+  wire.updates.length = 0
 })
 
 describe('the campaign chat collection the rules govern', () => {
@@ -179,5 +186,56 @@ describe('the campaign chat collection the rules govern', () => {
 
     expect(entries.map((found) => found.id)).toEqual(['shared-1', 'shared-2'])
     expect(wire.paths).toEqual([['db', 'campaigns', 'camp-1', 'chat']])
+  })
+})
+
+const dead = 'blob:http://localhost:5174/5d0c2b1e-4f1a-4b7e-9d1c-0b6e7f3a2c11'
+const kept = 'file:users/lars/files/1757000000000-a1b2c3d4.webp'
+
+const portrait = (id: string, imageUrl: string): CharacterDocument =>
+  ({
+    id,
+    owner_id: 'lars',
+    character: { info: { name: 'Testy', imageUrl, class: { name: 'Fighter' }, race: { name: 'Human' } } },
+    metadata: { name: 'Testy', level: 1, class: 'Fighter', race: 'Human', status: 'ready' },
+    permissions: { viewers: [], editors: [], dm_override: true }
+  }) as unknown as CharacterDocument
+
+describe('a character that carries a dead blob: portrait address', () => {
+  it('is read back without it, and the document is written without it, on getCharacter', async () => {
+    wire.held = { exists: () => true, data: () => portrait('char-1', dead) }
+
+    const found = await characterService.getCharacter('char-1')
+
+    expect(found?.character.info.imageUrl).toBe('')
+    expect(wire.updates).toEqual([{ id: 'char-1', data: { 'character.info.imageUrl': '' } }])
+  })
+
+  it('is read back without it, each of them, on getUserCharacters', async () => {
+    wire.docs.push(portrait('char-1', dead), portrait('char-2', kept), portrait('char-3', dead))
+
+    const found = await characterService.getUserCharacters()
+
+    expect(found.map((entry) => entry.character.info.imageUrl)).toEqual(['', kept, ''])
+    expect(wire.updates).toEqual([
+      { id: 'char-1', data: { 'character.info.imageUrl': '' } },
+      { id: 'char-3', data: { 'character.info.imageUrl': '' } }
+    ])
+  })
+
+  it('is the only kind of address the read rewrites: a file: record and a hosted address stay', async () => {
+    wire.docs.push(portrait('char-2', kept), portrait('char-4', 'https://example.test/portrait.webp'))
+
+    const found = await characterService.getUserCharacters()
+
+    expect(found.map((entry) => entry.character.info.imageUrl)).toEqual([kept, 'https://example.test/portrait.webp'])
+    expect(wire.updates).toEqual([])
+  })
+
+  it('is written by nothing: a new character carries the stored address it was given', async () => {
+    await characterService.createCharacter(portrait('char-5', kept).character)
+
+    expect((wire.writes[0].data.character as CharacterDocument['character']).info.imageUrl).toBe(kept)
+    expect(wire.updates).toEqual([])
   })
 })
