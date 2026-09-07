@@ -244,6 +244,18 @@ describe('the shared roll log inside a campaign', () => {
     expect(get(log.chatStore)).toHaveLength(1)
   })
 
+  it('republishes nothing when the local store grows inside a campaign', () => {
+    signedIn('lars', 'Lars')
+    const log = getChatLog()
+    close = log.unsubscribeChat
+
+    currentCampaignId.set('camp-1')
+    rollStore.set([rolled('2026-09-06T10:02:00.000Z', 'Lars rolls stealth')])
+
+    expect(wire.posted).toEqual([])
+    expect(get(log.chatStore)).toEqual([])
+  })
+
   it('subscribes once per campaign and stops the stream when the campaign is left', () => {
     const log = getChatLog()
     close = log.unsubscribeChat

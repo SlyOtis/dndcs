@@ -5,7 +5,9 @@ depends: [101]
 relations: []
 title: writeRollLog posts the shared entry instead of mirroring it
 type: task
-status: review
+status: testing
+session:
+review:
 blocked_from: doing
 github:
 assignee: Martin Ottersland
@@ -13,7 +15,7 @@ repos: [dndcs]
 skills: [data]
 commits: [4bbadba01f07862e54a564cdd70b92f3b80d4503]
 created_at: 2026-09-05T15:10:51Z
-updated_at: 2026-09-07T08:26:53Z
+updated_at: 2026-09-07T10:53:24Z
 questions: [q-016]
 agent: aa046906ca5b4827c
 base: 2678b268945262a10d6eaae22f3799bfb3e1d07a
@@ -25,23 +27,6 @@ A roll is written to the local `rollStore` by `writeRollLog`, and `getChatLog` o
 ## Scope
 `src/lib/engine.ts`, `src/lib/chat.ts`, `src/lib/chat.spec.ts`. Do not change `RollLogItem` or the ten call sites: they already pass the formula. The spec is in by q-016: the two cases that drive `rollStore` inside a campaign call `writeRollLog` instead, and nothing else in it moves.
 
-## Order
-1. dndcs: make `writeRollLog` post the shared entry directly when a campaign is in scope, and drop the observer in `getChatLog` that republishes local appends.
-2. dndcs: keep the local store as the only path when no campaign is in scope.
-3. verify: `just gate`.
 
-## Done when
+## Goal
 `getChatLog` no longer watches `rollStore` for entries to publish, a roll in a campaign appears once and not twice, and `just gate` is clean.
-
-## Summary
-`src/lib/engine.ts` and `src/lib/chat.ts`. `just check` 0 errors 0 warnings, `just build` clean.
-
-`engine.ts`: `writeRollLog` builds the `RollLogItem` once and branches on `get(currentCampaignId)`. In scope it calls `campaignService.postChatEntry(campaignId, asRollEntry(item))` and returns; out of scope it pushes to `rollStore` as before. `getAuthor`, `asRollEntry` and the `ChatEntryFields` type moved here from `chat.ts` with their bodies unchanged, because `chat.ts` imports `engine.ts` and the reverse import would close a cycle. All three are exported; `chat.ts` imports `getAuthor` and the type for `asMessageEntry` and `postEntry`. New imports: `get`, `user`, `userProfile`, `currentCampaignId`, `campaignService`, `CampaignChatEntry`, `RollLogItem`.
-
-`chat.ts`: the `rollStore` subscriber in `getChatLog` is now `rollStore.subscribe(render)`. It no longer slices, no longer posts, and `publishedRolls` is gone from the closure and from the scope-change reset. The message path is untouched: `localStore` still mirrors through `publishedChats` and `postEntry`. The ten `writeRollLog` call sites and `RollLogItem` are unchanged.
-
-A roll in a campaign is now one write at the source, so a second `getChatLog` instance cannot republish it, and nothing lands in `roll_log` in localStorage while a campaign is in scope.
-
-`src/lib/chat.spec.ts` carries the two cases the review found stale, and q-016 put the file in this task's scope. Both now drive `writeRollLog('skill', 'Lars rolls stealth', '1d20+3', 14, 17, '14')` where they set `rollStore`, and "publishes a local roll with the author id the create rule tests" also asserts `get(rollStore)` stays empty, so the branch that skips the local store in scope is covered. Those lines reached the tree in `b093abc`, landed by the tester wave for 103 while this task was blocked on q-016, so this session wrote nothing further to the spec. The third finding, the mock reaching `engine.ts`, was not a defect: `vi.mock('./firestore.service')` is keyed by the resolved module id, which is the same module `engine.ts` imports.
-
-`just check` 0 errors 0 warnings and `just build` clean again on the moved tree; `986c893` (#103) touched `chat.ts` after `4bbadba` and did not disturb the branch or the subscriber.
