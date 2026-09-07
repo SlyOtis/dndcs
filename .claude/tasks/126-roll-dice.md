@@ -5,7 +5,9 @@ depends: [102]
 relations: []
 title: Roll Dice and the attack hit button post a roll to the chat log
 type: bug
-status: staged
+status: doing
+session: 8dec51df-8b9f-47a4-9877-00e448df3116
+review:
 blocked_from:
 github:
 assignee: Martin Ottersland
@@ -13,8 +15,9 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-06T19:16:42Z
+updated_at: 2026-09-07T14:37:57Z
 questions: []
+base: 3cf051a21d310bec85863dd6f6d10041c437d302
 ---
 
 ## Intent
@@ -23,12 +26,6 @@ The 110 walk: Roll Dice and the attack hit button leave the chat log empty. Ever
 ## Scope
 The Roll Dice control wherever it renders on the sheet or in the drawer, `src/components/character_sheet/main_tabs/ActionAttack.svelte`, `src/components/search/Search.svelte`, `src/lib/chat.ts`. Not `writeRollLog` itself, which is 102.
 
-## Order
-1. dndcs: after 102 lands, press Roll Dice and the attack hit button on Testy with the chat open and find which of the two never reaches `writeRollLog` and which reaches it but is not rendered.
-2. dndcs: both post one entry to the chat log, with the formula and the total the way an ability roll already does, and the `dice` command in search does the same instead of logging to the console.
-3. verify: `just gate`, then `just dev` on Testy with the chat open.
 
-## Done when
+## Goal
 Roll Dice, the attack hit button and the search `dice` command each add one roll entry to the chat log on Testy, and `just gate` is clean.
-
-## Summary

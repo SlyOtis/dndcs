@@ -3,6 +3,7 @@
   import Field from "$components/ui/Field.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
   import { uiStore, isSearchDialogOpen } from "$lib/stores/ui.store";
+  import { rollFormula } from "$lib/chat";
 
   let isOpen = $derived($isSearchDialogOpen);
 
@@ -55,7 +56,9 @@
   }
 
   function executeCommand(action: string) {
-    console.log('Executing command:', action);
+    if (action === 'dice') {
+      rollFormula('1d20').catch(error => console.error('The dice did not roll:', error));
+    }
     uiStore.closeSearchDialog();
     searchQuery = '';
     selectedIndex = 0;

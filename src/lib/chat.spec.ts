@@ -49,7 +49,7 @@ vi.mock('./firestore.service', () => ({
   }
 }))
 
-import { getChatLog } from './chat'
+import { getChatLog, rollFormula } from './chat'
 import { getRollLog, writeRollLog } from './engine'
 import { user, userProfile } from './stores/auth.store'
 import { currentCampaignId } from './stores/campaign.store'
@@ -369,5 +369,51 @@ describe('the card payload another member reads off the shared log', () => {
     expect(chatItemSource.replace(/\s+/g, ' ')).toContain(
       "class:card={logItem.data.data?.type === 'item_card' || logItem.data.data?.type === 'npc_card'}"
     )
+  })
+})
+
+describe('the dice the search command rolls', () => {
+  const dieFalls = (...faces: number[]) =>
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ text: () => Promise.resolve(faces.join('\n') + '\n') })))
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('writes one roll into the log for the formula it is handed', async () => {
+    dieFalls(7)
+
+    const rolled = await rollFormula('1d20')
+
+    expect(rolled).toMatchObject({ func: 'rollDie', args: { die: 20, amount: 1, modifier: 0 } })
+    expect(get(rollStore)).toMatchObject([{ type: 'roll', formula: '1d20', roll: 7, total: 7, details: '7' }])
+  })
+
+  it('carries the modifier into the total and every die into the details', async () => {
+    dieFalls(3, 4)
+
+    await rollFormula('2d6+3')
+
+    expect(get(rollStore)).toMatchObject([{ formula: '2d6 +3', roll: 7, total: 10, details: '3,4' }])
+  })
+
+  it('rolls nothing for a formula that names no die', async () => {
+    dieFalls(7)
+
+    expect(await rollFormula('bones')).toBeUndefined()
+    expect(await rollFormula('1d7')).toBeUndefined()
+    expect(get(rollStore)).toEqual([])
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('posts the roll to the campaign in scope instead of the local log', async () => {
+    dieFalls(7)
+    signedIn('lars', 'Lars')
+    currentCampaignId.set('camp-1')
+
+    await rollFormula('1d20')
+
+    expect(wire.posted).toMatchObject([{ campaignId: 'camp-1', entry: { kind: 'roll', formula: '1d20', dice: [7], roll: 7, total: 7 } }])
+    expect(get(rollStore)).toEqual([])
   })
 })
