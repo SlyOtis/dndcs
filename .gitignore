@@ -25,3 +25,5 @@ CLAUDE.local.md
 reference/
 .playwright-cli/
 .playwright-mcp/
+
+.claude/inspect
