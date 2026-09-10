@@ -26,4 +26,4 @@ reference/
 .playwright-cli/
 .playwright-mcp/
 
-.claude/inspect
+.lcp_inspect
