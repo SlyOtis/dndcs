@@ -1,19 +1,17 @@
 import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { config } from 'dotenv'
-import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 
 const here = dirname(fileURLToPath(import.meta.url))
-const inspect = resolve(here, '../lcp_inspect/dist/index.js')
 
 config()
 
 // https://vite.dev/config/
-export default defineConfig(async () => ({
-  plugins: [svelte(), ...(existsSync(inspect) ? [(await import(inspect)).default()] : [])],
+export default defineConfig({
+  plugins: [svelte()],
   resolve: {
     alias: {
       '$lib': resolve(here, 'src/lib'),
@@ -30,7 +28,7 @@ export default defineConfig(async () => ({
         target: "https://api.replicate.com/v1",
         changeOrigin: true,
         secure: false,
-        rewrite: (p: string) => p.replace(/^\/replicate/, ""),
+        rewrite: (p) => p.replace(/^\/replicate/, ""),
       }
     },
     cors: false,
@@ -43,4 +41,4 @@ export default defineConfig(async () => ({
       external: []
     }
   }
-}))
+})
