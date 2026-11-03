@@ -1,16 +1,5 @@
 import * as Y from 'yjs'
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  where
-} from 'firebase/firestore'
-import { auth, db } from './firebase'
+import { deleteApi, getApi, getEvery, getSession, postApi, putApi } from './api'
 import type { Owner } from './firestore.types'
 
 /** How long a run of local edits is gathered before it is written. */
@@ -50,15 +39,15 @@ function fromBase64(written: string): Uint8Array {
  * updates under the resource and applies what the others append, so the block
  * text converges without anyone's keystrokes overwriting anyone else's.
  *
- * Firestore carries the updates because it is the one store every player already
- * reaches. A run of edits is gathered for SETTLE_MS before it is written, so a
- * sentence costs one document rather than one per key.
+ * The service carries the updates under the resource, read by everyone who reads
+ * it. A run of edits is gathered for SETTLE_MS before it is written, so a
+ * sentence costs one update rather than one per key.
  */
-export function joinDoc(owner: Owner, kind: string, id: string, seed: string): Session {
+export function joinDoc(_owner: Owner, _kind: string, id: string, seed: string): Session {
   const ydoc = new Y.Doc()
   const content = ydoc.getText('content')
-  const rows = collection(db, owner.at, owner.id, kind, id, 'updates')
-  const self = auth.currentUser?.uid ?? 'nobody'
+  const rows = `/resource/${id}/update`
+  const self = getSession()?.uid ?? 'nobody'
 
   const history = new Y.UndoManager(content, { trackedOrigins: new Set(['self']) })
 
@@ -66,6 +55,7 @@ export function joinDoc(owner: Owner, kind: string, id: string, seed: string): S
   let timer: ReturnType<typeof setTimeout> | null = null
   let seen = new Set<string>()
   let live = true
+  let started = false
 
   ydoc.on('update', (update: Uint8Array, origin: unknown) => {
     if (origin === 'remote') return
@@ -84,34 +74,37 @@ export function joinDoc(owner: Owner, kind: string, id: string, seed: string): S
     const held = Y.mergeUpdates(gathered)
     gathered = []
 
-    await addDoc(rows, { by: self, body: toBase64(held), at: serverTimestamp() })
+    const written = await postApi<{ id: string }>(rows, { by: self, body: toBase64(held) })
+    seen.add(written.id)
   }
 
-  const stop = onSnapshot(query(rows), (snapshot) => {
-    const held: Uint8Array[] = []
+  const stop = getEvery(
+    () => getApi<{ id: string; body: string }[]>(rows),
+    (updates) => {
+      const held: Uint8Array[] = []
 
-    snapshot.docs.forEach((entry) => {
-      if (seen.has(entry.id)) return
-      seen.add(entry.id)
-      const body = entry.data().body
-      if (typeof body === 'string') held.push(fromBase64(body))
-    })
+      updates.forEach((entry) => {
+        if (seen.has(entry.id)) return
+        seen.add(entry.id)
+        if (typeof entry.body === 'string') held.push(fromBase64(entry.body))
+      })
 
-    if (held.length > 0) Y.applyUpdate(ydoc, Y.mergeUpdates(held), 'remote')
+      if (held.length > 0) Y.applyUpdate(ydoc, Y.mergeUpdates(held), 'remote')
 
-    // Nothing stored yet, so the text the resource already carries is the start.
-    if (snapshot.empty && content.length === 0 && seed) {
-      content.insert(0, seed)
+      // Nothing stored yet, so the text the resource already carries is the start.
+      if (!started && updates.length === 0 && content.length === 0 && seed) {
+        content.insert(0, seed)
+      }
+      started = true
+
+      if (updates.length > FOLD_AT) void fold()
     }
+  )
 
-    if (snapshot.size > FOLD_AT) void fold(snapshot.docs.map((entry) => entry.id))
-  })
-
-  async function fold(ids: string[]) {
+  async function fold() {
     const merged = Y.encodeStateAsUpdate(ydoc)
-    await addDoc(rows, { by: self, body: toBase64(merged), at: serverTimestamp() })
-    await Promise.all(ids.map((one) => deleteDoc(doc(rows, one))))
-    ids.forEach((one) => seen.delete(one))
+    const written = await putApi<{ id: string }>(rows, { body: toBase64(merged) })
+    seen = new Set([written.id])
   }
 
   return {
@@ -134,8 +127,6 @@ export function joinDoc(owner: Owner, kind: string, id: string, seed: string): S
 }
 
 /** Drops every stored update, which a resource does when it is removed. */
-export async function dropDoc(owner: Owner, kind: string, id: string): Promise<void> {
-  const rows = collection(db, owner.at, owner.id, kind, id, 'updates')
-  const held = await getDocs(query(rows, where('by', '!=', '')))
-  await Promise.all(held.docs.map((entry) => deleteDoc(entry.ref)))
+export async function dropDoc(_owner: Owner, _kind: string, id: string): Promise<void> {
+  await deleteApi(`/resource/${id}/update`).catch(() => undefined)
 }

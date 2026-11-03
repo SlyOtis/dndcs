@@ -3,33 +3,23 @@ import portraitSource from '../components/ui/Portrait.svelte?raw'
 import storedImageSource from '../components/ui/StoredImage.svelte?raw'
 import createPageSource from '../pages/CharacterCreatePage.svelte?raw'
 
-vi.mock('./firebase', () => ({
-  db: 'db',
-  auth: { currentUser: { uid: 'lars' } }
+const written = vi.hoisted(() => ({ sets: [] as unknown[], commits: 0 }))
+
+vi.mock('./api', () => ({
+  ApiError: class extends Error {},
+  getSession: () => ({ uid: 'lars', email: '', display_name: '', photo_url: '' }),
+  getQuery: (values: Record<string, string>) => `?${new URLSearchParams(values).toString()}`,
+  getApi: () => Promise.reject(new Error('absent')),
+  deleteApi: () => Promise.resolve(null),
+  postApi: (_path: string, body: unknown) => {
+    written.sets.push(body)
+    written.commits++
+    return Promise.resolve({ id: 'file-1' })
+  }
 }))
 
 vi.mock('./swarm', () => ({
   getSwarmFile: () => Promise.resolve(null)
-}))
-
-const written = vi.hoisted(() => ({ sets: [] as unknown[], commits: 0 }))
-
-vi.mock('firebase/firestore', () => ({
-  collection: () => ({}),
-  doc: (...path: unknown[]) => ({ path: path.slice(1).join('/') }),
-  getDoc: () => Promise.resolve({ exists: () => false, data: () => null }),
-  getDocs: () => Promise.resolve({ docs: [] }),
-  orderBy: () => ({}),
-  query: () => ({}),
-  serverTimestamp: () => 'server-time',
-  writeBatch: () => ({
-    set: (_: unknown, data: unknown) => written.sets.push(data),
-    delete: () => undefined,
-    commit: () => {
-      written.commits++
-      return Promise.resolve()
-    }
-  })
 }))
 
 import {
@@ -143,7 +133,7 @@ describe('the media store', () => {
     expect(calls).toHaveLength(1)
     expect(calls[0].init.method).toBe('PUT')
     expect(calls[0].url).toBe(getMediaUrl(address))
-    expect(written.sets[0]).toMatchObject({ name: 'Theme.MP3', size: 70_000, etag: '"server-tag"', count: 0, owner_id: 'lars' })
+    expect(written.sets[0]).toMatchObject({ name: 'Theme.MP3', size: 70_000, etag: '"server-tag"', campaign_id: 'c1', pieces: [] })
     expect((written.sets[0] as FileRecord).blocks).toHaveLength(2)
   })
 

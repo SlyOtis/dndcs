@@ -131,13 +131,13 @@
         where: `/main/campaign/${campaignId}/maps/${entry.id}`
       }))
     ]
-      .sort((a, b) => (b.at?.toMillis() ?? 0) - (a.at?.toMillis() ?? 0))
+      .sort((a, b) => (Date.parse(b.at ?? '') || 0) - (Date.parse(a.at ?? '') || 0))
       .map((entry, index) => ({
         id: `${index}-${entry.word}`,
         tone: entry.tone,
         word: entry.word,
         where: entry.where,
-        when: entry.at ? entry.at.toDate().toLocaleDateString() : ''
+        when: entry.at ? new Date(entry.at).toLocaleDateString() : ''
       }))
   )
 

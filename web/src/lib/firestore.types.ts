@@ -1,15 +1,14 @@
-import type { Timestamp } from 'firebase/firestore';
 import type { Character } from './character.types';
 
-// User profile stored in Firestore
+// A player's profile
 export interface UserProfile {
   uid: string;
   email: string;
   display_name: string;
   photo_url?: string;
   friends: string[];
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
   preferences: UserPreferences;
 }
 
@@ -35,8 +34,8 @@ export interface Song extends Access {
   title: string;
   address: string;
   duration: number;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
 }
 
 // What every shared document carries. The owner is the uid that made it.
@@ -45,9 +44,6 @@ export interface Access {
   share_campaigns: string[];
   share_parties: string[];
   share_users: string[];
-  // Every uid the share resolves to. Rules filter nothing, so a list query is
-  // constrained by this and the rule reads the same field.
-  readers: string[];
 }
 
 // A group that plays together. It stands on its own and a campaign gathers them.
@@ -59,11 +55,11 @@ export interface Party {
   owner_id: string;
   member_ids: string[];
   character_ids: string[];
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
 }
 
-// Campaign stored in Firestore
+// A table of play
 export interface Campaign {
   id: string;
   name: string;
@@ -73,8 +69,8 @@ export interface Campaign {
   party_ids: string[];
   character_ids: string[];
   is_active: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
   settings: CampaignSettings;
 }
 
@@ -85,7 +81,7 @@ export interface CampaignSettings {
   experience_mode: 'individual' | 'milestone' | 'shared';
 }
 
-// Character document stored in Firestore
+// A character with its summary
 export interface CharacterDocument {
   id: string;
   owner_id: string;
@@ -103,9 +99,9 @@ export interface CharacterMetadata {
   class: string;
   race: string;
   status?: CharacterStatus;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-  last_played_at?: Timestamp;
+  created_at: string;
+  updated_at: string;
+  last_played_at?: string;
   version: string;
   tags: string[];
   is_template: boolean;
@@ -187,8 +183,8 @@ export interface CampaignMap {
   parent_map_id?: string;
   min_zoom: number;
   max_zoom: number;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
 }
 
 export type CampaignRecordKind = 'place' | 'character' | 'item' | 'quest' | 'session';
@@ -211,8 +207,8 @@ export interface CampaignChatEntry {
   dice: number[];
   roll: number;
   total: number;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
 }
 
 export type CombatantKind = 'character' | 'npc';
@@ -238,11 +234,11 @@ export interface CampaignEncounter extends Access {
   round: number;
   turn: number;
   is_active: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
+  created_at: string;
+  updated_at: string;
 }
 
-// Firestore collection names
+// The places a record belongs to
 export const COLLECTIONS = {
   USERS: 'users',
   CHARACTERS: 'characters',
@@ -254,8 +250,6 @@ export const COLLECTIONS = {
   SONGS: 'songs'
 } as const;
 
-// Helper types for Firestore operations
-export type FirestoreTimestamp = Timestamp;
 export type CollectionName = typeof COLLECTIONS[keyof typeof COLLECTIONS];
 
 // Who a resource belongs to. A campaign holds what the table shares, a user holds their own.

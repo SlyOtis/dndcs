@@ -114,7 +114,7 @@
   let stepping = $state(false)
 
   const shot = $derived(
-    JSON.stringify({ ...one, created_at: null, readers: null, id: null }) + `|${tagLine}`
+    JSON.stringify({ ...one, created_at: null, id: null }) + `|${tagLine}`
   )
   const changed = $derived(shot !== began)
 
@@ -296,7 +296,7 @@
     const [body, tags] = snapshot.split('|')
     const held = JSON.parse(body) as Record<string, unknown>
     stepping = true
-    one = { ...one, ...held, id: one.id, created_at: one.created_at, readers: one.readers }
+    one = { ...one, ...held, id: one.id, created_at: one.created_at }
     tagLine = tags ?? ''
   }
 

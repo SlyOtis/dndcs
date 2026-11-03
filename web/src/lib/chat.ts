@@ -96,7 +96,7 @@ function asMessageEntry(item: ReplicateLogItem): ChatEntryFields {
 }
 
 function asLogItem(entry: CampaignChatEntry): LogItem {
-  const createdAt = entry.created_at ? entry.created_at.toDate() : new Date();
+  const createdAt = entry.created_at ? new Date(entry.created_at) : new Date();
   const author = entry.author_name || 'Someone';
 
   if (entry.kind === 'roll') {

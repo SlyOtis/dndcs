@@ -1,94 +1,86 @@
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  type User,
-  type Unsubscribe
-} from 'firebase/auth';
-import { auth } from './firebase';
+import { ApiError, getApi, getSession, putSession, type SessionUser } from './api';
 import { userService } from './firestore.service';
 
-const googleProvider = new GoogleAuthProvider();
+interface SamnaMe {
+  user_id: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  user_name?: string;
+  user_image?: string;
+}
+
+const listeners = new Set<(user: SessionUser | null) => void>();
+
+function getSignInAddress(): string {
+  const back = window.location.pathname + window.location.search;
+  return `/api/auth/login?next=${encodeURIComponent(back === '/login' || back === '/signup' ? '/' : back)}`;
+}
+
+function getSessionUser(me: SamnaMe): SessionUser {
+  const name = [me.first_name, me.last_name].filter(Boolean).join(' ') || me.user_name || me.email || '';
+  return { uid: me.user_id, email: me.email ?? '', display_name: name, photo_url: me.user_image ?? '' };
+}
 
 export const authService = {
-  // Sign up with email and password
-  async signUp(email: string, password: string, displayName: string, replicateApiKey = ''): Promise<User> {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    
-    try {
-      await userService.createProfile({
-        email,
-        display_name: displayName,
-        photo_url: user.photoURL || undefined
-      });
-
-      await userService.setUserDetails(user.uid, {
-        display_name: displayName,
-        replicate_api_key: replicateApiKey
-      });
-
-      const savedDetails = await userService.getUserDetails(user.uid);
-      if (!savedDetails || !savedDetails.display_name) {
-        throw new Error('Failed to save user details - verification failed');
-      }
-      
-    } catch (error) {
-      console.error('Auth Service: Failed to save user data, deleting auth user:', error);
-      try {
-        await user.delete();
-      } catch (deleteError) {
-        console.error('Auth Service: Failed to delete user after data save failure:', deleteError);
-      }
-      throw new Error(`Account creation failed: ${error instanceof Error ? error.message : 'Failed to save user details'}`);
-    }
-    
-    return user;
+  async signUp(_email: string, _password: string, _displayName: string, replicateApiKey = ''): Promise<SessionUser> {
+    if (replicateApiKey) sessionStorage.setItem('dndcs.replicate_api_key', replicateApiKey);
+    window.location.assign(getSignInAddress());
+    return new Promise<SessionUser>(() => undefined);
   },
 
-  // Sign in with email and password
-  async signIn(email: string, password: string): Promise<User> {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+  async signIn(_email: string, _password: string): Promise<SessionUser> {
+    window.location.assign(getSignInAddress());
+    return new Promise<SessionUser>(() => undefined);
   },
 
-  // Sign in with Google
-  async signInWithGoogle(): Promise<User> {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
-    
-    // Check if user profile exists, create if not
-    const existingProfile = await userService.getProfile(user.uid);
-    if (!existingProfile) {
-      await userService.createProfile({
-        email: user.email || '',
-        display_name: user.displayName || '',
-        photo_url: user.photoURL || undefined
-      });
-    }
-    
-    return user;
+  async signInWithGoogle(): Promise<SessionUser> {
+    window.location.assign(getSignInAddress());
+    return new Promise<SessionUser>(() => undefined);
   },
 
   async signOut(): Promise<void> {
-    await firebaseSignOut(auth);
+    putSession(null);
+    listeners.forEach((listener) => listener(null));
+    window.location.assign('/api/auth/logout');
   },
 
-  // Get current user
-  getCurrentUser(): User | null {
-    return auth.currentUser;
+  async getSessionUser(): Promise<SessionUser | null> {
+    const me = await getApi<SamnaMe>('/auth/me').catch((error) => {
+      if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return null;
+      throw error;
+    });
+    const found = me?.user_id ? getSessionUser(me) : null;
+    putSession(found);
+
+    if (found) {
+      const profile = await userService.getProfile();
+      if (!profile) {
+        await userService.createProfile({ email: found.email, display_name: found.display_name, photo_url: found.photo_url });
+      }
+      const pendingKey = sessionStorage.getItem('dndcs.replicate_api_key');
+      if (pendingKey) {
+        await userService.putUserSecrets({ replicate_api_key: pendingKey });
+        sessionStorage.removeItem('dndcs.replicate_api_key');
+      }
+    }
+
+    return found;
   },
 
-  // Subscribe to auth state changes
-  onAuthStateChanged(callback: (user: User | null) => void): Unsubscribe {
-    return onAuthStateChanged(auth, callback);
+  getCurrentUser(): SessionUser | null {
+    return getSession();
   },
 
-  // Check if user is authenticated
+  onAuthStateChanged(callback: (user: SessionUser | null) => void): () => void {
+    listeners.add(callback);
+    this.getSessionUser()
+      .then((found) => callback(found))
+      .catch(() => callback(null));
+    return () => listeners.delete(callback);
+  },
+
   isAuthenticated(): boolean {
-    return !!auth.currentUser;
+    return !!getSession();
   }
 };

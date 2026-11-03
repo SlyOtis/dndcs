@@ -377,7 +377,7 @@ export function getAuthor(): { author_id: string, author_name: string } {
 
   return {
     author_id: account?.uid ?? '',
-    author_name: profile?.display_name || account?.displayName || account?.email || 'Someone'
+    author_name: profile?.display_name || account?.display_name || account?.email || 'Someone'
   }
 }
 

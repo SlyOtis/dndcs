@@ -10,6 +10,7 @@ import (
 )
 
 func GetHTML(root string) echo.HandlerFunc {
+	root = filepath.Clean(root)
 	index := filepath.Join(root, "index.html")
 	return func(ctx echo.Context) error {
 		path := filepath.Join(root, filepath.Clean("/"+ctx.Request().URL.Path))

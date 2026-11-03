@@ -177,11 +177,7 @@ export function moveSong(index: number, by: -1 | 1): void {
 export async function postSong(campaignId: string, file: File): Promise<void> {
   if (!file.type.startsWith('audio/')) throw new Error(`${file.name} is not an audio file.`)
 
-  const [duration, address, campaign] = await Promise.all([
-    getDuration(file),
-    postFile(file, { kind: 'campaignAudio', campaignId }),
-    campaignService.getCampaign(campaignId)
-  ])
+  const [duration, address] = await Promise.all([getDuration(file), postFile(file, { kind: 'campaignAudio', campaignId })])
 
   await campaignService.postPart({ at: 'campaigns', id: campaignId }, 'songs', {
     title: file.name.replace(/\.[^.]+$/, ''),
@@ -189,7 +185,6 @@ export async function postSong(campaignId: string, file: File): Promise<void> {
     duration,
     share_campaigns: [campaignId],
     share_parties: [],
-    share_users: [],
-    readers: campaign ? [campaign.dm_id, ...campaign.player_ids] : []
+    share_users: []
   })
 }

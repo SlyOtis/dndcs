@@ -1,7 +1,6 @@
-import type { Timestamp } from 'firebase/firestore'
 import { dropDoc } from './collab'
 import { campaignService } from './firestore.service'
-import type { Access, Campaign, Owner, Party } from './firestore.types'
+import type { Access, Owner } from './firestore.types'
 import { deleteFile, isStoredFile } from './storage.service'
 
 /** A label the writer added to the head, with the line written next to it. */
@@ -32,7 +31,7 @@ export interface Resource extends Access {
   /** The resource this one is a sub page of. */
   parent_id: string
   /** When it was written down, which is what orders a chronicle. */
-  created_at: Timestamp | null
+  created_at: string | null
 }
 
 export type Disposition = 'friendly' | 'neutral' | 'hostile' | 'unknown'
@@ -110,26 +109,6 @@ export interface Quest extends Resource {
   giver: string
 }
 
-/**
- * Everyone the share resolves to, written onto the resource so a list query can
- * be constrained the same way the rule reads it. A campaign it names brings its
- * dungeon master and players, a party it names brings its members, out of the
- * campaigns and parties handed in.
- */
-export function getReaders(
-  one: Access,
-  campaigns: Pick<Campaign, 'id' | 'dm_id' | 'player_ids'>[],
-  parties: Pick<Party, 'id' | 'member_ids'>[]
-): string[] {
-  const seated = campaigns
-    .filter((campaign) => one.share_campaigns.includes(campaign.id))
-    .flatMap((campaign) => [campaign.dm_id, ...campaign.player_ids])
-  const gathered = parties
-    .filter((party) => one.share_parties.includes(party.id))
-    .flatMap((party) => party.member_ids)
-
-  return [...new Set([one.owner_id, ...one.share_users, ...seated, ...gathered].filter(Boolean))]
-}
 
 type Stored = Record<string, unknown> & { id: string }
 
@@ -151,8 +130,7 @@ function getShared(stored: Stored): Resource {
     share_campaigns: Array.isArray(stored.share_campaigns) ? (stored.share_campaigns as string[]) : [],
     share_parties: Array.isArray(stored.share_parties) ? (stored.share_parties as string[]) : [],
     share_users: Array.isArray(stored.share_users) ? (stored.share_users as string[]) : [],
-    readers: Array.isArray(stored.readers) ? (stored.readers as string[]) : [],
-    created_at: (stored.created_at as Timestamp | undefined) ?? null
+    created_at: (stored.created_at as string | undefined) ?? null
   }
 }
 
@@ -173,8 +151,7 @@ function putShared(one: Partial<Resource>): Record<string, unknown> {
     owner_id: one.owner_id ?? '',
     share_campaigns: one.share_campaigns ?? [],
     share_parties: one.share_parties ?? [],
-    share_users: one.share_users ?? [],
-    readers: one.readers ?? []
+    share_users: one.share_users ?? []
   }
 }
 
@@ -778,7 +755,6 @@ export function getBlank(kind: ResourceKind, ownerId: string): Record<string, un
     share_campaigns: [],
     share_parties: [],
     share_users: [],
-    readers: [],
     created_at: null
   }
 }
@@ -855,37 +831,6 @@ export async function deleteResources(owner: Owner, ownerId: string): Promise<nu
 
   await Promise.all(held.map((entry) => deleteOne(owner, entry.kind, entry.one)))
   return held.length
-}
-
-/**
- * Writes readers again on every resource ownerId holds under the owners, after a
- * campaign or party changed who sits in it. Only the owner may write a resource,
- * so what someone else shared stays as they wrote it until they save it again.
- */
-export async function putReaders(
-  owners: Owner[],
-  ownerId: string,
-  campaigns: Pick<Campaign, 'id' | 'dm_id' | 'player_ids'>[],
-  parties: Pick<Party, 'id' | 'member_ids'>[]
-): Promise<number> {
-  const kinds = Object.keys(RESOURCES) as ResourceKind[]
-  let written = 0
-
-  for (const owner of owners) {
-    const rolls = await Promise.all(kinds.map((kind) => getEvery(owner, kind)))
-
-    for (const [index, kind] of kinds.entries()) {
-      for (const one of rolls[index]) {
-        if (one.owner_id !== ownerId) continue
-        const readers = getReaders(one, campaigns, parties)
-        if ([...readers].sort().join() === [...one.readers].sort().join()) continue
-        await putOne(owner, kind, one.id, { ...one, readers })
-        written += 1
-      }
-    }
-  }
-
-  return written
 }
 
 export function getChildren(all: Resource[], parentId: string): Resource[] {

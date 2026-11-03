@@ -67,7 +67,7 @@
   const activeQuests = $derived(quests.filter((quest) => quest.state === 'active'))
   const lore = $derived(npcs.length + places.length)
   const knownEncounters = $derived(
-    [...encounters].sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0))
+    [...encounters].sort((a, b) => (Date.parse(b.created_at ?? '') || 0) - (Date.parse(a.created_at ?? '') || 0))
   )
   const encounter = $derived(knownEncounters.find((entry) => entry.is_active) ?? knownEncounters[0] ?? null)
   const combatants = $derived(encounter ? [...encounter.combatants].sort((a, b) => b.initiative - a.initiative) : [])

@@ -2,7 +2,7 @@
   import { campaignService, partyService, userService } from '$lib/firestore.service'
   import type { Campaign, Owner, Party } from '$lib/firestore.types'
   import { user, userProfile } from '$lib/stores/auth.store'
-  import { getAll, getReaders, putOne, RESOURCES, type Resource, type ResourceKind } from '$lib/resources'
+  import { getAll, putOne, RESOURCES, type Resource, type ResourceKind } from '$lib/resources'
   import BaseDialog from '$components/BaseDialog.svelte'
   import Button from '$components/ui/Button.svelte'
   import Picker, { type Pick } from '$components/ui/Picker.svelte'
@@ -148,9 +148,8 @@
         const found = tag.id === one.id ? { kind, one } : held.find((entry) => entry.one.id === tag.id)
         if (!found) continue
         const merged = { ...found.one, ...fields }
-        const readers = getReaders(merged, campaigns, parties)
-        await putOne(owner, found.kind, found.one.id, { ...merged, readers })
-        if (found.one.id === one.id) one = { ...merged, readers }
+        await putOne(owner, found.kind, found.one.id, merged)
+        if (found.one.id === one.id) one = merged
       }
       onChange?.()
       isOpen = false

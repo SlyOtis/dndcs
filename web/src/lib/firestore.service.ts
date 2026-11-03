@@ -1,24 +1,4 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  onSnapshot,
-  serverTimestamp,
-  arrayUnion,
-  arrayRemove,
-  deleteField,
-  type Unsubscribe
-} from 'firebase/firestore';
-import type { FirebaseError } from 'firebase/app';
-import { auth, db } from './firebase';
+import { ApiError, deleteApi, getApi, getEvery, getQuery, getSessionId, postApi, putApi } from './api';
 import { deleteFile, isDeadFile, isStoredFile } from './storage.service';
 import type {
   UserProfile,
@@ -37,184 +17,89 @@ import type {
 import { COLLECTIONS } from './firestore.types';
 import type { Character } from './character.types';
 
-// Auth helper
-function getCurrentUserId(): string {
-  const user = auth.currentUser;
-  if (!user) throw new Error('User not authenticated');
-  return user.uid;
-}
+export type Unsubscribe = () => void;
 
 type CampaignRecord = { id: string };
 
-async function getRecords<T extends CampaignRecord>(owner: Owner, name: string): Promise<T[]> {
-  const rows = collection(db, owner.at, owner.id, name);
-  const mine = query(rows, where('readers', 'array-contains', getCurrentUserId()));
-  const snapshot = await getDocs(mine);
-  return snapshot.docs.map((entry) => entry.data() as T);
+function getAbsent<T>(error: unknown, absent: T): T {
+  if (error instanceof ApiError && (error.status === 404 || error.status === 403)) return absent;
+  throw error;
 }
 
-async function postRecord<T extends CampaignRecord>(
-  owner: Owner,
-  name: string,
-  fields: Omit<T, 'id' | 'owner_id' | 'readers' | 'created_at' | 'updated_at'> & { readers?: string[] }
-): Promise<string> {
-  const target = doc(collection(db, owner.at, owner.id, name));
-  const self = getCurrentUserId();
-  const asked = fields.readers ?? [];
-
-  await setDoc(target, {
-    ...fields,
-    id: target.id,
-    owner_id: self,
-    readers: [...new Set([self, ...asked])],
-    created_at: serverTimestamp(),
-    updated_at: serverTimestamp()
-  });
-
-  return target.id;
+function getPartPath(owner: Owner, part: string, id?: string): string {
+  if (part === COLLECTIONS.SONGS) return `/campaign/${owner.id}/song${id ? `/${id}` : ''}`;
+  if (part === COLLECTIONS.ENCOUNTERS) return `/campaign/${owner.id}/encounter${id ? `/${id}` : ''}`;
+  return id ? `/resource/${id}` : '/resource';
 }
 
-async function putRecord(owner: Owner, name: string, id: string, updates: Record<string, unknown>): Promise<void> {
-  const target = doc(db, owner.at, owner.id, name, id);
-  await updateDoc(target, { ...updates, updated_at: serverTimestamp() });
-}
-
-async function deleteRecord(owner: Owner, name: string, id: string): Promise<void> {
-  await deleteDoc(doc(db, owner.at, owner.id, name, id));
+function getOwnerQuery(owner: Owner, part: string): string {
+  if (part === COLLECTIONS.SONGS || part === COLLECTIONS.ENCOUNTERS) return '';
+  return getQuery(
+    owner.at === COLLECTIONS.CAMPAIGNS ? { kind: part, campaign_id: owner.id } : { kind: part, user_id: owner.id }
+  );
 }
 
 // User Profile Operations
 export const userService = {
   async createProfile(userData: Partial<UserProfile>): Promise<void> {
-    const userId = getCurrentUserId();
-    const userRef = doc(db, COLLECTIONS.USERS, userId);
-    
-    const profile: UserProfile = {
-      uid: userId,
+    await postApi('/profile', {
       email: userData.email || '',
       display_name: userData.display_name || '',
-      photo_url: userData.photo_url,
-      friends: [],
-      created_at: serverTimestamp() as any,
-      updated_at: serverTimestamp() as any,
-      preferences: {
-        theme: 'medieval',
-        sound_enabled: true,
-        sound_volume: 0.7,
-        animations_enabled: true,
-        recent_characters: []
-      }
-    };
-    
-    await setDoc(userRef, profile);
+      photo_url: userData.photo_url || ''
+    });
   },
 
   async getProfile(userId?: string): Promise<UserProfile | null> {
-    const uid = userId || getCurrentUserId();
-    const userRef = doc(db, COLLECTIONS.USERS, uid);
-    const userSnap = await getDoc(userRef);
-    
-    return userSnap.exists() ? userSnap.data() as UserProfile : null;
+    const path = userId && userId !== getSessionId() ? `/profile/${userId}` : '/profile';
+    return getApi<UserProfile>(path).catch((error) => getAbsent(error, null));
   },
 
   async updateProfile(updates: Partial<UserProfile>): Promise<void> {
-    const userId = getCurrentUserId();
-    const userRef = doc(db, COLLECTIONS.USERS, userId);
-    
-    await updateDoc(userRef, {
-      ...updates,
-      updated_at: serverTimestamp()
-    });
+    await putApi('/profile', updates);
   },
 
   async putRecentCharacters(recent: string[]): Promise<void> {
-    const userRef = doc(db, COLLECTIONS.USERS, getCurrentUserId());
-
-    await updateDoc(userRef, {
-      'preferences.recent_characters': recent,
-      updated_at: serverTimestamp()
-    });
+    const profile = await this.getProfile();
+    await putApi('/profile', { preferences: { ...(profile?.preferences ?? {}), recent_characters: recent } });
   },
 
   async updatePreferences(preferences: Partial<UserPreferences>): Promise<void> {
-    const userId = getCurrentUserId();
-    const userRef = doc(db, COLLECTIONS.USERS, userId);
-    
-    await updateDoc(userRef, {
-      preferences,
-      updated_at: serverTimestamp()
-    });
+    await putApi('/profile', { preferences });
   },
 
   subscribeToProfile(callback: (profile: UserProfile | null) => void): Unsubscribe {
-    const userId = getCurrentUserId();
-    const userRef = doc(db, COLLECTIONS.USERS, userId);
-    
-    return onSnapshot(userRef, (doc) => {
-      callback(doc.exists() ? doc.data() as UserProfile : null);
-    });
+    return getEvery(() => this.getProfile(), callback, () => callback(null));
   },
 
-  async setUserDetails(userId: string, details: any): Promise<void> {
-    const detailsRef = doc(db, COLLECTIONS.USERS, userId, 'data', 'details');
-    
-    const dataToStore = {
-      ...details,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
-    };
-    
-    await setDoc(detailsRef, dataToStore);
+  async setUserDetails(_userId: string, details: Record<string, unknown>): Promise<void> {
+    await putApi('/profile/details', details);
   },
 
   async getProfileEmail(email: string): Promise<UserProfile | null> {
-    const users = collection(db, COLLECTIONS.USERS);
-    const snapshot = await getDocs(query(users, where('email', '==', email.trim().toLowerCase()), limit(1)));
-
-    return snapshot.empty ? null : (snapshot.docs[0].data() as UserProfile);
+    const found = await getApi<UserProfile[]>(`/profile/list${getQuery({ email: email.trim().toLowerCase() })}`);
+    return found[0] ?? null;
   },
 
   async getProfiles(userIds: string[]): Promise<UserProfile[]> {
-    const unique = Array.from(new Set(userIds));
-    const snapshots = await Promise.all(unique.map((id) => getDoc(doc(db, COLLECTIONS.USERS, id))));
-
-    return snapshots.filter((entry) => entry.exists()).map((entry) => entry.data() as UserProfile);
+    const unique = Array.from(new Set(userIds)).filter(Boolean);
+    if (unique.length === 0) return [];
+    return getApi<UserProfile[]>(`/profile/list${getQuery({ ids: unique.join(',') })}`);
   },
 
   async postFriend(email: string): Promise<UserProfile> {
-    const userId = getCurrentUserId();
-    const found = await this.getProfileEmail(email);
-    if (!found) throw new Error('Nobody signs in with that address.');
-    if (found.uid === userId) throw new Error('That address is your own.');
-
-    await updateDoc(doc(db, COLLECTIONS.USERS, userId), {
-      friends: arrayUnion(found.uid),
-      updated_at: serverTimestamp()
-    });
-
-    return found;
+    return postApi<UserProfile>('/profile/friend', { email });
   },
 
   async deleteFriend(friendId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.USERS, getCurrentUserId()), {
-      friends: arrayRemove(friendId),
-      updated_at: serverTimestamp()
-    });
+    await deleteApi(`/profile/friend/${friendId}`);
   },
 
   async putUserSecrets(secrets: Record<string, string>): Promise<void> {
-    const userId = getCurrentUserId();
-    const detailsRef = doc(db, COLLECTIONS.USERS, userId, 'data', 'details');
-
-    await setDoc(detailsRef, { ...secrets, updated_at: serverTimestamp() }, { merge: true });
+    await putApi('/profile/details', secrets);
   },
 
-  async getUserDetails(userId?: string): Promise<any> {
-    const uid = userId || getCurrentUserId();
-    const detailsRef = doc(db, COLLECTIONS.USERS, uid, 'data', 'details');
-    
-    const detailsSnap = await getDoc(detailsRef);
-    return detailsSnap.exists() ? detailsSnap.data() : null;
+  async getUserDetails(_userId?: string): Promise<any> {
+    return getApi<Record<string, unknown>>('/profile/details').catch((error) => getAbsent(error, null));
   }
 };
 
@@ -223,9 +108,7 @@ function deleteDeadPortrait(document: CharacterDocument): void {
   if (!info?.imageUrl || !isDeadFile(info.imageUrl)) return;
 
   info.imageUrl = '';
-  updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), { 'character.info.imageUrl': '' }).catch(
-    () => undefined
-  );
+  putApi(`/character/${document.id}`, { character: document.character }).catch(() => undefined);
 }
 
 export function getCharacterStatus(character: Character): CharacterStatus {
@@ -251,10 +134,6 @@ export function getCharacterMetadata(character: Character): DerivedMetadata {
   };
 }
 
-function getMetadataFields(metadata: DerivedMetadata): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(metadata).map(([key, value]) => [`metadata.${key}`, value]));
-}
-
 // Character Operations
 export const characterService = {
   async createCharacter(
@@ -262,65 +141,35 @@ export const characterService = {
     metadata?: Partial<CharacterDocument['metadata']>,
     campaignId?: string
   ): Promise<string> {
-    const userId = getCurrentUserId();
-    const characterRef = doc(collection(db, COLLECTIONS.CHARACTERS));
-
-    const characterDoc: CharacterDocument = {
-      id: characterRef.id,
-      owner_id: userId,
-      ...(campaignId ? { campaign_id: campaignId } : {}),
+    const created = await postApi<CharacterDocument>('/character', {
       character,
+      campaign_id: campaignId || undefined,
       metadata: {
         ...getCharacterMetadata(character),
-        created_at: serverTimestamp() as any,
-        updated_at: serverTimestamp() as any,
         version: '1.0.0',
         tags: [],
         is_template: false,
         is_public: false,
         ...metadata
-      },
-      permissions: {
-        viewers: [],
-        editors: [],
-        dm_override: true
       }
-    };
-
-    await setDoc(characterRef, characterDoc);
-    return characterRef.id;
+    });
+    return created.id;
   },
 
   async getCharacter(characterId: string): Promise<CharacterDocument | null> {
-    const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
-    const characterSnap = await getDoc(characterRef).catch((error: FirebaseError) => {
-      if (error.code !== 'permission-denied') throw error;
-      return null;
-    });
+    const document = await getApi<CharacterDocument>(`/character/${characterId}`).catch((error) => getAbsent(error, null));
+    if (!document) return null;
 
-    if (!characterSnap?.exists()) return null;
-
-    const document = characterSnap.data() as CharacterDocument;
     deleteDeadPortrait(document);
-
     return document;
   },
 
   async putPlayed(characterId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.CHARACTERS, characterId), {
-      'metadata.last_played_at': serverTimestamp()
-    });
+    await putApi(`/character/${characterId}/played`);
   },
 
   async updateCharacter(characterId: string, character: Character): Promise<void> {
-    const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
-    
-    await updateDoc(characterRef, {
-      character,
-      ...getMetadataFields(getCharacterMetadata(character)),
-      'metadata.updated_at': serverTimestamp(),
-      'metadata.last_played_at': serverTimestamp()
-    });
+    await putApi(`/character/${characterId}`, { character, metadata: getCharacterMetadata(character) });
   },
 
   async postCharacterCopy(characterId: string): Promise<string> {
@@ -338,7 +187,7 @@ export const characterService = {
       document.campaign_id
     );
 
-    if (document.owner_id !== getCurrentUserId()) return copyId;
+    if (document.owner_id !== getSessionId()) return copyId;
 
     const sources = await this.getCharacterSources(characterId);
     if (sources.length > 0) await this.setCharacterSources(copyId, sources);
@@ -347,24 +196,11 @@ export const characterService = {
   },
 
   async deleteCharacter(characterId: string): Promise<void> {
-    const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
-    const held = await getDocs(collection(db, COLLECTIONS.CHARACTERS, characterId, 'data'));
-
-    await Promise.all(held.docs.map((entry) => deleteDoc(entry.ref)));
-    await deleteDoc(characterRef);
+    await deleteApi(`/character/${characterId}`);
   },
 
   async getUserCharacters(userId?: string): Promise<CharacterDocument[]> {
-    const uid = userId || getCurrentUserId();
-    const charactersRef = collection(db, COLLECTIONS.CHARACTERS);
-    const q = query(
-      charactersRef,
-      where('owner_id', '==', uid),
-      orderBy('metadata.updated_at', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const found = querySnapshot.docs.map(entry => entry.data() as CharacterDocument);
+    const found = await getApi<CharacterDocument[]>(`/character${getQuery({ user_id: userId })}`);
 
     for (const document of found) {
       deleteDeadPortrait(document);
@@ -376,142 +212,87 @@ export const characterService = {
       if (!stale) continue;
 
       document.metadata = { ...document.metadata, ...derived };
-      updateDoc(doc(db, COLLECTIONS.CHARACTERS, document.id), getMetadataFields(derived)).catch(
-        () => undefined
-      );
+      putApi(`/character/${document.id}`, { metadata: derived }).catch(() => undefined);
     }
 
     return found;
   },
 
   subscribeToCharacter(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
-    const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
-    
-    return onSnapshot(characterRef, (doc) => {
-      callback(doc.exists() ? doc.data() as CharacterDocument : null);
-    });
+    return getEvery(() => this.getCharacter(characterId), callback);
   },
 
   subscribeToUserCharacters(callback: (characters: CharacterDocument[]) => void, userId?: string): Unsubscribe {
-    const uid = userId || getCurrentUserId();
-    const charactersRef = collection(db, COLLECTIONS.CHARACTERS);
-    const q = query(
-      charactersRef,
-      where('owner_id', '==', uid),
-      orderBy('metadata.updated_at', 'desc')
-    );
-    
-    return onSnapshot(q, (querySnapshot) => {
-      const characters = querySnapshot.docs.map(doc => doc.data() as CharacterDocument);
-      callback(characters);
-    });
+    return getEvery(() => this.getUserCharacters(userId), callback);
   },
 
   async setCharacterSources(characterId: string, sources: string[]): Promise<void> {
-    const sourcesRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'sources');
-    
-    await setDoc(sourcesRef, {
-      sources,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
-    });
+    await putApi(`/character/${characterId}/sources`, { sources });
   },
 
   async getCharacterSources(characterId: string): Promise<string[]> {
-    const sourcesRef = doc(db, COLLECTIONS.CHARACTERS, characterId, 'data', 'sources');
-    const sourcesSnap = await getDoc(sourcesRef);
-    
-    return sourcesSnap.exists() ? sourcesSnap.data().sources || [] : [];
+    return getApi<string[]>(`/character/${characterId}/sources`).catch((error) => getAbsent(error, []));
   }
 };
 
 // Party Operations
 export const partyService = {
   async postParty(fields: Omit<Party, 'id' | 'owner_id' | 'created_at' | 'updated_at'>): Promise<string> {
-    const target = doc(collection(db, COLLECTIONS.PARTIES));
-
-    await setDoc(target, {
-      ...fields,
-      id: target.id,
-      owner_id: getCurrentUserId(),
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp()
-    });
-
-    return target.id;
+    const created = await postApi<Party>('/party', fields);
+    return created.id;
   },
 
   async getParty(partyId: string): Promise<Party | null> {
-    const snapshot = await getDoc(doc(db, COLLECTIONS.PARTIES, partyId));
-    return snapshot.exists() ? (snapshot.data() as Party) : null;
+    return getApi<Party>(`/party/${partyId}`).catch((error) => getAbsent(error, null));
   },
 
   async getParties(): Promise<Party[]> {
-    const parties = collection(db, COLLECTIONS.PARTIES);
-    const snapshot = await getDocs(query(parties, where('member_ids', 'array-contains', getCurrentUserId())));
-    return snapshot.docs.map((entry) => entry.data() as Party).sort((a, b) => a.name.localeCompare(b.name));
+    return getApi<Party[]>('/party');
   },
 
   async putParty(partyId: string, updates: Partial<Party>): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.PARTIES, partyId), { ...updates, updated_at: serverTimestamp() });
+    await putApi(`/party/${partyId}`, updates);
   },
 
   async deleteParty(partyId: string): Promise<void> {
-    await deleteDoc(doc(db, COLLECTIONS.PARTIES, partyId));
+    await deleteApi(`/party/${partyId}`);
   },
 
   async postPartyCharacter(partyId: string, characterId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.PARTIES, partyId), {
-      character_ids: arrayUnion(characterId),
-      updated_at: serverTimestamp()
-    });
+    await postApi(`/party/${partyId}/character/${characterId}`);
   },
 
   async deletePartyCharacter(partyId: string, characterId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.PARTIES, partyId), {
-      character_ids: arrayRemove(characterId),
-      updated_at: serverTimestamp()
-    });
+    await deleteApi(`/party/${partyId}/character/${characterId}`);
   }
 };
 
 // Campaign Operations
 export const campaignService = {
   async createCampaign(campaignData: Omit<Campaign, 'id' | 'created_at' | 'updated_at'>): Promise<string> {
-    const campaignRef = doc(collection(db, COLLECTIONS.CAMPAIGNS));
-    
-    const campaign: Campaign = {
-      ...campaignData,
-      id: campaignRef.id,
-      created_at: serverTimestamp() as any,
-      updated_at: serverTimestamp() as any
-    };
-    
-    await setDoc(campaignRef, campaign);
-    return campaignRef.id;
+    const created = await postApi<Campaign>('/campaign', {
+      name: campaignData.name,
+      description: campaignData.description,
+      is_active: campaignData.is_active,
+      settings: campaignData.settings,
+      party_ids: campaignData.party_ids ?? []
+    });
+    return created.id;
   },
 
   async getCampaign(campaignId: string): Promise<Campaign | null> {
-    const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
-    const campaignSnap = await getDoc(campaignRef);
-
-    return campaignSnap.exists() ? campaignSnap.data() as Campaign : null;
+    return getApi<Campaign>(`/campaign/${campaignId}`).catch((error) => getAbsent(error, null));
   },
 
   async putCampaign(campaignId: string, updates: Partial<Campaign>): Promise<void> {
-    const campaignRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId);
-    await updateDoc(campaignRef, { ...updates, updated_at: serverTimestamp() });
+    await putApi(`/campaign/${campaignId}`, updates);
   },
 
   async deleteCampaign(campaignId: string): Promise<void> {
-    const self = getCurrentUserId();
-    const owner: Owner = { at: COLLECTIONS.CAMPAIGNS, id: campaignId };
-    const [maps, encounters, chat, songs, characters] = await Promise.all([
+    const self = getSessionId();
+    const [maps, songs] = await Promise.all([
       this.getMaps(campaignId),
-      getDocs(collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.ENCOUNTERS)),
-      getDocs(query(collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.CHAT), where('author_id', '==', self))),
-      getRecords<Song>(owner, COLLECTIONS.SONGS),
-      this.getCampaignCharacters(campaignId)
+      getApi<Song[]>(`/campaign/${campaignId}/song`).catch(() => [] as Song[])
     ]);
 
     const addresses = [
@@ -519,128 +300,68 @@ export const campaignService = {
       ...songs.filter((song) => song.owner_id === self).map((song) => song.address)
     ].filter(isStoredFile);
 
-    await Promise.all([
-      ...addresses.map((address) => deleteFile(address)),
-      ...maps.map((map) => this.deleteMap(campaignId, map.id)),
-      ...encounters.docs.map((entry) => deleteDoc(entry.ref)),
-      ...chat.docs.map((entry) => deleteDoc(entry.ref)),
-      ...songs.filter((song) => song.owner_id === self).map((song) => deleteRecord(owner, COLLECTIONS.SONGS, song.id)),
-      ...characters.map((character) => this.deleteCampaignCharacter(campaignId, character.id))
-    ]);
-
-    await deleteDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId));
+    await Promise.all(addresses.map((address) => deleteFile(address)));
+    await deleteApi(`/campaign/${campaignId}`);
   },
 
   async postCampaignPlayer(campaignId: string, email: string): Promise<UserProfile> {
-    const found = await userService.getProfileEmail(email);
-    if (!found) throw new Error('Nobody signs in with that address.');
-
-    const campaign = await this.getCampaign(campaignId);
-    if (campaign?.dm_id === found.uid) throw new Error('That is the dungeon master.');
-    if (campaign?.player_ids.includes(found.uid)) throw new Error('They are already at the table.');
-
-    await updateDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId), {
-      player_ids: arrayUnion(found.uid),
-      updated_at: serverTimestamp()
-    });
-
-    return found;
+    return postApi<UserProfile>(`/campaign/${campaignId}/player`, { email });
   },
 
   async deleteCampaignPlayer(campaignId: string, playerId: string): Promise<void> {
-    const characters = await this.getCampaignCharacters(campaignId);
-    await Promise.all(
-      characters
-        .filter((character) => character.owner_id === playerId)
-        .map((character) => this.deleteCampaignCharacter(campaignId, character.id))
-    );
-
-    await updateDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId), {
-      player_ids: arrayRemove(playerId),
-      updated_at: serverTimestamp()
-    });
+    await deleteApi(`/campaign/${campaignId}/player/${playerId}`);
   },
 
   async postCampaignCharacter(campaignId: string, characterId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.CHARACTERS, characterId), { campaign_id: campaignId });
-    await updateDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId), {
-      character_ids: arrayUnion(characterId),
-      updated_at: serverTimestamp()
-    });
+    await postApi(`/campaign/${campaignId}/character/${characterId}`);
   },
 
   async deleteCampaignCharacter(campaignId: string, characterId: string): Promise<void> {
-    await updateDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId), {
-      character_ids: arrayRemove(characterId),
-      updated_at: serverTimestamp()
-    });
-    await updateDoc(doc(db, COLLECTIONS.CHARACTERS, characterId), { campaign_id: deleteField() });
+    await deleteApi(`/campaign/${campaignId}/character/${characterId}`);
   },
 
   async getCampaignCharacters(campaignId: string): Promise<CharacterDocument[]> {
-    const charactersRef = collection(db, COLLECTIONS.CHARACTERS);
-    const snapshot = await getDocs(query(charactersRef, where('campaign_id', '==', campaignId)));
-    return snapshot.docs.map((entry) => entry.data() as CharacterDocument);
+    return getApi<CharacterDocument[]>(`/campaign/${campaignId}/character`);
   },
 
   async getMaps(campaignId: string): Promise<CampaignMap[]> {
-    const mapsRef = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS);
-    const snapshot = await getDocs(mapsRef);
-    return snapshot.docs.map((entry) => entry.data() as CampaignMap);
+    return getApi<CampaignMap[]>(`/campaign/${campaignId}/map`);
   },
 
-  async postMap(campaignId: string, map: Pick<CampaignMap, 'title' | 'image_url'>): Promise<string> {
-    const mapsRef = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS);
-    const mapRef = doc(mapsRef);
-
-    const document: CampaignMap = {
-      id: mapRef.id,
+  async postMap(campaignId: string, map: Pick<CampaignMap, 'title' | 'image_url'> & { parent_map_id?: string }): Promise<string> {
+    const created = await postApi<CampaignMap>(`/campaign/${campaignId}/map`, {
       title: map.title,
       image_url: map.image_url,
-      layers: [],
-      markers: [],
+      parent_map_id: map.parent_map_id || undefined,
       is_visible: false,
       min_zoom: 1,
-      max_zoom: 8,
-      created_at: serverTimestamp() as any,
-      updated_at: serverTimestamp() as any
-    };
-
-    await setDoc(mapRef, document);
-    return mapRef.id;
+      max_zoom: 8
+    });
+    return created.id;
   },
 
   async putMap(campaignId: string, mapId: string, updates: Partial<CampaignMap>): Promise<void> {
-    const mapRef = doc(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS, mapId);
-    await updateDoc(mapRef, { ...updates, updated_at: serverTimestamp() });
+    await putApi(`/campaign/${campaignId}/map/${mapId}`, updates);
   },
 
   async deleteMap(campaignId: string, mapId: string): Promise<void> {
-    await deleteDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS, mapId));
+    await deleteApi(`/campaign/${campaignId}/map/${mapId}`);
   },
 
   postMapsListener(campaignId: string, onChange: (maps: CampaignMap[]) => void): Unsubscribe {
-    const mapsRef = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.MAPS);
-    return onSnapshot(mapsRef, (snapshot) => {
-      onChange(snapshot.docs.map((entry) => entry.data() as CampaignMap));
-    });
+    return getEvery(() => this.getMaps(campaignId), onChange, (error) => console.error('Campaign maps did not load:', error));
   },
 
   postSongsListener(campaignId: string, onChange: (songs: Song[]) => void): Unsubscribe {
-    const songs = query(
-      collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.SONGS),
-      where('readers', 'array-contains', getCurrentUserId())
-    );
-
-    return onSnapshot(
-      songs,
-      (snapshot) => onChange(snapshot.docs.map((entry) => entry.data() as Song)),
-      (error) => console.error('Campaign songs did not stream:', error)
+    return getEvery(
+      () => getApi<Song[]>(`/campaign/${campaignId}/song`),
+      onChange,
+      (error) => console.error('Campaign songs did not load:', error)
     );
   },
 
   async getPart<T extends CampaignRecord>(owner: Owner, part: string): Promise<T[]> {
-    const entries = await getRecords<T>(owner, part);
+    const entries = await getApi<T[]>(getPartPath(owner, part) + getOwnerQuery(owner, part));
     return entries.sort((a, b) =>
       String((a as Record<string, unknown>).title ?? (a as Record<string, unknown>).name ?? '').localeCompare(
         String((b as Record<string, unknown>).title ?? (b as Record<string, unknown>).name ?? '')
@@ -649,24 +370,28 @@ export const campaignService = {
   },
 
   async postPart(owner: Owner, part: string, values: Record<string, unknown>): Promise<string> {
-    return postRecord(owner, part, values as never);
+    const placed =
+      part === COLLECTIONS.SONGS || part === COLLECTIONS.ENCOUNTERS
+        ? values
+        : { ...values, kind: part, campaign_id: owner.at === COLLECTIONS.CAMPAIGNS ? owner.id : undefined };
+    const created = await postApi<CampaignRecord>(getPartPath(owner, part), placed);
+    return created.id;
   },
 
   async putPart(owner: Owner, part: string, id: string, values: Record<string, unknown>): Promise<void> {
-    return putRecord(owner, part, id, values);
+    await putApi(getPartPath(owner, part, id), values);
   },
 
   async deletePart(owner: Owner, part: string, id: string): Promise<void> {
-    return deleteRecord(owner, part, id);
+    await deleteApi(getPartPath(owner, part, id));
   },
 
   async getEncounters(campaignId: string): Promise<CampaignEncounter[]> {
-    const entries = await getRecords<CampaignEncounter>({ at: COLLECTIONS.CAMPAIGNS, id: campaignId }, COLLECTIONS.ENCOUNTERS);
-    return entries.sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0));
+    return getApi<CampaignEncounter[]>(`/campaign/${campaignId}/encounter`);
   },
 
   async postEncounter(campaignId: string, encounter: Partial<CampaignEncounter>): Promise<string> {
-    return postRecord<CampaignEncounter>({ at: COLLECTIONS.CAMPAIGNS, id: campaignId }, COLLECTIONS.ENCOUNTERS, {
+    const created = await postApi<CampaignEncounter>(`/campaign/${campaignId}/encounter`, {
       title: encounter.title ?? 'Untitled encounter',
       combatants: encounter.combatants ?? [],
       round: encounter.round ?? 1,
@@ -674,28 +399,27 @@ export const campaignService = {
       is_active: encounter.is_active ?? false,
       share_campaigns: encounter.share_campaigns ?? [],
       share_parties: encounter.share_parties ?? [],
-      share_users: encounter.share_users ?? [],
-      readers: encounter.readers ?? []
+      share_users: encounter.share_users ?? []
     });
+    return created.id;
   },
 
   async putEncounter(campaignId: string, id: string, updates: Partial<CampaignEncounter>): Promise<void> {
-    return putRecord({ at: COLLECTIONS.CAMPAIGNS, id: campaignId }, COLLECTIONS.ENCOUNTERS, id, updates);
+    await putApi(`/campaign/${campaignId}/encounter/${id}`, updates);
   },
 
   async deleteEncounter(campaignId: string, id: string): Promise<void> {
-    return deleteRecord({ at: COLLECTIONS.CAMPAIGNS, id: campaignId }, COLLECTIONS.ENCOUNTERS, id);
+    await deleteApi(`/campaign/${campaignId}/encounter/${id}`);
   },
 
   postEncountersListener(
     campaignId: string,
     onChange: (encounters: CampaignEncounter[]) => void
   ): Unsubscribe {
-    const encounters = collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.ENCOUNTERS);
-    return onSnapshot(
-      encounters,
-      (snapshot) => onChange(snapshot.docs.map((entry) => entry.data() as CampaignEncounter)),
-      (error) => console.error('Campaign encounters did not stream:', error)
+    return getEvery(
+      () => this.getEncounters(campaignId),
+      onChange,
+      (error) => console.error('Campaign encounters did not load:', error)
     );
   },
 
@@ -703,81 +427,23 @@ export const campaignService = {
     campaignId: string,
     entry: Omit<CampaignChatEntry, 'id' | 'created_at' | 'updated_at'>
   ): Promise<string> {
-    return postRecord<CampaignChatEntry>({ at: COLLECTIONS.CAMPAIGNS, id: campaignId }, COLLECTIONS.CHAT, entry);
+    const created = await postApi<CampaignChatEntry>(`/campaign/${campaignId}/chat`, entry);
+    return created.id;
   },
 
   postChatListener(campaignId: string, onChange: (entries: CampaignChatEntry[]) => void): Unsubscribe {
-    let stop: Unsubscribe | null = null;
-    let closed = false;
-
-    getDoc(doc(db, COLLECTIONS.CAMPAIGNS, campaignId))
-      .then((campaign) => {
-        if (closed) return;
-        const isDm = campaign.data()?.dm_id === getCurrentUserId();
-        const entries = query(
-          collection(db, COLLECTIONS.CAMPAIGNS, campaignId, COLLECTIONS.CHAT),
-          ...(isDm ? [] : [where('is_hidden', '==', false)]),
-          orderBy('created_at')
-        );
-
-        stop = onSnapshot(
-          entries,
-          (snapshot) => onChange(snapshot.docs.map((entry) => entry.data() as CampaignChatEntry)),
-          (error) => console.error('Campaign chat did not stream:', error)
-        );
-      })
-      .catch((error) => console.error('Campaign chat did not stream:', error));
-
-    return () => {
-      closed = true;
-      stop?.();
-    };
+    return getEvery(
+      () => getApi<CampaignChatEntry[]>(`/campaign/${campaignId}/chat`),
+      onChange,
+      (error) => console.error('Campaign chat did not load:', error)
+    );
   },
 
   async getUserCampaigns(): Promise<Campaign[]> {
-    const userId = getCurrentUserId();
-    const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
-    
-    // Get campaigns where user is DM or player
-    const dmQuery = query(campaignsRef, where('dm_id', '==', userId));
-    const playerQuery = query(campaignsRef, where('player_ids', 'array-contains', userId));
-    
-    const [dmSnap, playerSnap] = await Promise.all([
-      getDocs(dmQuery),
-      getDocs(playerQuery)
-    ]);
-    
-    const campaigns = new Map<string, Campaign>();
-    
-    dmSnap.docs.forEach(doc => {
-      campaigns.set(doc.id, doc.data() as Campaign);
-    });
-    
-    playerSnap.docs.forEach(doc => {
-      campaigns.set(doc.id, doc.data() as Campaign);
-    });
-    
-    return Array.from(campaigns.values()).sort((a, b) => 
-      b.updated_at.toMillis() - a.updated_at.toMillis()
-    );
+    return getApi<Campaign[]>('/campaign');
   },
 
   subscribeToUserCampaigns(callback: (campaigns: Campaign[]) => void): Unsubscribe {
-    const userId = getCurrentUserId();
-    const campaignsRef = collection(db, COLLECTIONS.CAMPAIGNS);
-    
-    // For simplicity, we'll use a single query for DM campaigns
-    // In production, you might want to use a compound query or multiple subscriptions
-    const q = query(
-      campaignsRef,
-      where('dm_id', '==', userId),
-      orderBy('updated_at', 'desc')
-    );
-    
-    return onSnapshot(q, (querySnapshot) => {
-      const campaigns = querySnapshot.docs.map(doc => doc.data() as Campaign);
-      callback(campaigns);
-    });
+    return getEvery(() => this.getUserCampaigns(), callback);
   }
 };
-

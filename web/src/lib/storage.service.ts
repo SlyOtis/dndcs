@@ -1,14 +1,4 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-  writeBatch
-} from 'firebase/firestore'
-import { auth, db } from './firebase'
+import { ApiError, deleteApi, getApi, getQuery, getSession, postApi } from './api'
 import { getSwarmFile } from './swarm'
 
 
@@ -54,7 +44,7 @@ export class UploadError extends Error {
 }
 
 function getUserId(): string {
-  const user = auth.currentUser
+  const user = getSession()
   if (!user) throw new UploadError('Sign in before uploading a file.')
   return user.uid
 }
@@ -143,8 +133,7 @@ export async function postMediaFile(address: string, file: Blob): Promise<string
 }
 
 export async function getFileRecord(address: string): Promise<FileRecord | null> {
-  const held = await getDoc(doc(db, address.slice(FILE_PREFIX.length))).catch(() => null)
-  return held?.exists() ? (held.data() as FileRecord) : null
+  return getApi<FileRecord>(`/file${getQuery({ path: address.slice(FILE_PREFIX.length) })}`).catch(() => null)
 }
 
 export async function getBlockHash(bytes: ArrayBuffer): Promise<string> {
@@ -233,40 +222,37 @@ async function postFileRecord(
 ): Promise<string> {
   const bytes = floor ? new Uint8Array(await floor.arrayBuffer()) : new Uint8Array()
   const count = floor ? Math.ceil(bytes.length / CHUNK_BYTES) : 0
-  const batch = writeBatch(db)
+  const pieces: string[] = []
 
-  const record: FileRecord = {
+  for (let index = 0; index < count; index++) {
+    pieces.push(getBase64(bytes.subarray(index * CHUNK_BYTES, (index + 1) * CHUNK_BYTES)))
+  }
+
+  const campaignId = /^campaigns\/([^/]+)\/files\//.exec(path)?.[1]
+
+  await postApi('/file', {
+    path,
     name: file.name,
     type: file.type,
     size: file.size,
     etag,
-    count,
     block_size: BLOCK_BYTES,
     blocks,
-    owner_id: getUserId()
-  }
-
-  batch.set(doc(db, path), { ...record, created_at: serverTimestamp() })
-
-  for (let index = 0; index < count; index++) {
-    batch.set(doc(db, path, 'chunks', String(index)), {
-      index,
-      data: getBase64(bytes.subarray(index * CHUNK_BYTES, (index + 1) * CHUNK_BYTES))
-    })
-  }
-
-  await batch.commit()
+    campaign_id: campaignId,
+    pieces
+  }).catch((error) => {
+    throw new UploadError(error instanceof ApiError ? error.message : 'The file record was refused.')
+  })
   return FILE_PREFIX + path
 }
 
 async function getFloorBlob(address: string, record: FileRecord): Promise<Blob | null> {
-
   const path = address.slice(FILE_PREFIX.length)
-  const parts = await getDocs(query(collection(db, path, 'chunks'), orderBy('index'))).catch(() => null)
-  if (!parts || parts.size !== record.count) return null
+  const parts = await getApi<{ index: number; data: string }[]>(`/file/piece${getQuery({ path })}`).catch(() => null)
+  if (!parts || parts.length !== record.count) return null
 
   return new Blob(
-    parts.docs.map((entry) => getBytes((entry.data() as { data: string }).data)),
+    parts.map((entry) => getBytes(entry.data)),
     { type: 'image/webp' }
   )
 }
@@ -340,13 +326,7 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
 export async function deleteFile(address: string): Promise<void> {
   if (isFileRecord(address)) {
     const path = address.slice(FILE_PREFIX.length)
-    const parts = await getDocs(collection(db, path, 'chunks'))
-    const batch = writeBatch(db)
-
-    for (const entry of parts.docs) batch.delete(entry.ref)
-    batch.delete(doc(db, path))
-
-    await batch.commit()
+    await deleteApi(`/file${getQuery({ path })}`)
     await runTransaction(STORE_NAME, 'readwrite', (store) => store.delete(FLOOR_PREFIX + address))
   }
 

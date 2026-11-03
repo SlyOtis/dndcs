@@ -2,7 +2,7 @@
   import { navigate } from 'sly-svelte-location-router'
   import { campaignService, characterService, partyService, userService } from '$lib/firestore.service'
   import type { Campaign, CampaignSettings, CharacterDocument, Owner, UserProfile } from '$lib/firestore.types'
-  import { deleteResources, putReaders } from '$lib/resources'
+  import { deleteResources } from '$lib/resources'
   import { user } from '$lib/stores/auth.store'
   import { userCampaigns } from '$lib/stores/campaign.store'
   import BaseDialog from '$components/BaseDialog.svelte'
@@ -88,14 +88,6 @@
     userCampaigns.update((all) => all.map((entry) => (entry.id === campaign.id ? campaign : entry)))
   }
 
-  async function share() {
-    const uid = $user?.uid
-    if (!uid) return
-    const [campaigns, parties] = await Promise.all([campaignService.getUserCampaigns(), partyService.getParties()])
-    const owners: Owner[] = [{ at: 'users', id: uid }, ...campaigns.map((entry) => ({ at: 'campaigns' as const, id: entry.id }))]
-    await putReaders(owners, uid, campaigns, parties)
-  }
-
   function save() {
     const fields = { name: name.trim(), description: description.trim(), settings: { ...settings } }
     void write(async () => {
@@ -119,7 +111,6 @@
       await campaignService.postCampaignPlayer(campaign.id, wanted)
       invite = ''
       await reread()
-      await share()
     })
   }
 
@@ -127,7 +118,6 @@
     void write(async () => {
       await campaignService.deleteCampaignPlayer(campaign.id, uid)
       await reread()
-      await share()
       await onchange()
     })
   }

@@ -10,7 +10,6 @@
   import {
     deleteOne,
     getAll,
-    getReaders,
     isResourceKind,
     postOne,
     putOne,
@@ -208,10 +207,9 @@
         owner_id: $user?.uid ?? '',
         share_campaigns: campaignId ? [campaignId] : [],
         share_parties: [],
-        share_users: [],
-        readers: [] as string[]
+        share_users: []
       }
-      await postOne(owner, kind, { ...held, readers: getReaders(held, campaign ? [campaign] : [], []) })
+      await postOne(owner, kind, held)
     })
   }
 

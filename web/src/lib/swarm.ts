@@ -1,16 +1,4 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  setDoc,
-  where,
-  type Unsubscribe
-} from 'firebase/firestore'
-import { auth, db } from './firebase'
+import { deleteApi, getApi, getEvery, getSession, postApi, putApi } from './api'
 import { getBlockHash, getBlockRange, getFileRecord, getHeldBlocks, type FileRecord } from './storage.service'
 
 const ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
@@ -40,28 +28,19 @@ let seats = 0
 let leaveSeat: (() => void) | null = null
 
 function getSelfId(): string {
-  const uid = auth.currentUser?.uid
+  const uid = getSession()?.uid
   if (!uid) throw new Error('Sign in before joining the swarm.')
   return `${uid}.${Math.random().toString(36).slice(2, 10)}`
-}
-
-function getPeersPath(campaignId: string): string {
-  return `campaigns/${campaignId}/peers`
-}
-
-function getSignalsPath(campaignId: string): string {
-  return `campaigns/${campaignId}/signals`
 }
 
 async function postSignal(to: string, kind: string, payload: unknown): Promise<void> {
   if (!swarmId) return
 
-  await addDoc(collection(db, getSignalsPath(swarmId)), {
+  await postApi(`/campaign/${swarmId}/signal`, {
     from: selfId,
     to,
     kind,
-    payload: JSON.stringify(payload),
-    created_at: serverTimestamp()
+    payload: JSON.stringify(payload)
   }).catch(() => undefined)
 }
 
@@ -183,9 +162,9 @@ export function joinSwarm(campaignId: string): () => void {
   swarmId = campaignId
   seats = 1
 
-  const seat = doc(db, getPeersPath(campaignId), selfId)
+  const seat = `/campaign/${campaignId}/peer/${selfId}`
   const beat = () =>
-    setDoc(seat, { uid: auth.currentUser?.uid, seen_at: Date.now() }).catch(() => {
+    putApi(seat).catch(() => {
       stopped = true
     })
 
@@ -196,26 +175,30 @@ export function joinSwarm(campaignId: string): () => void {
 
   beat()
 
-  const watchers: Unsubscribe[] = [
-    onSnapshot(collection(db, getPeersPath(campaignId)), { next: (found) => {
-      for (const entry of found.docs) {
-        const id = entry.id
-        const { seen_at } = entry.data() as { seen_at: number }
+  const watchers: (() => void)[] = [
+    getEvery(
+      () => getApi<{ id: string; seen_at: string }[]>(`/campaign/${campaignId}/peer`),
+      (found) => {
+        for (const entry of found) {
+          const id = entry.id
 
-        if (id === selfId || peers.has(id)) continue
-        if (Date.now() - seen_at > STALE) continue
-        if (selfId < id) postOffer(id).catch(() => undefined)
-      }
-    }, error: () => (stopped = true) }),
+          if (id === selfId || peers.has(id)) continue
+          if (Date.now() - Date.parse(entry.seen_at) > STALE) continue
+          if (selfId < id) postOffer(id).catch(() => undefined)
+        }
+      },
+      () => (stopped = true)
+    ),
 
-    onSnapshot(query(collection(db, getSignalsPath(campaignId)), where('to', '==', selfId)), { next: (found) => {
-      for (const change of found.docChanges()) {
-        if (change.type !== 'added') continue
-        const { from, kind, payload } = change.doc.data() as { from: string; kind: string; payload: string }
-        readSignal(from, kind, JSON.parse(payload)).catch(() => undefined)
-        deleteDoc(change.doc.ref).catch(() => undefined)
-      }
-    }, error: () => (stopped = true) })
+    getEvery(
+      () => deleteApi<{ id: string; from: string; kind: string; payload: string }[]>(`/campaign/${campaignId}/signal/${selfId}`),
+      (found) => {
+        for (const { from, kind, payload } of found) {
+          readSignal(from, kind, JSON.parse(payload)).catch(() => undefined)
+        }
+      },
+      () => (stopped = true)
+    )
   ]
 
   leaveSeat = () => {
@@ -223,7 +206,7 @@ export function joinSwarm(campaignId: string): () => void {
     for (const stop of watchers) stop()
     for (const peer of peers.values()) peer.connection.close()
     peers.clear()
-    deleteDoc(seat).catch(() => undefined)
+    deleteApi(seat).catch(() => undefined)
     selfId = ''
     swarmId = ''
   }

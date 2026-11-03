@@ -2,7 +2,7 @@
   import { campaignService } from '$lib/firestore.service'
   import type { Campaign, CampaignEncounter, CharacterDocument, EncounterCombatant } from '$lib/firestore.types'
   import { rollDie } from '$lib/engine'
-  import { getReaders, type Character } from '$lib/resources'
+  import type { Character } from '$lib/resources'
   import { user } from '$lib/stores/auth.store'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
@@ -41,7 +41,7 @@
 
   $effect(() => {
     const stop = campaignService.postEncountersListener(campaign.id, (found) => {
-      encounters = found.sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0))
+      encounters = found.sort((a, b) => (Date.parse(b.created_at ?? '') || 0) - (Date.parse(a.created_at ?? '') || 0))
     })
     return stop
   })
@@ -72,12 +72,10 @@
     const named = title.trim()
     if (!named) return
     void write(async () => {
-      const share = { owner_id: $user?.uid ?? '', share_campaigns: [campaign.id], share_parties: [], share_users: [], readers: [] }
       const id = await campaignService.postEncounter(campaign.id, {
         title: named,
         is_active: true,
-        share_campaigns: [campaign.id],
-        readers: getReaders(share, [campaign], [])
+        share_campaigns: [campaign.id]
       })
       chosen = id
       title = ''

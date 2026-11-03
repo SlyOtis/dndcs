@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store';
-import type { User } from 'firebase/auth';
+import type { SessionUser } from '../api';
 import type { UserProfile } from '../firestore.types';
 
-export const user = writable<User | null>(null);
+export const user = writable<SessionUser | null>(null);
 export const userProfile = writable<UserProfile | null>(null);
 export const userDetails = writable<any>(null);
 export const isLoading = writable(true);

@@ -1,8 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { get } from 'svelte/store'
 import type { Readable, Unsubscriber } from 'svelte/store'
-import type { User } from 'firebase/auth'
-import type { Timestamp } from 'firebase/firestore'
 import type { CampaignCardKind, CampaignChatEntry, UserProfile } from './firestore.types'
 import type { RollLogItem } from './types'
 import type { ChatLog, ReplicateLogItem } from './chat'
@@ -64,8 +62,7 @@ import { currentCampaignId } from './stores/campaign.store'
 
 const { rollStore } = getRollLog()
 
-const stamp = (at: string) =>
-  ({ toDate: () => new Date(at), toMillis: () => new Date(at).getTime() }) as unknown as Timestamp
+const stamp = (at: string) => at
 
 const shared = (fields: Partial<CampaignChatEntry>): CampaignChatEntry => ({
   id: 'shared-1',
@@ -99,7 +96,7 @@ const items = (store: Readable<ChatLog>) =>
   get(store) as unknown as Array<{ createdAt: Date, type: string, data: RollLogItem }>
 
 const signedIn = (uid: string, name: string) => {
-  user.set({ uid } as unknown as User)
+  user.set({ uid, email: '', display_name: '', photo_url: '' })
   userProfile.set({ display_name: name } as unknown as UserProfile)
 }
 

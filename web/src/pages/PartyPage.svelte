@@ -3,7 +3,6 @@
   import { navigate } from 'sly-svelte-location-router'
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService, characterService, partyService, userService } from '$lib/firestore.service'
-  import { putReaders } from '$lib/resources'
   import type { CharacterDocument, Party, UserProfile } from '$lib/firestore.types'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
@@ -92,14 +91,6 @@
     }
   }
 
-  async function share() {
-    const uid = $user?.uid
-    if (!uid) return
-    const [campaigns, parties] = await Promise.all([campaignService.getUserCampaigns(), partyService.getParties()])
-    const owners = [{ at: 'users' as const, id: uid }, ...campaigns.map((entry) => ({ at: 'campaigns' as const, id: entry.id }))]
-    await putReaders(owners, uid, campaigns, parties)
-  }
-
   function rename() {
     if (!party || !renamed) return
     const fields = { name: name.trim(), description: description.trim() }
@@ -135,7 +126,6 @@
     void write(async () => {
       await partyService.deleteParty(id)
       dropOpen = false
-      await share()
       navigate('/main')
     })
   }
@@ -161,7 +151,6 @@
       await partyService.putParty(party.id, { member_ids })
       party = { ...party, member_ids }
       invite = ''
-      await share()
       await fill()
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
@@ -182,7 +171,6 @@
       )
       await partyService.putParty(party.id, { member_ids, character_ids })
       party = { ...party, member_ids, character_ids }
-      await share()
       await fill()
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
