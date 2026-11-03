@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { COLLECTIONS } from '../src/lib/firestore.types'
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const read = (name: string) => readFileSync(resolve(root, name), 'utf8')
 
 const rules = read('firestore.rules')
@@ -145,9 +145,9 @@ describe('the rules file just rules deploys', () => {
     expect(recipe('storage-rules')).toEqual(['firebase deploy --only storage:rules'])
   })
 
-  it('is released again by just deploy, so the code that needs it never ships alone', () => {
-    expect(read('justfile')).toMatch(/^deploy: gate rules$/m)
-    expect(recipe('deploy')).toEqual(['firebase deploy --only hosting'])
+  it('is released again by just firebase-deploy, so the code that needs it never ships alone', () => {
+    expect(read('justfile')).toMatch(/^firebase-deploy: gate rules$/m)
+    expect(recipe('firebase-deploy')).toEqual(['firebase deploy --only hosting'])
   })
 
   it('is version 2 and closes on a deny all, so nothing unnamed is open', () => {

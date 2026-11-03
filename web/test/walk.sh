@@ -3,8 +3,8 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 base="${WALK_BASE:-http://localhost:5173}"
-email="$(sed -n 's/^WALK_EMAIL=//p' .env)"
-password="$(sed -n 's/^WALK_PASSWORD=//p' .env)"
+email="$(sed -n 's/^WALK_EMAIL=//p' ../.env)"
+password="$(sed -n 's/^WALK_PASSWORD=//p' ../.env)"
 [ -n "$email" ] && [ -n "$password" ] || { echo "WALK_EMAIL and WALK_PASSWORD are empty in .env"; exit 1; }
 curl -sf -o /dev/null "$base/" || { echo "nothing answers at $base: run just dev first"; exit 1; }
 

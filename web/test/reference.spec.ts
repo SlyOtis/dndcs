@@ -17,7 +17,7 @@ import {
   type Sandbox
 } from './reference.fixture'
 
-const read = (name: string) => readFileSync(resolve(root, name), 'utf8')
+const read = (name: string) => readFileSync(resolve(root, '..', name), 'utf8')
 
 const recipe = (name: string) => {
   const found = new RegExp(`^${name}(?: [^\\n]*)?:[^\\n]*\\n((?:[ \\t]+[^\\n]*\\n?)*)`, 'm').exec(read('justfile'))
@@ -174,7 +174,7 @@ describe('the reference script itself', () => {
   })
 
   it('is what just reference runs, with the kind passed through', () => {
-    expect(recipe('reference')).toEqual(['bash scripts/reference.sh {{kind}} {{ARGS}}'])
+    expect(recipe('reference')).toEqual(['bash web/scripts/reference.sh {{kind}} {{ARGS}}'])
   })
 })
 
@@ -187,6 +187,6 @@ describe('what the fetcher writes never reaches git', () => {
   })
 
   it('is not what the gate runs, which needs no network', () => {
-    expect(recipe('gate')).toEqual(['just check', 'just test', 'just build'])
+    expect(recipe('gate')).toEqual(['just check', 'just test', 'just build', 'just vet'])
   })
 })

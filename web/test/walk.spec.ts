@@ -5,22 +5,23 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const repo = resolve(root, '..')
 const read = (name: string) => readFileSync(resolve(root, name), 'utf8')
 
 const recipe = (name: string) => {
-  const found = new RegExp(`^${name}(?: [^\\n]*)?:[^\\n]*\\n((?:[ \\t]+[^\\n]*\\n?)*)`, 'm').exec(read('justfile'))
+  const found = new RegExp(`^${name}(?: [^\\n]*)?:[^\\n]*\\n((?:[ \\t]+[^\\n]*\\n?)*)`, 'm').exec(readFileSync(resolve(repo, 'justfile'), 'utf8'))
   return (found?.[1] ?? '').split('\n').map((line) => line.trim()).filter(Boolean)
 }
 
-const keys = read('.env.example').split('\n').filter(Boolean).map((line) => line.split('=')[0])
+const keys = readFileSync(resolve(repo, '.env.example'), 'utf8').split('\n').filter((line) => /^[A-Z]/.test(line)).map((line) => line.split('=')[0])
 
 describe('the walk recipe', () => {
-  it('runs the script under test/', () => {
-    expect(recipe('walk')).toEqual(['bash test/walk.sh'])
+  it('runs the script under web/test/', () => {
+    expect(recipe('walk')).toEqual(['bash web/test/walk.sh'])
   })
 
   it('is not part of the gate, which needs no server', () => {
-    expect(recipe('gate')).toEqual(['just check', 'just test', 'just build'])
+    expect(recipe('gate')).toEqual(['just check', 'just test', 'just build', 'just vet'])
   })
 
   it('drives an executable script bash can parse', () => {

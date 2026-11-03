@@ -13,7 +13,7 @@ import lcpInspect from '@slyotis/lcp-inspect'
 
 const here = dirname(fileURLToPath(import.meta.url))
 
-config()
+config({ path: resolve(here, '..', '.env') })
 
 const MEDIA_TYPES: Record<string, string> = {
   '.mp3': 'audio/mpeg',
@@ -208,6 +208,7 @@ function mediaStore(root: string): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svelte(), mediaStore(resolve(here, 'media')), lcpInspect()],
+  envDir: resolve(here, '..'),
   resolve: {
     alias: {
       '$lib': resolve(here, 'src/lib'),
@@ -220,6 +221,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      "/api": {
+        target: `http://localhost:${process.env.SERVER_PORT ?? '4290'}`,
+        changeOrigin: false
+      },
       "/replicate": {
         target: "https://api.replicate.com/v1",
         changeOrigin: true,

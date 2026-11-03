@@ -28,13 +28,13 @@ reference/
 
 .lcp_inspect
 
-/media/
+/web/media/
 .lcp/cache/
 
-/test/[0-9]*/
-/test.hurl
-/test/*.hurl
-/src/lib/replicate.ts
+/web/test/[0-9]*/
+/web/test.hurl
+/web/test/*.hurl
+/web/src/lib/replicate.ts
 /*.png
 /*.jpeg
 /*.jpg
@@ -42,3 +42,6 @@ reference/
 /inpsiration/
 /.claude/tasks/*/
 /.impeccable/
+/bin/
+/tmp/
+build-errors.log
