@@ -43,7 +43,7 @@ export const hasReplicateKey: Readable<boolean> = derived(
   ($details) => Boolean($details?.replicate_api_key?.trim())
 );
 
-export class AIService {
+class AIService {
   async getApiKey(): Promise<string> {
     const details = get(userDetails) ?? (await userService.getUserDetails());
     const apiKey = details?.replicate_api_key?.trim();

@@ -5,7 +5,7 @@ depends: [140]
 relations: []
 title: Frames, panels and textures are rebuilt from the second reference set and no frame renders broken
 type: task
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,9 +15,11 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T10:53:32Z
+updated_at: 2026-09-08T09:39:37Z
 questions: []
 images: []
+scope: [src/components/ui/Frame.svelte, src/components/ui/Panel.svelte, src/app.css]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

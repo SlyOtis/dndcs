@@ -48,7 +48,11 @@ export function getMergedSystem(base: RuleSystem, overlay: RuleSystemOverlay): R
     pools: mergeKeyed(base.pools, overlay.pools),
     derived: mergeKeyed(base.derived, overlay.derived),
     progression: mergeProgression(base.progression, overlay.progression),
-    panels: mergeKeyed(base.panels, overlay.panels)
+    advancement: overlay.advancement ?? base.advancement,
+    panels: mergeKeyed(base.panels, overlay.panels),
+    conditions: mergeKeyed(base.conditions ?? [], overlay.conditions),
+    damageTypes: mergeKeyed(base.damageTypes ?? [], overlay.damageTypes),
+    defences: mergeKeyed(base.defences ?? [], overlay.defences)
   }
 }
 
@@ -86,6 +90,14 @@ export async function getSystemStack(ids: string[], overlay?: RuleSystemOverlay)
   if (overlay) resolved = getMergedSystem(resolved, overlay)
 
   return resolved
+}
+
+export async function getSystems(): Promise<RuleSystem[]> {
+  const response = await fetch(`${SYSTEM_PATH}/index.json`)
+  if (!response.ok) throw new Error(`The rule system index did not load: ${response.status} ${response.statusText}`)
+
+  const listed = (await response.json()) as { systems: string[] }
+  return Promise.all(listed.systems.map((id) => getSystem(id)))
 }
 
 export function clearSystemCache(): void {

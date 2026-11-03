@@ -5,7 +5,7 @@ depends: [113]
 relations: [121, 127]
 title: The sheet never exceeds the viewport and a stat title fits by wrapping inside its box
 type: epic
-status: testing
+status: done
 session:
 review:
 blocked_from:
@@ -15,7 +15,7 @@ repos: [dndcs]
 skills: [components]
 commits: [570e1b332f5ae31e0b674a964f53e136b8c3667e]
 created_at: 2026-09-05T16:22:55Z
-updated_at: 2026-09-07T10:53:27Z
+updated_at: 2026-09-08T09:39:35Z
 questions: []
 agent: aa7a16670474bf5a4
 base: 792b48564eca3fa72f6f3f263ad3e00e17efd0b0

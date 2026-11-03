@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/artificer.svg",
   "hitDie": 8,
+  "casting": "artificer",
   "primaryAbility": [
     "INT"
   ],

@@ -16,11 +16,51 @@ export interface UserProfile {
 // User preferences
 export interface UserPreferences {
   theme: string;
-  default_character_id?: string;
   sound_enabled: boolean;
+  sound_volume: number;
   animations_enabled: boolean;
-  auto_save: boolean;
   recent_characters: string[];
+  shortcuts?: Shortcut[];
+}
+
+// An action the player pinned to the navigator, with the key that fires it or none.
+export interface Shortcut {
+  action: string;
+  key: string;
+}
+
+// A song on a campaign's playlist. The bytes live in the swarm at address.
+export interface Song extends Access {
+  id: string;
+  title: string;
+  address: string;
+  duration: number;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+// What every shared document carries. The owner is the uid that made it.
+export interface Access {
+  owner_id: string;
+  share_campaigns: string[];
+  share_parties: string[];
+  share_users: string[];
+  // Every uid the share resolves to. Rules filter nothing, so a list query is
+  // constrained by this and the rule reads the same field.
+  readers: string[];
+}
+
+// A group that plays together. It stands on its own and a campaign gathers them.
+export interface Party {
+  id: string;
+  name: string;
+  description: string;
+  image_url: string;
+  owner_id: string;
+  member_ids: string[];
+  character_ids: string[];
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
 
 // Campaign stored in Firestore
@@ -30,6 +70,7 @@ export interface Campaign {
   description: string;
   dm_id: string;
   player_ids: string[];
+  party_ids: string[];
   character_ids: string[];
   is_active: boolean;
   created_at: Timestamp;
@@ -77,29 +118,6 @@ export interface CharacterPermissions {
   dm_override: boolean;
 }
 
-// Chat/Session data
-export interface ChatSession {
-  id: string;
-  user_id: string;
-  character_id?: string;
-  campaign_id?: string;
-  messages: ChatMessage[];
-  created_at: Timestamp;
-  updated_at: Timestamp;
-}
-
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Timestamp;
-  metadata?: {
-    character_action?: boolean;
-    dice_roll?: boolean;
-    spell_cast?: boolean;
-  };
-}
-
 export type MapMarkerKind =
   | 'region'
   | 'city'
@@ -112,7 +130,25 @@ export type MapMarkerKind =
   | 'quest'
   | 'danger'
   | 'treasure'
-  | 'note';
+  | 'note'
+  | 'village'
+  | 'ruin'
+  | 'cave'
+  | 'tower'
+  | 'shrine'
+  | 'camp'
+  | 'harbour'
+  | 'bridge'
+  | 'forest'
+  | 'mountain'
+  | 'swamp'
+  | 'lake'
+  | 'road'
+  | 'portal'
+  | 'battle'
+  | 'grave'
+  | 'market'
+  | 'forge';
 
 export interface MapMarker {
   id: string;
@@ -135,6 +171,10 @@ export interface MapLayer {
   image_url: string;
   min_zoom: number;
   max_zoom: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
 }
 
 export interface CampaignMap {
@@ -144,110 +184,14 @@ export interface CampaignMap {
   layers: MapLayer[];
   markers: MapMarker[];
   is_visible: boolean;
+  parent_map_id?: string;
   min_zoom: number;
   max_zoom: number;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
 
-export interface CampaignChronicle {
-  campaign_id: string;
-  campaign_name: string;
-  session: CampaignSession;
-}
-
-export interface CampaignErrand {
-  campaign_id: string;
-  campaign_name: string;
-  quest: CampaignQuest;
-}
-
-export interface CampaignChart {
-  campaign_id: string;
-  campaign_name: string;
-  map: CampaignMap;
-}
-
-export interface CampaignFigure {
-  campaign_id: string;
-  campaign_name: string;
-  npc: CampaignNpc;
-}
-
-export interface CampaignHaunt {
-  campaign_id: string;
-  campaign_name: string;
-  location: CampaignLocation;
-}
-
-export interface CampaignFray {
-  campaign_id: string;
-  campaign_name: string;
-  encounter: CampaignEncounter;
-}
-
-export interface PartyMember {
-  profile: UserProfile;
-  campaign_id: string;
-  campaign_name: string;
-  is_dm: boolean;
-}
-
-export type CampaignRecordKind = 'location' | 'npc' | 'quest' | 'session';
-
-export type QuestState = 'active' | 'done' | 'abandoned';
-
-export type Disposition = 'friendly' | 'neutral' | 'hostile' | 'unknown';
-
-export interface CampaignSession {
-  id: string;
-  number: number;
-  title: string;
-  played_at: string;
-  summary: string;
-  present_character_ids: string[];
-  created_at: Timestamp;
-  updated_at: Timestamp;
-}
-
-export interface CampaignQuest {
-  id: string;
-  title: string;
-  description: string;
-  state: QuestState;
-  level?: number;
-  giver_npc_id?: string;
-  location_id?: string;
-  is_known: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-}
-
-export interface CampaignNpc {
-  id: string;
-  name: string;
-  role: string;
-  description: string;
-  disposition: Disposition;
-  location_id?: string;
-  image_url?: string;
-  stat_block_id?: string;
-  is_known: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-}
-
-export interface CampaignLocation {
-  id: string;
-  name: string;
-  description: string;
-  kind: MapMarkerKind;
-  map_id?: string;
-  marker_id?: string;
-  is_known: boolean;
-  created_at: Timestamp;
-  updated_at: Timestamp;
-}
+export type CampaignRecordKind = 'place' | 'character' | 'item' | 'quest' | 'session';
 
 export type CampaignChatKind = 'message' | 'roll';
 
@@ -279,6 +223,7 @@ export interface EncounterCombatant {
   kind: CombatantKind;
   character_id?: string;
   npc_id?: string;
+  modifier: number;
   initiative: number;
   hit_points: number;
   max_hit_points: number;
@@ -286,14 +231,13 @@ export interface EncounterCombatant {
   is_hit_points_known: boolean;
 }
 
-export interface CampaignEncounter {
+export interface CampaignEncounter extends Access {
   id: string;
   title: string;
   combatants: EncounterCombatant[];
   round: number;
   turn: number;
   is_active: boolean;
-  is_known: boolean;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -303,16 +247,19 @@ export const COLLECTIONS = {
   USERS: 'users',
   CHARACTERS: 'characters',
   CAMPAIGNS: 'campaigns',
-  CHAT_SESSIONS: 'chatSessions',
+  PARTIES: 'parties',
   CHAT: 'chat',
   MAPS: 'maps',
-  SESSIONS: 'sessions',
-  QUESTS: 'quests',
-  NPCS: 'npcs',
-  LOCATIONS: 'locations',
-  ENCOUNTERS: 'encounters'
+  ENCOUNTERS: 'encounters',
+  SONGS: 'songs'
 } as const;
 
 // Helper types for Firestore operations
 export type FirestoreTimestamp = Timestamp;
 export type CollectionName = typeof COLLECTIONS[keyof typeof COLLECTIONS];
+
+// Who a resource belongs to. A campaign holds what the table shares, a user holds their own.
+export interface Owner {
+  at: typeof COLLECTIONS.CAMPAIGNS | typeof COLLECTIONS.USERS;
+  id: string;
+}

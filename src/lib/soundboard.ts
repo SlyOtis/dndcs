@@ -1,39 +1,43 @@
 import type { SoundClip, SoundBoard } from './character.types';
+import { getFileUrl, postFile } from './storage.service';
 
 
-// Sound Board Functions
-export async function createSoundClip(name: string, audioFile: File): Promise<SoundClip> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const audioData = reader.result as string;
-      const clip: SoundClip = {
-        id: `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        name: name || audioFile.name.replace(/\.[^/.]+$/, ""),
-        audioData,
-        volume: 1.0,
-        created_at: new Date().toISOString()
-      };
-      
-      // Try to get duration from audio file
-      const audio = new Audio(audioData);
-      audio.addEventListener('loadedmetadata', () => {
-        clip.duration = audio.duration;
-        resolve(clip);
-      });
-      audio.addEventListener('error', () => {
-        // If we can't load metadata, just resolve without duration
-        resolve(clip);
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(audioFile);
+function getDuration(audioFile: File): Promise<number | undefined> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(audioFile);
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.addEventListener('loadedmetadata', () => {
+      URL.revokeObjectURL(url);
+      resolve(Number.isFinite(audio.duration) ? audio.duration : undefined);
+    });
+    audio.addEventListener('error', () => {
+      URL.revokeObjectURL(url);
+      resolve(undefined);
+    });
+    audio.src = url;
   });
 }
 
-export function playSoundClip(clip: SoundClip): Promise<void> {
+export async function postSoundClip(name: string, audioFile: File): Promise<SoundClip> {
+  const [address, duration] = await Promise.all([postFile(audioFile, { kind: 'user' }), getDuration(audioFile)]);
+
+  return {
+    id: `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name: name || audioFile.name.replace(/\.[^/.]+$/, ""),
+    address,
+    volume: 1.0,
+    ...(duration === undefined ? {} : { duration }),
+    created_at: new Date().toISOString()
+  };
+}
+
+export async function playSoundClip(clip: SoundClip): Promise<void> {
+  const url = await getFileUrl(clip.address);
+  if (!url) throw new Error(`${clip.name} is not on this machine.`);
+
   return new Promise((resolve, reject) => {
-    const audio = new Audio(clip.audioData);
+    const audio = new Audio(url);
     audio.volume = clip.volume;
     
     audio.addEventListener('ended', () => resolve());

@@ -5,7 +5,7 @@ depends: [117]
 relations: [117]
 title: The sheet board shrinks with the content area when a drawer opens and the ability column keeps its width
 type: task
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,8 +15,10 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:48Z
-updated_at: 2026-09-07T10:53:28Z
+updated_at: 2026-09-08T09:39:39Z
 questions: []
+scope: [src/pages/CharacterPage.svelte]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

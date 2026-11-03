@@ -1,18 +1,20 @@
 <script lang="ts">
+  import Glyph from "$components/ui/Glyph.svelte";
   import { navigate } from "sly-svelte-location-router";
-  import { userCharacters } from "$lib/stores/character.store";
+  import { getRecentFirst, userCharacters } from "$lib/stores/character.store";
+  import { userProfile } from "$lib/stores/auth.store";
   import Card from "$components/ui/Card.svelte";
 
   let { loading = false, search = '' } = $props();
 
-  let shown = $derived($userCharacters.filter((entry) =>
+  let shown = $derived(getRecentFirst($userCharacters, $userProfile?.preferences?.recent_characters ?? []).filter((entry) =>
     entry.metadata.name.toLowerCase().includes(search.toLowerCase()) ||
     entry.metadata.class.toLowerCase().includes(search.toLowerCase()) ||
     entry.metadata.race.toLowerCase().includes(search.toLowerCase())
   ));
 
   function openCharacter(characterId: string) {
-    navigate(`/character/${characterId}`);
+    navigate(`/main/character/${characterId}`);
   }
 </script>
 
@@ -20,7 +22,7 @@
   <div class="dnd-loading"><span class="dnd-spinner"></span></div>
 {:else if shown.length === 0}
   <div class="dnd-empty">
-    <span class="dnd-empty-mark">⚔</span>
+    <span class="dnd-empty-mark"><Glyph name="character" size="lg" /></span>
     <span>No character carries your name yet</span>
   </div>
 {:else}

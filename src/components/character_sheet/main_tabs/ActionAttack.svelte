@@ -171,6 +171,25 @@
         padding: 0;
     }
 
+    li > div {
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: var(--space-1);
+        border-radius: var(--radius-sm);
+        transition: background-color 0.15s ease;
+    }
+
+    li:hover > div {
+        background-color: color-mix(in srgb, var(--ember) 9%, transparent);
+    }
+
+    li:hover h4 {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
+    }
+
     .title {
         position: relative;
         min-width: 0;
@@ -184,23 +203,39 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000;
     }
 
     .sub {
-        font-size: 0.8em;
+        font-size: var(--text-xs);
+        font-style: italic;
         white-space: nowrap;
+        color: var(--ink-dim);
     }
 
     .range {
         white-space: nowrap;
+        font-size: var(--text-xs);
+        color: var(--ink-dim);
+    }
+
+    .range b {
+        font-family: var(--font-figures);
+        font-size: var(--text-sm);
+        color: var(--ink);
     }
 
     .properties {
         position: relative;
         min-width: 0;
         overflow: hidden;
-        font-size: 0.6em;
-        opacity: 0.75;
+        font-size: var(--text-xs);
+        font-style: italic;
+        color: var(--ink-faint);
     }
 
     .properties > span {
@@ -211,12 +246,16 @@
     }
 
     .ammo-warning {
-        background: var(--state-bad);
+        background: linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 70%, var(--ground-deep)), color-mix(in srgb, var(--state-bad) 40%, var(--ground-deep)));
+        box-shadow: inset 0 0 0 1px var(--keyline), var(--bevel-up);
         color: var(--ink);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 0.7em;
-        font-weight: 600;
+        padding: var(--space-0) var(--space-1);
+        border-radius: var(--radius-sm);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-wide);
+        text-shadow: 0 1px 0 #000;
         white-space: nowrap;
         text-align: center;
         animation: pulse 1s ease-in-out infinite;
@@ -232,6 +271,6 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        gap: 4px;
+        gap: var(--space-1);
     }
 </style>

@@ -110,8 +110,8 @@ const sizes = values('size')
 const fallback = (prop: string) => new RegExp(`${prop}\\s*=\\s*'([^']+)'`).exec(sigil.slice(0, sigil.indexOf('}: {')))?.[1]
 
 const bar: [string, string, number][] = [
-  ['the shell handles', region(read('src/components/ui/Shell.svelte'), '<header class="dnd-shell-bar">', '</header>'), 3],
-  ["the sheet's tools", region(read('src/pages/CharacterPage.svelte'), '{#snippet tools()}', '{/snippet}'), 4],
+  ['the shell handles', region(read('src/components/ui/Shell.svelte'), '<header class="dnd-shell-bar">', '</header>'), 4],
+  ["the sheet's tools", region(read('src/pages/CharacterPage.svelte'), '{#snippet tools()}', '{/snippet}'), 6],
   ["the hearth's tools", region(read('src/pages/MainPage.svelte'), '{#snippet tools()}', '{/snippet}'), 1]
 ]
 
@@ -149,7 +149,7 @@ describe('no bar call site decides the sigil design', () => {
       size: attrs.size
     }))
 
-    expect(drawn.length).toBe(8)
+    expect(drawn.length).toBe(11)
     expect([...new Set(drawn.map((one) => JSON.stringify(one)))]).toEqual([
       JSON.stringify({ frame: 'ring', tone: 'metal', size: 'sm' })
     ])
@@ -157,7 +157,11 @@ describe('no bar call site decides the sigil design', () => {
 
   it('names every tool the bar draws', () => {
     const glyphs = bar.flatMap(([, source]) => [...source.matchAll(/<Glyph name="([^"]+)"/g)].map((match) => match[1]))
-    expect(glyphs).toEqual(['menu', 'search', 'chat', 'export', 'levelup', 'sources', 'theme', 'theme'])
+    expect(glyphs).toEqual([
+      'menu', 'search', 'music', 'chat',
+      'sound', 'export', 'levelup', 'sources', 'theme', 'scroll',
+      'theme'
+    ])
   })
 })
 
@@ -202,8 +206,8 @@ describe('the sigil is the forged HUD button', () => {
 
   it('colours the fill, the rim and the key once', () => {
     expect(/\.dnd-sigil-fill\s*\{[^}]*fill:\s*var\(--ground-deep\)/.test(style)).toBe(true)
-    expect(/\.dnd-sigil-rim\s*\{[^}]*stroke:\s*var\(--metal-dim\)/.test(style)).toBe(true)
-    expect(/\.dnd-sigil-key\s*\{[^}]*stroke:\s*var\(--metal-edge\)/.test(style)).toBe(true)
+    expect(/\.dnd-sigil-rim\s*\{[^}]*stroke:\s*var\(--metal\)/.test(style)).toBe(true)
+    expect(/\.dnd-sigil-key\s*\{[^}]*stroke:\s*var\(--metal-dim\)/.test(style)).toBe(true)
   })
 
   it('carries no rule and no token the frames left behind', () => {

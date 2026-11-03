@@ -1,52 +1,73 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import { navigate, currentRoute } from 'sly-svelte-location-router'
-  import { campaignService } from '$lib/firestore.service'
+  import { navigate, currentRoute, resolvedRoute } from 'sly-svelte-location-router'
+  import { campaignService, userService } from '$lib/firestore.service'
   import type {
     Campaign,
     CampaignEncounter,
-    CampaignLocation,
     CampaignMap,
-    CampaignNpc,
-    CampaignQuest,
     CharacterDocument,
     EncounterCombatant
   } from '$lib/firestore.types'
+  import { getAll, getChildren, getRoots, isResourceKind, RESOURCES, type Character, type Place, type Quest, type Resource, type ResourceKind } from '$lib/resources'
   import { user } from '$lib/stores/auth.store'
   import { userCampaigns } from '$lib/stores/campaign.store'
-  import Ornament from '$components/ui/Ornament.svelte'
+  import Card from '$components/ui/Card.svelte'
+  import Fold from '$components/ui/Fold.svelte'
+  import Tree, { type TreeRow } from '$components/ui/Tree.svelte'
+  import IconBtn from '$components/ui/IconBtn.svelte'
+  import Glyph from '$components/ui/Glyph.svelte'
+  import ShortcutDialog from '$components/ShortcutDialog.svelte'
+  import { actionBlocks, getAction, shortcuts } from '$lib/actions'
 
-  const { onNavigateToSoundboard }: {
-    /** Swaps the drawer over to the soundboard view. */
-    onNavigateToSoundboard?: () => void
-  } = $props()
-
+  let addOpen = $state(false)
   let campaign = $state<Campaign | null>(null)
   let characters = $state<CharacterDocument[]>([])
-  let quests = $state<CampaignQuest[]>([])
-  let npcs = $state<CampaignNpc[]>([])
-  let places = $state<CampaignLocation[]>([])
+  let quests = $state<Quest[]>([])
+  let npcs = $state<Character[]>([])
+  let places = $state<Place[]>([])
   let maps = $state<CampaignMap[]>([])
   let encounters = $state<CampaignEncounter[]>([])
+  let players = $state<{ id: string; name: string }[]>([])
   let loading = $state(false)
   let error = $state<string | null>(null)
-  let open = $state('campaign')
+  let open = $state(['campaign'])
+  let reached = $state('')
+
+  const steps = $derived($resolvedRoute.path.split('/').filter(Boolean))
+  const asked = $derived(steps[0] === 'campaign' ? steps[2] ?? '' : steps[0] ?? '')
+
+  const here = $derived(
+    isResourceKind(asked)
+      ? asked
+      : ($resolvedRoute.search ?? '').includes('tab=maps')
+        ? 'maps'
+        : 'campaign'
+  )
+
+  const openId = $derived(steps[0] === 'campaign' ? steps[3] ?? '' : steps[1] ?? '')
+
+  $effect(() => {
+    if (here === reached) return
+    reached = here
+    if (!open.includes(here)) open = [...open, here]
+  })
 
   const campaignId = $derived(
-    $currentRoute.path.startsWith('/campaign/')
+    $currentRoute.path.startsWith('/main/campaign/')
       ? $currentRoute.params.id ?? ''
       : $userCampaigns[0]?.id ?? ''
   )
 
+  const ROLLS: ResourceKind[] = ['quests', 'sessions', 'entries', 'items', 'weapons', 'armor', 'heroes']
+
+  let more = $state<Record<string, Resource[]>>({})
+
   const isDm = $derived(Boolean(campaign && $user && campaign.dm_id === $user.uid))
-  const activeQuests = $derived(quests.filter((quest) => quest.state === 'active' && (isDm || quest.is_known)))
-  const knownNpcs = $derived(npcs.filter((npc) => isDm || npc.is_known))
-  const knownPlaces = $derived(places.filter((place) => isDm || place.is_known))
-  const lore = $derived(knownNpcs.length + knownPlaces.length)
+  const activeQuests = $derived(quests.filter((quest) => quest.state === 'active'))
+  const lore = $derived(npcs.length + places.length)
   const knownEncounters = $derived(
-    encounters
-      .filter((entry) => isDm || entry.is_known)
-      .sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0))
+    [...encounters].sort((a, b) => (b.created_at?.toMillis() ?? 0) - (a.created_at?.toMillis() ?? 0))
   )
   const encounter = $derived(knownEncounters.find((entry) => entry.is_active) ?? knownEncounters[0] ?? null)
   const combatants = $derived(encounter ? [...encounter.combatants].sort((a, b) => b.initiative - a.initiative) : [])
@@ -64,6 +85,7 @@
       places = []
       maps = []
       encounters = []
+      players = []
       error = null
       loading = false
       return
@@ -80,9 +102,9 @@
         const [record, party, errands, cast, sites, charts] = await Promise.all([
           campaignService.getCampaign(id),
           campaignService.getCampaignCharacters(id),
-          campaignService.getQuests(id),
-          campaignService.getNpcs(id),
-          campaignService.getLocations(id),
+          getAll({ at: 'campaigns', id }, 'quests') as Promise<Quest[]>,
+          getAll({ at: 'campaigns', id }, 'characters') as Promise<Character[]>,
+          getAll({ at: 'campaigns', id }, 'places') as Promise<Place[]>,
           campaignService.getMaps(id)
         ])
         if (!live) return
@@ -92,6 +114,16 @@
         npcs = cast
         places = sites
         maps = charts
+
+        const held = await Promise.all(ROLLS.map((roll) => getAll({ at: 'campaigns', id }, roll)))
+        if (!live) return
+        more = Object.fromEntries(ROLLS.map((roll, index) => [roll, held[index]]))
+        players = await Promise.all(
+          record?.player_ids.map(async (uid) => ({
+            id: uid,
+            name: (await userService.getProfile(uid).catch(() => null))?.display_name || 'Unnamed player'
+          })) ?? []
+        )
       } catch (reason) {
         if (!live) return
         error = reason instanceof Error ? reason.message : String(reason)
@@ -107,15 +139,29 @@
   })
 
   function toggle(id: string) {
-    open = open === id ? '' : id
+    open = open.includes(id) ? open.filter((held) => held !== id) : [...open, id]
   }
 
-  function openCampaign() {
-    if (campaign) navigate(`/campaign/${campaign.id}`)
+  function openCampaign(where = '') {
+    if (campaign) navigate(`/main/campaign/${campaign.id}${where}`)
+  }
+
+  function twigs(rows: Resource[], kind: ResourceKind): TreeRow[] {
+    const limb = (row: Resource): TreeRow => ({
+      id: row.id,
+      title: row.title,
+      mark: RESOURCES[kind].mark(row),
+      kids: getChildren(rows, row.id).map(limb)
+    })
+    return getRoots(rows).map(limb)
+  }
+
+  function openResource(kind: ResourceKind, id: string) {
+    openCampaign(`/${kind}/${id}`)
   }
 
   function openCharacter(characterId: string) {
-    navigate(`/character/${characterId}`)
+    navigate(`/main/character/${characterId}`)
   }
 
   function openCombatant(combatant: EncounterCombatant) {
@@ -130,14 +176,11 @@
 
 <nav class="dnd-menu" aria-label="Campaign navigator">
   <header class="dnd-menu-head">
-    <span class="dnd-menu-crest" aria-hidden="true"><Ornament name="tracery" size="xs" tone="metal" /></span>
-    <p class="dnd-label dnd-menu-eyebrow">Navigator</p>
     {#if campaign}
-      <button type="button" class="dnd-menu-name" onclick={openCampaign}>{campaign.name}</button>
+      <button type="button" class="dnd-menu-name" onclick={() => openCampaign()}>{campaign.name}</button>
     {:else}
       <p class="dnd-menu-name dnd-menu-name-void">No campaign in scope</p>
     {/if}
-    <span class="dnd-menu-rule" aria-hidden="true"><Ornament name="divider" size="sm" tone="metal" /></span>
   </header>
 
   <div class="dnd-scroll dnd-menu-body">
@@ -146,34 +189,61 @@
     {/if}
 
     {@render section('campaign', 'Campaign details', activeQuests.length, details)}
-    {@render section('encounter', 'Encounter tracker', combatants.length, tracker)}
-    {@render section('lore', 'Lore', lore, chronicle)}
-    {@render section('resources', 'Resources', maps.length, resources)}
+    {@render section('players', 'Players', players.length, table)}
+    {@render section('characters', 'Characters', npcs.length, people)}
+    {@render section('places', 'Places', places.length, sites)}
+    {@render section('maps', 'Maps', maps.length, charts)}
+    {@render section('encounters', 'Encounters', knownEncounters.length, frays)}
+    {#each ROLLS as roll (roll)}
+      <Fold
+        title={RESOURCES[roll].many}
+        count={(more[roll] ?? []).length}
+        variant="row"
+        open={open.includes(roll)}
+        ontoggle={() => toggle(roll)}
+      >
+        {#if (more[roll] ?? []).length === 0}
+          <p class="dnd-menu-empty">Nothing on this roll.</p>
+        {:else}
+          <div class="dnd-scroll dnd-menu-tree">
+            <Tree rows={twigs(more[roll], roll)} on={openId} onopen={(id) => openResource(roll, id)} />
+          </div>
+        {/if}
+      </Fold>
+    {/each}
   </div>
 
-  <footer class="dnd-menu-foot">
-    {#if loading}
-      <p class="dnd-menu-foot-line">Reading the archive</p>
-    {:else if campaign}
-      <p class="dnd-menu-foot-line">{isDm ? 'Dungeon Master. Unrevealed lore is shown.' : 'Player. Revealed lore only.'}</p>
-    {:else}
-      <p class="dnd-menu-foot-line">Open a campaign to fill the navigator.</p>
-    {/if}
+  <footer class="dnd-menu-foot" aria-label="Actions">
+    {#each $shortcuts as pin (pin.action)}
+      {@const action = getAction(pin.action)}
+      {#if action}
+        <span class="dnd-menu-foot-cell">
+          <IconBtn
+            title={$actionBlocks[action.id] ? `${action.title}: ${$actionBlocks[action.id]}` : pin.key ? `${action.title} (${pin.key})` : action.title}
+            disabled={Boolean($actionBlocks[action.id])}
+            onclick={action.run}
+          >
+            <Glyph name={action.glyph} size="sm" />
+          </IconBtn>
+        </span>
+      {/if}
+    {/each}
+    <span class="dnd-menu-foot-cell">
+      <IconBtn title="Pin an action" tone="ink" onclick={() => (addOpen = true)}>
+        <Glyph name="add" size="sm" />
+      </IconBtn>
+    </span>
   </footer>
 </nav>
 
-{#snippet section(id: string, title: string, count: number, body: Snippet)}
-  <section class="dnd-menu-section" class:dnd-menu-section-open={open === id}>
-    <button type="button" class="dnd-menu-band" aria-expanded={open === id} onclick={() => toggle(id)}>
-      <span class="dnd-menu-caret" aria-hidden="true">›</span>
-      <span class="dnd-menu-band-title">{title}</span>
-      <span class="dnd-menu-band-count">{count}</span>
-    </button>
+{#if addOpen}
+  <ShortcutDialog bind:isOpen={addOpen} />
+{/if}
 
-    {#if open === id}
-      <div class="dnd-menu-section-body">{@render body()}</div>
-    {/if}
-  </section>
+{#snippet section(id: string, title: string, count: number, body: Snippet)}
+  <Fold {title} {count} variant="row" open={open.includes(id)} ontoggle={() => toggle(id)}>
+    {@render body()}
+  </Fold>
 {/snippet}
 
 {#snippet details()}
@@ -186,12 +256,12 @@
         <dd>{campaign.player_ids.length}</dd>
       </div>
       <div class="dnd-menu-fact">
-        <dt>Heroes</dt>
-        <dd>{characters.length}</dd>
-      </div>
-      <div class="dnd-menu-fact">
         <dt>Quests</dt>
         <dd>{activeQuests.length}</dd>
+      </div>
+      <div class="dnd-menu-fact">
+        <dt>Encounters</dt>
+        <dd>{knownEncounters.length}</dd>
       </div>
     </dl>
 
@@ -201,160 +271,110 @@
 
     <p class="dnd-menu-title">Party</p>
     {#if characters.length === 0}
-      <p class="dnd-menu-empty">No hero has joined yet.</p>
+      <p class="dnd-menu-empty">Nobody has joined the party yet.</p>
     {:else}
-      <ul class="dnd-scroll dnd-menu-list">
+      <div class="dnd-scroll dnd-menu-cards">
         {#each characters as entry (entry.id)}
-          <li class="dnd-menu-item">
-            <button type="button" class="dnd-menu-row" onclick={() => openCharacter(entry.id)}>
-              <span class="dnd-menu-row-mark" aria-hidden="true">◆</span>
-              <span class="dnd-menu-row-name">{entry.metadata.name}</span>
-              <span class="dnd-menu-row-meta">{entry.metadata.level} {entry.metadata.class}</span>
-            </button>
-          </li>
+          <Card
+            title={entry.metadata.name}
+            sub="{entry.metadata.race} {entry.metadata.class}"
+            image={entry.character?.info?.imageUrl}
+            badge="Lv {entry.metadata.level}"
+            tone="ember"
+            onclick={() => openCharacter(entry.id)}
+          />
         {/each}
-      </ul>
+      </div>
     {/if}
 
     <p class="dnd-menu-title">Active quests</p>
     {#if activeQuests.length === 0}
       <p class="dnd-menu-empty">No quest is open.</p>
     {:else}
-      <ul class="dnd-scroll dnd-menu-list">
-        {#each activeQuests as quest (quest.id)}
-          <li class="dnd-menu-item">
-            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
-              <span class="dnd-menu-row-mark" aria-hidden="true">✦</span>
-              <span class="dnd-menu-row-name">{quest.title}</span>
-              <span class="dnd-menu-row-meta">{quest.level ? `Lv ${quest.level}` : 'Open'}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
+      <div class="dnd-scroll dnd-menu-tree">
+        <Tree rows={twigs(activeQuests, 'quests')} on={openId} onopen={(id) => openResource('quests', id)} />
+      </div>
     {/if}
   {/if}
 {/snippet}
 
-{#snippet tracker()}
-  {#if !campaign}
-    <p class="dnd-menu-empty">No campaign is in scope.</p>
-  {:else if !encounter}
-    <p class="dnd-menu-empty">No encounter is under way.</p>
+{#snippet table()}
+  {#if players.length === 0}
+    <p class="dnd-menu-empty">Nobody has taken a seat.</p>
   {:else}
-    <dl class="dnd-menu-facts">
-      <div class="dnd-menu-fact">
-        <dt>Round</dt>
-        <dd>{encounter.round}</dd>
-      </div>
-      <div class="dnd-menu-fact">
-        <dt>Turn</dt>
-        <dd>{turn + 1}</dd>
-      </div>
-      <div class="dnd-menu-fact">
-        <dt>Foes</dt>
-        <dd>{combatants.filter((entry) => entry.kind === 'npc').length}</dd>
-      </div>
-    </dl>
-
-    <p class="dnd-menu-title">{encounter.title}</p>
-    {#if combatants.length === 0}
-      <p class="dnd-menu-empty">No combatant has rolled yet.</p>
-    {:else}
-      <ul class="dnd-scroll dnd-menu-list">
-        {#each combatants as combatant, index (combatant.id)}
-          <li class="dnd-menu-item">
-            <button
-              type="button"
-              class="dnd-menu-row"
-              class:dnd-menu-row-turn={index === turn}
-              aria-current={index === turn ? 'true' : undefined}
-              onclick={() => openCombatant(combatant)}
-            >
-              <span class="dnd-menu-row-mark" aria-hidden="true">{combatant.initiative}</span>
-              <span class="dnd-menu-row-name">
-                {combatant.name}
-                {#if combatant.conditions.length > 0}
-                  <em class="dnd-menu-row-state">{combatant.conditions.join(', ')}</em>
-                {/if}
-              </span>
-              <span class="dnd-menu-row-meta">{hitPoints(combatant)}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
+    <div class="dnd-scroll dnd-menu-cards">
+      {#each players as player (player.id)}
+        <Card
+          title={player.name}
+          sub={campaign?.dm_id === player.id ? 'Dungeon Master' : 'Player'}
+          badge={campaign?.dm_id === player.id
+            ? 'DM'
+            : `${characters.filter((entry) => entry.owner_id === player.id).length} heroes`}
+          onclick={() => openCampaign(`/heroes?player=${encodeURIComponent(player.name)}`)}
+        />
+      {/each}
+    </div>
   {/if}
 {/snippet}
 
-{#snippet chronicle()}
+{#snippet people()}
+  {#if npcs.length === 0}
+    <p class="dnd-menu-empty">No face has been revealed.</p>
+  {:else}
+    <div class="dnd-scroll dnd-menu-tree">
+      <Tree rows={twigs(npcs, 'characters')} on={openId} onopen={(id) => openResource('characters', id)} />
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet sites()}
   {#if !campaign}
     <p class="dnd-menu-empty">No campaign is in scope.</p>
   {:else}
-    <p class="dnd-menu-title">Known faces</p>
-    {#if knownNpcs.length === 0}
-      <p class="dnd-menu-empty">No face has been revealed.</p>
-    {:else}
-      <ul class="dnd-scroll dnd-menu-list">
-        {#each knownNpcs as npc (npc.id)}
-          <li class="dnd-menu-item">
-            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
-              <span class="dnd-menu-row-mark" aria-hidden="true">☗</span>
-              <span class="dnd-menu-row-name">{npc.name}</span>
-              <span class="dnd-menu-row-meta">{npc.role || npc.disposition}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
-    {/if}
-
-    <p class="dnd-menu-title">Known places</p>
-    {#if knownPlaces.length === 0}
+    {#if places.length === 0}
       <p class="dnd-menu-empty">No place has been revealed.</p>
     {:else}
-      <ul class="dnd-scroll dnd-menu-list">
-        {#each knownPlaces as place (place.id)}
-          <li class="dnd-menu-item">
-            <button type="button" class="dnd-menu-row" onclick={openCampaign}>
-              <span class="dnd-menu-row-mark" aria-hidden="true">⌂</span>
-              <span class="dnd-menu-row-name">{place.name}</span>
-              <span class="dnd-menu-row-meta">{place.kind}</span>
-            </button>
-          </li>
-        {/each}
-      </ul>
+      <div class="dnd-scroll dnd-menu-tree">
+        <Tree rows={twigs(places, 'places')} on={openId} onopen={(id) => openResource('places', id)} />
+      </div>
     {/if}
   {/if}
 {/snippet}
 
-{#snippet resources()}
-  <p class="dnd-menu-title">Maps</p>
+{#snippet charts()}
   {#if maps.length === 0}
     <p class="dnd-menu-empty">No map has been drawn.</p>
   {:else}
-    <ul class="dnd-scroll dnd-menu-list">
+    <div class="dnd-scroll dnd-menu-cards">
       {#each maps as chart (chart.id)}
-        <li class="dnd-menu-item">
-          <button type="button" class="dnd-menu-row" onclick={openCampaign}>
-            <span class="dnd-menu-row-mark" aria-hidden="true">✧</span>
-            <span class="dnd-menu-row-name">{chart.title}</span>
-            <span class="dnd-menu-row-meta">{chart.is_visible ? `${chart.markers.length} pins` : 'Hidden'}</span>
-          </button>
-        </li>
+        <Card
+          title={chart.title}
+          sub="{chart.layers.length} layers"
+          image={chart.image_url}
+          badge={chart.is_visible ? `${chart.markers.length} pins` : 'Hidden'}
+          tone="verdigris"
+          onclick={() => openCampaign(`?tab=maps&map=${chart.id}`)}
+        />
       {/each}
-    </ul>
+    </div>
   {/if}
+{/snippet}
 
-  {#if onNavigateToSoundboard}
-    <p class="dnd-menu-title">Table</p>
-    <ul class="dnd-menu-list">
-      <li class="dnd-menu-item">
-        <button type="button" class="dnd-menu-row" onclick={onNavigateToSoundboard}>
-          <span class="dnd-menu-row-mark" aria-hidden="true">♪</span>
-          <span class="dnd-menu-row-name">Soundboard</span>
-          <span class="dnd-menu-row-meta">Open</span>
-        </button>
-      </li>
-    </ul>
+{#snippet frays()}
+  {#if knownEncounters.length === 0}
+    <p class="dnd-menu-empty">No encounter has been set.</p>
+  {:else}
+    <div class="dnd-scroll dnd-menu-cards">
+      {#each knownEncounters as fray (fray.id)}
+        <Card
+          title={fray.title}
+          sub="{fray.combatants.length} in it"
+          badge={fray.is_active ? `Round ${fray.round}` : undefined}
+          tone="ember"
+          onclick={() => openCampaign()}
+        />
+      {/each}
+    </div>
   {/if}
 {/snippet}
 
@@ -364,7 +384,6 @@
     --menu-rows: 5;
     --menu-gap: var(--space-3);
     --menu-pad: var(--space-4);
-    --menu-cusp: 9px;
     --menu-line: var(--metal-dim);
     --menu-line-strong: var(--metal);
     --menu-surface: var(--ground-raised);
@@ -374,7 +393,11 @@
     --menu-text-muted: var(--ink-dim);
     --menu-text-faint: var(--ink-faint);
     --menu-accent: var(--metal-bright);
-    --menu-radius: var(--radius-md);
+    --menu-radius: var(--radius-sm);
+    --menu-stone:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
 
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
@@ -387,40 +410,48 @@
 
   .dnd-menu-head {
     display: grid;
-    justify-items: center;
-    gap: var(--space-1);
-    text-align: center;
-  }
-
-  .dnd-menu-crest {
-    display: block;
-    opacity: 0.8;
-  }
-
-  .dnd-menu-eyebrow {
-    margin: 0;
+    margin: calc(var(--menu-pad) * -1) calc(var(--menu-pad) * -1) 0;
+    padding: var(--space-3) var(--menu-pad);
+    background: var(--menu-stone);
+    box-shadow: var(--bevel-up), inset 0 -1px 0 var(--keyline), 0 1px 0 var(--metal-dim), 0 2px 0 var(--metal), 0 3px 0 var(--keyline), 0 5px 8px var(--shade);
   }
 
   .dnd-menu-name {
     display: block;
     width: 100%;
     margin: 0;
-    padding: var(--space-1) var(--space-2);
+    padding: 0;
     border: none;
     background: none;
-    color: var(--menu-accent);
+    color: var(--metal);
     font-family: var(--font-display);
-    font-size: var(--text-lg);
-    font-weight: 600;
-    letter-spacing: var(--tracking-wide);
+    font-size: var(--text-md);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
     line-height: 1.2;
-    text-shadow: 0 1px 0 var(--shade-hard);
+    text-align: start;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 0 #000, 0 0 2px #000;
     cursor: pointer;
+    transition: color 0.18s ease, text-shadow 0.18s ease;
   }
 
   .dnd-menu-name:hover {
-    filter: brightness(1.12);
-    text-shadow: var(--glow-metal);
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
+  }
+
+  .dnd-menu-name:active {
+    filter: brightness(0.85);
+  }
+
+  .dnd-menu-name:focus-visible {
+    outline: none;
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .dnd-menu-name-void {
@@ -428,94 +459,16 @@
     cursor: default;
   }
 
-  .dnd-menu-rule {
-    display: block;
-    width: 100%;
+  .dnd-menu-name-void:hover {
+    color: var(--menu-text-faint);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-menu-body {
     display: flex;
     flex-direction: column;
-    gap: var(--menu-gap);
     min-height: 0;
-    padding-inline-end: var(--space-1);
-  }
-
-  .dnd-menu-section {
-    display: grid;
-    gap: var(--space-2);
-  }
-
-  .dnd-menu-band {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-2);
-    width: 100%;
-    min-height: var(--menu-row);
-    padding: 0 var(--space-3);
-    background: linear-gradient(180deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
-    border: var(--border-hair) solid var(--menu-line);
-    border-radius: 0;
-    clip-path: polygon(
-      var(--menu-cusp) 0,
-      calc(100% - var(--menu-cusp)) 0,
-      100% 50%,
-      calc(100% - var(--menu-cusp)) 100%,
-      var(--menu-cusp) 100%,
-      0 50%
-    );
-    color: var(--menu-accent);
-    font-family: var(--font-display);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    text-align: start;
-    cursor: pointer;
-    transition: filter 0.15s ease;
-  }
-
-  .dnd-menu-band:hover {
-    filter: brightness(1.15) drop-shadow(0 0 8px var(--ember-glow));
-  }
-
-  .dnd-menu-section-open .dnd-menu-band {
-    border-color: var(--menu-line-strong);
-    color: var(--menu-accent);
-  }
-
-  .dnd-menu-caret {
-    display: inline-block;
-    color: var(--menu-line-strong);
-    transition: transform 0.15s ease;
-  }
-
-  .dnd-menu-section-open .dnd-menu-caret {
-    transform: rotate(90deg);
-  }
-
-  .dnd-menu-band-title {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .dnd-menu-band-count {
-    color: var(--menu-text-muted);
-    font-size: var(--text-xs);
-    font-weight: 400;
-    letter-spacing: var(--tracking-wide);
-  }
-
-  .dnd-menu-section-body {
-    display: grid;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    background: linear-gradient(180deg, var(--menu-surface) 0%, var(--menu-surface-sunk) 100%);
-    border: var(--border-hair) solid var(--menu-line);
-    border-radius: var(--menu-radius);
-    box-shadow: inset 0 1px 0 var(--metal-edge);
+    margin-inline: calc(var(--menu-pad) * -1);
   }
 
   .dnd-menu-facts {
@@ -530,26 +483,33 @@
     justify-items: center;
     gap: var(--space-1);
     padding: var(--space-2) var(--space-1);
-    background: linear-gradient(180deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
-    border: var(--border-hair) solid var(--menu-line);
+    background: var(--texture-noise), linear-gradient(180deg, var(--menu-surface-sunk) 0%, var(--ground) 100%);
     border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), var(--bevel-down);
   }
 
   .dnd-menu-fact dt {
-    color: var(--menu-text-muted);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--metal);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-menu-fact dd {
     margin: 0;
     color: var(--menu-accent);
-    font-family: var(--font-display);
-    font-size: var(--text-md);
+    font-family: var(--font-figures);
+    font-size: var(--text-lg);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
+    text-shadow: 0 1px 0 #000, 0 0 8px var(--ember-glow);
   }
 
   .dnd-menu-lede {
@@ -564,89 +524,23 @@
     color: var(--menu-line-strong);
     font-family: var(--font-display);
     font-size: var(--text-xs);
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
+    text-shadow: 0 1px 0 #000;
   }
 
-  .dnd-menu-list {
+  .dnd-menu-cards {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
     max-height: calc(var(--menu-row) * var(--menu-rows));
-    margin: 0;
-    padding: 0;
     overflow-y: auto;
-    list-style: none;
-    scroll-snap-type: y proximity;
   }
 
-  .dnd-menu-item {
-    display: flex;
-    min-height: var(--menu-row);
-    scroll-snap-align: start;
-  }
-
-  .dnd-menu-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-3);
-    flex: 1;
-    min-height: var(--menu-row);
-    padding: 0 var(--space-3);
-    background: linear-gradient(90deg, var(--menu-surface-lift) 0%, var(--menu-surface) 100%);
-    border: var(--border-hair) solid transparent;
-    border-inline-start: var(--border-width) solid var(--menu-line);
-    border-radius: var(--radius-sm);
-    color: var(--menu-text);
-    font-family: var(--font-body);
-    font-size: var(--text-sm);
-    text-align: start;
-    cursor: pointer;
-    transition: border-color 0.15s ease, filter 0.15s ease;
-  }
-
-  .dnd-menu-row:hover {
-    border-color: var(--menu-line);
-    border-inline-start-color: var(--menu-line-strong);
-    filter: brightness(1.18);
-  }
-
-  .dnd-menu-row-mark {
-    color: var(--menu-line-strong);
-    font-size: var(--text-xs);
-  }
-
-  .dnd-menu-row-turn {
-    border-color: var(--menu-line);
-    border-inline-start-color: var(--menu-accent);
-    box-shadow: inset 0 0 0 1px var(--metal-edge);
-    filter: brightness(1.12);
-  }
-
-  .dnd-menu-row-turn .dnd-menu-row-mark {
-    color: var(--menu-accent);
-  }
-
-  .dnd-menu-row-state {
-    color: var(--menu-text-faint);
-    font-size: var(--text-xs);
-    font-style: italic;
-  }
-
-  .dnd-menu-row-name {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  .dnd-menu-row-meta {
-    color: var(--menu-text-muted);
-    font-family: var(--font-display);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    white-space: nowrap;
+  .dnd-menu-tree {
+    max-height: calc(var(--menu-row) * var(--menu-rows));
+    overflow-y: auto;
   }
 
   .dnd-menu-empty {
@@ -657,27 +551,43 @@
   }
 
   .dnd-menu-note {
-    margin: 0;
+    margin: var(--space-2) var(--menu-pad);
     padding: var(--space-3);
-    background: linear-gradient(180deg, var(--menu-surface-sunk) 0%, var(--menu-surface) 100%);
-    border-inline-start: var(--border-width) solid var(--menu-line);
+    background: var(--texture-noise), linear-gradient(180deg, var(--menu-surface-sunk) 0%, var(--menu-surface) 100%);
     border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 12px 2px var(--shade-hard);
     color: var(--menu-text-muted);
     font-size: var(--text-sm);
     line-height: 1.45;
   }
 
   .dnd-menu-foot {
-    padding-top: var(--space-2);
-    border-top: var(--border-hair) solid var(--menu-line);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, var(--menu-row));
+    justify-content: center;
+    gap: var(--space-2);
+    margin: 0 calc(var(--menu-pad) * -1) calc(var(--menu-pad) * -1);
+    padding: var(--space-3) var(--menu-pad) var(--menu-pad);
+    background: var(--menu-stone);
+    box-shadow: var(--bevel-up), inset 0 1px 0 var(--keyline), inset 0 2px 0 var(--metal), inset 0 3px 0 var(--keyline), 0 -4px 10px var(--shade);
   }
 
-  .dnd-menu-foot-line {
-    margin: 0;
-    color: var(--menu-text-faint);
-    font-family: var(--font-display);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    text-align: center;
+  .dnd-menu-foot-cell {
+    position: relative;
+    display: flex;
+    height: var(--menu-row);
+  }
+
+  .dnd-menu-foot-cell + .dnd-menu-foot-cell::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: calc((var(--space-2) + var(--border-hair)) / -2);
+    top: 50%;
+    width: var(--border-hair);
+    height: var(--size-split);
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, transparent, var(--metal-dim) 30%, var(--metal-dim) 70%, transparent);
+    box-shadow: 1px 0 0 color-mix(in srgb, #000 70%, transparent);
+    pointer-events: none;
   }
 </style>

@@ -3,15 +3,7 @@
   import { onMount, setContext, onDestroy } from "svelte";
   import { getCharacterStore } from "$lib/engine";
   import type { CharacterContext } from "$lib/types";
-  import type {
-    CampaignChart,
-    CampaignChronicle,
-    CampaignErrand,
-    CampaignFigure,
-    CampaignFray,
-    CampaignHaunt,
-    UserProfile
-  } from "$lib/firestore.types";
+  import type { UserProfile } from "$lib/firestore.types";
   import MenuPanel from "$components/MenuPanel.svelte";
   import Chat from "$chat/Chat.svelte";
   import { sidebarStore } from "$lib/navigation";
@@ -23,6 +15,7 @@
   import { navigate } from "sly-svelte-location-router";
   import CharactersPanel from "./main/CharactersPanel.svelte";
   import CampaignsPanel from "./main/CampaignsPanel.svelte";
+  import PartiesPanel from "./main/PartiesPanel.svelte";
   import LorePanel from "./main/LorePanel.svelte";
   import FriendsPanel from "./main/FriendsPanel.svelte";
   import Button from "$components/ui/Button.svelte";
@@ -32,7 +25,7 @@
   import Glyph from "$components/ui/Glyph.svelte";
   import { postUIAction } from "$lib/chat";
 
-  const {unsubscribe, ...chStore} = getCharacterStore()
+  const {unsubscribe, ...chStore} = getCharacterStore('local')
   const unsubscribeSidebar = sidebarStore.subscribe(() => {});
 
   setContext<CharacterContext>('character', chStore);
@@ -46,15 +39,10 @@
 
   let loading = $state(true);
   let error = $state<string | null>(null);
-  let chronicles = $state<CampaignChronicle[]>([]);
-  let errands = $state<CampaignErrand[]>([]);
-  let charts = $state<CampaignChart[]>([]);
-  let figures = $state<CampaignFigure[]>([]);
-  let haunts = $state<CampaignHaunt[]>([]);
-  let frays = $state<CampaignFray[]>([]);
   let friends = $state<UserProfile[]>([]);
   let campaignSearch = $state('');
   let characterSearch = $state('');
+  let partySearch = $state('');
 
   const name = $derived($userDetails?.display_name || $userProfile?.display_name || 'Adventurer');
 
@@ -70,21 +58,6 @@
       userCharacters.set(characters);
       userCampaigns.set(campaigns);
       friends = known;
-
-      const [sessions, quests, maps, npcs, locations, encounters] = await Promise.all([
-        campaignService.getRecentSessions(campaigns),
-        campaignService.getActiveQuests(campaigns),
-        campaignService.getChartedMaps(campaigns),
-        campaignService.getKnownNpcs(campaigns),
-        campaignService.getKnownLocations(campaigns),
-        campaignService.getRecentEncounters(campaigns)
-      ]);
-      chronicles = sessions;
-      errands = quests;
-      charts = maps;
-      figures = npcs;
-      haunts = locations;
-      frays = encounters;
     } catch (err) {
       error = err instanceof Error ? err.message : 'The archive did not answer';
     } finally {
@@ -101,6 +74,10 @@
     navigate('/main/create/character');
   }
 
+  function createParty() {
+    navigate('/main/create/party');
+  }
+
   function createCampaign() {
     navigate('/main/create/campaign');
   }
@@ -111,11 +88,6 @@
 </script>
 
 <Shell title="Hearth" width="full">
-  {#snippet nav()}
-    <Button variant="ghost" size="sm" onclick={createCharacter}>New Character</Button>
-    <Button variant="ghost" size="sm" onclick={createCampaign}>New Campaign</Button>
-  {/snippet}
-
   {#snippet tools()}
     <Sigil title="Change theme" size="sm" onclick={() => postUIAction('openThemeDialog')}>
       <Glyph name="theme" size="sm" />
@@ -144,7 +116,7 @@
         <p class="dnd-label hall-hero-eyebrow">The hearth is lit</p>
         <h1 class="dnd-heading hall-hero-name">{name}</h1>
         <p class="hall-hero-note">
-          {$userCharacters.length} characters, {$userCampaigns.length} campaigns, {errands.length} quests open.
+          {$userCharacters.length} characters, {$userCampaigns.length} campaigns.
         </p>
       </div>
       <div class="hall-hero-acts">
@@ -170,6 +142,23 @@
       <CampaignsPanel {loading} search={campaignSearch} />
     </section>
 
+    <section class="hall-plot hall-plot-bands" aria-label="Parties">
+      <header class="hall-divide">
+        <h2 class="dnd-label hall-divide-name">Parties</h2>
+        <span class="hall-divide-note">who you play with</span>
+        <span class="hall-divide-run"></span>
+        <input
+          type="text"
+          class="dnd-search hall-divide-search"
+          placeholder="Search the parties..."
+          aria-label="Search parties"
+          bind:value={partySearch}
+        />
+        <Sigil title="Gather a new party" tone="ember" size="sm" onclick={createParty} frame="plate"><Glyph name="character" size="sm" /></Sigil>
+      </header>
+      <PartiesPanel search={partySearch} />
+    </section>
+
     <section class="hall-plot hall-plot-roll" aria-label="Characters">
       <header class="hall-divide">
         <h2 class="dnd-label hall-divide-name">Characters</h2>
@@ -190,10 +179,10 @@
     <section class="hall-plot hall-plot-lore" aria-label="Lore">
       <header class="hall-divide">
         <h2 class="dnd-label hall-divide-name">Lore</h2>
-        <span class="hall-divide-note">what the campaigns hold</span>
+        <span class="hall-divide-note">what you have written</span>
         <span class="hall-divide-run"></span>
       </header>
-      <LorePanel {loading} {errands} {chronicles} {charts} {figures} {haunts} {frays} />
+      <LorePanel />
     </section>
 
     <aside class="hall-plot hall-plot-friends" aria-label="Friends">
@@ -202,7 +191,7 @@
         <span class="hall-divide-note">{friends.length} known</span>
         <span class="hall-divide-run"></span>
       </header>
-      <FriendsPanel {loading} {friends} />
+      <FriendsPanel {loading} bind:friends />
     </aside>
   </div>
 </Shell>
@@ -217,7 +206,8 @@
     gap: var(--space-4);
     min-width: 0;
     padding-bottom: var(--space-4);
-    border-bottom: var(--border-hair) solid var(--metal-dim);
+    border-bottom: none;
+    box-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0.125rem 0 var(--metal-dim), 0 0.1875rem 0 color-mix(in srgb, var(--metal) 60%, transparent), 0 0.25rem 0 var(--ground-deep);
   }
 
   .hall-hero-word {
@@ -229,19 +219,24 @@
 
   .hall-hero-eyebrow {
     margin: 0;
-    color: var(--ink-faint);
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0 0.5rem var(--ember-glow);
   }
 
   .hall-hero-name {
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
+    font-weight: 700;
     letter-spacing: var(--tracking-caps);
+    color: var(--metal-bright);
+    text-shadow: 0 0.125rem 0 var(--ground-deep), 0 0 0.125rem var(--ground-deep), 0 0 1rem var(--ember-glow), 0 0 2.5rem color-mix(in srgb, var(--ember-glow) 60%, transparent);
     overflow-wrap: anywhere;
   }
 
   .hall-hero-note {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-style: italic;
     color: var(--ink-dim);
   }
 
@@ -257,12 +252,12 @@
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    border-radius: var(--radius-md);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--state-bad) 22%, transparent),
-      color-mix(in srgb, var(--state-bad) 6%, transparent)
-    );
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 22%, transparent), color-mix(in srgb, var(--state-bad) 6%, transparent)),
+      var(--texture-noise),
+      var(--ground-deep);
+    box-shadow: var(--bevel-down);
   }
 
   .hall-error-mark {
@@ -285,10 +280,11 @@
     --hall-search: calc(var(--space-8) * 3);
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(min(var(--hall-side), 100%), var(--hall-side-share));
-    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
     grid-template-areas:
       'hero friends'
       'camps friends'
+      'bands friends'
       'roll friends'
       'lore friends';
     column-gap: var(--space-6);
@@ -307,6 +303,10 @@
     grid-area: camps;
   }
 
+  .hall-plot-bands {
+    grid-area: bands;
+  }
+
   .hall-plot-roll {
     grid-area: roll;
   }
@@ -319,7 +319,8 @@
     grid-area: friends;
     align-self: stretch;
     padding-inline-start: var(--space-5);
-    border-inline-start: var(--border-hair) solid var(--metal-dim);
+    border-inline-start: none;
+    box-shadow: -0.0625rem 0 0 var(--ground-deep), -0.125rem 0 0 var(--metal-dim), -0.1875rem 0 0 color-mix(in srgb, var(--metal) 50%, transparent), -0.25rem 0 0 var(--ground-deep);
   }
 
   .hall-divide {
@@ -328,25 +329,37 @@
     align-items: center;
     gap: var(--space-3);
     min-width: 0;
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--bevel-up), inset 0 0 0 0.0625rem var(--ground-deep), 0 0.0625rem 0 var(--metal-dim), 0 0.125rem 0 var(--metal), 0 0.1875rem 0 var(--ground-deep), 0 0.3125rem 0.5rem var(--shade);
   }
 
   .hall-divide-name {
     margin: 0;
     font-size: var(--text-sm);
+    font-weight: 700;
     color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0 0.5rem var(--ember-glow);
   }
 
   .hall-divide-note {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--ink-faint);
+    font-style: italic;
+    color: var(--ink-dim);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .hall-divide-run {
     flex: 1;
     min-width: 0;
     height: var(--border-hair);
-    background: linear-gradient(90deg, var(--metal-dim), transparent);
+    background: linear-gradient(90deg, var(--metal), var(--metal-dim) 40%, transparent);
+    box-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .hall-divide-search {
@@ -362,6 +375,7 @@
       grid-template-areas:
         'hero'
         'camps'
+        'bands'
         'roll'
         'lore'
         'friends';
@@ -370,8 +384,7 @@
     .hall-plot-friends {
       padding-inline-start: 0;
       padding-top: var(--space-5);
-      border-inline-start: none;
-      border-top: var(--border-hair) solid var(--metal-dim);
+      box-shadow: 0 -0.0625rem 0 var(--ground-deep), 0 -0.125rem 0 var(--metal-dim), 0 -0.1875rem 0 color-mix(in srgb, var(--metal) 50%, transparent), 0 -0.25rem 0 var(--ground-deep);
     }
   }
 </style>

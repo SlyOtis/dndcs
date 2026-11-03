@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Glyph from "$components/ui/Glyph.svelte";
   import { navigate } from "sly-svelte-location-router";
   import { userCampaigns } from "$lib/stores/campaign.store";
   import Card from "$components/ui/Card.svelte";
@@ -11,7 +12,7 @@
   ));
 
   function openCampaign(campaignId: string) {
-    navigate(`/campaign/${campaignId}`);
+    navigate(`/main/campaign/${campaignId}`);
   }
 </script>
 
@@ -19,7 +20,7 @@
   <div class="dnd-loading"><span class="dnd-spinner"></span></div>
 {:else if shown.length === 0}
   <div class="dnd-empty">
-    <span class="dnd-empty-mark">🏰</span>
+    <span class="dnd-empty-mark"><Glyph name="campaign" size="lg" /></span>
     <span>No chronicle has been opened</span>
   </div>
 {:else}

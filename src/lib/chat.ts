@@ -1,11 +1,14 @@
 import {type Readable, type Unsubscriber, type Writable, writable, get} from "svelte/store";
 import {currentRoute} from "sly-svelte-location-router";
 import type {RollLog, RollLogItem} from "./types";
-import {rollDie, writeRollLog, getRollLog, getAuthor, getCharacterStore, updateCharacterWithChangeLog, type ChatEntryFields} from "./engine";
+import {rollDie, rollDice, getFormula, getFormulaTotal, type FormulaTerm, writeRollLog, getRollLog, getAuthor, getCharacterStore, getResolvedRules, putItem, postItem, deleteItem, putHealing, putSlots, postShortRest, postLongRest, putCondition, deleteCondition, putDefence, deleteDefence, updateCharacterWithChangeLog, type ChatEntryFields} from "./engine";
 import type {Character} from "./character.types";
 import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
 import { userDetails } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
+import { currentCharacterId } from "./stores/character.store";
+import { getExpressionValue } from "./rules/expression";
+import type { ResolvedCharacter } from "./rules/spec.types";
 import { campaignService, characterService } from "./firestore.service";
 import type { CampaignCardKind, CampaignChatEntry } from "./firestore.types";
 
@@ -150,12 +153,12 @@ function postCampaignScope(): Unsubscriber {
   return currentRoute.subscribe(route => {
     const id = route?.params?.id ?? '';
 
-    if (route?.path?.startsWith('/campaign/') && id) {
+    if (route?.path?.startsWith('/main/campaign/') && id) {
       currentCampaignId.set(id);
       return;
     }
 
-    if (route?.path?.startsWith('/character/') && id && id !== 'local') {
+    if (route?.path?.startsWith('/main/character/') && id && id !== 'local') {
       characterService.getCharacter(id)
         .then(document => currentCampaignId.set(document?.campaign_id ?? null))
         .catch(error => {
@@ -402,29 +405,22 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
 }
 
 export async function rollFormula(formula: string): Promise<ActionResponse | undefined> {
-  const diceMatch = formula.trim().match(/(\d+)?d(\d+)(?:\s*([+-])\s*(\d+))?/);
-  if (!diceMatch) return undefined;
+  const parsed = getFormula(formula);
+  if (!parsed) return undefined;
 
-  const amount = parseInt(diceMatch[1] || '1', 10);
-  const die = parseInt(diceMatch[2], 10);
-  const modifier = diceMatch[3] && diceMatch[4] ?
-    (diceMatch[3] === '+' ? parseInt(diceMatch[4], 10) : -parseInt(diceMatch[4], 10)) : 0;
-  const validDice = [4, 6, 8, 10, 12, 20, 100];
-  if (!validDice.includes(die) || amount <= 0 || amount > 20) return undefined;
+  const dice = parsed.terms.filter((term): term is Extract<FormulaTerm, { die: number }> => 'die' in term);
+  const rolled = await rollDice(dice.map(term => ({ die: term.die, amount: term.amount })));
+  const { roll, total } = getFormulaTotal(parsed.terms, rolled);
 
-  const result = await rollDie(die, amount);
-  const total = result.sum + modifier;
-  const modifierText = modifier ? ` ${modifier > 0 ? '+' : ''}${modifier}` : '';
-
-  writeRollLog('roll', `/roll ${amount}d${die}${modifierText}`, `${amount}d${die}${modifierText}`, result.sum, total, result.rolls.join(','));
+  writeRollLog('roll', `/roll ${parsed.text}`, parsed.text, roll, total, rolled.flat().join(','));
 
   return {
     sentAt: new Date(),
     returnedAt: new Date(),
-    explanation: `Direct /roll command: ${amount}d${die}${modifierText}`,
+    explanation: `Direct /roll command: ${parsed.text}`,
     sources: [],
-    func: 'rollDie',
-    args: { die, amount, modifier }
+    func: 'rollDice',
+    args: { formula: parsed.text, rolled, total }
   } as ActionResponse;
 }
 
@@ -689,7 +685,7 @@ export async function detectAction(query: string, modelId?: string) {
       10. updateActions: Updates character actions.
       11. updateSpells: Updates character spells.
       12. updateProficients: Updates character proficients.
-      13. updateInventory: Updates character inventory.
+      13. updateInventory: Sets how many of an item the character holds, 0 removes it [args; itemName: string, quantity: number].
       14. updateCurrency: Updates character currency/money.
       15. updateBackground: Updates character background and lore.
       16. levelUp: Triggers the level up dialog for character advancement.
@@ -909,159 +905,382 @@ async function aiRollDie(action: AiAction) {
   }
 }
 
-// Global UI action dispatcher - will be set by the main component
-let uiActionDispatcher: ((action: string, payload?: any) => void) | null = null;
+export type UIAction = 'openThemeDialog' | 'openLevelUpDialog' | 'openFrameDialog' | 'openSourceImport' | 'exportCharacter'
 
-export function setUIActionDispatcher(dispatcher: (action: string, payload?: any) => void) {
+const CHARACTER_ACTIONS: UIAction[] = ['openLevelUpDialog', 'openFrameDialog', 'exportCharacter']
+
+const NO_CHARACTER = 'Open a character first.'
+
+let uiActionDispatcher: ((action: UIAction) => void) | null = null;
+
+export function setUIActionDispatcher(dispatcher: ((action: UIAction) => void) | null) {
   uiActionDispatcher = dispatcher;
 }
 
-export function postUIAction(action: string, payload?: any) {
-  if (!uiActionDispatcher) return;
-  uiActionDispatcher(action, payload);
+export function getUIActionBlock(action: UIAction, characterId: string | null = get(currentCharacterId)): string {
+  return CHARACTER_ACTIONS.includes(action) && !characterId ? NO_CHARACTER : '';
+}
+
+export function postUIAction(action: UIAction): string {
+  const block = getUIActionBlock(action) || (uiActionDispatcher ? '' : 'The dialogs are not mounted.');
+  if (block) return block;
+  uiActionDispatcher?.(action);
+  return '';
+}
+
+type InventoryItem = Character['inventory'][number]
+
+export function getCurrentCharacter(): Character | null {
+  if (!get(currentCharacterId)) return null;
+  const {unsubscribe, ...stores} = getCharacterStore();
+  return Object.fromEntries(
+    Object.entries(stores).map(([key, store]) => [key, get(store as Readable<unknown>)])
+  ) as unknown as Character;
+}
+
+function getSigned(value: number): string {
+  return value >= 0 ? `+${value}` : `${value}`;
+}
+
+export function getInventoryItem(inventory: InventoryItem[], itemName: string): InventoryItem | undefined {
+  const name = itemName.trim().toLowerCase();
+  if (!name) return undefined;
+  return inventory.find(item => item.title.toLowerCase() === name)
+    ?? inventory.find(item => item.title.toLowerCase().includes(name));
 }
 
 async function aiUpdateInventory(action: AiAction) {
-  try {
-    const die = parseInt(action.args.die, 0)
-    const amount = parseInt(action.args.amount, 0)
+  const itemName = String(action.args.itemName ?? '');
+  const quantity = Number(action.args.quantity);
+  const character = getCurrentCharacter();
+  const item = character ? getInventoryItem(character.inventory, itemName) : undefined;
 
-    const res = await rollDie(die, amount)
-    return writeRollLog('ai', `Rolled some dies ${amount}d${die}`, `${amount}d${die}`, res.sum, res.sum, res.rolls.join(','));
-  } catch (e: any) {
-    throw new Error(e)
+  let message: string;
+  if (!character) {
+    message = `❌ **Inventory unavailable:** ${NO_CHARACTER}`;
+  } else if (!item) {
+    message = `❌ **No such item:** nothing in the inventory is called "${itemName}".`;
+  } else if (!Number.isInteger(quantity) || quantity < 0) {
+    message = `❌ **Quantity missing:** say how many ${item.title} to hold, for example "set ${item.title} to 3".`;
+  } else {
+    putItem({ ...item, quantity });
+    message = quantity === 0
+      ? `🎒 **Inventory updated**\n\nRemoved **${item.title}**.`
+      : `🎒 **Inventory updated**\n\n**${item.title}**: ${item.quantity} → **${quantity}**`;
   }
+
+  replicateStore.update(state => ([...state, {
+    query: `Update Inventory: ${itemName}`,
+    sentAt: new Date(),
+    returnedAt: new Date(),
+    message,
+    hidden: false
+  }]));
 }
 
 async function aiLevelUp(action: AiAction) {
-  try {
-    if (uiActionDispatcher) {
-      uiActionDispatcher('levelUp');
-    }
-    
-    replicateStore.update(state => ([...state, {
-      query: 'Level Up',
-      sentAt: new Date(),
-      returnedAt: new Date(),
-      message: "🎉 Opening level up dialog! Time to advance your character.",
-      hidden: false
-    }]));
-    
-    return Promise.resolve(); // Make sure we return something
-  } catch (error) {
-    console.error('Level up error:', error);
-    
-    replicateStore.update(state => ([...state, {
-      query: 'Level Up',
-      sentAt: new Date(),
-      returnedAt: new Date(),
-      message: "❌ **Error:** Unable to open level up dialog. Please try using the Level Up button in the character info panel.",
-      hidden: false
-    }]));
-    
-    return Promise.resolve();
-  }
+  const block = postUIAction('openLevelUpDialog');
+
+  replicateStore.update(state => ([...state, {
+    query: 'Level Up',
+    sentAt: new Date(),
+    returnedAt: new Date(),
+    message: block ? `❌ **Level up unavailable:** ${block}` : "🎉 Opening level up dialog! Time to advance your character.",
+    hidden: false
+  }]));
 }
 
 async function aiChangeTheme(action: AiAction) {
-  try {
-    if (uiActionDispatcher) {
-      uiActionDispatcher('changeTheme');
-    }
-    
-    replicateStore.update(state => ([...state, {
-      query: 'Change Theme',
-      sentAt: new Date(),
-      returnedAt: new Date(),
-      message: "🎨 Opening theme selection dialog! Choose your preferred visual style.",
-      hidden: false
-    }]));
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Change theme error:', error);
-    return Promise.resolve();
+  const block = postUIAction('openThemeDialog');
+
+  replicateStore.update(state => ([...state, {
+    query: 'Change Theme',
+    sentAt: new Date(),
+    returnedAt: new Date(),
+    message: block ? `❌ **Theme unavailable:** ${block}` : "🎨 Opening theme selection dialog! Choose your preferred visual style.",
+    hidden: false
+  }]));
+}
+
+function getDamageText(damage: NonNullable<Character['actions'][number]['damage']>): string {
+  return damage
+    .map(one => `${one.amount}d${one.dice}${one.bonus ? getSigned(one.bonus) : ''} ${one.type}`.trim())
+    .join(' + ');
+}
+
+export function getCombatActionsMessage(character: Character): string {
+  const order = ['Action', 'Bonus', 'Reaction', 'Other'] as const;
+  const titles: Record<typeof order[number], string> = { Action: 'Actions', Bonus: 'Bonus Actions', Reaction: 'Reactions', Other: 'Other' };
+  const actions = character.actions ?? [];
+
+  if (actions.length === 0) {
+    return `⚔️ **${character.info.name || 'This character'}** has no actions on the sheet.`;
   }
+
+  const groups = order
+    .map(type => ({ type, list: actions.filter(one => (one.type ?? 'Other') === type) }))
+    .filter(group => group.list.length > 0)
+    .map(group => `**${titles[group.type]}**\n` + group.list.map(one => {
+      const parts = [
+        one.toHit !== undefined ? `${getSigned(one.toHit)} to hit` : '',
+        one.damage?.length ? getDamageText(one.damage) : '',
+        one.save ? `DC ${one.save.dc} ${one.save.type}` : '',
+        one.range ? `${one.range.normal}${one.range.max && one.range.max !== one.range.normal ? `/${one.range.max}` : ''} ft` : ''
+      ].filter(Boolean);
+      return `• **${one.name}**${parts.length ? ` — ${parts.join(', ')}` : ''}`;
+    }).join('\n'));
+
+  const spells = (character.spells ?? []).filter(one => one.attack || one.damage?.length || one.save);
+  const casting = spells.length
+    ? `\n\n**Combat Spells**\n` + spells.map(one => `• **${one.title}**${one.level ? ` (level ${one.level})` : ' (cantrip)'}${one.damage?.length ? ` — ${getDamageText(one.damage)}` : ''}`).join('\n')
+    : '';
+
+  return `⚔️ **Combat Actions for ${character.info.name || 'this character'}:**\n\n${groups.join('\n\n')}${casting}`;
 }
 
 async function aiShowCombatActions(action: AiAction) {
-  // This would query character data and show combat options
+  const character = getCurrentCharacter();
+
   replicateStore.update(state => ([...state, {
     query: 'Show Combat Actions',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "⚔️ **Available Combat Actions:**\n\n• **Attack** - Make a weapon or spell attack\n• **Cast a Spell** - Use one of your known spells\n• **Dash** - Double your movement speed\n• **Dodge** - Gain advantage on Dex saves, attackers have disadvantage\n• **Help** - Give an ally advantage on their next ability check\n• **Hide** - Make a Stealth check to become hidden\n• **Ready** - Prepare an action for a specific trigger\n• **Search** - Look for something with a Perception or Investigation check\n\nAsk me about specific spells or abilities for more details!",
+    message: character ? getCombatActionsMessage(character) : `❌ **Combat actions unavailable:** ${NO_CHARACTER}`,
     hidden: false
   }]));
 }
 
+export type SourceFeat = {
+  id: string
+  name: string
+  type: string
+  description: string
+  prerequisites?: Array<{ type: string, value: string }> | Record<string, unknown>
+  tags?: string[] | null
+}
+
+export function getFeatRecommendations(character: Character, feats: SourceFeat[]): Array<{ feat: SourceFeat, reason: string }> {
+  const taken = new Set((character.feats ?? []).map(one => one.title.toLowerCase()));
+  const actions = character.actions ?? [];
+  const casts = (character.spells ?? []).length > 0 || Boolean(character.info.spells);
+  const reasons: Record<string, string> = {
+    ranged: actions.some(one => (one.range?.normal ?? 0) > 5) ? 'you attack at range' : '',
+    weapon: actions.some(one => one.layout === 'Attack') ? 'you make weapon attacks' : '',
+    spellcasting: casts ? 'you cast spells' : ''
+  };
+
+  const meets = (feat: SourceFeat) => (Array.isArray(feat.prerequisites) ? feat.prerequisites : []).every(need =>
+    need.type === 'feature' && need.value === 'spellcasting'
+      ? casts
+      : taken.has(String(need.value).toLowerCase())
+  );
+
+  return feats
+    .filter(feat => feat.type === 'feat' && (feat.tags ?? []).includes('feat'))
+    .filter(feat => !taken.has(feat.name.toLowerCase()) && meets(feat))
+    .map(feat => ({ feat, reason: (feat.tags ?? []).map(tag => reasons[tag]).find(Boolean) ?? '' }))
+    .sort((a, b) => Number(Boolean(b.reason)) - Number(Boolean(a.reason)));
+}
+
 async function aiRecommendFeat(action: AiAction) {
+  const character = getCurrentCharacter();
+  let message: string;
+
+  if (!character) {
+    message = `❌ **Feat recommendations unavailable:** ${NO_CHARACTER}`;
+  } else {
+    try {
+      const answer = await fetch('/sources/features/generic-features.json');
+      if (!answer.ok) throw new Error(`The feat list answered ${answer.status}.`);
+      const { features } = await answer.json() as { features: SourceFeat[] };
+      const picks = getFeatRecommendations(character, features);
+      message = picks.length
+        ? `💡 **Feats ${character.info.name || 'this character'} can take:**\n\n` + picks.map(({ feat, reason }) => `• **${feat.name}**${reason ? ` — ${reason}` : ''}\n  ${feat.description}`).join('\n')
+        : `💡 **${character.info.name || 'This character'}** already has every feat on the list, or meets none of their prerequisites.`;
+    } catch (error) {
+      message = `❌ **Feat list unavailable:** ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
   replicateStore.update(state => ([...state, {
     query: 'Recommend Feat',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "💡 **Feat Recommendations:**\n\nBased on your character build, here are some great feat options:\n\n• **Great Weapon Master** - Perfect for two-handed weapon fighters\n• **Sharpshooter** - Excellent for ranged combat specialists\n• **War Caster** - Essential for spellcasters in melee\n• **Lucky** - Great for any character, provides rerolls\n• **Alert** - Boosts initiative and prevents surprise\n\nTell me more about your playstyle for personalized recommendations!",
+    message,
     hidden: false
   }]));
 }
 
+export function getUnusedItems(character: Character): InventoryItem[] {
+  const equipped = new Set((character.equipped ?? []).map(one => one.id));
+  const used = new Set((character.actions ?? []).map(one => one.itemId).filter(Boolean));
+
+  return (character.inventory ?? [])
+    .filter(item => !item.equipped && !equipped.has(item.id) && !used.has(item.id))
+    .sort((a, b) => (b.weight || 0) * (b.quantity || 0) - (a.weight || 0) * (a.quantity || 0));
+}
+
+export function getUnusedItemsMessage(character: Character): string {
+  const items = getUnusedItems(character);
+
+  if (items.length === 0) {
+    return `🎒 **Inventory Analysis:**\n\nEvery item ${character.info.name || 'this character'} carries is equipped or behind an action.`;
+  }
+
+  const weight = items.reduce((sum, item) => sum + (item.weight || 0) * (item.quantity || 0), 0);
+
+  return `🎒 **Inventory Analysis:**\n\n${items.length} item${items.length === 1 ? '' : 's'} neither equipped nor used by any action, ${weight} lb in all:\n\n`
+    + items.map(item => `• **${item.title}**${item.quantity > 1 ? ` ×${item.quantity}` : ''}${item.weight ? ` — ${(item.weight * item.quantity)} lb` : ''}`).join('\n');
+}
+
 async function aiFindUnusedItems(action: AiAction) {
+  const character = getCurrentCharacter();
+
   replicateStore.update(state => ([...state, {
     query: 'Find Unused Items',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "🎒 **Inventory Analysis:**\n\nItems you might want to consider using or selling:\n\n• **Rope (50 feet)** - Always handy for climbing or puzzles\n• **Caltrops** - Great for area denial in combat\n• **Ball Bearings** - Can slow down pursuers\n• **Healing Potions** - Don't hoard these, use them!\n\nConsider what tools might solve problems you're facing!",
+    message: character ? getUnusedItemsMessage(character) : `❌ **Inventory unavailable:** ${NO_CHARACTER}`,
     hidden: false
   }]));
 }
 
 async function aiShowSources(action: AiAction) {
-  try {
-    if (uiActionDispatcher) {
-      uiActionDispatcher('showSources');
-    }
-    
-    replicateStore.update(state => ([...state, {
-      query: 'Show Sources',
-      sentAt: new Date(),
-      returnedAt: new Date(),
-      message: "📚 Opening character sources dialog! Manage your imported class data and sourcebooks.",
-      hidden: false
-    }]));
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Show sources error:', error);
-    return Promise.resolve();
-  }
+  const block = postUIAction('openSourceImport');
+
+  replicateStore.update(state => ([...state, {
+    query: 'Show Sources',
+    sentAt: new Date(),
+    returnedAt: new Date(),
+    message: block ? `❌ **Sources unavailable:** ${block}` : "📚 Opening character sources dialog! Manage your imported class data and sourcebooks.",
+    hidden: false
+  }]));
+}
+
+export function getStatsMessage(character: Character, resolved: ResolvedCharacter): string {
+  const hitPoints = resolved.pools.find(pool => pool.id === 'hitPoints');
+  const temporary = character.info.hp?.temporary ? ` (+${character.info.hp.temporary} temporary)` : '';
+
+  const combat = [
+    ...resolved.derived.map(one => `• ${one.title}: ${one.value}${one.unit ? ` ${one.unit}` : ''}`),
+    hitPoints ? `• Hit Points: ${hitPoints.remaining}/${hitPoints.max}${temporary}` : '',
+    `• Proficiency Bonus: ${getSigned(resolved.proficiency)}`
+  ].filter(Boolean);
+
+  const saves = resolved.saves.map(one => `• ${one.title} ${getSigned(one.value)}${one.multiplier ? ' (proficient)' : ''}`);
+  const attributes = resolved.attributes.map(one => `• ${one.title} ${one.score} (${getSigned(one.value)})`);
+
+  return `📊 **${character.info.name || 'Character'} — level ${resolved.level}${character.info.class?.name ? ` ${character.info.class.name}` : ''}**\n\n`
+    + `**Combat Stats:**\n${combat.join('\n')}\n\n`
+    + `**Saving Throws:**\n${saves.join('\n')}\n\n`
+    + `**Abilities:**\n${attributes.join('\n')}`;
 }
 
 async function aiCalculateStats(action: AiAction) {
+  const character = getCurrentCharacter();
+  let message: string;
+
+  try {
+    message = character ? getStatsMessage(character, await getResolvedRules()) : `❌ **Statistics unavailable:** ${NO_CHARACTER}`;
+  } catch (error) {
+    message = `❌ **Statistics unavailable:** ${error instanceof Error ? error.message : String(error)}`;
+  }
+
   replicateStore.update(state => ([...state, {
     query: 'Calculate Stats',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "📊 **Character Statistics:**\n\n**Combat Stats:**\n• Attack Bonus: +7 (varies by weapon)\n• Damage Bonus: +4 (Strength)\n• Armor Class: 16\n• Hit Points: 45/45\n\n**Saving Throws:**\n• Proficient: Strength +7, Constitution +6\n• Others: Dex +2, Int +0, Wis +1, Cha +1\n\n**Skills:** Based on your proficiencies and ability modifiers\n\nNeed specific calculations? Just ask!",
+    message,
     hidden: false
   }]));
 }
 
+export function getSpellsMessage(character: Character): string {
+  const spells = character.spells ?? [];
+  const casting = character.info.spells;
+
+  if (spells.length === 0) {
+    return `✨ **${character.info.name || 'This character'}** has no spells on the sheet.`;
+  }
+
+  const slots = Object.entries(casting?.slots ?? {})
+    .filter(([, total]) => Number(total) > 0)
+    .map(([level, total]) => {
+      const left = Number(total) - (casting?.expended?.[Number(level)] ?? 0);
+      return `• Level ${level}: ${left}/${total}`;
+    });
+
+  const castable = (level: number) => level === 0 || slots.length === 0
+    || Number(casting?.slots?.[level] ?? 0) - (casting?.expended?.[level] ?? 0) > 0;
+
+  const levels = [...new Set(spells.map(one => one.level ?? 0))].sort((a, b) => a - b);
+  const lists = levels.map(level => {
+    const title = level === 0 ? 'Cantrips' : `Level ${level}${castable(level) ? '' : ' (no slots left)'}`;
+    const list = spells.filter(one => (one.level ?? 0) === level)
+      .map(one => `• **${one.title}**${one.prepared === false && level > 0 ? ' *(not prepared)*' : ''}`);
+    return `**${title}**\n${list.join('\n')}`;
+  });
+
+  return `✨ **Spells for ${character.info.name || 'this character'}:**\n\n`
+    + (casting?.modifier ? `Casting ability: ${casting.modifier}\n\n` : '')
+    + (slots.length ? `**Slots left**\n${slots.join('\n')}\n\n` : '')
+    + lists.join('\n\n');
+}
+
 async function aiSuggestSpells(action: AiAction) {
+  const character = getCurrentCharacter();
+
   replicateStore.update(state => ([...state, {
     query: 'Suggest Spells',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "✨ **Spell Suggestions:**\n\n**Cantrips (Always useful):**\n• **Eldritch Blast** - Reliable damage\n• **Mage Hand** - Utility at range\n• **Prestidigitation** - Endless possibilities\n\n**1st Level:**\n• **Shield** - +5 AC as reaction\n• **Magic Missile** - Guaranteed damage\n• **Healing Word** - Bonus action healing\n\n**2nd Level:**\n• **Misty Step** - Teleport as bonus action\n• **Web** - Area control\n\nWhat's your spell focus? Damage, utility, or support?",
+    message: character ? getSpellsMessage(character) : `❌ **Spells unavailable:** ${NO_CHARACTER}`,
     hidden: false
   }]));
 }
 
+export function getBuildMessage(character: Character, resolved: ResolvedCharacter): string {
+  const attributes = [...resolved.attributes].sort((a, b) => b.score - a.score);
+  const specs = new Map(resolved.system.attributes.map(one => [one.id, one]));
+
+  const close = attributes.filter(one => {
+    const spec = specs.get(one.id);
+    if (!spec || one.score >= spec.max) return false;
+    return getExpressionValue(spec.modifier, { score: one.score + 1 }) > one.value;
+  });
+
+  const weakest = [...resolved.saves].sort((a, b) => a.value - b.value)[0];
+  const next = resolved.level + 1;
+  const nextProficiency = next <= resolved.system.progression.maxLevel
+    ? getExpressionValue(resolved.system.progression.proficiency, { ...resolved.scope, level: next })
+    : resolved.proficiency;
+
+  const lines = [
+    attributes[0] ? `• **Primary:** ${attributes[0].title} ${attributes[0].score} (${getSigned(attributes[0].value)})` : '',
+    close.length ? `• **One point from a better modifier:** ${close.map(one => `${one.title} ${one.score}`).join(', ')}` : '• **No score sits one point from a better modifier.**',
+    weakest ? `• **Weakest save:** ${weakest.title} ${getSigned(weakest.value)}` : '',
+    nextProficiency > resolved.proficiency ? `• **Level ${next}** raises the proficiency bonus to ${getSigned(nextProficiency)}.` : '',
+    getUnusedItems(character).length ? `• **${getUnusedItems(character).length} unused items** in the pack; ask to find unused items.` : ''
+  ].filter(Boolean);
+
+  return `🎯 **Build notes for ${character.info.name || 'this character'}:**\n\n${lines.join('\n')}`;
+}
+
 async function aiOptimizeBuild(action: AiAction) {
+  const character = getCurrentCharacter();
+  let message: string;
+
+  try {
+    message = character ? getBuildMessage(character, await getResolvedRules()) : `❌ **Build notes unavailable:** ${NO_CHARACTER}`;
+  } catch (error) {
+    message = `❌ **Build notes unavailable:** ${error instanceof Error ? error.message : String(error)}`;
+  }
+
   replicateStore.update(state => ([...state, {
     query: 'Optimize Build',
     sentAt: new Date(),
     returnedAt: new Date(),
-    message: "🎯 **Character Optimization Tips:**\n\n**Ability Score Priority:**\n1. **Primary Stat** - Max this first (attacks/spells)\n2. **Constitution** - More HP and concentration\n3. **Secondary Stats** - Based on your role\n\n**Feat vs ASI:**\n• Take feats when primary stat is 16+\n• Prioritize feats that enhance your core strategy\n\n**Action Economy:**\n• Look for bonus action options\n• Consider reaction abilities\n• Don't neglect movement\n\nWhat aspect would you like to optimize?",
+    message,
     hidden: false
   }]));
 }
@@ -1483,54 +1702,16 @@ async function aiRefillHealth(action: AiAction) {
   try {
     const characterStore = getCharacterStore();
     const amount = action.args.amount ? parseInt(action.args.amount, 10) : null;
-    
-    let healingReport = '';
-    
-    if (amount && amount > 0) {
-      // Heal specific amount
-      updateCharacterWithChangeLog(
-        'info',
-        info => {
-          const newCurrent = Math.min(info.hp.current + amount, info.hp.max);
-          const actualHealing = newCurrent - info.hp.current;
-          
-          healingReport = `💖 **Healed ${actualHealing} HP**\n\nCurrent HP: ${newCurrent}/${info.hp.max}\n\n${actualHealing > 0 ? 'Feeling better already!' : 'Already at full health!'}`;
-          
-          return {
-            ...info,
-            hp: {
-              ...info.hp,
-              current: newCurrent
-            }
-          };
-        },
-        ChangeActions.HP_CHANGE,
-        `Healed ${amount} HP`,
-        { amount, type: 'heal' }
-      );
-    } else {
-      // Full heal
-      updateCharacterWithChangeLog(
-        'info',
-        info => {
-          const healingNeeded = info.hp.max - info.hp.current;
-          
-          healingReport = `💖 **Health Fully Restored!**\n\n${healingNeeded > 0 ? `Healed ${healingNeeded} HP` : 'Already at full health'}\n\nCurrent HP: ${info.hp.max}/${info.hp.max}\n\nYou feel completely rejuvenated!`;
-          
-          return {
-            ...info,
-            hp: {
-              ...info.hp,
-              current: info.hp.max
-            }
-          };
-        },
-        ChangeActions.HP_CHANGE,
-        'Fully restored health',
-        { type: 'full_heal' }
-      );
-    }
-    
+    const before = get(characterStore.info).hp.current;
+
+    putHealing(amount && amount > 0 ? amount : undefined);
+
+    const hp = get(characterStore.info).hp;
+    const healed = hp.current - before;
+    const healingReport = amount && amount > 0
+      ? `💖 **Healed ${healed} HP**\n\nCurrent HP: ${hp.current}/${hp.max}\n\n${healed > 0 ? 'Feeling better already!' : 'Already at full health!'}`
+      : `💖 **Health Fully Restored!**\n\n${healed > 0 ? `Healed ${healed} HP` : 'Already at full health'}\n\nCurrent HP: ${hp.current}/${hp.max}\n\nYou feel completely rejuvenated!`;
+
     replicateStore.update(state => ([...state, {
       query: 'Refill Health',
       sentAt: new Date(),
@@ -1623,42 +1804,23 @@ async function aiRefillSpellSlots(action: AiAction) {
   try {
     const characterStore = getCharacterStore();
     const level = action.args.level ? parseInt(action.args.level, 10) : null;
-    
-    let spellSlotReport = '';
-    let hasSpellSlots = false;
-    
-    characterStore.info.update(info => {
-      if (!info.spells?.slots && !info.slots) {
-        spellSlotReport = `❌ **No Spell Slots Found**\n\nYour character doesn't have spell slots to refill.`;
-        return info;
-      }
-      
-      hasSpellSlots = true;
-      
-      if (info.slots) {
-        // Refill general slots (like spell slots, but could be other resources)
-        const slotsRestored = info.slots.amount - info.slots.expended;
-        
-        spellSlotReport = `🔮 **${info.slots.title} Restored!**\n\n${slotsRestored > 0 ? `Restored ${slotsRestored} slots` : 'Already at maximum'}\n\nAvailable: ${info.slots.amount}/${info.slots.amount}\n\n${info.slots.description}\n\nYour magical energy is restored!`;
-        
-        return {
-          ...info,
-          slots: info.slots ? { ...info.slots, expended: 0 } : undefined
-        };
-      } else if (info.spells?.slots) {
-        // Refill spell slots by level
-        const slotsInfo = Object.entries(info.spells.slots)
-          .map(([lvl, slots]) => `Level ${lvl}: ${slots} slots`)
-          .join('\n');
-        
-        spellSlotReport = `🔮 **All Spell Slots Restored!**\n\n**Available Spell Slots:**\n${slotsInfo}\n\nSpellcasting modifier: ${info.spells.modifier}\n\nYour magical energy is fully restored!`;
-        
-        return info; // Spell slots don't need to be updated as they're just max values
-      }
-      
-      return info;
-    });
-    
+    const info = get(characterStore.info);
+
+    let spellSlotReport = `❌ **No Spell Slots Found**\n\nYour character doesn't have spell slots to refill.`;
+
+    if (info.slots) {
+      const slotsRestored = info.slots.expended;
+      putSlots(0);
+      spellSlotReport = `🔮 **${info.slots.title} Restored!**\n\n${slotsRestored > 0 ? `Restored ${slotsRestored} slots` : 'Already at maximum'}\n\nAvailable: ${info.slots.amount}/${info.slots.amount}\n\n${info.slots.description}\n\nYour magical energy is restored!`;
+    }
+
+    if (info.spells?.slots) {
+      const levels = Object.keys(info.spells.slots).map(Number).filter(entry => level === null || entry === level);
+      levels.forEach(entry => putSlots(0, entry));
+      const slotsInfo = levels.map(entry => `Level ${entry}: ${info.spells?.slots[entry]} slots`).join('\n');
+      spellSlotReport = `🔮 **Spell Slots Restored!**\n\n**Available Spell Slots:**\n${slotsInfo}\n\nSpellcasting ability: ${info.spells.modifier}\n\nYour magical energy is restored!`;
+    }
+
     replicateStore.update(state => ([...state, {
       query: 'Refill Spell Slots',
       sentAt: new Date(),
@@ -1681,56 +1843,22 @@ async function aiRefillSpellSlots(action: AiAction) {
 async function aiShortRest(action: AiAction) {
   try {
     const characterStore = getCharacterStore();
-    
-    // Get current character data
-    let currentInfo: any;
-    let currentSpecial: any;
-    
-    const unsubscribeInfo = characterStore.info.subscribe(info => {
-      currentInfo = info;
-    });
-    const unsubscribeSpecial = characterStore.special.subscribe(special => {
-      currentSpecial = special;
-    });
-    unsubscribeInfo();
-    unsubscribeSpecial();
-    
-    const restorations: string[] = [];
-    
-    // Restore special resources that recharge on short rest
-    if (currentSpecial && currentSpecial.regain.toLowerCase().includes('short')) {
-      const resourcesRestored = currentSpecial.max - currentSpecial.current;
-      if (resourcesRestored > 0) {
-        characterStore.special.update(special => ({
-          ...special,
-          current: special.max
-        }));
-        restorations.push(`• Restored ${resourcesRestored} ${currentSpecial.name}`);
-      }
-    }
-    
-    // You could use hit dice for healing during short rest
-    // For now, just restore some HP as an example
-    const hitDiceHealing = Math.floor(currentInfo.hp.max * 0.25); // 25% of max HP
-    const newHP = Math.min(currentInfo.hp.current + hitDiceHealing, currentInfo.hp.max);
-    const actualHealing = newHP - currentInfo.hp.current;
-    
-    if (actualHealing > 0) {
-      characterStore.info.update(info => ({
-        ...info,
-        hp: {
-          ...info.hp,
-          current: newHP
-        }
-      }));
-      restorations.push(`• Healed ${actualHealing} HP`);
-    }
-    
+    const before = get(characterStore.info).hp;
+    const dice = action.args.dice !== undefined ? parseInt(action.args.dice, 10) : before.current < before.max ? 1 : 0;
+    const { spend, healing } = await postShortRest(dice || 0, await getResolvedRules());
+    const info = get(characterStore.info);
+    const special = get(characterStore.special);
+
+    const restorations = [
+      spend > 0 ? `• Spent ${spend} hit dice and healed ${healing} HP` : '',
+      special?.name && special.current === special.max ? `• ${special.name}: ${special.current}/${special.max}` : ''
+    ].filter(Boolean);
+
     replicateStore.update(state => ([...state, {
       query: 'Short Rest',
       sentAt: new Date(),
       returnedAt: new Date(),
-      message: `😴 **Short Rest Complete!**\n\nYou take an hour to rest and recover:\n\n${restorations.length > 0 ? restorations.join('\n') : '• No resources to restore'}\n\n**Current Status:**\n• HP: ${newHP}/${currentInfo.hp.max}\n${currentSpecial ? `• ${currentSpecial.name}: ${currentSpecial.current}/${currentSpecial.max}` : ''}\n\nYou feel refreshed and ready to continue!`,
+      message: `😴 **Short Rest Complete!**\n\nYou take an hour to rest and recover:\n\n${restorations.length > 0 ? restorations.join('\n') : '• No resources to restore'}\n\n**Current Status:**\n• HP: ${info.hp.current}/${info.hp.max}\n\nYou feel refreshed and ready to continue!`,
       hidden: false
     }]));
   } catch (error) {
@@ -1748,69 +1876,15 @@ async function aiShortRest(action: AiAction) {
 async function aiLongRest(action: AiAction) {
   try {
     const characterStore = getCharacterStore();
-    
-    // Get current character data
-    let currentInfo: any;
-    let currentSpecial: any;
-    
-    const unsubscribeInfo = characterStore.info.subscribe(info => {
-      currentInfo = info;
-    });
-    const unsubscribeSpecial = characterStore.special.subscribe(special => {
-      currentSpecial = special;
-    });
-    unsubscribeInfo();
-    unsubscribeSpecial();
-    
-    const restorations: string[] = [];
-    
-    // Full health restoration
-    const healingNeeded = currentInfo.hp.max - currentInfo.hp.current;
-    if (healingNeeded > 0) {
-      characterStore.info.update(info => ({
-        ...info,
-        hp: {
-          ...info.hp,
-          current: info.hp.max
-        }
-      }));
-      restorations.push(`• Fully restored HP (+${healingNeeded})`);
-    }
-    
-    // Restore all special resources
-    if (currentSpecial) {
-      const resourcesRestored = currentSpecial.max - currentSpecial.current;
-      if (resourcesRestored > 0) {
-        characterStore.special.update(special => ({
-          ...special,
-          current: special.max
-        }));
-        restorations.push(`• Restored all ${currentSpecial.name} (+${resourcesRestored})`);
-      }
-    }
-    
-    // Restore spell slots
-    if (currentInfo.slots) {
-      const slotsRestored = currentInfo.slots.expended;
-      if (slotsRestored > 0) {
-        characterStore.info.update(info => ({
-          ...info,
-          slots: info.slots ? { ...info.slots, expended: 0 } : undefined
-        }));
-        restorations.push(`• Restored all ${currentInfo.slots.title} (+${slotsRestored})`);
-      }
-    }
-    
-    // All spell slots restored (if using spell system)
-    if (currentInfo.spells?.slots) {
-      restorations.push(`• Restored all spell slots`);
-    }
-    
+    postLongRest(await getResolvedRules());
+    const info = get(characterStore.info);
+    const special = get(characterStore.special);
+
     replicateStore.update(state => ([...state, {
       query: 'Long Rest',
       sentAt: new Date(),
       returnedAt: new Date(),
-      message: `🌙 **Long Rest Complete!**\n\nYou sleep for 8 hours and fully recover:\n\n${restorations.length > 0 ? restorations.join('\n') : '• Already fully rested'}\n\n**Current Status:**\n• HP: ${currentInfo.hp.max}/${currentInfo.hp.max}\n${currentSpecial ? `• ${currentSpecial.name}: ${currentSpecial.max}/${currentSpecial.max}` : ''}\n${currentInfo.slots ? `• ${currentInfo.slots.title}: ${currentInfo.slots.amount}/${currentInfo.slots.amount}` : ''}\n\nYou wake up completely refreshed and ready for adventure!`,
+      message: `🌙 **Long Rest Complete!**\n\nYou sleep for 8 hours and fully recover.\n\n**Current Status:**\n• HP: ${info.hp.current}/${info.hp.max}\n${special?.name ? `• ${special.name}: ${special.current}/${special.max}` : ''}\n${info.slots ? `• ${info.slots.title}: ${info.slots.amount}/${info.slots.amount}` : ''}\n\nYou wake up completely refreshed and ready for adventure!`,
       hidden: false
     }]));
   } catch (error) {
@@ -2291,22 +2365,7 @@ async function aiAddCondition(action: AiAction) {
     }
 
     // Add condition with change tracking
-    updateCharacterWithChangeLog(
-      'info',
-      (currentInfo) => ({
-        ...currentInfo,
-        conditions: [
-          ...currentInfo.conditions,
-          {
-            title: conditionName,
-            effects: [`Affected by ${conditionName} condition`]
-          }
-        ]
-      }),
-      ChangeActions.CONDITION_ADD,
-      `Added condition: ${conditionName}`,
-      { condition: conditionName }
-    );
+    putCondition({ title: conditionName, effects: [`Affected by ${conditionName} condition`] });
 
     // Play sound effect
     if (typeof window !== 'undefined') {
@@ -2371,16 +2430,7 @@ async function aiRemoveCondition(action: AiAction) {
     }
 
     // Remove condition with change tracking
-    updateCharacterWithChangeLog(
-      'info',
-      (currentInfo) => ({
-        ...currentInfo,
-        conditions: currentInfo.conditions.filter((_, index) => index !== conditionIndex)
-      }),
-      ChangeActions.CONDITION_REMOVE,
-      `Removed condition: ${conditionName}`,
-      { condition: conditionName }
-    );
+    deleteCondition(conditionName);
 
     // Play sound effect
     if (typeof window !== 'undefined') {
@@ -2599,22 +2649,7 @@ async function aiAddDefense(action: AiAction) {
     }
 
     // Add defense with change tracking
-    updateCharacterWithChangeLog(
-      'info',
-      (currentInfo) => ({
-        ...currentInfo,
-        defences: [
-          ...currentInfo.defences,
-          {
-            title: defenseName,
-            effects: [`Protected against ${defenseName}`]
-          }
-        ]
-      }),
-      ChangeActions.DEFENSE_ADD,
-      `Added defense: ${defenseName}`,
-      { defense: defenseName }
-    );
+    putDefence({ title: defenseName, effects: [`Protected against ${defenseName}`] });
 
     // Play sound effect
     if (typeof window !== 'undefined') {
@@ -2679,16 +2714,7 @@ async function aiRemoveDefense(action: AiAction) {
     }
 
     // Remove defense with change tracking
-    updateCharacterWithChangeLog(
-      'info',
-      (currentInfo) => ({
-        ...currentInfo,
-        defences: currentInfo.defences.filter((_, index) => index !== defenseIndex)
-      }),
-      ChangeActions.DEFENSE_REMOVE,
-      `Removed defense: ${defenseName}`,
-      { defense: defenseName }
-    );
+    deleteDefence(defenseName);
 
     // Play sound effect
     if (typeof window !== 'undefined') {
@@ -3195,10 +3221,7 @@ async function aiAddItem(action: AiAction) {
 
     if (existingItemIndex >= 0) {
       // Add to existing item quantity
-      store.inventory.update(inv => {
-        inv[existingItemIndex].quantity += quantity;
-        return inv;
-      });
+      putItem({ ...inventory[existingItemIndex], quantity: inventory[existingItemIndex].quantity + quantity });
       
       replicateStore.update(state => ([...state, {
         query: `Add Item: ${itemName}`,
@@ -3211,10 +3234,7 @@ async function aiAddItem(action: AiAction) {
       // Create new item
       const newItem = createNewItem(itemName, quantity);
       
-      store.inventory.update(inv => {
-        inv.push(newItem);
-        return inv;
-      });
+      postItem(newItem);
       
       replicateStore.update(state => ([...state, {
         query: `Add Item: ${itemName}`,
@@ -3263,14 +3283,7 @@ async function aiAddAmmunition(action: AiAction) {
       const oldQuantity = ammoItem.quantity;
       const newQuantity = oldQuantity + quantity;
 
-      updateCharacterWithChangeLog(
-        'inventory',
-        (currentInventory) => currentInventory.map(item => 
-          item.id === ammoItem.id ? { ...item, quantity: newQuantity } : item
-        ),
-        ChangeActions.INVENTORY_ADD,
-        `Added ${quantity} ammunition (${oldQuantity} → ${newQuantity})`
-      );
+      putItem({ ...ammoItem, quantity: newQuantity });
 
       replicateStore.update(state => ([...state, {
         query: `Add Ammunition: ${quantity}`,
@@ -3296,12 +3309,7 @@ async function aiAddAmmunition(action: AiAction) {
         equipped: false
       };
 
-      updateCharacterWithChangeLog(
-        'inventory',
-        (currentInventory) => [...currentInventory, newAmmo],
-        ChangeActions.INVENTORY_ADD,
-        `Added ${quantity} new ammunition`
-      );
+      postItem(newAmmo);
 
       replicateStore.update(state => ([...state, {
         query: `Add Ammunition: ${quantity}`,
@@ -3376,10 +3384,7 @@ async function aiRemoveItem(action: AiAction) {
     
     if (quantity >= item.quantity) {
       // Remove item completely
-      store.inventory.update(inv => {
-        inv.splice(itemIndex, 1);
-        return inv;
-      });
+      deleteItem(item.id);
       
       replicateStore.update(state => ([...state, {
         query: `Remove Item: ${itemName}`,
@@ -3390,10 +3395,7 @@ async function aiRemoveItem(action: AiAction) {
       }]));
     } else {
       // Reduce quantity
-      store.inventory.update(inv => {
-        inv[itemIndex].quantity -= quantity;
-        return inv;
-      });
+      putItem({ ...item, quantity: item.quantity - quantity });
       
       replicateStore.update(state => ([...state, {
         query: `Remove Item: ${itemName}`,

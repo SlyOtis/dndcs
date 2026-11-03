@@ -181,7 +181,13 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: var(--backdrop);
+    --verdigris: var(--ember);
+    --verdigris-dim: var(--metal-dim);
+    background:
+      radial-gradient(ellipse 22% 38% at 14% 26%, color-mix(in srgb, var(--ember) 26%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 22% 38% at 86% 26%, color-mix(in srgb, var(--ember) 26%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 55% at 50% 55%, color-mix(in srgb, var(--ember-glow) 35%, transparent) 0%, transparent 75%),
+      var(--backdrop);
   }
 
   .gate-window {
@@ -190,7 +196,8 @@
     left: 50%;
     z-index: 0;
     transform: translate(-50%, -52%) scale(1.35);
-    opacity: 0.3;
+    opacity: 0.16;
+    filter: sepia(0.6) saturate(0.7);
   }
 
   .gate-torch {
@@ -236,17 +243,19 @@
 
   .gate-rule {
     display: block;
-    width: min(260px, 60vw);
+    width: min(16.25rem, 60vw);
   }
 
   .gate-sub {
     margin: 0;
     font-size: var(--text-sm);
-    color: var(--ink-dim);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000, 0 0 10px var(--ember-glow);
   }
 
   .gate-card {
-    width: min(480px, 92vw);
+    width: min(30rem, 92vw);
+    filter: drop-shadow(0 0 2.5rem color-mix(in srgb, var(--ember-glow) 45%, transparent));
   }
 
   .gate-form {
@@ -268,11 +277,12 @@
     margin: 0;
     padding: var(--space-3) var(--space-4);
     border-block: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--state-bad) 24%, transparent),
-      color-mix(in srgb, var(--state-bad) 6%, transparent)
-    );
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 24%, transparent), color-mix(in srgb, var(--state-bad) 6%, transparent)),
+      var(--texture-noise),
+      var(--ground-deep);
+    box-shadow: var(--bevel-down);
     font-size: var(--text-sm);
     color: var(--ink);
   }

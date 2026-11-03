@@ -29,7 +29,7 @@
 </script>
 
 <div class="dnd-stat dnd-stat-{tone}" class:dnd-stat-lit={lit}>
-  <span class="dnd-stat-label">{label}</span>
+  <span class="dnd-stat-label"><span class="dnd-stat-name">{label}</span></span>
 
   {#if onclick}
     <button type="button" class="dnd-stat-face" aria-label={title ?? label} title={title ?? label} {onclick}>
@@ -55,12 +55,13 @@
 <style>
   .dnd-stat {
     position: relative;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
     min-width: 0;
-    padding: var(--space-3) var(--space-2) var(--space-4);
+    padding: var(--space-3) 0.85rem var(--space-4);
     --stat-light: var(--metal);
     --stat-brace: var(--metal);
     --stat-rim: var(--metal);
@@ -77,12 +78,13 @@
       0 var(--stat-cut)
     );
     background:
+      var(--rivets),
+      radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--ember) 8%, transparent) 0%, transparent 70%),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    background-blend-mode: overlay, normal;
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-sm);
   }
 
   .dnd-stat::before,
@@ -91,8 +93,9 @@
     position: absolute;
     width: var(--stat-cusp);
     height: var(--stat-cusp);
-    border: var(--border-hair) solid var(--stat-brace);
-    opacity: 0.7;
+    border: var(--border-width) solid var(--stat-brace);
+    opacity: 0.95;
+    filter: drop-shadow(0 1px 0 #000);
     pointer-events: none;
   }
 
@@ -125,35 +128,40 @@
   }
 
   .dnd-stat-label {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
     max-width: 100%;
     font-family: var(--font-display);
-    font-size: var(--text-xs);
+    font-size: min(var(--text-xs), 9.5cqi);
     font-weight: 700;
-    letter-spacing: var(--tracking-caps);
+    letter-spacing: min(var(--tracking-caps), 1.2cqi);
     text-transform: uppercase;
     color: var(--metal);
     text-align: center;
     line-height: 1.2;
-    overflow-wrap: anywhere;
+    text-shadow: 0 1px 0 #000;
+  }
+
+  .dnd-stat-name {
+    flex: 0 1 auto;
+    min-width: min-content;
+
   }
 
   .dnd-stat-label::before,
   .dnd-stat-label::after {
     content: '';
-    display: inline-block;
-    width: var(--space-3);
+    flex: 0 1 var(--space-4);
     height: var(--border-hair);
-    vertical-align: middle;
   }
 
   .dnd-stat-label::before {
-    margin-inline-end: var(--space-2);
     background: linear-gradient(90deg, transparent, var(--metal-dim));
   }
 
   .dnd-stat-label::after {
-    margin-inline-start: var(--space-2);
     background: linear-gradient(90deg, var(--metal-dim), transparent);
   }
 
@@ -164,11 +172,11 @@
     align-items: center;
     justify-content: center;
     gap: 1px;
-    min-width: 64px;
-    min-height: 44px;
+    min-width: 3.75rem;
+    min-height: 2.6rem;
     padding: var(--space-2) var(--space-3);
     border: none;
-    background: linear-gradient(180deg, var(--stat-rim) 0%, var(--metal-dim) 100%);
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--stat-rim) 30%, var(--metal-dim) 75%, var(--stat-rim) 100%);
     color: var(--ink);
     clip-path: var(--stat-shape);
     transition: filter 0.15s ease, transform 0.12s ease;
@@ -178,9 +186,12 @@
     position: absolute;
     inset: var(--border-width);
     z-index: 0;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, #000 35%, transparent) 0%, color-mix(in srgb, #000 70%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
     clip-path: var(--stat-shape);
-    box-shadow: inset 0 -10px 16px -12px var(--shade-hard);
+    box-shadow: inset 0 2px 4px var(--shade-hard), inset 0 0 0 1px var(--keyline);
     pointer-events: none;
   }
 
@@ -189,13 +200,20 @@
   }
 
   button.dnd-stat-face:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.15) drop-shadow(0 0 10px var(--stat-light));
+    filter: brightness(1.12) drop-shadow(0 0 8px var(--ember-glow));
+  }
+
+  button.dnd-stat-face:hover .dnd-stat-value {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   button.dnd-stat-face:active {
+    filter: brightness(0.85);
+  }
+
+  button.dnd-stat-face:active .dnd-stat-value {
     transform: translateY(1px);
-    filter: brightness(0.92);
   }
 
   button.dnd-stat-face:focus-visible {
@@ -211,20 +229,23 @@
   .dnd-stat-value {
     position: relative;
     z-index: 2;
-    font-family: var(--font-display);
+    font-family: var(--font-figures);
     font-size: var(--text-lg);
     font-weight: 700;
+    font-variant-numeric: lining-nums tabular-nums;
     line-height: 1.1;
     color: var(--ink);
-    text-shadow: 0 1px 2px var(--shade-hard);
+    text-shadow: 0 1px 0 #000, 0 0 3px #000;
+    transition: color 0.18s ease, text-shadow 0.18s ease;
   }
 
   .dnd-stat-sub {
     position: relative;
     z-index: 2;
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-size: var(--text-xs);
-    color: var(--ink-faint);
+    color: var(--ink-dim);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-stat-sheen {
@@ -240,21 +261,21 @@
 
   .dnd-stat-score {
     position: absolute;
-    bottom: -14px;
+    bottom: -0.85rem;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 40px;
+    min-width: 2.4rem;
     padding: 1px var(--space-3);
-    background: linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
-    border: var(--border-hair) solid var(--metal-dim);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
+    border: none;
     border-radius: var(--radius-sm);
-    font-family: var(--font-display);
+    font-family: var(--font-figures);
     font-size: var(--text-sm);
     font-weight: 700;
     letter-spacing: var(--tracking-wide);
     text-align: center;
     color: var(--metal-bright);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--ground-deep), var(--shadow-sm);
+    box-shadow: var(--rim-thin), var(--shadow-sm);
   }
 
   .dnd-stat-lit {

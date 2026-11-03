@@ -2,7 +2,9 @@
   <defs>
     <linearGradient id="dnd-grad-metal" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="var(--metal-bright)" />
-      <stop offset="45%" stop-color="var(--metal)" />
+      <stop offset="32%" stop-color="var(--metal)" />
+      <stop offset="58%" stop-color="var(--metal-dim)" />
+      <stop offset="80%" stop-color="var(--metal)" />
       <stop offset="100%" stop-color="var(--metal-dim)" />
     </linearGradient>
 
@@ -45,9 +47,9 @@
     </radialGradient>
 
     <linearGradient id="dnd-grad-stone" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="var(--ground-lift)" />
-      <stop offset="55%" stop-color="var(--ground-raised)" />
-      <stop offset="100%" stop-color="var(--ground)" />
+      <stop offset="0%" stop-color="var(--stone-light)" />
+      <stop offset="18%" stop-color="var(--stone)" />
+      <stop offset="100%" stop-color="var(--stone-dark)" />
     </linearGradient>
 
     <pattern id="dnd-pattern-chain" width="16" height="24" patternUnits="userSpaceOnUse">

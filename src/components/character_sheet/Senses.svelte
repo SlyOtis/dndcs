@@ -49,15 +49,16 @@
 <style>
     .root {
         position: relative;
-        gap: 16px;
+        gap: var(--space-3);
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
         width: auto;
         height: auto;
-        padding: 4px 8px;
-        grid-column: 1;
+        padding: var(--space-3);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised), var(--ground-deep));
+        box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
     }
 
     .senses {
@@ -65,7 +66,7 @@
         display: flex;
         align-items: center;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--space-2);
         width: 100%;
         height: auto;
     }
@@ -75,12 +76,47 @@
         display: flex;
         align-items: center;
         flex-direction: row;
+        gap: var(--space-3);
         width: 100%;
         height: auto;
+        padding: var(--space-1);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+        border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 60%, transparent);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-down);
+        transition: border-color 0.15s ease;
+    }
+
+    .sense:hover {
+        border-color: var(--metal-dim);
+    }
+
+    .sense:hover .title {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
     }
 
     .title {
         position: relative;
-        padding-left: 16px;
+        min-width: 0;
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+        color: var(--ink);
+        text-shadow: 0 1px 0 #000;
+        transition: color 0.15s ease, text-shadow 0.15s ease;
+    }
+
+    .root > .dnd-caption {
+        align-self: stretch;
+        margin: 0 calc(var(--space-1) - var(--space-3)) calc(var(--space-1) - var(--space-3));
+        padding: var(--space-1) var(--space-3);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone);
+        box-shadow: var(--bevel-up), inset 0 1px 0 var(--metal-dim), inset 0 2px 0 var(--keyline);
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000;
     }
 </style>

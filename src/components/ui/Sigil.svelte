@@ -39,9 +39,9 @@
   const TRACES: Record<SigilFrame, string> = {
     ring: 'M50 0 58 6.7A44 44 0 0 1 58 93.3L50 100 42 93.3A44 44 0 0 1 42 6.7L50 0Z',
     cusped:
-      'M50 4 62 16h16v16l12 12-12 12v16H62L50 84 38 96H22V80L10 68l12-12V40h16L50 4Z',
+      'M50 2 68 18h14v14l16 18-16 18v14H68L50 98 32 82H18V68L2 50l16-18V18h14L50 2Z',
     lobed:
-      'M50 6c9 0 16 5 19 12 8-3 17-1 23 5s8 15 5 23c7 3 12 10 12 19s-5 16-12 19c3 8 1 17-5 23s-15 8-23 5c-3 7-10 12-19 12s-16-5-19-12c-8 3-17 1-23-5s-8-15-5-23C6 66 1 59 1 50s5-16 12-19C10 23 12 14 18 8s15-8 23-5C44 11 41 6 50 6Z',
+      'M79 38a13 13 0 0 1 0 24 13 13 0 0 1-17 17 13 13 0 0 1-24 0 13 13 0 0 1-17-17 13 13 0 0 1 0-24 13 13 0 0 1 17-17 13 13 0 0 1 24 0 13 13 0 0 1 17 17Z',
     star:
       'M50 2 61 22l22-8-8 22 20 11-20 11 8 22-22-8-11 20-11-20-22 8 8-22L5 47l20-11-8-22 22 8L50 2Z',
     plate: 'M18 6h64l16 16v56L82 94H18L2 78V22L18 6Z'
@@ -80,7 +80,7 @@
     border: none;
     background: none;
     cursor: pointer;
-    --sigil-d: 56px;
+    --sigil-d: 3.3rem;
     --sigil-light: var(--metal);
     width: var(--sigil-d);
     height: var(--sigil-d);
@@ -88,15 +88,15 @@
   }
 
   .dnd-sigil-sm {
-    --sigil-d: 38px;
+    --sigil-d: 2.25rem;
   }
 
   .dnd-sigil-md {
-    --sigil-d: 56px;
+    --sigil-d: 3.3rem;
   }
 
   .dnd-sigil-lg {
-    --sigil-d: 78px;
+    --sigil-d: 4.6rem;
   }
 
   .dnd-sigil-metal {
@@ -136,23 +136,23 @@
 
   .dnd-sigil-rim {
     fill: none;
-    stroke: var(--metal-dim);
-    stroke-width: 5;
+    stroke: var(--metal);
+    stroke-width: var(--border-heavy);
     vector-effect: non-scaling-stroke;
     stroke-linejoin: round;
   }
 
   .dnd-sigil-key {
     fill: none;
-    stroke: var(--metal-edge);
-    stroke-width: 1;
+    stroke: var(--metal-dim);
+    stroke-width: var(--border-width);
     vector-effect: non-scaling-stroke;
     transform: scale(0.82);
     transform-origin: center;
   }
 
   .dnd-sigil:hover:not(:disabled) .dnd-sigil-rim {
-    stroke: var(--sigil-light);
+    stroke: var(--metal-bright);
   }
 
   .dnd-sigil-active .dnd-sigil-fill {
@@ -160,7 +160,7 @@
   }
 
   .dnd-sigil-active .dnd-sigil-rim {
-    stroke: var(--sigil-light);
+    stroke: var(--metal-bright);
   }
 
   .dnd-sigil-glyph {
@@ -173,7 +173,8 @@
     font-size: calc(var(--sigil-d) * 0.42);
     line-height: 1;
     color: var(--sigil-light);
-    text-shadow: 0 0 10px var(--sigil-light);
+    text-shadow: 0 1px 0 #000, 0 0 8px color-mix(in srgb, var(--sigil-light) 60%, transparent);
+    transition: color 0.18s ease, text-shadow 0.18s ease;
   }
 
   .dnd-sigil-count {
@@ -181,25 +182,30 @@
     right: -2px;
     bottom: -2px;
     z-index: 3;
-    min-width: 18px;
+    min-width: 1.1rem;
     padding: 0 var(--space-1);
     border-radius: var(--radius-sm);
     background: linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
     border: var(--border-hair) solid var(--metal);
     box-shadow: inset 0 0 0 var(--border-hair) var(--ground-deep), var(--shadow-sm);
-    font-family: var(--font-mono);
+    font-family: var(--font-figures);
     font-size: var(--text-xs);
-    line-height: 16px;
+    line-height: 1.4;
     color: var(--metal-bright);
   }
 
   .dnd-sigil:hover:not(:disabled) {
-    transform: translateY(-2px);
-    filter: drop-shadow(0 0 12px var(--sigil-light));
+    filter: drop-shadow(0 0 8px var(--ember-glow));
+  }
+
+  .dnd-sigil:hover:not(:disabled) .dnd-sigil-glyph {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .dnd-sigil:active:not(:disabled) {
-    transform: translateY(0) scale(0.97);
+    transform: scale(0.94);
+    filter: brightness(0.85);
   }
 
   .dnd-sigil:disabled {

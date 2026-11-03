@@ -1,9 +1,27 @@
 <script lang="ts">
   import {getContext} from "svelte";
   import type {CharacterContext} from "$lib/types";
+  import type {Mention} from "$lib/blocks";
+  import BlockEditor from "$components/ui/BlockEditor.svelte";
+  import BlockReader from "$components/ui/BlockReader.svelte";
 
   const {background} = getContext<CharacterContext>('character')
 
+  let writing = $state(false)
+
+  const story = $derived($background.description ?? '')
+
+  function write(next: string) {
+    background.update((state) => ({...state, description: next}))
+  }
+
+  async function seek(mark: '@' | '#', query: string): Promise<Mention[]> {
+    if (mark === '#') return []
+    const wanted = query.toLowerCase()
+    return ($background.additional ?? [])
+      .filter((one) => one.title.toLowerCase().includes(wanted))
+      .map((one) => ({id: one.title, label: one.title.replace(/\s+/g, '')}))
+  }
 </script>
 
 <div class="root">
@@ -14,7 +32,27 @@
                 {#if $background?.subTitle}
                     <span class="sub-title">{$background.subTitle}</span>
                 {/if}
-                <p>{$background.description}</p>
+                <div class="story">
+                    <button
+                        type="button"
+                        class="story-turn"
+                        aria-pressed={writing}
+                        onclick={() => (writing = !writing)}
+                    >
+                        {writing ? 'Read it' : 'Write it'}
+                    </button>
+
+                    {#if writing}
+                        <BlockEditor
+                            value={story}
+                            placeholder="Write their story, or press slash for a block"
+                            onchange={write}
+                            onsearch={seek}
+                        />
+                    {:else}
+                        <BlockReader value={story} onsearch={seek} />
+                    {/if}
+                </div>
                 {#if $background?.additional?.length}
                     <ul class="additional">
                         {#each $background?.additional as additional}
@@ -34,6 +72,50 @@
 </div>
 
 <style>
+    .story {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        min-width: 0;
+    }
+
+    .story-turn {
+        align-self: flex-start;
+        padding: var(--space-1) var(--space-4);
+        border: none;
+        border-radius: var(--radius-sm);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone);
+        box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
+        color: var(--metal);
+        text-shadow: 0 1px 0 #000;
+        cursor: pointer;
+        transition: color 0.18s ease, text-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    .story-turn:hover {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
+        filter: brightness(1.1);
+    }
+
+    .story-turn:active {
+        filter: brightness(0.85);
+        box-shadow: var(--rim-thin), var(--bevel-down);
+    }
+
+    .story-turn[aria-pressed='true'] {
+        color: var(--metal-bright);
+        box-shadow: var(--rim-thin), var(--bevel-down), 0 0 0.7rem var(--ember-glow);
+    }
+
     .root {
         position: relative;
         width: 100%;
@@ -65,11 +147,11 @@
     }
 
     ul {
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
     }
 
     li {
-        margin-bottom: 12px;
+        margin-bottom: var(--space-3);
     }
 
     h4, p, h5 {
@@ -77,16 +159,44 @@
         margin: 0;
     }
 
+    h4 {
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+        font-weight: 700;
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000, 0 0 0.6rem var(--ember-glow);
+    }
+
+    h5 {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        letter-spacing: var(--tracking-wide);
+        color: var(--metal);
+        text-shadow: 0 1px 0 #000;
+    }
+
     .sub-title {
-        font-size: 0.8em;
-        font-weight: 600;
-        opacity: 0.75;
-        margin-bottom: 8px;
+        display: block;
+        font-size: var(--text-sm);
+        font-style: italic;
+        color: var(--ink-dim);
+        margin-bottom: var(--space-2);
     }
 
     .additional {
-        margin-top: 16px;
-        border-radius: 16px;
+        margin-top: var(--space-4);
+        padding: var(--space-3);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+        border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 60%, transparent);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-down);
+    }
+
+    .additional span {
+        font-size: var(--text-xs);
+        font-style: italic;
+        color: var(--ink-faint);
     }
 
 </style>

@@ -1,4 +1,4 @@
-import { derived, writable, type Readable } from 'svelte/store'
+import { derived, type Readable } from 'svelte/store'
 import type { Character } from '../character.types'
 import type { CharacterContext } from '../types'
 import { getResolvedCharacter } from './derive'
@@ -14,21 +14,31 @@ export type RulesState = {
 
 const SOURCE_KEYS = ['info', 'abilities', 'skills', 'savingThrows', 'special'] as const
 
-export function getRulesStore(
-  context: CharacterContext,
-  systems: string[] = ['dnd5e'],
-  overlay?: RuleSystemOverlay
-): Readable<RulesState> {
-  const system = writable<RuleSystem | null>(null)
-  const error = writable<string | null>(null)
+type Loaded = Pick<RulesState, 'system' | 'error'>
 
-  getSystemStack(systems, overlay)
-    .then((loaded) => system.set(loaded))
-    .catch((reason) => error.set(reason instanceof Error ? reason.message : String(reason)))
+export function getRulesStore(context: CharacterContext): Readable<RulesState> {
+  const stack = derived([context.systems, context.overlay], ([$systems, $overlay]) => JSON.stringify([$systems, $overlay]))
+
+  const loaded = derived<Readable<string>, Loaded>(
+    stack,
+    ($stack, set) => {
+      const [systems, overlay] = JSON.parse($stack) as [string[], RuleSystemOverlay | null]
+      let live = true
+
+      getSystemStack(systems, overlay ?? undefined)
+        .then((system) => live && set({ system, error: null }))
+        .catch((reason) => live && set({ system: null, error: reason instanceof Error ? reason.message : String(reason) }))
+
+      return () => {
+        live = false
+      }
+    },
+    { system: null, error: null }
+  )
 
   const sources = SOURCE_KEYS.map((key) => context[key])
 
-  return derived([system, error, ...sources], ([$system, $error, ...values]) => {
+  return derived([loaded, ...sources], ([{ system: $system, error: $error }, ...values]) => {
     if ($error) return { system: null, resolved: null, error: $error }
     if (!$system) return { system: null, resolved: null, error: null }
 

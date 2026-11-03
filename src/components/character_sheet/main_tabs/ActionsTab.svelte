@@ -169,17 +169,24 @@
         position: relative;
         width: 100%;
         height: auto;
-
-        padding: 4px 12px;
-        font-size: 0.8em;
-        font-weight: 600;
-
-        border-bottom: 1px dashed var(--metal);
+        padding: var(--space-1) var(--space-3);
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-up), inset 0 0 0 1px var(--metal-dim), inset 0 -1px 0 1px var(--keyline), 0 2px 4px var(--shade);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000;
     }
 
     .divider:not(:first-of-type) {
-        margin-top: 16px;
-        border-top: 1px solid var(--metal);
+        margin-top: var(--space-4);
     }
 
     ul {
@@ -187,7 +194,7 @@
         width: 100%;
         height: auto;
         margin: 0;
-        padding: 0 12px;
+        padding: 0 var(--space-3);
         list-style: none;
     }
 
@@ -195,8 +202,8 @@
         position: relative;
         display: grid;
         grid-template-columns: 2fr auto auto auto 2fr;
-        grid-column-gap: 16px;
-        grid-row-gap: 4px;
+        grid-column-gap: var(--space-4);
+        grid-row-gap: var(--space-2);
         grid-auto-rows: auto;
 
         align-items: center;
@@ -206,12 +213,19 @@
     .attack-header {
         display: contents;
         height: auto;
-        font-size: 0.8em;
-        opacity: 0.75;
     }
 
     .attack-header span {
+        padding-bottom: var(--space-1);
+        border-bottom: var(--border-hair) solid var(--metal-dim);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
         white-space: nowrap;
+        color: var(--metal);
+        text-shadow: 0 1px 0 #000;
     }
 
     .special {
@@ -223,6 +237,6 @@
     }
 
     .attack, .special {
-        padding-top: 16px;
+        padding-top: var(--space-4);
     }
 </style>

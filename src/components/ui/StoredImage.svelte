@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte'
-  import { deleteFilePlace, getFileUrl, isDeadFile, isStoredFile } from '$lib/storage.service'
+  import { getFileUrl, isDeadFile, isStoredFile } from '$lib/storage.service'
 
   const {
     src,
@@ -60,7 +60,6 @@
     }
 
     looked = true
-    await deleteFilePlace(src).catch(() => undefined)
     release()
     resolved = await getFileUrl(src).catch(() => '')
   }
@@ -80,10 +79,10 @@
     width: 100%;
     height: 100%;
     background:
-      repeating-linear-gradient(
-        45deg,
-        var(--ground-raised) 0 8px,
-        var(--ground-lift) 8px 16px
-      );
+      radial-gradient(ellipse at 50% 40%, transparent 30%, color-mix(in srgb, #000 60%, transparent) 100%),
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 12%, transparent), color-mix(in srgb, #000 55%, transparent)),
+      var(--texture-stone),
+      var(--stone-dark);
+    box-shadow: inset 0 0 0 1px var(--keyline);
   }
 </style>

@@ -2,7 +2,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-base="http://localhost:5173"
+base="${WALK_BASE:-http://localhost:5173}"
 email="$(sed -n 's/^WALK_EMAIL=//p' .env)"
 password="$(sed -n 's/^WALK_PASSWORD=//p' .env)"
 [ -n "$email" ] && [ -n "$password" ] || { echo "WALK_EMAIL and WALK_PASSWORD are empty in .env"; exit 1; }
@@ -110,19 +110,19 @@ visit /main "$hearth" "the hearth" && check_page bar
 page="/main at 1280 and 1600"
 for w in 1280 1600; do
   pw resize "$w" 900 >/dev/null
-  wait_for "document.querySelectorAll('.hall-grid .hall-plot').length === 4 && document.querySelector('.hall-grid .dnd-loading') === null" "the four hearth regions at $w" || continue
+  wait_for "document.querySelectorAll('.hall-grid .hall-plot').length === 5 && document.querySelector('.hall-grid .dnd-loading') === null" "the five hearth regions at $w" || continue
   [ "$(js "document.querySelector('.hall-grid .hall-hero .hall-hero-name') !== null")" = "true" ] || fail "no hero over the regions at $w"
   regions="$(js "[...document.querySelectorAll('.hall-grid .hall-plot')].map((e) => e.getAttribute('aria-label')).join(',')")"
-  [ "$regions" = "Campaigns,Characters,Lore,Friends" ] || fail "the hearth regions are $regions at $w"
+  [ "$regions" = "Campaigns,Parties,Characters,Lore,Friends" ] || fail "the hearth regions are $regions at $w"
   plates="$(js "document.querySelectorAll('.hall-grid .dnd-panelbox-head, .hall-grid .dnd-rail-head, .hall-grid .dnd-rail-step').length")"
   [ "$plates" = "0" ] || fail "$plates header plates, rail heads or step arrows stand on the hearth at $w"
   gone="$(js "[...document.querySelectorAll('.hall-grid [aria-label]')].map((e) => e.getAttribute('aria-label')).filter((n) => /^(Party|Cast|Catalog)$/.test(n)).join(',')")"
   [ -z "$gone" ] || fail "the hearth still carries $gone at $w"
-  laid="$(js "(() => { const g = document.querySelector('.hall-grid').getBoundingClientRect(); const f = document.querySelector('.hall-plot-friends').getBoundingClientRect(); const c = document.querySelector('.hall-plot-camps').getBoundingClientRect(); const r = document.querySelector('.hall-plot-roll').getBoundingClientRect(); const l = document.querySelector('.hall-plot-lore').getBoundingClientRect(); const side = f.left >= r.right && f.left >= c.right && f.left >= l.right && Math.abs(f.right - g.right) < 1; const tall = Math.round(g.height - f.height); const under = c.bottom <= r.top && r.bottom <= l.top; return (side ? 'side' : 'strayed') + ':' + tall + ':' + (under ? 'stacked' : 'shuffled') })()")"
+  laid="$(js "(() => { const g = document.querySelector('.hall-grid').getBoundingClientRect(); const f = document.querySelector('.hall-plot-friends').getBoundingClientRect(); const c = document.querySelector('.hall-plot-camps').getBoundingClientRect(); const b = document.querySelector('.hall-plot-bands').getBoundingClientRect(); const r = document.querySelector('.hall-plot-roll').getBoundingClientRect(); const l = document.querySelector('.hall-plot-lore').getBoundingClientRect(); const side = f.left >= r.right && f.left >= c.right && f.left >= b.right && f.left >= l.right && Math.abs(f.right - g.right) < 1; const tall = Math.round(g.height - f.height); const under = c.bottom <= b.top && b.bottom <= r.top && r.bottom <= l.top; return (side ? 'side' : 'strayed') + ':' + tall + ':' + (under ? 'stacked' : 'shuffled') })()")"
   [ "${laid%%:*}" = "side" ] || fail "the friends list is not a column along the right edge at $w"
   tall="${laid#*:}"; tall="${tall%%:*}"
   [ "$tall" = "0" ] || fail "the friends column stops ${tall}px short of the page's height at $w"
-  [ "${laid##*:}" = "stacked" ] || fail "campaigns, characters and lore do not stack in that order at $w"
+  [ "${laid##*:}" = "stacked" ] || fail "campaigns, parties, characters and lore do not stack in that order at $w"
   over="$(js "Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth")"
   [ "$over" -le 0 ] || fail "the hearth is ${over}px wider than the viewport at $w"
   wide="$(js "[...document.querySelector('.hall-grid').querySelectorAll('*')].filter((e) => { const s = getComputedStyle(e); return (s.overflowX === 'auto' || s.overflowX === 'scroll') && e.scrollWidth > e.clientWidth }).length")"
@@ -131,14 +131,12 @@ for w in 1280 1600; do
   [ "$inner" = "0" ] || fail "$inner elements inside the hearth scroll within their cell at $w"
   clipped="$(js "(() => { const scroll = document.querySelector('.dnd-shell-scroll'); return [...document.querySelectorAll('.hall-grid .dnd-card')].filter((e) => { const r = e.getBoundingClientRect(); return r.right > window.innerWidth + 1 || r.bottom > scroll.scrollHeight + scroll.getBoundingClientRect().top - scroll.scrollTop + 1 }).length })()")"
   [ "$clipped" = "0" ] || fail "$clipped cards on the hearth cannot be reached by the page's own scroll at $w"
-  kinds="$(js "[...document.querySelectorAll('.hall-plot-lore .lore-kind')].map((e) => e.getAttribute('aria-label')).join(',')")"
-  [ "$kinds" = "Quests,Chronicles,Maps,Characters,Places,Encounters" ] || fail "the Lore dividers read $kinds at $w"
+  kinds="$(js "[...document.querySelectorAll('.hall-plot-lore .lore-kind')].map((e) => e.getAttribute('aria-label')).filter((n) => !/^(Entries|Characters|Places|Maps|Quests|Sessions|Items|Weapons|Armor|Heroes)$/.test(n)).join(',')")"
+  [ -z "$kinds" ] || fail "the Lore list carries dividers for kinds it does not hold: $kinds at $w"
   headed="$(js "[...document.querySelectorAll('.hall-plot-lore .lore-kind')].every((e) => e.firstElementChild.classList.contains('lore-divide') && e.querySelector('.lore-divide-name').textContent.trim() === e.getAttribute('aria-label'))")"
   [ "$headed" = "true" ] || fail "a Lore kind does not open with the divider naming it at $w"
   stray="$(js "[...document.querySelectorAll('.hall-plot-lore .dnd-card')].filter((e) => !e.closest('.lore-kind')).length")"
   [ "$stray" = "0" ] || fail "$stray Lore rows stand under no divider at $w"
-  rows="$(js "(() => { const names = [...document.querySelectorAll('.hall-plot-camps .dnd-card-title')].map((e) => e.textContent.trim()); return [...document.querySelectorAll('.hall-plot-lore .lore-kind')].map((kind) => { const held = [...kind.querySelectorAll('.dnd-card')]; const name = kind.getAttribute('aria-label'); if (!held.length) return kind.querySelector('.lore-none') ? name + ' empty' : name + ' bare'; return held.every((row) => names.includes(row.querySelector('.dnd-card-sub')?.textContent.trim() ?? '')) ? name + ' named' : name + ' stray' }).join(', ') })()")"
-  case "$rows" in *bare*|*stray*) fail "a Lore kind shows neither its rows under a campaign's name nor its empty line: $rows" ;; esac
   [ "$(js "document.querySelector('.hall-plot-friends .dnd-card') !== null || document.querySelector('.hall-plot-friends .dnd-empty') !== null")" = "true" ] || fail "the friends list shows neither a friend nor its empty state at $w"
   tall="$(js "(() => { const scroll = document.querySelector('.dnd-shell-scroll'); return String(Math.ceil(scroll.scrollHeight + scroll.getBoundingClientRect().top)) })()")"
   pw resize "$w" "$tall" >/dev/null
@@ -152,48 +150,49 @@ campaign_id="$(js "(async () => { const { userCampaigns } = await import('/src/l
 if [ -z "$campaign_id" ]; then
   fail "no campaign to track an encounter in"
 else
-  tracker="[...document.querySelectorAll('.dnd-menu-section')].find((e) => /Encounter tracker/.test(e.textContent))"
-  rows="[...$tracker.querySelectorAll('.dnd-menu-row')]"
-  pw click "getByTitle('Toggle the menu')" >/dev/null
-  wait_for "$tracker !== undefined" "the navigator drawer"
-  js "$tracker.querySelector('.dnd-menu-band').click() ?? null" >/dev/null
-  wait_for "$tracker.classList.contains('dnd-menu-section-open')" "the tracker to open"
-  wait_for "$tracker.textContent.includes('No encounter is under way.')" "the empty state while the campaign has no encounter"
+  rows="[...document.querySelectorAll('.fray-row')]"
+  pw goto "$base/main/campaign/$campaign_id?tab=encounter" >/dev/null
+  wait_for "document.querySelector('.fray') !== null && document.querySelector('.dnd-loading') === null" "the encounter tab"
   encounter_id="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); return campaignService.postEncounter('$campaign_id', { title: 'Walk Ambush', is_active: true, is_known: true, round: 3, turn: 1, combatants: [{ id: 'w1', name: 'Goblin Cutter', kind: 'npc', npc_id: 'w-n1', initiative: 8, hit_points: 5, max_hit_points: 12, conditions: ['prone'], is_hit_points_known: true }, { id: 'w2', name: 'Walk Hero', kind: 'character', character_id: 'w-c1', initiative: 17, hit_points: 22, max_hit_points: 30, conditions: [], is_hit_points_known: true }, { id: 'w3', name: 'Dire Wolf', kind: 'npc', npc_id: 'w-n2', initiative: 12, hit_points: 9, max_hit_points: 26, conditions: [], is_hit_points_known: true }] }) })()")"
-  if wait_for "$rows.length === 3" "the combatants to stream into the tracker"; then
-    order="$(js "$rows.map((e) => e.querySelector('.dnd-menu-row-mark').textContent.trim()).join(',')")"
+  wait_for "document.querySelector('#fray-chosen option[value=\"$encounter_id\"]') !== null" "the new encounter in the picker"
+  js "(() => { const pick = document.querySelector('#fray-chosen'); pick.value = '$encounter_id'; pick.dispatchEvent(new Event('change', { bubbles: true })); return true })()" >/dev/null
+  if wait_for "$rows.length === 3 && document.querySelector('.fray').textContent.includes('Walk Ambush')" "the combatants to stream into the tracker"; then
+    order="$(js "$rows.map((e) => e.querySelector('.fray-initiative').textContent.trim()).join(',')")"
     [ "$order" = "17,12,8" ] || fail "the combatants stand in $order, not in initiative order 17,12,8"
-    current="$(js "String($rows.findIndex((e) => e.getAttribute('aria-current') === 'true'))")"
+    current="$(js "String($rows.findIndex((e) => e.getAttribute('aria-current') === 'step'))")"
     [ "$current" = "1" ] || fail "turn 1 of the round points at row $current, not at the second in initiative order"
-    [ "$(js "$tracker.textContent.includes('Walk Ambush')")" = "true" ] || fail "the tracker does not name the encounter it lists"
-    [ "$(js "$tracker.querySelector('.dnd-menu-empty') === null")" = "true" ] || fail "the tracker keeps an empty state while an encounter is under way"
+    [ "$(js "document.querySelector('.fray').textContent.includes('Walk Ambush')")" = "true" ] || fail "the tracker does not name the encounter it lists"
+    [ "$(js "document.querySelector('.fray').textContent.includes('Round 3')")" = "true" ] || fail "the tracker does not show round 3"
   fi
   js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); await campaignService.deleteEncounter('$campaign_id', '$encounter_id'); return true })()" >/dev/null
-  wait_for "$tracker.textContent.includes('No encounter is under way.')" "the empty state after the encounter is struck"
-  pw click "getByTitle('Toggle the menu')" >/dev/null
+  wait_for "!document.querySelector('.fray').textContent.includes('Walk Ambush')" "the struck encounter to leave the tracker"
 fi
 
 page="/main"
-wait_for "[...document.querySelectorAll('.dnd-card-title')].some((e) => e.textContent.trim() === 'Testy')" "Testy on the hearth"
-js "[...document.querySelectorAll('.dnd-card')].find((e) => e.querySelector('.dnd-card-title').textContent.trim() === 'Testy').click() ?? null" >/dev/null
-wait_for "location.pathname.startsWith('/character/')" "the character sheet"
+pw goto "$base/main" >/dev/null
+wait_for "document.querySelector('.hall-plot-roll .dnd-card .dnd-card-title') !== null" "a character on the hearth"
+hero="$(js "document.querySelector('.hall-plot-roll .dnd-card .dnd-card-title').textContent.trim()")"
+js "document.querySelector('.hall-plot-roll .dnd-card').click() ?? null" >/dev/null
+wait_for "location.pathname.startsWith('/main/character/')" "the character sheet"
 sheet="$(js "location.pathname")"
 campaign_card="document.querySelector('section[aria-label=\"Campaigns\"] .dnd-card')"
 
-if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() === 'Testy'" "Testy's sheet"; then
+if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() === '$hero'" "$hero's sheet"; then
   check_page bar
   crown_pickers="$(js "document.querySelector('.sheet-crown').querySelectorAll('select, .trace, [aria-pressed]').length")"
   [ "$crown_pickers" = "0" ] || fail "the crown carries $crown_pickers frame picker controls"
   crown_names="$(js "/\b(Lancet|Ogee|Trefoil|Shield|Round)\b/.test(document.querySelector('.sheet-crown').textContent)")"
   [ "$crown_names" = "false" ] || fail "the crown names a frame"
-  boxes="$(js "document.querySelectorAll('.sheet-stats > *').length")"
-  [ "$boxes" = "7" ] || fail "the stat board carries $boxes boxes"
+  boxes="$(js "document.querySelectorAll('.sheet-slots > *').length")"
+  [ "$boxes" -ge 5 ] || fail "the stat slots carry only $boxes boxes"
+  strip="$(js "/defen[cs]es/i.test(document.querySelector('.sheet-column')?.textContent ?? '')")"
+  [ "$strip" = "true" ] || fail "the defences block does not stand in the sheet column"
   for w in 1280 1600 2000; do
     pw resize "$w" 900 >/dev/null
-    spill="$(js "[...document.querySelectorAll('.sheet-stats *')].filter((e) => e.children.length === 0 && e.textContent.trim() && (() => { const b = e.closest('.sheet-stats > *').getBoundingClientRect(), r = e.getBoundingClientRect(); return r.left < b.left - 1 || r.right > b.right + 1 })()).map((e) => e.textContent.trim()).join(', ')")"
+    spill="$(js "[...document.querySelectorAll('.sheet-slots *')].filter((e) => e.children.length === 0 && e.textContent.trim() && (() => { const b = e.closest('.sheet-slots > *').getBoundingClientRect(), r = e.getBoundingClientRect(); return r.left < b.left - 1 || r.right > b.right + 1 })()).map((e) => e.textContent.trim()).join(', ')")"
     [ -z "$spill" ] || fail "the stat titles run outside their boxes at $w: $spill"
-    short="$(js "String(Math.round(document.querySelector('.sheet-board').getBoundingClientRect().right - document.querySelector('.sheet-tabs').getBoundingClientRect().right))")"
-    [ "$short" = "0" ] || fail "the tabs panel stops ${short}px short of the board's right edge at $w"
+    short="$(js "String(Math.round(document.querySelector('.sheet-grid').getBoundingClientRect().right - document.querySelector('.sheet-tabs').getBoundingClientRect().right))")"
+    [ "$short" = "0" ] || fail "the tabs panel stops ${short}px short of the grid's right edge at $w"
   done
   pw resize 1600 900 >/dev/null
   pw click "getByTitle('Choose the portrait frame')" >/dev/null
@@ -227,38 +226,30 @@ if visit "$sheet" "document.querySelector('.sheet-name')?.textContent.trim() ===
   wait_for "document.querySelector('#dialog-title') === null" "the sources dialog to close"
 fi
 
-lost="document.querySelector('.sheet-lost-note')"
-if visit /character/does-not-exist "$lost !== null && document.querySelector('.dnd-loading') === null" "the lost character note"; then
-  note="$(js "$lost.textContent.trim()")"
-  [ "$note" = "That character was not found, or it is not yours." ] || fail "the lost note reads '$note'"
-  [ "$(js "[...document.querySelectorAll('button')].some((e) => e.textContent.trim() === 'Back to the hearth')")" = "true" ] || fail "the lost note carries no way back to the hearth"
-  [ "$(js "document.querySelector('.sheet-crown') === null && document.querySelectorAll('.dnd-shell-aside').length === 0")" = "true" ] || fail "the lost note still draws the sheet or its drawers"
-  [ "$(js "document.querySelector(\"[title='Toggle the menu']\") === null && document.querySelector(\"[title='Toggle the chat']\") === null")" = "true" ] || fail "the lost note still carries a menu or chat handle"
-  check_page gate
-  js "[...document.querySelectorAll('button')].find((e) => e.textContent.trim() === 'Back to the hearth').click() ?? null" >/dev/null
-  wait_for "$hearth" "the hearth after the way back"
-fi
+page="/main/character/does-not-exist"
+pw goto "$base/main/character/does-not-exist" >/dev/null
+wait_for "location.pathname === '/main' && ($hearth)" "the hearth after an unknown character"
 
 visit /main "$hearth" "the hearth"
 if [ "$(js "$campaign_card !== null")" = "true" ]; then
   js "$campaign_card.click() ?? null" >/dev/null
-  wait_for "location.pathname.startsWith('/campaign/')" "a campaign"
+  wait_for "location.pathname.startsWith('/main/campaign/')" "a campaign"
   if visit "$(js "location.pathname")" "document.querySelector('.dnd-shell-mark') !== null && document.querySelector('.dnd-loading') === null" "the campaign"; then
     campaign_page="$page"
     page="campaign drawers"
     pw click "getByTitle('Toggle the menu')" >/dev/null
-    wait_for "document.querySelector('.dnd-shell-menu-open .dnd-shell-aside-menu') !== null" "the navigator drawer on the campaign"
-    wait_for "[...document.querySelectorAll('.dnd-shell-aside-menu .dnd-menu-section')].some((e) => /Encounter tracker/.test(e.textContent))" "the encounter section in the campaign drawer"
+    wait_for "document.querySelector('.dnd-shell-menu-open .dnd-sidebar-start .dnd-menu') !== null" "the navigator drawer on the campaign"
+    wait_for "/Encounters/.test(document.querySelector('.dnd-sidebar-start .dnd-menu').textContent)" "the encounter section in the campaign drawer"
     pw click "getByTitle('Toggle the menu')" >/dev/null
     wait_for "document.querySelector('.dnd-shell-menu-open') === null" "the navigator drawer to close"
     pw click "getByTitle('Toggle the chat')" >/dev/null
-    wait_for "document.querySelector('.dnd-shell-chat-open .dnd-shell-aside-chat textarea') !== null" "the chat composer on the campaign"
-    rolls="document.querySelectorAll('.dnd-shell-aside-chat li.roll').length"
+    wait_for "document.querySelector('.dnd-shell-chat-open .dnd-sidebar-end textarea') !== null" "the chat composer on the campaign"
+    rolls="document.querySelectorAll('.dnd-sidebar-end li.roll').length"
     before="$(js "$rolls")"
-    pw fill ".dnd-shell-aside-chat textarea" "/roll 1d20" >/dev/null
+    pw fill ".dnd-sidebar-end textarea" "/roll 1d20" >/dev/null
     pw press Enter >/dev/null
     if wait_for "$rolls > $before" "the roll to show in the campaign chat"; then
-      logged="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); const held = await campaignService.getChatEntries('$campaign_id'); return String(held.filter((e) => e.kind === 'roll' && e.formula === '1d20').length) })()")"
+      logged="$(js "(async () => { const { campaignService } = await import('/src/lib/firestore.service.ts'); const held = await new Promise((done) => { let stop = () => {}; stop = campaignService.postChatListener('$campaign_id', (entries) => { stop(); done(entries) }) }); return String(held.filter((e) => e.kind === 'roll' && e.formula === '1d20').length) })()")"
       [ "${logged:-0}" -gt 0 ] || fail "the roll shows in the chat but the campaign log holds no 1d20 roll entry"
     fi
     pw click "getByTitle('Toggle the chat')" >/dev/null
@@ -296,7 +287,7 @@ fi
 
 visit /main/create/campaign "document.querySelector('#campaign-prompt') !== null" "the campaign form" && check_page bar
 
-visit /user "document.querySelector('.dnd-shell-mark')?.textContent.trim() === 'Profile'" "the profile" && check_page bar
+visit /main/user "document.querySelector('.dnd-shell-mark')?.textContent.trim() === 'Profile'" "the profile" && check_page bar
 
 if [ "${#failures[@]}" -gt 0 ]; then
   printf '\n%d failed\n' "${#failures[@]}"

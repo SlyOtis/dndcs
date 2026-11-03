@@ -1,150 +1,110 @@
 <script lang="ts">
-  import type { LevelUpData } from '$lib/character.types';
-  import type {CharacterContext} from '$lib/types';
-  import {getContext} from 'svelte';
+  import { onMount } from 'svelte';
+  import type { Character, LevelUpData } from '$lib/character.types';
+  import { getCharacterStore } from '$lib/engine';
+  import { getCurrentCharacter } from '$lib/chat';
+  import { getLevelledCharacter } from '$lib/dialogs/levelUp';
+  import { getAttributeId } from '$lib/rules/sheet';
+  import { getSystemStack } from '$lib/rules/system';
+  import type { RuleSystem } from '$lib/rules/spec.types';
   import BaseDialog from './BaseDialog.svelte';
   import Button from '$components/ui/Button.svelte';
   import Ornament from '$components/ui/Ornament.svelte';
+  import Stat from '$components/ui/Stat.svelte';
 
   let { isOpen = $bindable(false), levelUpData = $bindable(), onComplete }: {
     isOpen: boolean;
     levelUpData?: LevelUpData;
     onComplete?: () => void;
   } = $props();
-  
-  const {info, abilities} = getContext<CharacterContext>('character');
 
-  let selections = $state<Record<string, string[]>>({});
+  const { info, abilities, feats } = getCharacterStore();
+  const character: Character | null = getCurrentCharacter();
+
+  let system = $state<RuleSystem | null>(null);
+  let picks = $state<string[][]>([]);
   let errors = $state<string[]>([]);
+
+  const levelled = $derived(
+    system && character && levelUpData ? getLevelledCharacter(character, system, levelUpData, picks) : null
+  );
+  const hitPointGain = $derived(levelled && character ? levelled.info.hp.max - character.info.hp.max : 0);
+  const cap = $derived(system?.advancement?.improvement.cap ?? 0);
+
+  onMount(() => {
+    if (!character) return;
+
+    getSystemStack(character.systems, character.overlay ?? undefined)
+      .then((loaded) => (system = loaded))
+      .catch((reason) => (errors = [reason instanceof Error ? reason.message : String(reason)]));
+  });
 
   function closeDialog() {
     isOpen = false;
-    selections = {};
+    picks = [];
     errors = [];
     onComplete?.();
   }
-  
-  function handleChoiceSelection(choiceIndex: number, option: string, isSelected: boolean) {
-    const choice = levelUpData?.choices[choiceIndex];
-    if (!choice) return;
 
-    const choiceKey = `choice_${choiceIndex}`;
-    
-    if (!selections[choiceKey]) {
-      selections[choiceKey] = [];
-    }
+  function getTitle(id: string): string {
+    return system?.attributes.find((attribute) => attribute.id === id)?.title ?? id;
+  }
 
-    if (isSelected) {
-      if (selections[choiceKey].length < choice.maxSelections) {
-        selections[choiceKey] = [...selections[choiceKey], option];
-      }
-    } else {
-      selections[choiceKey] = selections[choiceKey].filter(s => s !== option);
-    }
+  function getScore(id: string): number {
+    const held = character?.abilities.find((ability) => getAttributeId(ability.title) === id);
+    return held?.score ?? system?.attributes.find((attribute) => attribute.id === id)?.default ?? 0;
+  }
+
+  function getCount(index: number, id: string): number {
+    return (picks[index] ?? []).filter((picked) => picked === id).length;
+  }
+
+  function postPick(index: number, id: string) {
+    const choice = levelUpData?.choices[index];
+    const held = picks[index] ?? [];
+    if (!choice || held.length >= choice.maxSelections) return;
+    if (getScore(id) + getCount(index, id) >= cap) return;
+
+    const next = [...picks];
+    next[index] = [...held, id];
+    picks = next;
+  }
+
+  function deletePicks(index: number) {
+    const next = [...picks];
+    next[index] = [];
+    picks = next;
   }
 
   function validateSelections(): boolean {
     errors = [];
-    
+
     if (!levelUpData) return false;
 
-    for (let i = 0; i < levelUpData.choices.length; i++) {
-      const choice = levelUpData.choices[i];
-      const choiceKey = `choice_${i}`;
-      const selected = selections[choiceKey] || [];
-
-      if (selected.length < choice.maxSelections) {
-        errors.push(`${choice.title}: Please select ${choice.maxSelections} option(s)`);
+    levelUpData.choices.forEach((choice, index) => {
+      if ((picks[index] ?? []).length < choice.maxSelections) {
+        errors.push(`${choice.title}: spend all ${choice.maxSelections} points`);
       }
-    }
+    });
 
     return errors.length === 0;
   }
 
   function confirmLevelUp() {
-    if (!validateSelections()) {
-      return;
-    }
+    if (!validateSelections() || !levelUpData || !levelled) return;
 
-    if (!levelUpData) return;
+    info.set(levelled.info);
+    abilities.set(levelled.abilities);
+    feats.set(levelled.feats);
 
-    // Apply level up changes to character
-    console.log('Level up confirmed:', {
-      level: levelUpData.level,
-      selections
-    });
-    
-    // Update character level
-    $info.level = levelUpData.level;
-    
-    // Update proficiency bonus
-    $info.proficiencyBonus = levelUpData.proficiencyBonus;
-    
-    // Close dialog immediately
+    const level = levelUpData.level;
     closeDialog();
-    
-    // Trigger level up celebration
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('playLevelUp'));
-      window.dispatchEvent(new CustomEvent('showFunnyText', {
-        detail: { text: `Level ${levelUpData.level} achieved! Glory awaits!`, category: 'levelUp' }
-      }));
-      // Trigger super extravagant level up animation
-      window.dispatchEvent(new CustomEvent('showLevelUpAnimation', {
-        detail: { level: levelUpData.level }
-      }));
-    }
-    
-    // Add hit points (for now, add the average + CON modifier)
-    const conModifier = Math.floor(($abilities.find((a) => a.title === 'Constitution')?.score || 10) - 10) / 2;
-    const hitPointGain = Math.floor(levelUpData.hitDiceGain.die / 2) + 1 + Math.floor(conModifier);
-    $info.hp.max += hitPointGain;
-    $info.hp.current += hitPointGain;
-    
-    // Process ability score improvements from selections
-    for (const [choiceKey, selectedOptions] of Object.entries(selections)) {
-      const choiceIndex = parseInt(choiceKey.replace('choice_', ''));
-      const choice = levelUpData.choices[choiceIndex];
-      
-      if (choice && choice.type === 'abilityScore') {
-        for (const option of selectedOptions) {
-          if (option.includes('+2')) {
-            const abilityName = option.split(' +2')[0];
-            const ability = $abilities.find((a) => a.title === abilityName);
-            if (ability) {
-              ability.score = Math.min(20, ability.score + 2);
-              ability.modifier = Math.floor((ability.score - 10) / 2);
-            }
-          } else if (option === 'Two different abilities +1 each') {
-            // For simplicity, we'll prompt for this later
-            console.log('Two ability +1 selected - would need additional UI');
-          }
-        }
-      }
-    }
-    
-    // Add new features to character (this would need a proper feat/feature system)
-    // For now, just log them
-    if (levelUpData.newFeatures.length > 0) {
-      console.log('New features gained:', levelUpData.newFeatures);
-    }
-    
-    // Save character data to localStorage
-    localStorage.setItem('character_data', JSON.stringify($info));
-  }
 
-  function isOptionSelected(choiceIndex: number, option: string): boolean {
-    const choiceKey = `choice_${choiceIndex}`;
-    return selections[choiceKey]?.includes(option) || false;
-  }
-
-  function canSelectMore(choiceIndex: number): boolean {
-    const choice = levelUpData?.choices[choiceIndex];
-    if (!choice) return false;
-    
-    const choiceKey = `choice_${choiceIndex}`;
-    const selected = selections[choiceKey] || [];
-    return selected.length < choice.maxSelections;
+    window.dispatchEvent(new CustomEvent('playLevelUp'));
+    window.dispatchEvent(new CustomEvent('showFunnyText', {
+      detail: { text: `Level ${level} achieved! Glory awaits!`, category: 'levelUp' }
+    }));
+    window.dispatchEvent(new CustomEvent('showLevelUpAnimation', { detail: { level } }));
   }
 </script>
 
@@ -166,6 +126,10 @@
           <span class="gain-value">+1d{levelUpData.hitDiceGain.die}</span>
         </div>
         <div class="gain">
+          <span class="gain-label">Hit Points</span>
+          <span class="gain-value">+{hitPointGain}</span>
+        </div>
+        <div class="gain">
           <span class="gain-label">Proficiency Bonus</span>
           <span class="gain-value">+{levelUpData.proficiencyBonus}</span>
         </div>
@@ -175,7 +139,7 @@
         <section class="ward">
           <h3 class="ward-title">
             <span class="ward-mark"><Ornament name="quatrefoil" size="xs" tone="metal" /></span>
-            Spell Slot Progression
+            Spell Slots at Level {levelUpData.level}
           </h3>
           <div class="slots">
             {#each Object.entries(levelUpData.spellSlotChanges) as [level, slots]}
@@ -212,30 +176,31 @@
             Make Your Choices
           </h3>
 
-          {#each levelUpData.choices as choice, choiceIndex}
+          {#each levelUpData.choices as choice, index}
             <div class="choice">
               <div class="choice-head">
                 <h4 class="choice-title">{choice.title}</h4>
-                <span class="choice-count">
-                  {selections[`choice_${choiceIndex}`]?.length || 0} / {choice.maxSelections}
-                </span>
+                <span class="choice-count">{(picks[index] ?? []).length} / {choice.maxSelections}</span>
               </div>
               <p class="choice-note">{choice.description}</p>
 
-              <div class="options">
-                {#each choice.options as option}
-                  <button
-                    type="button"
-                    class="option"
-                    class:option-lit={isOptionSelected(choiceIndex, option)}
-                    aria-pressed={isOptionSelected(choiceIndex, option)}
-                    disabled={!canSelectMore(choiceIndex) && !isOptionSelected(choiceIndex, option)}
-                    onclick={() => handleChoiceSelection(choiceIndex, option, !isOptionSelected(choiceIndex, option))}
-                  >
-                    <span class="option-mark" aria-hidden="true"></span>
-                    <span class="option-text">{option}</span>
-                  </button>
+              <div class="raise">
+                {#each choice.options as id (id)}
+                  <Stat
+                    label={getTitle(id)}
+                    value={getScore(id) + getCount(index, id)}
+                    score={getCount(index, id) > 0 ? `+${getCount(index, id)}` : undefined}
+                    lit={getCount(index, id) > 0}
+                    title="Raise {getTitle(id)} by one"
+                    onclick={() => postPick(index, id)}
+                  />
                 {/each}
+              </div>
+
+              <div class="choice-acts">
+                <Button variant="ghost" size="sm" disabled={(picks[index] ?? []).length === 0} onclick={() => deletePicks(index)}>
+                  Clear
+                </Button>
               </div>
             </div>
           {/each}
@@ -259,7 +224,7 @@
 
       <footer class="actions">
         <Button variant="ghost" onclick={closeDialog}>Cancel</Button>
-        <Button variant="primary" onclick={confirmLevelUp}>Level Up!</Button>
+        <Button variant="primary" disabled={!levelled} onclick={confirmLevelUp}>Level Up!</Button>
       </footer>
     </div>
   </BaseDialog>
@@ -278,10 +243,10 @@
     gap: var(--space-6);
     justify-content: center;
     padding: var(--space-4);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    box-shadow: inset 0 2px 6px var(--shade-hard);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), var(--bevel-down), inset 0 0 16px 2px var(--shade-hard);
   }
 
   .gain {
@@ -294,45 +259,55 @@
   .gain-label {
     font-family: var(--font-display);
     font-size: var(--text-xs);
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .gain-value {
-    font-family: var(--font-display);
-    font-size: var(--text-lg);
+    font-family: var(--font-figures);
+    font-size: var(--text-xl);
     font-weight: 700;
-    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .ward {
-    --ward-rim: var(--metal-dim);
+    --ward-rim: var(--rim-thin);
     position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-4);
     background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--ward-rim);
-    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
-    box-shadow: inset 0 1px 0 var(--metal-edge);
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--ward-rim), inset 0 0 16px 2px var(--shade-hard);
   }
 
   .ward-title {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin: 0;
+    margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+    padding: var(--space-2) var(--space-4);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up), 0 3px 6px var(--shade);
     font-family: var(--font-display);
     font-size: var(--text-md);
     font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--metal-bright);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000, 0 0 2px #000;
   }
 
   .ward-mark {
@@ -340,25 +315,24 @@
     flex: none;
   }
 
-  .ward-boon {
-    --ward-rim: var(--verdigris-dim);
-  }
-
   .ward-boon .ward-title {
-    color: var(--verdigris);
+    color: var(--metal-bright);
   }
 
   .ward-bane {
-    --ward-rim: var(--state-bad);
+    --ward-rim:
+      inset 0 0 0 1px var(--keyline),
+      inset 0 0 0 2px var(--state-bad),
+      inset 0 0 0 3px var(--keyline);
   }
 
   .ward-bane .ward-title {
-    color: var(--state-bad);
+    color: color-mix(in srgb, var(--state-bad) 45%, var(--ink));
   }
 
   .slots {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(8.75rem, 100%), 1fr));
     gap: var(--space-2);
   }
 
@@ -368,9 +342,10 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
   }
 
   .slot-level {
@@ -379,9 +354,10 @@
   }
 
   .slot-count {
-    font-family: var(--font-display);
+    font-family: var(--font-figures);
     font-weight: 700;
-    color: var(--metal);
+    color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
   }
 
   .boons {
@@ -395,9 +371,11 @@
 
   .boon {
     padding: var(--space-3);
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
-    border: var(--border-hair) solid var(--verdigris-dim);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: none;
+    border: var(--border-hair) solid var(--verdigris);
     border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down), inset 0 0 0 1px color-mix(in srgb, var(--metal-dim) 55%, transparent);
   }
 
   .boon-name {
@@ -405,7 +383,8 @@
     margin-bottom: var(--space-1);
     font-family: var(--font-display);
     letter-spacing: var(--tracking-wide);
-    color: var(--ink);
+    color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
   }
 
   .boon-note {
@@ -420,9 +399,10 @@
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-3);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
   }
 
   .choice-head {
@@ -436,15 +416,18 @@
     margin: 0;
     font-family: var(--font-display);
     font-size: var(--text-sm);
-    letter-spacing: var(--tracking-wide);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .choice-count {
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--metal);
+    font-family: var(--font-figures);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--metal-bright);
   }
 
   .choice-note {
@@ -454,75 +437,27 @@
     font-size: var(--text-xs);
   }
 
-  .options {
+  .raise {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(7rem, 100%), 1fr));
     gap: var(--space-2);
   }
 
-  .option {
-    --option-rim: var(--metal-dim);
-    --option-light: transparent;
+  .choice-acts {
     display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3);
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
-    border: var(--border-hair) solid var(--option-rim);
-    border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md);
-    color: var(--ink);
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .option:hover:not(:disabled) {
-    --option-rim: var(--metal);
-    --option-light: var(--metal);
-  }
-
-  .option-lit {
-    --option-rim: var(--metal);
-    --option-light: var(--ember);
-    box-shadow: inset 0 0 20px -8px var(--ember-glow);
-  }
-
-  .option:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .option:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-
-  .option-mark {
-    flex: none;
-    width: 9px;
-    height: 9px;
-    transform: rotate(45deg);
-    background: var(--option-light);
-    border: var(--border-hair) solid var(--metal-dim);
-    box-shadow: 0 0 8px var(--option-light);
-    transition: background 0.15s ease;
-  }
-
-  .option-text {
-    flex: 1;
-    font-size: var(--text-sm);
+    justify-content: flex-end;
   }
 
   .banes {
     margin: 0;
     padding-inline-start: var(--space-5);
-    color: var(--state-bad);
+    color: color-mix(in srgb, var(--state-bad) 45%, var(--ink));
     font-size: var(--text-sm);
   }
 
   .key {
     display: block;
-    width: 220px;
+    width: min(14rem, 60%);
     margin: 0 auto;
     opacity: 0.75;
     pointer-events: none;
@@ -544,8 +479,8 @@
       gap: var(--space-3);
     }
 
-    .options {
-      grid-template-columns: 1fr;
+    .raise {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .actions {

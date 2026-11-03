@@ -1,0 +1,911 @@
+import type { Timestamp } from 'firebase/firestore'
+import { dropDoc } from './collab'
+import { campaignService } from './firestore.service'
+import type { Access, Campaign, Owner, Party } from './firestore.types'
+import { deleteFile, isStoredFile } from './storage.service'
+
+/** A label the writer added to the head, with the line written next to it. */
+export interface Fact {
+  label: string
+  value: string
+}
+
+/** The fields every resource carries, whatever it is. */
+export interface Resource extends Access {
+  id: string
+  title: string
+  description: string
+  tags: string[]
+  /** The writer's own labels, after the kind's fields. */
+  facts: Fact[]
+  images: string[]
+  /** The one picture chosen out of images. */
+  image: string
+  /** The traced surround the picture sits in, or none. */
+  frame: string
+  /** The block document the page is written in. */
+  content: string
+  /** Set on a resource that only gathers others on the roll. */
+  group: boolean
+  /** The group this one is gathered under, or none. */
+  group_id: string
+  /** The resource this one is a sub page of. */
+  parent_id: string
+  /** When it was written down, which is what orders a chronicle. */
+  created_at: Timestamp | null
+}
+
+export type Disposition = 'friendly' | 'neutral' | 'hostile' | 'unknown'
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'very rare' | 'legendary' | 'artifact'
+export type QuestState = 'active' | 'done' | 'abandoned'
+export type DamageKind =
+  | 'bludgeoning' | 'piercing' | 'slashing' | 'fire' | 'cold' | 'lightning' | 'necrotic' | 'radiant'
+export type ArmorWeight = 'light' | 'medium' | 'heavy' | 'shield'
+export type PlaceKind =
+  | 'region' | 'city' | 'town' | 'village' | 'keep' | 'tower' | 'dungeon' | 'cave' | 'ruin' | 'temple' | 'inn'
+
+/** A story entry or a note. */
+export interface Entry extends Resource {}
+
+/** An NPC of some kind. */
+export interface Character extends Resource {
+  role: string
+  disposition: Disposition
+  species: string
+}
+
+/** A playable character. */
+export interface Hero extends Resource {
+  player: string
+  class: string
+  species: string
+  level: number
+  /** The character sheet this page belongs to, or none yet. */
+  sheet_id: string
+}
+
+/** Any object that is not a weapon or armor. */
+export interface Item extends Resource {
+  category: string
+  rarity: Rarity
+  attunement: boolean
+  weight: number
+  value: number
+}
+
+export interface Weapon extends Resource {
+  damage: string
+  damage_kind: DamageKind
+  rarity: Rarity
+  reach: number
+  attunement: boolean
+  weight: number
+}
+
+export interface Armor extends Resource {
+  armor_class: number
+  category: ArmorWeight
+  rarity: Rarity
+  stealth_penalty: boolean
+  weight: number
+}
+
+/** Somewhere an encounter can happen. Always placed on a map. */
+export interface Place extends Resource {
+  category: PlaceKind
+  map_id: string
+}
+
+export interface Chart extends Resource {}
+
+/** A session played at the table. */
+export interface Session extends Resource {
+  number: number
+  played_at: string
+}
+
+export interface Quest extends Resource {
+  state: QuestState
+  level: number
+  giver: string
+}
+
+/**
+ * Everyone the share resolves to, written onto the resource so a list query can
+ * be constrained the same way the rule reads it. A campaign it names brings its
+ * dungeon master and players, a party it names brings its members, out of the
+ * campaigns and parties handed in.
+ */
+export function getReaders(
+  one: Access,
+  campaigns: Pick<Campaign, 'id' | 'dm_id' | 'player_ids'>[],
+  parties: Pick<Party, 'id' | 'member_ids'>[]
+): string[] {
+  const seated = campaigns
+    .filter((campaign) => one.share_campaigns.includes(campaign.id))
+    .flatMap((campaign) => [campaign.dm_id, ...campaign.player_ids])
+  const gathered = parties
+    .filter((party) => one.share_parties.includes(party.id))
+    .flatMap((party) => party.member_ids)
+
+  return [...new Set([one.owner_id, ...one.share_users, ...seated, ...gathered].filter(Boolean))]
+}
+
+type Stored = Record<string, unknown> & { id: string }
+
+function getShared(stored: Stored): Resource {
+  return {
+    id: stored.id,
+    title: String(stored.title ?? stored.name ?? 'Unnamed'),
+    description: String(stored.description ?? ''),
+    tags: Array.isArray(stored.tags) ? (stored.tags as string[]) : [],
+    facts: Array.isArray(stored.facts) ? (stored.facts as Fact[]) : [],
+    images: Array.isArray(stored.images) ? (stored.images as string[]) : [],
+    image: String(stored.image_url ?? ''),
+    frame: String(stored.frame ?? ''),
+    content: String(stored.body ?? ''),
+    parent_id: String(stored.parent_id ?? ''),
+    group: Boolean(stored.group),
+    group_id: String(stored.group_id ?? ''),
+    owner_id: String(stored.owner_id ?? ''),
+    share_campaigns: Array.isArray(stored.share_campaigns) ? (stored.share_campaigns as string[]) : [],
+    share_parties: Array.isArray(stored.share_parties) ? (stored.share_parties as string[]) : [],
+    share_users: Array.isArray(stored.share_users) ? (stored.share_users as string[]) : [],
+    readers: Array.isArray(stored.readers) ? (stored.readers as string[]) : [],
+    created_at: (stored.created_at as Timestamp | undefined) ?? null
+  }
+}
+
+function putShared(one: Partial<Resource>): Record<string, unknown> {
+  return {
+    title: one.title ?? '',
+    name: one.title ?? '',
+    description: one.description ?? '',
+    tags: one.tags ?? [],
+    facts: one.facts ?? [],
+    images: one.images ?? [],
+    image_url: one.image ?? '',
+    frame: one.frame ?? '',
+    body: one.content ?? '',
+    parent_id: one.parent_id ?? '',
+    group: one.group ?? false,
+    group_id: one.group_id ?? '',
+    owner_id: one.owner_id ?? '',
+    share_campaigns: one.share_campaigns ?? [],
+    share_parties: one.share_parties ?? [],
+    share_users: one.share_users ?? [],
+    readers: one.readers ?? []
+  }
+}
+
+// Entries
+
+export async function getEntries(owner: Owner): Promise<Entry[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'entries')
+  return stored.map((one) => ({ ...getShared(one) }))
+}
+
+export function postEntry(owner: Owner, one: Partial<Entry>): Promise<string> {
+  return campaignService.postPart(owner, 'entries', putShared(one))
+}
+
+export function putEntry(owner: Owner, id: string, one: Partial<Entry>): Promise<void> {
+  return campaignService.putPart(owner, 'entries', id, putShared(one))
+}
+
+// Characters
+
+export async function getCharacters(owner: Owner): Promise<Character[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'npcs')
+  return stored.map((one) => ({
+    ...getShared(one),
+    role: String(one.role ?? ''),
+    disposition: (one.disposition as Disposition) ?? 'unknown',
+    species: String(one.species ?? '')
+  }))
+}
+
+export function postCharacter(owner: Owner, one: Partial<Character>): Promise<string> {
+  return campaignService.postPart(owner, 'npcs', {
+    ...putShared(one),
+    role: one.role ?? '',
+    disposition: one.disposition ?? 'unknown',
+    species: one.species ?? ''
+  })
+}
+
+export function putCharacter(owner: Owner, id: string, one: Partial<Character>): Promise<void> {
+  return campaignService.putPart(owner, 'npcs', id, {
+    ...putShared(one),
+    role: one.role ?? '',
+    disposition: one.disposition ?? 'unknown',
+    species: one.species ?? ''
+  })
+}
+
+// Heroes
+
+export async function getHeroes(owner: Owner): Promise<Hero[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'heroes')
+  return stored.map((one) => ({
+    ...getShared(one),
+    player: String(one.player ?? ''),
+    class: String(one.class ?? ''),
+    species: String(one.species ?? ''),
+    level: Number(one.level ?? 1),
+    sheet_id: String(one.sheet_id ?? '')
+  }))
+}
+
+export function postHero(owner: Owner, one: Partial<Hero>): Promise<string> {
+  return campaignService.postPart(owner, 'heroes', {
+    ...putShared(one),
+    player: one.player ?? '',
+    class: one.class ?? '',
+    species: one.species ?? '',
+    level: one.level ?? 1,
+    sheet_id: one.sheet_id ?? ''
+  })
+}
+
+export function putHero(owner: Owner, id: string, one: Partial<Hero>): Promise<void> {
+  return campaignService.putPart(owner, 'heroes', id, {
+    ...putShared(one),
+    player: one.player ?? '',
+    class: one.class ?? '',
+    species: one.species ?? '',
+    level: one.level ?? 1,
+    sheet_id: one.sheet_id ?? ''
+  })
+}
+
+// Items
+
+export async function getItems(owner: Owner): Promise<Item[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'items')
+  return stored.map((one) => ({
+    ...getShared(one),
+    category: String(one.category ?? ''),
+    rarity: (one.rarity as Rarity) ?? 'common',
+    attunement: Boolean(one.attunement),
+    weight: Number(one.weight ?? 0),
+    value: Number(one.value ?? 0)
+  }))
+}
+
+export function postItem(owner: Owner, one: Partial<Item>): Promise<string> {
+  return campaignService.postPart(owner, 'items', {
+    ...putShared(one),
+    category: one.category ?? '',
+    rarity: one.rarity ?? 'common',
+    attunement: one.attunement ?? false,
+    weight: one.weight ?? 0,
+    value: one.value ?? 0
+  })
+}
+
+export function putItem(owner: Owner, id: string, one: Partial<Item>): Promise<void> {
+  return campaignService.putPart(owner, 'items', id, {
+    ...putShared(one),
+    category: one.category ?? '',
+    rarity: one.rarity ?? 'common',
+    attunement: one.attunement ?? false,
+    weight: one.weight ?? 0,
+    value: one.value ?? 0
+  })
+}
+
+// Weapons
+
+export async function getWeapons(owner: Owner): Promise<Weapon[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'weapons')
+  return stored.map((one) => ({
+    ...getShared(one),
+    damage: String(one.damage ?? ''),
+    damage_kind: (one.damage_kind as DamageKind) ?? 'slashing',
+    rarity: (one.rarity as Rarity) ?? 'common',
+    reach: Number(one.reach ?? 5),
+    attunement: Boolean(one.attunement),
+    weight: Number(one.weight ?? 0)
+  }))
+}
+
+export function postWeapon(owner: Owner, one: Partial<Weapon>): Promise<string> {
+  return campaignService.postPart(owner, 'weapons', {
+    ...putShared(one),
+    damage: one.damage ?? '',
+    damage_kind: one.damage_kind ?? 'slashing',
+    rarity: one.rarity ?? 'common',
+    reach: one.reach ?? 5,
+    attunement: one.attunement ?? false,
+    weight: one.weight ?? 0
+  })
+}
+
+export function putWeapon(owner: Owner, id: string, one: Partial<Weapon>): Promise<void> {
+  return campaignService.putPart(owner, 'weapons', id, {
+    ...putShared(one),
+    damage: one.damage ?? '',
+    damage_kind: one.damage_kind ?? 'slashing',
+    rarity: one.rarity ?? 'common',
+    reach: one.reach ?? 5,
+    attunement: one.attunement ?? false,
+    weight: one.weight ?? 0
+  })
+}
+
+// Armor
+
+export async function getArmor(owner: Owner): Promise<Armor[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'armor')
+  return stored.map((one) => ({
+    ...getShared(one),
+    armor_class: Number(one.armor_class ?? 10),
+    category: (one.category as ArmorWeight) ?? 'light',
+    rarity: (one.rarity as Rarity) ?? 'common',
+    stealth_penalty: Boolean(one.stealth_penalty),
+    weight: Number(one.weight ?? 0)
+  }))
+}
+
+export function postArmor(owner: Owner, one: Partial<Armor>): Promise<string> {
+  return campaignService.postPart(owner, 'armor', {
+    ...putShared(one),
+    armor_class: one.armor_class ?? 10,
+    category: one.category ?? 'light',
+    rarity: one.rarity ?? 'common',
+    stealth_penalty: one.stealth_penalty ?? false,
+    weight: one.weight ?? 0
+  })
+}
+
+export function putArmor(owner: Owner, id: string, one: Partial<Armor>): Promise<void> {
+  return campaignService.putPart(owner, 'armor', id, {
+    ...putShared(one),
+    armor_class: one.armor_class ?? 10,
+    category: one.category ?? 'light',
+    rarity: one.rarity ?? 'common',
+    stealth_penalty: one.stealth_penalty ?? false,
+    weight: one.weight ?? 0
+  })
+}
+
+// Places
+
+export async function getPlaces(owner: Owner): Promise<Place[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'locations')
+  return stored.map((one) => ({
+    ...getShared(one),
+    category: (one.category as PlaceKind) ?? (one.kind as PlaceKind) ?? 'region',
+    map_id: String(one.map_id ?? '')
+  }))
+}
+
+export function postPlace(owner: Owner, one: Partial<Place>): Promise<string> {
+  return campaignService.postPart(owner, 'locations', {
+    ...putShared(one),
+    category: one.category ?? 'region',
+    kind: one.category ?? 'region',
+    map_id: one.map_id ?? ''
+  })
+}
+
+export function putPlace(owner: Owner, id: string, one: Partial<Place>): Promise<void> {
+  return campaignService.putPart(owner, 'locations', id, {
+    ...putShared(one),
+    category: one.category ?? 'region',
+    kind: one.category ?? 'region',
+    map_id: one.map_id ?? ''
+  })
+}
+
+// Charts, the maps a campaign holds
+
+export async function getCharts(owner: Owner): Promise<Chart[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'maps')
+  return stored.map((one) => ({ ...getShared(one) }))
+}
+
+export function postChart(owner: Owner, one: Partial<Chart>): Promise<string> {
+  return campaignService.postPart(owner, 'maps', putShared(one))
+}
+
+export function putChart(owner: Owner, id: string, one: Partial<Chart>): Promise<void> {
+  return campaignService.putPart(owner, 'maps', id, putShared(one))
+}
+
+// Sessions
+
+export async function getSessions(owner: Owner): Promise<Session[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'sessions')
+  return stored.map((one) => ({
+    ...getShared(one),
+    number: Number(one.number ?? 0),
+    played_at: String(one.played_at ?? '')
+  }))
+}
+
+export function postSession(owner: Owner, one: Partial<Session>): Promise<string> {
+  return campaignService.postPart(owner, 'sessions', {
+    ...putShared(one),
+    number: one.number ?? 0,
+    played_at: one.played_at ?? ''
+  })
+}
+
+export function putSession(owner: Owner, id: string, one: Partial<Session>): Promise<void> {
+  return campaignService.putPart(owner, 'sessions', id, {
+    ...putShared(one),
+    number: one.number ?? 0,
+    played_at: one.played_at ?? ''
+  })
+}
+
+// Quests
+
+export async function getQuests(owner: Owner): Promise<Quest[]> {
+  const stored = await campaignService.getPart<Stored>(owner, 'quests')
+  return stored.map((one) => ({
+    ...getShared(one),
+    state: (one.state as QuestState) ?? 'active',
+    level: Number(one.level ?? 1),
+    giver: String(one.giver ?? '')
+  }))
+}
+
+export function postQuest(owner: Owner, one: Partial<Quest>): Promise<string> {
+  return campaignService.postPart(owner, 'quests', {
+    ...putShared(one),
+    state: one.state ?? 'active',
+    level: one.level ?? 1,
+    giver: one.giver ?? ''
+  })
+}
+
+export function putQuest(owner: Owner, id: string, one: Partial<Quest>): Promise<void> {
+  return campaignService.putPart(owner, 'quests', id, {
+    ...putShared(one),
+    state: one.state ?? 'active',
+    level: one.level ?? 1,
+    giver: one.giver ?? ''
+  })
+}
+
+// What a page needs to draw a resource it was handed by name
+
+export type ResourceKind =
+  | 'entries' | 'characters' | 'heroes' | 'items' | 'weapons' | 'armor' | 'places' | 'maps' | 'quests'
+  | 'sessions'
+
+export type FieldForm = 'text' | 'number' | 'choice' | 'flag'
+
+export interface ResourceField {
+  key: string
+  label: string
+  form: FieldForm
+  choices?: readonly string[]
+}
+
+export interface ResourceShape {
+  /** The collection it is stored in, which is the old name for characters and places. */
+  part: string
+  one: string
+  many: string
+  fields: readonly ResourceField[]
+  /** The one fact that tells this type apart, written on the card wherever it is drawn. */
+  mark: (one: Resource) => string
+  /** The page a new one opens with, written as markdown the block editor parses. */
+  example: string
+}
+
+const EXAMPLES: Record<ResourceKind, string> = {
+  entries: `## What this is
+
+A note, a rumour, a scrap of lore. Write it however it is useful.
+
+> "The old road is closed. Nobody says why."
+
+- Where it came from
+- Who repeats it
+- What it would cost to check`,
+
+  characters: `## At a glance
+
+Write the one line you would say at the table.
+
+## What they want
+
+The thing they are chasing, and what they will trade for it.
+
+## What they know
+
+- Something the party can get out of them
+- Something they will lie about
+
+## Voice
+
+> "Say that again, slower."`,
+
+  heroes: `## Who they are
+
+A line on where they come from and why they are here.
+
+## Bonds
+
+- Who they owe
+- Who they would cross the map for
+
+## Flaws
+
+The thing that gets them into trouble.
+
+## Notes between sessions
+
+Kept here so nothing is lost between one night and the next.`,
+
+  items: `## What it is
+
+The plain description, before anyone identifies it.
+
+## What it does
+
+- The effect, written the way it is read at the table
+- What it costs to use
+
+## Where it came from
+
+> Found in the silt under Duskin Keep.`,
+
+  weapons: `## What it is
+
+How it looks and how it feels to hold.
+
+## In a fight
+
+- The attack, and what it does on a hit
+- What it does on a critical
+- What it will not do
+
+## History
+
+Who carried it before, and how they lost it.`,
+
+  armor: `## What it is
+
+The make of it, and what it is worth to look at.
+
+## Wearing it
+
+- What it turns aside
+- What it makes harder
+- How long it takes to get into
+
+## History
+
+The battle it came out of.`,
+
+  places: `## What you see
+
+The first thing a traveller notices coming in.
+
+## Who is here
+
+- The one who speaks for the place
+- The one who will not
+
+## What is going on
+
+The trouble under the surface.
+
+## If the party digs
+
+> Something they were not meant to find.`,
+
+  maps: `## What it charts
+
+The ground this map covers, and the edge where it stops.
+
+## Marks on it
+
+- What the pins mean
+- What is drawn wrong on purpose
+
+## Who made it
+
+And why it should not be trusted.`,
+
+  sessions: `## What happened
+
+The run of play, in the order it happened.
+
+## Decisions
+
+- What the party chose
+- What it cost
+
+## Left open
+
+Threads to pick up next time.
+
+## Loot`,
+
+  quests: `## The ask
+
+Who wants it done, and what they say they want.
+
+## The truth
+
+What is actually going on. The party does not have this yet.
+
+## Steps
+
+1. What starts it
+2. What complicates it
+3. What ends it
+
+## Reward
+
+> Promised, and actual.`
+}
+
+export const RESOURCES: Record<ResourceKind, ResourceShape> = {
+  entries: { part: 'entries', one: 'Entry', many: 'Entries', fields: [], mark: () => '', example: EXAMPLES.entries },
+  characters: {
+    part: 'npcs',
+    one: 'Character',
+    many: 'Characters',
+    fields: [
+      { key: 'role', label: 'Role', form: 'text' },
+      { key: 'disposition', label: 'Disposition', form: 'choice', choices: ['friendly', 'neutral', 'hostile', 'unknown'] },
+      { key: 'species', label: 'Species', form: 'text' }
+    ],
+    mark: (one) => (one as Character).role || (one as Character).disposition,
+    example: EXAMPLES.characters
+  },
+  heroes: {
+    part: 'heroes',
+    one: 'Hero',
+    many: 'Heroes',
+    fields: [
+      { key: 'player', label: 'Played by', form: 'text' },
+      { key: 'class', label: 'Class', form: 'text' },
+      { key: 'species', label: 'Species', form: 'text' },
+      { key: 'level', label: 'Level', form: 'number' }
+    ],
+    mark: (one) => `Lv ${(one as Hero).level} ${(one as Hero).class}`.trim(),
+    example: EXAMPLES.heroes
+  },
+  items: {
+    part: 'items',
+    one: 'Item',
+    many: 'Items',
+    fields: [
+      { key: 'category', label: 'Kind', form: 'text' },
+      { key: 'rarity', label: 'Rarity', form: 'choice', choices: ['common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'] },
+      { key: 'attunement', label: 'Needs attunement', form: 'flag' },
+      { key: 'weight', label: 'Weight', form: 'number' },
+      { key: 'value', label: 'Worth in gold', form: 'number' }
+    ],
+    mark: (one) => (one as Item).rarity,
+    example: EXAMPLES.items
+  },
+  weapons: {
+    part: 'weapons',
+    one: 'Weapon',
+    many: 'Weapons',
+    fields: [
+      { key: 'damage', label: 'Damage', form: 'text' },
+      { key: 'damage_kind', label: 'Damage kind', form: 'choice', choices: ['bludgeoning', 'piercing', 'slashing', 'fire', 'cold', 'lightning', 'necrotic', 'radiant'] },
+      { key: 'rarity', label: 'Rarity', form: 'choice', choices: ['common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'] },
+      { key: 'reach', label: 'Reach in feet', form: 'number' },
+      { key: 'attunement', label: 'Needs attunement', form: 'flag' },
+      { key: 'weight', label: 'Weight', form: 'number' }
+    ],
+    mark: (one) => (one as Weapon).damage,
+    example: EXAMPLES.weapons
+  },
+  armor: {
+    part: 'armor',
+    one: 'Armor',
+    many: 'Armor',
+    fields: [
+      { key: 'armor_class', label: 'Armor class', form: 'number' },
+      { key: 'category', label: 'Weight class', form: 'choice', choices: ['light', 'medium', 'heavy', 'shield'] },
+      { key: 'rarity', label: 'Rarity', form: 'choice', choices: ['common', 'uncommon', 'rare', 'very rare', 'legendary', 'artifact'] },
+      { key: 'stealth_penalty', label: 'Hinders stealth', form: 'flag' },
+      { key: 'weight', label: 'Weight', form: 'number' }
+    ],
+    mark: (one) => `AC ${(one as Armor).armor_class}`,
+    example: EXAMPLES.armor
+  },
+  places: {
+    part: 'locations',
+    one: 'Place',
+    many: 'Places',
+    fields: [
+      { key: 'category', label: 'Kind', form: 'choice', choices: ['region', 'city', 'town', 'village', 'keep', 'tower', 'dungeon', 'cave', 'ruin', 'temple', 'inn'] },
+      { key: 'map_id', label: 'On the map', form: 'text' }
+    ],
+    mark: (one) => (one as Place).category,
+    example: EXAMPLES.places
+  },
+  maps: { part: 'maps', one: 'Map', many: 'Maps', fields: [], mark: () => '', example: EXAMPLES.maps },
+  sessions: {
+    part: 'sessions',
+    one: 'Session',
+    many: 'Sessions',
+    fields: [
+      { key: 'number', label: 'Number', form: 'number' },
+      { key: 'played_at', label: 'Played on', form: 'text' }
+    ],
+    mark: (one) => `Session ${(one as Session).number}`,
+    example: EXAMPLES.sessions
+  },
+  quests: {
+    part: 'quests',
+    one: 'Quest',
+    many: 'Quests',
+    fields: [
+      { key: 'state', label: 'State', form: 'choice', choices: ['active', 'done', 'abandoned'] },
+      { key: 'level', label: 'Level', form: 'number' },
+      { key: 'giver', label: 'Given by', form: 'text' }
+    ],
+    mark: (one) => (one as Quest).state,
+    example: EXAMPLES.quests
+  }
+}
+
+export function isResourceKind(value: string | undefined): value is ResourceKind {
+  return Boolean(value && value in RESOURCES)
+}
+
+/** A fresh resource of a kind, owned by whoever is writing it, opened on the kind's example page. */
+export function getBlank(kind: ResourceKind, ownerId: string): Record<string, unknown> & Resource {
+  return {
+    id: '',
+    title: '',
+    description: '',
+    tags: [],
+    facts: [],
+    images: [],
+    image: '',
+    frame: '',
+    content: RESOURCES[kind].example,
+    parent_id: '',
+    group: false,
+    group_id: '',
+    owner_id: ownerId,
+    share_campaigns: [],
+    share_parties: [],
+    share_users: [],
+    readers: [],
+    created_at: null
+  }
+}
+
+/** Reads whichever resource the address named. */
+export async function getAll(owner: Owner, kind: ResourceKind, groups = false): Promise<Resource[]> {
+  const all = await getEvery(owner, kind)
+  return all.filter((one) => one.group === groups)
+}
+
+export function getEvery(owner: Owner, kind: ResourceKind): Promise<Resource[]> {
+  if (kind === 'entries') return getEntries(owner)
+  if (kind === 'characters') return getCharacters(owner)
+  if (kind === 'heroes') return getHeroes(owner)
+  if (kind === 'items') return getItems(owner)
+  if (kind === 'weapons') return getWeapons(owner)
+  if (kind === 'armor') return getArmor(owner)
+  if (kind === 'places') return getPlaces(owner)
+  if (kind === 'maps') return getCharts(owner)
+  if (kind === 'sessions') return getSessions(owner)
+  return getQuests(owner)
+}
+
+export function postOne(owner: Owner, kind: ResourceKind, one: Record<string, unknown>): Promise<string> {
+  if (kind === 'entries') return postEntry(owner, one)
+  if (kind === 'characters') return postCharacter(owner, one)
+  if (kind === 'heroes') return postHero(owner, one)
+  if (kind === 'items') return postItem(owner, one)
+  if (kind === 'weapons') return postWeapon(owner, one)
+  if (kind === 'armor') return postArmor(owner, one)
+  if (kind === 'places') return postPlace(owner, one)
+  if (kind === 'maps') return postChart(owner, one)
+  if (kind === 'sessions') return postSession(owner, one)
+  return postQuest(owner, one)
+}
+
+export function putOne(
+  owner: Owner,
+  kind: ResourceKind,
+  id: string,
+  one: Record<string, unknown>
+): Promise<void> {
+  if (kind === 'entries') return putEntry(owner, id, one)
+  if (kind === 'characters') return putCharacter(owner, id, one)
+  if (kind === 'heroes') return putHero(owner, id, one)
+  if (kind === 'items') return putItem(owner, id, one)
+  if (kind === 'weapons') return putWeapon(owner, id, one)
+  if (kind === 'armor') return putArmor(owner, id, one)
+  if (kind === 'places') return putPlace(owner, id, one)
+  if (kind === 'maps') return putChart(owner, id, one)
+  if (kind === 'sessions') return putSession(owner, id, one)
+  return putQuest(owner, id, one)
+}
+
+/**
+ * Removes a resource with everything that hangs off it: the shared document it is
+ * written in and the stored pictures it carries. The updates go first, because the
+ * rule that lets them go reads the resource they sit under.
+ */
+export async function deleteOne(owner: Owner, kind: ResourceKind, one: Resource): Promise<void> {
+  const part = RESOURCES[kind].part
+  await dropDoc(owner, part, one.id)
+  await Promise.all([...new Set([one.image, ...one.images])].filter(isStoredFile).map((address) => deleteFile(address)))
+  await campaignService.deletePart(owner, part, one.id)
+}
+
+/** Removes every resource of every kind the owner holds that ownerId wrote, which a campaign does before it is deleted. */
+export async function deleteResources(owner: Owner, ownerId: string): Promise<number> {
+  const kinds = Object.keys(RESOURCES) as ResourceKind[]
+  const rolls = await Promise.all(kinds.map((kind) => getEvery(owner, kind)))
+  const held = kinds.flatMap((kind, index) =>
+    rolls[index].filter((one) => one.owner_id === ownerId).map((one) => ({ kind, one }))
+  )
+
+  await Promise.all(held.map((entry) => deleteOne(owner, entry.kind, entry.one)))
+  return held.length
+}
+
+/**
+ * Writes readers again on every resource ownerId holds under the owners, after a
+ * campaign or party changed who sits in it. Only the owner may write a resource,
+ * so what someone else shared stays as they wrote it until they save it again.
+ */
+export async function putReaders(
+  owners: Owner[],
+  ownerId: string,
+  campaigns: Pick<Campaign, 'id' | 'dm_id' | 'player_ids'>[],
+  parties: Pick<Party, 'id' | 'member_ids'>[]
+): Promise<number> {
+  const kinds = Object.keys(RESOURCES) as ResourceKind[]
+  let written = 0
+
+  for (const owner of owners) {
+    const rolls = await Promise.all(kinds.map((kind) => getEvery(owner, kind)))
+
+    for (const [index, kind] of kinds.entries()) {
+      for (const one of rolls[index]) {
+        if (one.owner_id !== ownerId) continue
+        const readers = getReaders(one, campaigns, parties)
+        if ([...readers].sort().join() === [...one.readers].sort().join()) continue
+        await putOne(owner, kind, one.id, { ...one, readers })
+        written += 1
+      }
+    }
+  }
+
+  return written
+}
+
+export function getChildren(all: Resource[], parentId: string): Resource[] {
+  return all.filter((one) => one.parent_id === parentId)
+}
+
+export function getRoots(all: Resource[]): Resource[] {
+  return all.filter((one) => !one.parent_id || !all.some((other) => other.id === one.parent_id))
+}
+
+/** Walks a page up to its root so a breadcrumb can be drawn. */
+export function getTrail(all: Resource[], id: string): Resource[] {
+  const walk: Resource[] = []
+  let step = all.find((one) => one.id === id) ?? null
+
+  while (step && !walk.some((one) => one.id === step!.id)) {
+    const here: Resource = step
+    walk.unshift(here)
+    step = all.find((one) => one.id === here.parent_id) ?? null
+  }
+
+  return walk
+}

@@ -5,7 +5,7 @@ depends: [115, 140]
 relations: [127]
 title: The portrait frame set gains the complex gothic frame designs
 type: epic
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,8 +15,10 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-05T16:22:55Z
-updated_at: 2026-09-07T10:53:27Z
+updated_at: 2026-09-08T09:39:45Z
 questions: []
+scope: [src/components/ui/Portrait.svelte, src/components/FrameDialog.svelte]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

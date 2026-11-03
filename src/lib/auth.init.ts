@@ -11,7 +11,6 @@ import {
 } from './stores/auth.store';
 import { 
   userCharacters, 
-  currentCharacter, 
   currentCharacterId
 } from './stores/character.store';
 import { 
@@ -66,7 +65,6 @@ export function initializeAuth() {
         
         userCharacters.set([]);
         userCampaigns.set([]);
-        currentCharacter.set(null);
         currentCharacterId.set(null);
         currentCampaign.set(null);
         currentCampaignId.set(null);

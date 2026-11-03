@@ -58,7 +58,7 @@
     --field-brace: var(--metal);
     --field-light: transparent;
     --field-line: color-mix(in srgb, var(--metal-edge) 55%, transparent);
-    --field-cusp: 11px;
+    --field-cusp: 0.7rem;
   }
 
   .dnd-field-label {
@@ -71,16 +71,18 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-field-label::before {
     content: '';
     flex: none;
-    width: 5px;
-    height: 5px;
+    width: 0.34rem;
+    height: 0.34rem;
     transform: rotate(45deg);
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
+    background: linear-gradient(135deg, var(--metal-bright), var(--metal-dim));
+    box-shadow: 0 0 0 1px var(--keyline);
   }
 
   .dnd-field-required {
@@ -129,11 +131,10 @@
     position: absolute;
     top: 50%;
     right: var(--space-3);
-    width: 9px;
-    height: 9px;
+    width: 0.56rem;
+    height: 0.56rem;
     transform: translateY(-50%) rotate(45deg);
     border: var(--border-hair) solid var(--field-light);
-    border-radius: 0 var(--radius-sm) 0 var(--radius-sm);
     background: color-mix(in srgb, var(--field-light) 35%, transparent);
     box-shadow: 0 0 8px var(--field-light);
     pointer-events: none;
@@ -169,11 +170,12 @@
   .dnd-field :global(select) {
     width: 100%;
     padding: var(--space-3) var(--space-4);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--field-rim);
     border-radius: var(--radius-sm);
     box-shadow:
-      inset 0 0 0 var(--border-hair) var(--ground-deep),
+      var(--bevel-down),
+      inset 0 0 0 var(--border-hair) var(--keyline),
       inset 0 0 0 calc(var(--border-hair) * 2) var(--field-line),
       inset 0 3px 8px var(--shade-hard);
     color: var(--ink);
@@ -185,7 +187,7 @@
 
   .dnd-field :global(textarea) {
     resize: vertical;
-    min-height: 96px;
+    min-height: 6rem;
   }
 
   .dnd-field :global(input::placeholder),
@@ -205,7 +207,8 @@
     outline: none;
     border-color: var(--metal-bright);
     box-shadow:
-      inset 0 0 0 var(--border-hair) var(--ground-deep),
+      var(--bevel-down),
+      inset 0 0 0 var(--border-hair) var(--keyline),
       inset 0 0 0 calc(var(--border-hair) * 2) var(--metal),
       inset 0 3px 8px var(--shade-hard),
       var(--glow-metal);

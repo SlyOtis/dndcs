@@ -18,11 +18,12 @@ const FLOOR_PREFIX = 'floor:'
 const BLOB_PREFIX = 'blob:'
 const DB_NAME = 'dndcs-files'
 const STORE_NAME = 'files'
-const PATH_STORE = 'places'
+const MEDIA_ROOT = '/media/'
 const MAX_EDGE = 1600
 const WEBP_QUALITY = 0.82
 const CHUNK_BYTES = 500_000
 const BLOCK_BYTES = 65_536
+const NO_STORE = 'The media store is not here. Full size media needs the local client: clone the repo and run just dev.'
 
 export type UploadScope =
   | { kind: 'user' }
@@ -74,7 +75,6 @@ function getDatabase(): Promise<IDBDatabase> {
     request.onupgradeneeded = () => {
       const database = request.result
       if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME)
-      if (!database.objectStoreNames.contains(PATH_STORE)) database.createObjectStore(PATH_STORE)
     }
 
     request.onsuccess = () => {
@@ -100,18 +100,6 @@ function runTransaction<T>(
   )
 }
 
-export async function getFilePlace(address: string): Promise<FilePlace | null> {
-  return (await runTransaction<FilePlace | undefined>(PATH_STORE, 'readonly', (store) => store.get(address))) ?? null
-}
-
-async function putFilePlace(address: string, place: FilePlace): Promise<void> {
-  await runTransaction(PATH_STORE, 'readwrite', (store) => store.put(place, address))
-}
-
-export async function deleteFilePlace(address: string): Promise<void> {
-  await runTransaction(PATH_STORE, 'readwrite', (store) => store.delete(address))
-}
-
 export function isLocalFile(address: string): boolean {
   return address.startsWith(LOCAL_PREFIX)
 }
@@ -128,19 +116,30 @@ export function isStoredFile(address: string): boolean {
   return isLocalFile(address) || isFileRecord(address)
 }
 
-export async function getMediaBlob(address: string): Promise<Blob | null> {
-  return (await runTransaction<Blob | undefined>(STORE_NAME, 'readonly', (store) => store.get(address))) ?? null
+export function getMediaUrl(address: string): string {
+  const path = address.slice(isLocalFile(address) ? LOCAL_PREFIX.length : FILE_PREFIX.length)
+  return MEDIA_ROOT + path.split('/').map(encodeURIComponent).join('/')
 }
 
-export async function postMediaFile(address: string, file: Blob, etag: string): Promise<string> {
-  await runTransaction(STORE_NAME, 'readwrite', (store) => store.put(file, address))
-  await putFilePlace(address, { etag, size: file.size })
+async function getMediaResponse(address: string, init: RequestInit): Promise<Response> {
+  const answer = await fetch(getMediaUrl(address), init).catch(() => null)
+  if (!answer?.headers.get('x-media-store')) throw new UploadError(NO_STORE)
+  return answer
+}
+
+export async function getFilePlace(address: string): Promise<FilePlace | null> {
+  const answer = await getMediaResponse(address, { method: 'HEAD', cache: 'no-store', headers: { 'X-Media-Probe': '1' } })
+  if (answer.status !== 200) return null
+
+  return { etag: answer.headers.get('etag') ?? '', size: Number(answer.headers.get('content-length') ?? 0) }
+}
+
+export async function postMediaFile(address: string, file: Blob): Promise<string> {
+  const answer = await getMediaResponse(address, { method: 'PUT', body: file })
+  const etag = answer.headers.get('etag')
+  if (!answer.ok || !etag) throw new UploadError(`The media store refused the file (${answer.status}).`)
 
   return etag
-}
-
-export function getRecordTag(record: FileRecord): Promise<string> {
-  return getBlockHash(new TextEncoder().encode(record.blocks.join('')).buffer as ArrayBuffer)
 }
 
 export async function getFileRecord(address: string): Promise<FileRecord | null> {
@@ -176,15 +175,13 @@ export async function getBlockRange(
   const end = Math.min(start + record.block_size, record.size)
   if (start >= end) return null
 
-  const blob = await getMediaBlob(address)
-  if (!blob) return null
-
-  return blob.slice(start, end).arrayBuffer()
+  const answer = await getMediaResponse(address, { headers: { Range: `bytes=${start}-${end - 1}` } }).catch(() => null)
+  return answer?.status === 206 ? answer.arrayBuffer() : null
 }
 
 export async function getHeldBlocks(address: string, record: FileRecord): Promise<number[] | 'all'> {
-  const place = await getFilePlace(address)
-  return place?.size === record.size ? 'all' : []
+  const place = await getFilePlace(address).catch(() => null)
+  return place?.etag === record.etag ? 'all' : []
 }
 
 async function getScaledFile(file: File): Promise<File> {
@@ -230,13 +227,12 @@ function getBytes(text: string): ArrayBuffer {
 async function postFileRecord(
   file: File,
   floor: File | null,
-  scope: UploadScope,
+  path: string,
   etag: string,
   blocks: string[]
 ): Promise<string> {
   const bytes = floor ? new Uint8Array(await floor.arrayBuffer()) : new Uint8Array()
   const count = floor ? Math.ceil(bytes.length / CHUNK_BYTES) : 0
-  const path = getRecordPath(scope, file.name)
   const batch = writeBatch(db)
 
   const record: FileRecord = {
@@ -276,51 +272,48 @@ async function getFloorBlob(address: string, record: FileRecord): Promise<Blob |
 }
 
 function pullOriginal(address: string, record: FileRecord): void {
-  getSwarmFile(address, record).then(async (pulled) => {
-    if (pulled) await postMediaFile(address, pulled, await getRecordTag(record))
-  })
+  getSwarmFile(address, record)
+    .then((pulled) => (pulled ? postMediaFile(address, pulled) : null))
+    .catch(() => undefined)
 }
 
 export async function getFileUrl(address: string): Promise<string> {
   if (isDeadFile(address)) return ''
   if (!isStoredFile(address)) return address
 
-  if (isLocalFile(address)) {
-    const legacy = await runTransaction<Blob | undefined>(STORE_NAME, 'readonly', (store) =>
-      store.get(address.slice(LOCAL_PREFIX.length))
-    )
-    return legacy ? URL.createObjectURL(legacy) : ''
-  }
+  const place = await getFilePlace(address).catch(() => undefined)
+  const hosted = place === undefined
+  if (place) return getMediaUrl(address)
 
-  const original = await getMediaBlob(address)
-  if (original) return URL.createObjectURL(original)
+  if (isLocalFile(address)) {
+    if (hosted) throw new UploadError(NO_STORE)
+    return ''
+  }
 
   const record = await getFileRecord(address)
   if (!record) return ''
 
   if (!record.count) {
+    if (hosted) throw new UploadError(NO_STORE)
+
     const pulled = await getSwarmFile(address, record)
     if (!pulled) return ''
 
-    await postMediaFile(address, pulled, await getRecordTag(record))
-    return URL.createObjectURL(pulled)
+    await postMediaFile(address, pulled)
+    return getMediaUrl(address)
   }
+
+  if (!hosted) pullOriginal(address, record)
 
   const kept = await runTransaction<Blob | undefined>(STORE_NAME, 'readonly', (store) =>
     store.get(FLOOR_PREFIX + address)
   )
-
-  if (kept) {
-    pullOriginal(address, record)
-    return URL.createObjectURL(kept)
-  }
+  if (kept) return URL.createObjectURL(kept)
 
   const floor = await getFloorBlob(address, record)
   if (!floor) return ''
 
   await runTransaction(STORE_NAME, 'readwrite', (store) => store.put(floor, FLOOR_PREFIX + address))
-  pullOriginal(address, record)
-
   return URL.createObjectURL(floor)
 }
 
@@ -336,23 +329,15 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
   }
 
   const floor = file.type.startsWith('image/') ? await getScaledFile(file) : null
-
   const blocks = await getBlockHashes(file)
-  const etag = await getBlockHash(new TextEncoder().encode(blocks.join('')).buffer as ArrayBuffer)
+  const path = getRecordPath(scope, file.name)
+  const etag = await postMediaFile(FILE_PREFIX + path, file)
 
-  const address = await postFileRecord(file, floor, scope, etag, blocks)
-  await postMediaFile(address, file, etag)
-
-  return address
+  return postFileRecord(file, floor, path, etag, blocks)
 }
 
 
 export async function deleteFile(address: string): Promise<void> {
-  if (isLocalFile(address)) {
-    await runTransaction(STORE_NAME, 'readwrite', (store) => store.delete(address.slice(LOCAL_PREFIX.length)))
-    return
-  }
-
   if (isFileRecord(address)) {
     const path = address.slice(FILE_PREFIX.length)
     const parts = await getDocs(collection(db, path, 'chunks'))
@@ -362,7 +347,8 @@ export async function deleteFile(address: string): Promise<void> {
     batch.delete(doc(db, path))
 
     await batch.commit()
-    await runTransaction(STORE_NAME, 'readwrite', (store) => store.delete(address))
+    await runTransaction(STORE_NAME, 'readwrite', (store) => store.delete(FLOOR_PREFIX + address))
   }
-}
 
+  if (isStoredFile(address)) await getMediaResponse(address, { method: 'DELETE' }).catch(() => undefined)
+}

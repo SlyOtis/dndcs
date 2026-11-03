@@ -54,7 +54,7 @@ describe('character status', () => {
     const doc: any = {
       character: { info: { name: 'Testy', class: { name: 'Cleric' }, race: { name: 'Unknown' } } }
     }
-    expect(getCharacterStatus(doc)).toBe('draft')
+    expect(getCharacterStatus(doc.character)).toBe('draft')
   })
 
   it('marks a fully configured character as ready', async () => {
@@ -62,7 +62,7 @@ describe('character status', () => {
     const doc: any = {
       character: { info: { name: 'Fatty', class: { name: 'Gunslinger' }, race: { name: 'Human' } } }
     }
-    expect(getCharacterStatus(doc)).toBe('ready')
+    expect(getCharacterStatus(doc.character)).toBe('ready')
   })
 
   it('marks a nameless character as a draft', async () => {
@@ -70,6 +70,6 @@ describe('character status', () => {
     const doc: any = {
       character: { info: { name: '  ', class: { name: 'Rogue' }, race: { name: 'Elf' } } }
     }
-    expect(getCharacterStatus(doc)).toBe('draft')
+    expect(getCharacterStatus(doc.character)).toBe('draft')
   })
 })

@@ -5,7 +5,7 @@ depends: [140]
 relations: []
 title: Every text on screen sits on one type scale that follows the theme and no component sets its own size
 type: task
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,9 +15,11 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T10:53:32Z
+updated_at: 2026-09-08T09:39:36Z
 questions: []
 images: []
+scope: [src/app.css, index.html]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

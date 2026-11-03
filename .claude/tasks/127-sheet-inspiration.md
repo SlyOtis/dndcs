@@ -5,7 +5,7 @@ depends: [117, 114, 131, 132, 133, 134, 141, 142]
 relations: [116, 117]
 title: The sheet's panels, frames and buttons follow the inspiration layouts under docs/inspiration and nothing is sized fixed
 type: task
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,8 +15,10 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:12:49Z
-updated_at: 2026-09-07T10:53:29Z
+updated_at: 2026-09-08T09:39:51Z
 questions: []
+scope: [src/pages/CharacterPage.svelte, src/components/character_sheet, src/components/Background.svelte]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

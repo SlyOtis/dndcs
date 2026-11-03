@@ -1,45 +1,37 @@
 <script lang="ts">
-  import { getContext } from "svelte";
-  import type { CharacterContext } from "$lib/types";
-  import { createLevelUpStore, levelUpLogic } from "$lib/dialogs/levelUp";
+  import { setContext } from "svelte";
+  import { getCharacterStore } from "$lib/engine";
+  import { getCatalogEntry } from "$lib/catalog";
+  import { getSystemStack } from "$lib/rules/system";
+  import { currentCharacterId } from "$lib/stores/character.store";
+  import { uiStore } from "$lib/stores/ui.store";
+  import { createLevelUpStore, getLevelUp } from "$lib/dialogs/levelUp";
   import { createThemeStore } from "$lib/dialogs/theme";
   import { createFrameStore } from "$lib/dialogs/frame";
-  import { createSourceImportStore, sourceImportLogic } from "$lib/dialogs/sourceImport";
-  import { setUIActionDispatcher } from "$lib/chat";
+  import { createSourceImportStore } from "$lib/dialogs/sourceImport";
+  import { getCurrentCharacter, setUIActionDispatcher } from "$lib/chat";
   import ThemeDialog from "../ThemeDialog.svelte";
   import FrameDialog from "../FrameDialog.svelte";
   import CharacterSourceImport from "../CharacterSourceImport.svelte";
   import LevelUpDialog from "../LevelUpDialog.svelte";
 
-  // Get character context
-  const {
-    info,
-    abilities,
-    skills,
-    feats,
-    savingThrows,
-    actions,
-    spells,
-    proficients,
-    inventory,
-    currency,
-    background,
-    senses,
-    special,
-    equipped,
-    soundBoard
-  } = getContext<CharacterContext>('character');
+  setContext('dialogState', { setDialogState: uiStore.setDialogState });
 
-  // Create dialog stores
   const levelUpStore = createLevelUpStore();
   const themeStore = createThemeStore();
   const frameStore = createFrameStore();
   const sourceImportStore = createSourceImportStore();
 
-  let fileInput: HTMLInputElement;
+  let frame = $state<string | undefined>();
+  let portrait = $state({ src: '', alt: '' });
 
-  // UI action dispatcher setup
-  setUIActionDispatcher((action: string, payload?: any) => {
+  $effect(() => {
+    if ($currentCharacterId) return;
+    levelUpStore.close();
+    frameStore.close();
+  });
+
+  setUIActionDispatcher((action) => {
     switch (action) {
       case 'openLevelUpDialog':
         handleLevelUp();
@@ -48,7 +40,7 @@
         themeStore.open();
         break;
       case 'openFrameDialog':
-        frameStore.open();
+        openFrame();
         break;
       case 'openSourceImport':
         sourceImportStore.open();
@@ -59,120 +51,86 @@
     }
   });
 
-  // Export character functionality
-  async function exportCharacter() {
+  function openFrame() {
+    const character = getCurrentCharacter();
+    if (!character) return;
+    frame = character.info.imageFrame;
+    portrait = { src: character.info.imageUrl, alt: character.info.name || 'Character' };
+    frameStore.open();
+  }
+
+  function putFrame(value: string | undefined) {
+    frame = value;
+    getCharacterStore().info.update((info) => ({ ...info, imageFrame: value }));
+  }
+
+  function exportCharacter() {
+    const character = getCurrentCharacter();
+    if (!character) return;
+    const { info, inventory } = character;
+
     const characterSheet = {
       meta: {
         exportDate: new Date().toISOString(),
         exportVersion: "1.0.0",
         exportedBy: "D&D Character Sheet",
         computed: {
-          totalLevel: $info.level,
-          totalHP: $info.hp.max,
-          currentHP: $info.hp.current,
-          armorClass: $info.ac,
-          proficiencyBonus: $info.proficiencyBonus,
-          walkingSpeed: $info.speed,
-          initiative: $info.initiative,
-          inspiration: $info.inspiration,
-          conditions: $info.conditions?.map(c => c.title) || [],
-          defenses: $info.defences?.map(d => d.title) || [],
-          totalInventoryWeight: $inventory.reduce((total, item) => total + (item.weight * item.quantity), 0),
+          totalLevel: info.level,
+          totalHP: info.hp.max,
+          currentHP: info.hp.current,
+          armorClass: info.ac,
+          proficiencyBonus: info.proficiencyBonus,
+          walkingSpeed: info.speed,
+          initiative: info.initiative,
+          inspiration: info.inspiration,
+          conditions: info.conditions?.map(c => c.title) || [],
+          defenses: info.defences?.map(d => d.title) || [],
+          totalInventoryWeight: inventory.reduce((total, item) => total + (item.weight * item.quantity), 0),
         }
       },
-      character: {
-        info: $info,
-        abilities: $abilities,
-        skills: $skills,
-        feats: $feats,
-        savingThrows: $savingThrows,
-        actions: $actions,
-        spells: $spells,
-        proficients: $proficients,
-        inventory: $inventory,
-        currency: $currency,
-        background: $background,
-        senses: $senses,
-        special: $special
-      }
+      character
     };
 
-    const dataStr = JSON.stringify(characterSheet, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([JSON.stringify(characterSheet, null, 2)], { type: 'application/json' });
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(dataBlob);
-    const characterName = $info.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const characterName = info.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
     const timestamp = new Date().toISOString().split('T')[0];
     link.download = `${characterName}_character_${timestamp}.json`;
     link.click();
     URL.revokeObjectURL(link.href);
 
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('showFunnyText', {
-        detail: { text: 'Character exported successfully!', category: 'treasure' }
-      }));
-    }
+    window.dispatchEvent(new CustomEvent('showFunnyText', {
+      detail: { text: 'Character exported successfully!', category: 'treasure' }
+    }));
   }
 
-  // Level up functionality
   async function handleLevelUp() {
-    const character = {
-      info: $info,
-      abilities: $abilities,
-      skills: $skills,
-      feats: $feats,
-      savingThrows: $savingThrows,
-      actions: $actions,
-      spells: $spells,
-      proficients: $proficients,
-      inventory: $inventory,
-      currency: $currency,
-      background: $background,
-      senses: $senses,
-      special: $special,
-      equipped: $equipped,
-      soundBoard: $soundBoard
-    };
-
-    if (!levelUpLogic.checkForCharacterSources(character)) {
-      alert('Please import character sources (class data, features, etc.) before leveling up. Use the Sources button to import your character data.');
-      return;
-    }
+    const character = getCurrentCharacter();
+    if (!character) return;
 
     try {
-      const generatedLevelUpData = await levelUpLogic.generateLevelUpData(character, $info.level + 1);
-      levelUpStore.open(generatedLevelUpData);
+      const system = await getSystemStack(character.systems, character.overlay ?? undefined);
+      const className = character.info.class?.name?.trim().toLowerCase() ?? '';
+      const entry = className && className !== 'unknown' ? await getCatalogEntry('classes', className) : null;
+      levelUpStore.open(getLevelUp(character, system, entry));
     } catch (error) {
-      console.error('Level up generation failed:', error);
-      alert('Failed to generate level up data. Please ensure you have valid character sources imported.');
-    }
-  }
-
-  // File import handling
-  async function handleFileImport(file: File) {
-    try {
-      sourceImportStore.setProcessing(true);
-      const sourceData = await sourceImportLogic.handleFileUpload(file);
-      sourceImportStore.open(sourceData);
-    } catch (error) {
-      console.error('File import error:', error);
-      sourceImportStore.setError('Failed to import file: ' + (error instanceof Error ? error.message : String(error)));
+      alert(`Level up is not ready: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 </script>
 
-<!-- Dialog Components -->
 {#if $themeStore.isOpen}
   <ThemeDialog bind:isOpen={$themeStore.isOpen} />
 {/if}
 
-{#if $frameStore.isOpen}
+{#if $frameStore.isOpen && $currentCharacterId}
   <FrameDialog
     bind:isOpen={$frameStore.isOpen}
-    bind:frame={$info.imageFrame}
-    src={$info.imageUrl}
-    alt={$info.name || 'Character'}
+    bind:frame={() => frame, putFrame}
+    src={portrait.src}
+    alt={portrait.alt}
   />
 {/if}
 
@@ -180,28 +138,10 @@
   <CharacterSourceImport bind:isOpen={$sourceImportStore.isOpen} />
 {/if}
 
-{#if $levelUpStore.isOpen && $levelUpStore.data}
-  <LevelUpDialog 
-    bind:isOpen={$levelUpStore.isOpen} 
+{#if $levelUpStore.isOpen && $levelUpStore.data && $currentCharacterId}
+  <LevelUpDialog
+    bind:isOpen={$levelUpStore.isOpen}
     levelUpData={$levelUpStore.data}
     onComplete={() => levelUpStore.close()}
   />
 {/if}
-
-<!-- Hidden file input for imports -->
-<input
-  bind:this={fileInput}
-  type="file"
-  accept=".json,.txt,.pdf,.png,.jpg,.jpeg"
-  style="display: none;"
-  onchange={(e) => {
-    const file = e.currentTarget.files?.[0];
-    if (file) {
-      handleFileImport(file);
-    }
-  }}
-/>
-
-<style>
-  /* No visual styles needed - this component only manages business logic and dialogs */
-</style>

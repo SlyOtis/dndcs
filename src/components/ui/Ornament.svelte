@@ -373,6 +373,7 @@
 
   .dnd-ornament-metal {
     color: var(--metal);
+    filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 0.2rem color-mix(in srgb, var(--ember-glow) 50%, transparent));
   }
 
   .dnd-ornament-verdigris {
@@ -385,10 +386,11 @@
 
   .dnd-ornament-ink {
     color: var(--ink-dim);
+    filter: drop-shadow(0 1px 0 #000);
   }
 
   .dnd-ornament-accent {
-    fill: var(--verdigris);
+    fill: var(--metal-bright);
   }
 
   .dnd-ornament-accent-fill {

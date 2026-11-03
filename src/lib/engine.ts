@@ -1,7 +1,11 @@
 import type {CharacterContext, CharacterStore, RollLog, RollLogItem, RollResult} from "./types";
 import {writable, get, type Unsubscriber, type Writable} from "svelte/store";
-import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo} from "./character.types";
-import { addChangeLogEntry, createStateSnapshot, type ChangeAction } from "./changelog";
+import type {Character, CharacterAbility, CharacterCurrency, CharacterInfo, CharacterSpell, ConditionInfo, DefenceInfo, SpellsInfo} from "./character.types";
+import { addChangeLogEntry, ChangeActions, createStateSnapshot, type ChangeAction } from "./changelog";
+import { getResolvedCharacter } from "./rules/derive";
+import { getSheet } from "./rules/sheet";
+import { getSystemStack } from "./rules/system";
+import type { ResolvedCharacter } from "./rules/spec.types";
 import { user, userProfile } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
 import { campaignService, characterService } from "./firestore.service";
@@ -29,14 +33,39 @@ export function getSidebar() {
   }
 }
 
-export async function rollDie(die: number, amount: number): Promise<RollResult> {
-  const result = await fetch('https://www.random.org/integers/?format=plain&min=1&rnd=new&col=1&base=10&num=' + amount + '&max=' + die)
-    .then(res => res.text());
+export type RollMode = 'normal' | 'advantage' | 'disadvantage'
 
-  const rolls = result.split('\n').reduce((prev, curr) => {
+export const rollMode = writable<RollMode>('normal')
+export const rollHidden = writable(false)
+
+async function getRolls(die: number, amount: number): Promise<number[]> {
+  const result = await fetch('https://www.random.org/integers/?format=plain&min=1&rnd=new&col=1&base=10&num=' + amount + '&max=' + die)
+    .then(res => {
+      if (!res.ok) throw new Error(`random.org answered ${res.status}`)
+      return res.text()
+    })
+    .catch((reason: unknown) => {
+      if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('showFunnyText', { detail: { text: 'The dice would not roll', category: 'criticalFail' } }))
+      throw new Error(`random.org did not answer, so no dice were rolled: ${reason instanceof Error ? reason.message : String(reason)}`)
+    });
+
+  return result.split('\n').reduce((prev, curr) => {
     const res = parseInt(curr, 0)
     return isNaN(res) ? prev : [...prev, res]
   }, [] as number[])
+}
+
+export async function rollDice(groups: { die: number, amount: number }[]): Promise<number[][]> {
+  const rolled = await Promise.all(groups.map(group => getRolls(group.die, group.amount)))
+
+  const { postThrow } = await import('./dice')
+  await postThrow(groups.map((group, index) => ({ die: group.die, rolls: rolled[index] })))
+
+  return rolled
+}
+
+export async function rollDie(die: number, amount: number): Promise<RollResult> {
+  const [rolls] = await rollDice([{ die, amount }])
 
   return {
     sum: rolls.reduce((prev, curr) => prev + curr, 0),
@@ -44,11 +73,21 @@ export async function rollDie(die: number, amount: number): Promise<RollResult> 
   }
 }
 
+export async function rollD20(): Promise<RollResult & { formula: string }> {
+  const mode = get(rollMode)
+  rollMode.set('normal')
+  if (mode === 'normal') return { ...(await rollDie(20, 1)), formula: '1d20' }
+
+  const res = await rollDie(20, 2)
+  const kept = mode === 'advantage' ? Math.max(...res.rolls) : Math.min(...res.rolls)
+  return { sum: kept, rolls: res.rolls, formula: mode === 'advantage' ? '2d20kh1' : '2d20kl1' }
+}
+
 export async function rollAbility(name: string, modifier: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('ability', `Rolled ${name} 1d20`, '1d20', res.sum, total);
+  writeRollLog('ability', `Rolled ${name} ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for ability checks
   if (typeof window !== 'undefined') {
@@ -77,10 +116,10 @@ export async function rollAbility(name: string, modifier: number) {
 }
 
 export async function rollSkill(name: string, modifier: number, proficiency: number, x?: number, y?: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('skill', `Rolled ${name} 1d20`, '1d20', res.sum, total);
+  writeRollLog('skill', `Rolled ${name} ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for skill checks
   if (typeof window !== 'undefined') {
@@ -131,10 +170,10 @@ export async function rollSkill(name: string, modifier: number, proficiency: num
 }
 
 export async function rollInitiative(modifier: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('initiative', `Rolled Initiative 1d20`, '1d20', res.sum, total);
+  writeRollLog('initiative', `Rolled Initiative ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for initiative
   if (typeof window !== 'undefined') {
@@ -163,10 +202,10 @@ export async function rollInitiative(modifier: number) {
 }
 
 export async function rollSave(name: string, modifier: number, proficiency: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('save', `Rolled ${name} saving throw 1d20`, '1d20', res.sum, total);
+  writeRollLog('save', `Rolled ${name} saving throw ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for saving throws
   if (typeof window !== 'undefined') {
@@ -195,10 +234,10 @@ export async function rollSave(name: string, modifier: number, proficiency: numb
 }
 
 export async function rollPassive(name: string, modifier: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('passive', `Rolled ${name} passive 1d20`, '1d20', res.sum, total);
+  writeRollLog('passive', `Rolled ${name} passive ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for passive checks
   if (typeof window !== 'undefined') {
@@ -227,10 +266,10 @@ export async function rollPassive(name: string, modifier: number) {
 }
 
 export async function rollAttack(name: string, modifier: number) {
-  const res = await rollDie(20, 1);
+  const res = await rollD20();
   const total = res.sum + modifier;
   
-  writeRollLog('attack', `Rolled ${name} attack 1d20`, '1d20', res.sum, total);
+  writeRollLog('attack', `Rolled ${name} attack ${res.formula}`, res.formula, res.sum, total, res.rolls.join(','));
   
   // Trigger sound and visual feedback for attacks
   if (typeof window !== 'undefined') {
@@ -353,7 +392,7 @@ export function asRollEntry(item: RollLogItem): ChatEntryFields {
     kind: 'roll',
     body: item.text ?? '',
     query: '',
-    is_hidden: false,
+    is_hidden: get(rollHidden),
     roll_kind: item.type ?? 'roll',
     formula: item.formula ?? '',
     dice: dice.length ? dice : [item.roll ?? 0],
@@ -472,7 +511,9 @@ export function getEmptyCharacter(): Character {
     background: {title: '', description: ''},
     special: {name: '', regain: '', current: 0, max: 0},
     equipped: [],
-    soundBoard: {id: 'default_soundboard', name: 'Sound Board', clips: []}
+    soundBoard: {id: 'default_soundboard', name: 'Sound Board', clips: []},
+    systems: ['dnd5e'],
+    overlay: null
   }
 }
 
@@ -586,7 +627,7 @@ export function applyStateToCharacter(partialState: Partial<Character>, fromDocu
 // Inject the state application function into global scope for changelog
 (globalThis as any).__applyCharacterState = applyStateToCharacter;
 
-export function getCharacterStore(id: string = 'local', character: Character = getEmptyCharacter()): CharacterStore {
+export function getCharacterStore(id: string = characterStoreId ?? 'local', character: Character = getEmptyCharacter()): CharacterStore {
   if (characterStoreInstance && characterStoreId === id) {
     return characterStoreInstance;
   }
@@ -724,4 +765,431 @@ export function getAbilities(scores: Record<string, number>): CharacterAbility[]
     score,
     modifier: Math.floor((score - 10) / 2)
   }))
+}
+
+type InventoryItem = Character['inventory'][number]
+
+const restedDeathSaves = { successes: 0, failures: 0 }
+
+function isRegainedAt(regain: string | undefined, rest: 'short' | 'long'): boolean {
+  const text = (regain ?? '').toLowerCase()
+  return rest === 'long' ? text.includes('short') || text.includes('long') : text.includes('short')
+}
+
+export async function getResolvedRules(): Promise<ResolvedCharacter> {
+  const character = getCharacterState(getCharacterStore())
+  const system = await getSystemStack(character.systems, character.overlay ?? undefined)
+  return getResolvedCharacter(system, getSheet(character, system))
+}
+
+export function putDamage(amount: number) {
+  if (!(amount > 0)) return
+
+  updateCharacterWithChangeLog(
+    'info',
+    info => {
+      const temporary = info.hp.temporary || 0
+      const absorbed = Math.min(temporary, amount)
+      return {
+        ...info,
+        hp: {
+          ...info.hp,
+          temporary: temporary - absorbed,
+          current: Math.max(0, info.hp.current - (amount - absorbed))
+        }
+      }
+    },
+    ChangeActions.HP_CHANGE,
+    `Took ${amount} damage`,
+    { value: amount }
+  )
+}
+
+export function putHealing(amount?: number) {
+  if (amount !== undefined && !(amount > 0)) return
+
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({
+      ...info,
+      hp: {
+        ...info.hp,
+        current: Math.min(info.hp.max, info.hp.current + (amount ?? info.hp.max)),
+        deathSaves: restedDeathSaves
+      }
+    }),
+    ChangeActions.HP_CHANGE,
+    amount === undefined ? 'Fully restored health' : `Healed ${amount} HP`,
+    { value: amount }
+  )
+}
+
+export function putTemporaryHitPoints(amount: number) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({ ...info, hp: { ...info.hp, temporary: Math.max(0, amount || 0) } }),
+    ChangeActions.HP_CHANGE,
+    `Set ${amount} temporary HP`,
+    { value: amount }
+  )
+}
+
+export function putDeathSave(roll: number, scope: Record<string, number>) {
+  const critical = scope['derived.deathSaveCritical']
+  const fumble = scope['derived.deathSaveFumble']
+  const target = scope['derived.deathSaveTarget']
+  const successes = scope['derived.deathSaveSuccesses']
+  const failures = scope['derived.deathSaveFailures']
+
+  updateCharacterWithChangeLog(
+    'info',
+    info => {
+      if (roll >= critical) {
+        return {
+          ...info,
+          hp: {
+            ...info.hp,
+            current: Math.max(info.hp.current, scope['derived.deathSaveCriticalHitPoints']),
+            deathSaves: restedDeathSaves
+          }
+        }
+      }
+
+      const saves = info.hp.deathSaves ?? restedDeathSaves
+      const failed = roll <= fumble ? scope['derived.deathSaveFumbleFailures'] : roll >= target ? 0 : 1
+
+      return {
+        ...info,
+        hp: {
+          ...info.hp,
+          deathSaves: {
+            successes: Math.min(successes, saves.successes + (failed ? 0 : 1)),
+            failures: Math.min(failures, saves.failures + failed)
+          }
+        }
+      }
+    },
+    ChangeActions.DEATH_SAVE,
+    `Rolled ${roll} on a death save`,
+    { value: roll }
+  )
+}
+
+export async function rollDeathSave(scope: Record<string, number>) {
+  const res = await rollD20()
+  writeRollLog('save', `Rolled death save ${res.formula}`, res.formula, res.sum, res.sum, res.rolls.join(','))
+  putDeathSave(res.sum, scope)
+}
+
+export function putSlots(expended: number, level?: number) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => {
+      if (level === undefined) {
+        if (!info.slots) return info
+        return { ...info, slots: { ...info.slots, expended: Math.max(0, Math.min(info.slots.amount, expended)) } }
+      }
+
+      if (!info.spells) return info
+      const max = info.spells.slots?.[level] ?? 0
+      return {
+        ...info,
+        spells: {
+          ...info.spells,
+          expended: { ...info.spells.expended, [level]: Math.max(0, Math.min(max, expended)) }
+        }
+      }
+    },
+    ChangeActions.SPELL_SLOT_CHANGE,
+    level === undefined ? `Set ${expended} slots spent` : `Set ${expended} level ${level} slots spent`,
+    { level, value: expended }
+  )
+}
+
+export function putSpellcasting(spells: SpellsInfo) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({ ...info, spells }),
+    ChangeActions.SPELL_SLOT_CHANGE,
+    'Changed spellcasting'
+  )
+}
+
+export function postSpell(spell: CharacterSpell) {
+  updateCharacterWithChangeLog(
+    'spells',
+    spells => [...(spells ?? []), spell],
+    ChangeActions.SPELL_ADD,
+    `Added spell: ${spell.title}`
+  )
+}
+
+export function putSpell(spell: CharacterSpell) {
+  updateCharacterWithChangeLog(
+    'spells',
+    spells => (spells ?? []).map(entry => entry.id === spell.id ? spell : entry),
+    ChangeActions.SPELL_CHANGE,
+    `Changed spell: ${spell.title}`
+  )
+}
+
+export function deleteSpell(id: string) {
+  updateCharacterWithChangeLog(
+    'spells',
+    spells => (spells ?? []).filter(entry => entry.id !== id),
+    ChangeActions.SPELL_REMOVE,
+    'Removed a spell'
+  )
+}
+
+export async function postCast(spell: CharacterSpell, level: number, attack: number): Promise<boolean> {
+  if (level > 0) {
+    const spells = get(getCharacterStore().info).spells
+    const spent = spells?.expended?.[level] ?? 0
+    if (spent >= (spells?.slots?.[level] ?? 0)) return false
+    putSlots(spent + 1, level)
+  }
+
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('playSpellCast'))
+  if (spell.attack) await rollAttack(spell.title, attack)
+  for (const damage of spell.damage ?? []) await rollDamage(spell.title, damage.dice, damage.amount, damage.bonus)
+  return true
+}
+
+export async function postShortRest(dice: number, resolved: ResolvedCharacter) {
+  const store = getCharacterStore()
+  const die = get(store.info).class?.hitDice?.die || 8
+  const remaining = resolved.pools.find(pool => pool.id === 'hitDice')?.remaining ?? 0
+  const spend = Math.max(0, Math.min(Math.floor(dice), remaining))
+
+  let healing = 0
+  if (spend > 0) {
+    const res = await rollDie(die, spend)
+    healing = Math.max(0, res.sum + spend * (resolved.scope['derived.hitDieHealing'] ?? 0))
+    writeRollLog('heal', `Spent ${spend} hit dice on a short rest`, `${spend}d${die}`, res.sum, healing, res.rolls.join(','))
+  }
+
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({
+      ...info,
+      hp: {
+        ...info.hp,
+        current: Math.min(info.hp.max, info.hp.current + healing),
+        deathSaves: healing > 0 ? restedDeathSaves : info.hp.deathSaves,
+        hitDiceSpent: (info.hp.hitDiceSpent ?? 0) + spend
+      },
+      slots: info.slots && isRegainedAt(info.slots.regainedAt, 'short') ? { ...info.slots, expended: 0 } : info.slots
+    }),
+    ChangeActions.SHORT_REST,
+    spend > 0 ? `Short rest, spent ${spend} hit dice for ${healing} HP` : 'Short rest',
+    { value: healing }
+  )
+
+  updateCharacterWithChangeLog(
+    'special',
+    special => isRegainedAt(special.regain, 'short') ? { ...special, current: special.max } : special,
+    ChangeActions.SHORT_REST,
+    'Short rest'
+  )
+
+  return { spend, healing }
+}
+
+export function postLongRest(resolved: ResolvedCharacter) {
+  const regain = resolved.pools.find(pool => pool.id === 'hitDice')?.regain ?? 0
+
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({
+      ...info,
+      hp: {
+        ...info.hp,
+        current: info.hp.max,
+        temporary: 0,
+        deathSaves: restedDeathSaves,
+        hitDiceSpent: Math.max(0, (info.hp.hitDiceSpent ?? 0) - regain)
+      },
+      slots: info.slots ? { ...info.slots, expended: 0 } : info.slots,
+      spells: info.spells ? { ...info.spells, expended: {} } : info.spells
+    }),
+    ChangeActions.LONG_REST,
+    'Long rest'
+  )
+
+  updateCharacterWithChangeLog(
+    'special',
+    special => isRegainedAt(special.regain, 'long') ? { ...special, current: special.max } : special,
+    ChangeActions.LONG_REST,
+    'Long rest'
+  )
+}
+
+export function putCondition(condition: ConditionInfo) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => {
+      const at = info.conditions.findIndex(entry => entry.title.toLowerCase() === condition.title.toLowerCase())
+      return {
+        ...info,
+        conditions: at === -1
+          ? [...info.conditions, condition]
+          : info.conditions.map((entry, index) => index === at ? { ...entry, ...condition } : entry)
+      }
+    },
+    ChangeActions.CONDITION_ADD,
+    `Added condition: ${condition.title}`,
+    { condition: condition.title }
+  )
+}
+
+export function deleteCondition(title: string) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({ ...info, conditions: info.conditions.filter(entry => entry.title.toLowerCase() !== title.toLowerCase()) }),
+    ChangeActions.CONDITION_REMOVE,
+    `Removed condition: ${title}`,
+    { condition: title }
+  )
+}
+
+export function putDefence(defence: DefenceInfo) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({
+      ...info,
+      defences: info.defences.some(entry => entry.title.toLowerCase() === defence.title.toLowerCase())
+        ? info.defences
+        : [...info.defences, defence]
+    }),
+    ChangeActions.DEFENSE_ADD,
+    `Added defense: ${defence.title}`,
+    { defense: defence.title }
+  )
+}
+
+export function deleteDefence(title: string) {
+  updateCharacterWithChangeLog(
+    'info',
+    info => ({ ...info, defences: info.defences.filter(entry => entry.title.toLowerCase() !== title.toLowerCase()) }),
+    ChangeActions.DEFENSE_REMOVE,
+    `Removed defense: ${title}`,
+    { defense: title }
+  )
+}
+
+export function postItem(item: InventoryItem) {
+  updateCharacterWithChangeLog(
+    'inventory',
+    inventory => [...inventory, item],
+    ChangeActions.INVENTORY_ADD,
+    `Added ${item.quantity} ${item.title}`
+  )
+}
+
+export function putItem(item: InventoryItem) {
+  if (item.quantity <= 0) {
+    deleteItem(item.id)
+    return
+  }
+
+  updateCharacterWithChangeLog(
+    'inventory',
+    inventory => inventory.map(entry => entry.id === item.id ? item : entry),
+    ChangeActions.INVENTORY_CHANGE,
+    `Changed ${item.title}`
+  )
+}
+
+export function deleteItem(id: string) {
+  updateCharacterWithChangeLog(
+    'inventory',
+    inventory => inventory.filter(entry => entry.id !== id),
+    ChangeActions.INVENTORY_REMOVE,
+    'Removed an item'
+  )
+
+  if (!get(getCharacterStore().equipped).some(entry => entry.id === id)) return
+
+  updateCharacterWithChangeLog(
+    'equipped',
+    equipped => equipped.filter(entry => entry.id !== id),
+    ChangeActions.EQUIPMENT_CHANGE,
+    'Unequipped a removed item'
+  )
+}
+
+export function putCurrency(currency: CharacterCurrency) {
+  updateCharacterWithChangeLog(
+    'currency',
+    () => currency,
+    ChangeActions.CURRENCY_CHANGE,
+    'Changed currency'
+  )
+}
+
+export type FormulaTerm =
+  | { sign: 1 | -1, die: number, amount: number, keep?: { high: boolean, count: number } }
+  | { sign: 1 | -1, value: number }
+
+export const FORMULA_DICE = [4, 6, 8, 10, 12, 20, 100]
+
+export function getFormula(formula: string): { terms: FormulaTerm[], text: string } | undefined {
+  const words = formula.trim().toLowerCase().replace(/\s+/g, '')
+  const mode = /(advantage|adv)$/.test(words) ? 'kh1' : /(disadvantage|dis)$/.test(words) ? 'kl1' : ''
+  const body = words.replace(/(advantage|adv|disadvantage|dis)$/, '')
+  if (!body || !/^[+-]?(\d*d\d+(k[hl]\d+)?|\d+)([+-](\d*d\d+(k[hl]\d+)?|\d+))*$/.test(body)) return undefined
+
+  const terms: FormulaTerm[] = []
+  for (const [, sign, amount, die, keep, count, value] of body.matchAll(/([+-]?)(?:(\d*)d(\d+)(?:k([hl])(\d+))?|(\d+))/g)) {
+    const signed = sign === '-' ? -1 : 1
+    if (value !== undefined) {
+      terms.push({ sign: signed, value: parseInt(value, 10) })
+      continue
+    }
+    terms.push({
+      sign: signed,
+      die: parseInt(die, 10),
+      amount: parseInt(amount || '1', 10),
+      ...(keep ? { keep: { high: keep === 'h', count: parseInt(count, 10) } } : {})
+    })
+  }
+
+  const dice = terms.filter((term): term is Extract<FormulaTerm, { die: number }> => 'die' in term)
+  if (mode && dice.length === 1 && dice[0].die === 20 && dice[0].amount === 1 && !dice[0].keep) {
+    dice[0].amount = 2
+    dice[0].keep = { high: mode === 'kh1', count: 1 }
+  }
+  if (!dice.length) return undefined
+  if (dice.some(term => !FORMULA_DICE.includes(term.die) || term.amount < 1 || term.amount > 20 || (term.keep && (term.keep.count < 1 || term.keep.count > term.amount)))) return undefined
+  if (dice.reduce((all, term) => all + term.amount, 0) > 30) return undefined
+
+  const text = terms
+    .map((term, index) => {
+      const sign = term.sign < 0 ? '-' : index ? '+' : ''
+      if ('value' in term) return `${sign}${term.value}`
+      return `${sign}${term.amount}d${term.die}${term.keep ? `k${term.keep.high ? 'h' : 'l'}${term.keep.count}` : ''}`
+    })
+    .join('')
+
+  return { terms, text }
+}
+
+export function getFormulaTotal(terms: FormulaTerm[], rolled: number[][]): { roll: number, total: number } {
+  let at = 0
+  let roll = 0
+  let total = 0
+  for (const term of terms) {
+    if ('value' in term) {
+      total += term.sign * term.value
+      continue
+    }
+    const rolls = rolled[at++]
+    const sorted = [...rolls].sort((a, b) => b - a)
+    const kept = term.keep ? (term.keep.high ? sorted.slice(0, term.keep.count) : sorted.slice(-term.keep.count)) : rolls
+    const sum = kept.reduce((all, one) => all + one, 0) * term.sign
+    roll += sum
+    total += sum
+  }
+  return { roll, total }
 }

@@ -145,6 +145,7 @@
         description: generatedConcept.description || "An AI-generated campaign",
         dm_id: currentUser.uid,
         player_ids: [],
+        party_ids: [],
         character_ids: [],
         is_active: true,
         settings: {
@@ -161,7 +162,7 @@
       console.log("Campaign created successfully with ID:", campaignId);
       
       // Navigate to campaign view with the new campaign ID
-      navigate(`/campaign/${campaignId}`);
+      navigate(`/main/campaign/${campaignId}`);
     } catch (err) {
       console.error("Failed to create campaign:", err);
       error = "Failed to create campaign. Please try again.";
@@ -340,12 +341,17 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent), color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent)),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim), var(--bevel-up), 0 0 1.125rem var(--ember-glow);
   }
 
   .raise-name {
     font-size: var(--text-2xl);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0 0.75rem var(--ember-glow), 0 0 1.75rem var(--ember-glow);
     overflow-wrap: anywhere;
   }
 
@@ -373,22 +379,27 @@
   }
 
   .raise-spark {
-    padding: var(--space-3);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    padding: var(--space-3) var(--space-4);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 1rem 0.125rem var(--shade-hard), var(--shadow-sm);
     color: var(--ink-dim);
     font-family: var(--font-body);
     font-size: var(--text-sm);
     text-align: start;
     cursor: pointer;
-    transition: border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    transition: color 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
   }
 
   .raise-spark:hover:not(:disabled) {
-    border-color: var(--metal);
     color: var(--ink);
-    box-shadow: var(--glow-metal);
+    filter: brightness(1.06);
+    box-shadow: var(--rim), inset 0 0 1rem 0.125rem var(--shade-hard), var(--shadow-md), 0 0 0.875rem var(--ember-glow);
+  }
+
+  .raise-spark:active:not(:disabled) {
+    filter: brightness(0.88);
   }
 
   .raise-spark:focus-visible {
@@ -408,8 +419,9 @@
 
   .raise-facts {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-2) var(--space-4);
+    overflow-wrap: anywhere;
     margin: 0;
     font-size: var(--text-sm);
     color: var(--ink);
@@ -420,7 +432,8 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     font-size: var(--text-xs);
-    color: var(--ink-faint);
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .raise-facts dd {
@@ -450,7 +463,8 @@
     flex-direction: column;
     gap: var(--space-1);
     padding-bottom: var(--space-3);
-    border-bottom: var(--border-hair) solid var(--ground-lift);
+    border-bottom: var(--border-hair) solid var(--metal-dim);
+    box-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .raise-entry:last-child {
@@ -460,6 +474,7 @@
 
   .raise-entry-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     gap: var(--space-3);
   }
@@ -469,13 +484,19 @@
     font-family: var(--font-display);
     font-size: var(--text-md);
     color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .raise-entry-kind {
-    font-family: var(--font-mono);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
+    box-shadow: var(--rim-thin);
+    font-family: var(--font-display);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
-    color: var(--verdigris);
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .raise-entry-note {
@@ -488,15 +509,17 @@
   .raise-alarm {
     margin: 0;
     padding: var(--space-3) var(--space-4);
-    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    border: var(--border-hair) solid var(--state-bad);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 14%, var(--ground-raised)), var(--ground-deep));
+    box-shadow: var(--bevel-down);
     font-size: var(--text-sm);
     color: var(--ink);
   }
 
   .raise-acts {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--space-3);
   }

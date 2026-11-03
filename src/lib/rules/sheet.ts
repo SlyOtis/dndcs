@@ -52,6 +52,7 @@ export function getSheet(character: Character, system: RuleSystem): CharacterShe
 
   const pools: Record<string, number> = {}
   if (info?.hp) pools.hitPoints = Math.max(0, info.hp.max - info.hp.current)
+  if (info?.hp?.hitDiceSpent) pools.hitDice = info.hp.hitDiceSpent
   if (info?.slots) pools.spellSlots = info.slots.expended
   if (info?.inspiration === false) pools.inspiration = 1
   if (character.special) {
@@ -77,6 +78,8 @@ export function getSheet(character: Character, system: RuleSystem): CharacterShe
 
   const speed = Number.parseInt(String(info?.speed ?? ''), 10)
   if (Number.isFinite(speed)) bonuses.speed = speed - 30
+
+  if (info?.spells?.modifier) bonuses.spellcasting = scope[`mod.${getAttributeId(info.spells.modifier)}`] ?? 0
 
   return { ...base, bonuses }
 }

@@ -1,4 +1,9 @@
-import type { Character, LevelUpData, Feat, LevelUpChoice } from '../character.types';
+import type { Character, CharacterAbility, Feat, LevelUpChoice, LevelUpData } from '../character.types';
+import type { CatalogEntry } from '../catalog';
+import { getResolvedCharacter } from '../rules/derive';
+import { getExpressionValue } from '../rules/expression';
+import { getAttributeId, getSheet } from '../rules/sheet';
+import type { AdvancementSpec, RuleSystem } from '../rules/spec.types';
 import { writable } from 'svelte/store';
 
 export interface LevelUpState {
@@ -11,7 +16,7 @@ export function createLevelUpStore() {
 
   return {
     ...state,
-    
+
     open(data: LevelUpData) {
       state.update(s => ({ ...s, isOpen: true, data }));
     },
@@ -22,110 +27,137 @@ export function createLevelUpStore() {
   };
 }
 
-export const levelUpLogic = {
-  async generateLevelUpData(character: Character, targetLevel: number): Promise<LevelUpData> {
-    const sources = localStorage.getItem('character_sources');
-    let structuredSources: any[] = [];
-    
-    if (sources) {
-      try {
-        structuredSources = JSON.parse(sources).filter((source: any) => source.enabled !== false);
-      } catch (error) {
-        console.error('Error parsing character sources:', error);
-        structuredSources = [];
-      }
-    }
+type ClassFeature = { id: string; name: string; description: string; level: number; source?: string };
 
-    const levelUpData: LevelUpData = {
-      level: targetLevel,
-      hitDiceGain: { amount: 1, die: character.info.class.hitDice?.die || 8 },
-      proficiencyBonus: Math.ceil(targetLevel / 4) + 1,
-      newFeatures: await this.generateNewFeatures(character, targetLevel, structuredSources),
-      choices: await this.generateLevelUpChoices(character, targetLevel, structuredSources),
-      spellSlotChanges: this.generateSpellSlotChanges(character, targetLevel)
-    };
+function getAdvancement(system: RuleSystem): AdvancementSpec {
+  if (!system.advancement) throw new Error(`${system.title} declares no advancement, so there is no level to gain.`);
+  return system.advancement;
+}
 
-    return levelUpData;
-  },
+function getFeatures(entry: CatalogEntry | null, level: number): Feat[] {
+  const features = (entry?.features as ClassFeature[] | undefined) ?? [];
 
-  async generateNewFeatures(character: Character, level: number, structuredSources: any[]): Promise<Feat[]> {
-    const features: Feat[] = [];
+  return features
+    .filter((feature) => feature.level === level && feature.source !== 'subclass')
+    .map((feature) => ({
+      id: feature.id,
+      level,
+      source: 'class',
+      title: feature.name,
+      description: feature.description
+    }));
+}
 
-    // Basic ASI feature at every 4th level
-    if (level % 4 === 0 && level <= 19) {
-      features.push({
-        id: `asi_${level}`,
-        level,
-        source: "class",
-        title: "Ability Score Improvement",
-        description: "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1."
-      });
-    }
+function getSlots(advancement: AdvancementSpec, entry: CatalogEntry | null, level: number): Record<number, number> | undefined {
+  const table = typeof entry?.casting === 'string' ? advancement.slots[entry.casting] : undefined;
+  if (!table) return undefined;
 
-    // Add basic class feature if no other features
-    if (features.length === 0) {
-      features.push({
-        id: `class_feature_${level}`,
-        level,
-        source: "class",
-        title: `${character.info.class.name} Feature`,
-        description: `You gain a new class feature at level ${level}. Consult your class description for details.`
-      });
-    }
+  const row = table[level - 1] ?? [];
+  return Object.fromEntries(row.map((count, index) => [index + 1, count]).filter(([, count]) => count > 0));
+}
 
-    return features;
-  },
+export function getLevelUp(character: Character, system: RuleSystem, entry: CatalogEntry | null): LevelUpData {
+  const advancement = getAdvancement(system);
+  const level = (character.info.level || 1) + 1;
 
-  async generateLevelUpChoices(character: Character, level: number, structuredSources: any[]): Promise<LevelUpChoice[]> {
-    const choices: LevelUpChoice[] = [];
+  if (level > system.progression.maxLevel) {
+    throw new Error(`${character.info.name || 'This character'} is already at level ${system.progression.maxLevel}, the highest ${system.title} knows.`);
+  }
 
-    // ASI or Feat choice at appropriate levels
-    if (level % 4 === 0 && level <= 19) {
-      choices.push({
+  const improvements = (entry?.improvements as number[] | undefined) ?? advancement.improvement.levels;
+  const choices: LevelUpChoice[] = improvements.includes(level)
+    ? [{
         type: 'abilityScore',
         title: 'Ability Score Improvement',
-        description: 'Choose how to improve your ability scores',
-        options: ['STR +2', 'DEX +2', 'CON +2', 'INT +2', 'WIS +2', 'CHA +2', 'Two different +1'],
-        maxSelections: 1
-      });
+        description: `Spend ${advancement.improvement.points} points across your abilities. None rises above ${advancement.improvement.cap}.`,
+        options: system.attributes.map((attribute) => attribute.id),
+        maxSelections: advancement.improvement.points
+      }]
+    : [];
+
+  return {
+    level,
+    hitDiceGain: { amount: 1, die: character.info.class.hitDice.die },
+    proficiencyBonus: Math.round(getExpressionValue(system.progression.proficiency, { level })),
+    newFeatures: getFeatures(entry, level),
+    choices,
+    spellSlotChanges: getSlots(advancement, entry, level)
+  };
+}
+
+export function getStartingCharacter(character: Character, system: RuleSystem, entry: CatalogEntry | null): Character {
+  const advancement = getAdvancement(system);
+  const level = Math.max(1, Math.min(character.info.level || 1, system.progression.maxLevel));
+  const scope = { ...getResolvedCharacter(system, getSheet(character, system)).scope, die: character.info.class.hitDice.die };
+  const first = Math.round(getExpressionValue(advancement.firstHitPoints, scope));
+  const hitPoints = first + (level - 1) * Math.round(getExpressionValue(advancement.hitPoints, scope));
+  const slots = getSlots(advancement, entry, level);
+
+  return {
+    ...character,
+    feats: [...character.feats, ...Array.from({ length: level }, (_, index) => getFeatures(entry, index + 1)).flat()],
+    info: {
+      ...character.info,
+      level,
+      proficiencyBonus: Math.round(getExpressionValue(system.progression.proficiency, { level })),
+      hp: { ...character.info.hp, max: hitPoints, current: hitPoints },
+      class: { ...character.info.class, hitDice: { ...character.info.class.hitDice, amount: level } },
+      ...(slots ? { spells: { modifier: character.info.spells?.modifier ?? '', slots } } : {})
     }
+  };
+}
 
-    return choices;
-  },
+function getRaisedAbilities(character: Character, system: RuleSystem, raised: Map<string, number>): CharacterAbility[] {
+  const cap = getAdvancement(system).improvement.cap;
+  const abilities = [...character.abilities];
 
-  generateSpellSlotChanges(character: Character, level: number): Record<number, number> | undefined {
-    const spellcastingClasses = ['wizard', 'sorcerer', 'warlock', 'bard', 'cleric', 'druid'];
-    if (!spellcastingClasses.includes(character.info.class.name.toLowerCase())) {
-      return undefined;
-    }
+  for (const [id, points] of raised) {
+    const spec = system.attributes.find((attribute) => attribute.id === id);
+    if (!spec) throw new Error(`${id} is not an ability ${system.title} knows.`);
 
-    const slots: Record<number, number> = {};
-    if (level >= 1) slots[1] = Math.min(4, level + 1);
-    if (level >= 3) slots[2] = Math.min(3, Math.floor((level - 1) / 2));
-    if (level >= 5) slots[3] = Math.min(3, Math.floor((level - 3) / 2));
-    if (level >= 7) slots[4] = Math.min(3, Math.floor((level - 5) / 2));
-    if (level >= 9) slots[5] = Math.min(2, Math.floor((level - 7) / 2));
-    
-    return slots;
-  },
+    const index = abilities.findIndex((ability) => getAttributeId(ability.title) === id);
+    const title = id.charAt(0).toUpperCase() + id.slice(1);
+    const held = index === -1 ? { id, title, score: spec.default, modifier: 0 } : abilities[index];
+    const score = Math.max(held.score, Math.min(cap, held.score + points));
+    const next = { ...held, score, modifier: getExpressionValue(spec.modifier, { score }) };
 
-  checkForCharacterSources(character: Character): boolean {
-    const sources = localStorage.getItem('character_sources');
-    if (sources) {
-      try {
-        const parsedSources = JSON.parse(sources);
-        if (Array.isArray(parsedSources) && parsedSources.some(source => source.enabled !== false)) {
-          return true;
-        }
-      } catch (error) {
-        console.error('Error parsing character sources:', error);
-      }
-    }
-
-    return !!(
-      character.info.class &&
-      character.info.class.name &&
-      character.info.class.name !== 'Unknown'
-    );
+    if (index === -1) abilities.push(next);
+    else abilities[index] = next;
   }
-};
+
+  return abilities;
+}
+
+export function getLevelledCharacter(
+  character: Character,
+  system: RuleSystem,
+  levelUp: LevelUpData,
+  picks: string[][]
+): Character {
+  const raised = new Map<string, number>();
+  levelUp.choices.forEach((choice, index) => {
+    if (choice.type !== 'abilityScore') return;
+    for (const id of picks[index] ?? []) raised.set(id, (raised.get(id) ?? 0) + 1);
+  });
+
+  const abilities = getRaisedAbilities(character, system, raised);
+  const info = { ...character.info, level: levelUp.level };
+  const scope = getResolvedCharacter(system, getSheet({ ...character, info, abilities }, system)).scope;
+  const gain = Math.round(getExpressionValue(getAdvancement(system).hitPoints, { ...scope, die: levelUp.hitDiceGain.die }));
+  const known = new Set(character.feats.map((feat) => feat.id));
+
+  return {
+    ...character,
+    abilities,
+    feats: [...character.feats, ...levelUp.newFeatures.filter((feature) => !known.has(feature.id))],
+    info: {
+      ...info,
+      proficiencyBonus: levelUp.proficiencyBonus,
+      hp: { ...info.hp, max: info.hp.max + gain, current: info.hp.current + gain },
+      class: { ...info.class, hitDice: { ...info.class.hitDice, amount: levelUp.level } },
+      ...(levelUp.spellSlotChanges
+        ? { spells: { modifier: info.spells?.modifier ?? '', slots: levelUp.spellSlotChanges } }
+        : {})
+    }
+  };
+}

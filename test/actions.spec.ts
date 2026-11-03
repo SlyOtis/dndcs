@@ -141,7 +141,7 @@ describe('the No ammo badge sits in its own cell', () => {
     expect(row.style('.hit, .attack')).toMatchObject({
       display: 'flex',
       'flex-direction': 'column',
-      gap: '4px'
+      gap: 'var(--space-1)'
     })
   })
 })

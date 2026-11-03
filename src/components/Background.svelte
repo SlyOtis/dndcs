@@ -64,8 +64,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: var(--ember);
-        opacity: 0.2;
+        background: radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--ember) 14%, transparent) 0%, transparent 70%), linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.82) 100%);
+        opacity: 1;
     }
 
     iframe, img {
@@ -78,13 +78,12 @@
         object-fit: cover;
         user-select: none;
         pointer-events: none;
-        pointer-events: none;
     }
 
     iframe {
         left: 50%;
         height: 100vh;
-        min-width: 177.77vh; /* 16:9 */
+        min-width: 177.77vh;
         transform: translateX(-50%);
         border: none;
     }

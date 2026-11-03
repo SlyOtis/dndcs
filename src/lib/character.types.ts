@@ -1,4 +1,5 @@
 import type {FeatureSource} from "./class.types";
+import type {RuleSystemOverlay} from "./rules/spec.types";
 
 /** Basic D&D currency types (cp, sp, gp, pp) */
 export type Currency = keyof CharacterCurrency
@@ -170,11 +171,19 @@ export interface CharacterAbility {
   modifier: number   // Calculated modifier
 }
 
+/** Death saving throws made while at 0 HP */
+export interface DeathSaves {
+  successes: number
+  failures: number
+}
+
 /** HP tracking */
 export interface CharacterHitPoints {
   current: number
   max: number
   temporary: number
+  deathSaves?: DeathSaves
+  hitDiceSpent?: number
 }
 
 /** Class hit dice definition */
@@ -225,13 +234,22 @@ export interface SpellsInfo {
   slots: {
     [level: number]: number  // Spell slots per level
   }
+  expended?: {
+    [level: number]: number
+  }
 }
 
 /** Known/prepared spell */
 export interface CharacterSpell {
+  id: string
   title: string
-  score: number | string
-  condition?: null | string
+  level: number
+  school?: string
+  description?: string
+  prepared: boolean
+  attack?: boolean
+  save?: string
+  damage?: Array<Damage>
 }
 
 /** Group of proficiencies */
@@ -437,7 +455,7 @@ export interface LevelUpData {
 export interface SoundClip {
   id: string
   name: string
-  audioData: string // base64 encoded audio data
+  address: string
   volume: number
   duration?: number
   created_at: string
@@ -535,4 +553,10 @@ export interface Character {
 
   /** Sound board for playing audio clips during gameplay */
   soundBoard: SoundBoard
+
+  /** The rule systems the sheet resolves against, applied left to right */
+  systems: string[]
+
+  /** Rules this character alone carries, applied over the systems */
+  overlay: RuleSystemOverlay | null
 }

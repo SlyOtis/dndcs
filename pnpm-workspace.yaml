@@ -1,6 +1,8 @@
 allowBuilds:
   '@firebase/util': true
   protobufjs: true
+minimumReleaseAgeExclude:
+  - '@slyotis/lcp-inspect@0.1.0'
 onlyBuiltDependencies:
   - "@firebase/util"
   - protobufjs

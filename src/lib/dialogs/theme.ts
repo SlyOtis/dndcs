@@ -1,4 +1,5 @@
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
+import { userProfile } from '../stores/auth.store';
 
 const THEME_KEY = 'dnd_theme';
 const DEFAULT_THEME = 'medieval';
@@ -16,16 +17,22 @@ export interface ThemeState {
 }
 
 export const availableThemes: ThemeOption[] = [
-  { id: 'medieval', name: 'Fantasy Medieval', description: 'Gold and bronze mystical realm', colors: ['#ffd700', '#ff6b35', '#8b5a2b'] },
-  { id: 'forest', name: 'Mystic Forest', description: 'Enchanted woodland greens', colors: ['#00ff88', '#66d9aa', '#2d5a3d'] },
-  { id: 'fire', name: 'Dragon Fire', description: 'Burning crimson flames', colors: ['#ff4444', '#ffaa22', '#8b0000'] },
-  { id: 'arcane', name: 'Arcane Magic', description: 'Purple mystical energies', colors: ['#aa44ff', '#6644ff', '#2d1b69'] },
-  { id: 'ocean', name: 'Ocean Depths', description: 'Deep blue mysteries', colors: ['#00aaff', '#00ffdd', '#1e3a8a'] }
+  { id: 'medieval', name: 'Alliance', description: 'Carved granite, gilded trim and torchlight', colors: ['#d4a445', '#ff9f2e', '#4a4034'] },
+  { id: 'forest', name: 'Night Elf', description: 'Moonlit violet wood and silver leaf', colors: ['#b39be6', '#7fe6d4', '#2c1f3d'] },
+  { id: 'fire', name: 'Horde', description: 'Scorched timber, riveted iron and war paint', colors: ['#c2874a', '#ff4a1c', '#452414'] },
+  { id: 'arcane', name: 'Scourge', description: 'Bone, black iron and plague light', colors: ['#cfc6a2', '#8fe04a', '#383c32'] },
+  { id: 'ocean', name: 'Frozen Throne', description: 'Rimed steel under a cold glow', colors: ['#9ccbe6', '#6fdcff', '#2f3c48'] }
 ];
 
 export function getTheme(): string {
   const saved = localStorage.getItem(THEME_KEY);
   if (saved && availableThemes.some((theme) => theme.id === saved)) return saved;
+  return getDefaultTheme();
+}
+
+export function getDefaultTheme(): string {
+  const held = get(userProfile)?.preferences?.theme;
+  if (held && availableThemes.some((theme) => theme.id === held)) return held;
   return DEFAULT_THEME;
 }
 

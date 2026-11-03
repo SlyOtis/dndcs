@@ -1,34 +1,47 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  
-  const SOUND_PATH = import.meta.env.VITE_SOUND_PATH || '/sounds';
-  
-  const soundEvents = [
-    { event: 'playDiceRoll', sound: 'diceRoll' },
-    { event: 'playCriticalHit', sound: 'criticalHit' },
-    { event: 'playCriticalFail', sound: 'criticalFail' },
-    { event: 'playButtonClick', sound: 'buttonClick' },
-    { event: 'playPageFlip', sound: 'pageFlip' },
-    { event: 'playQuillWrite', sound: 'quillWrite' },
-    { event: 'playLevelUp', sound: 'levelUp' },
-    { event: 'playSpellCast', sound: 'spellCast' },
-    { event: 'playCoinDrop', sound: 'coinDrop' },
-    { event: 'playQuestComplete', sound: 'questComplete' },
-    { event: 'playItemFound', sound: 'itemFound' },
-    { event: 'playDoorOpen', sound: 'doorOpen' },
-    { event: 'playSwordHit', sound: 'swordHit' },
-    { event: 'playArrowShoot', sound: 'arrowShoot' },
-    { event: 'playShieldBlock', sound: 'shieldBlock' },
-    { event: 'playHealSpell', sound: 'healSpell' },
-    { event: 'playFireSpell', sound: 'fireSpell' },
-    { event: 'playRestoreEnergy', sound: 'restoreEnergy' },
-    { event: 'playInspiration', sound: 'inspiration' }
-  ] as const;
-  
-  type SoundKey = (typeof soundEvents)[number]['sound'];
-  
-  const audioCache = new Map<SoundKey, Promise<HTMLAudioElement | null>>();
-  
+  import { userProfile } from '$lib/stores/auth.store';
+
+  type Wave = OscillatorType | 'noise';
+
+  type Voice = {
+    wave: Wave;
+    from: number;
+    to?: number;
+    at?: number;
+    length: number;
+    gain?: number;
+    band?: number;
+  };
+
+  const tone = (from: number, at: number, length: number, gain = 0.25, wave: Wave = 'triangle'): Voice => ({ wave, from, at, length, gain });
+  const rattle = (count: number, gap: number, band: number): Voice[] =>
+    Array.from({ length: count }, (_, index) => ({ wave: 'noise', from: 0, band: band + index * 180, at: index * gap, length: 0.035, gain: 0.5 - index * 0.04 }));
+
+  const recipes = {
+    diceRoll: [...rattle(7, 0.055, 1800), tone(220, 0.4, 0.08, 0.15, 'square')],
+    criticalHit: [...rattle(4, 0.05, 2000), tone(523, 0.22, 0.14), tone(659, 0.34, 0.14), tone(784, 0.46, 0.14), tone(1047, 0.58, 0.45, 0.3)],
+    criticalFail: [...rattle(4, 0.05, 1200), { wave: 'sawtooth', from: 330, to: 82, at: 0.24, length: 0.7, gain: 0.22 }],
+    buttonClick: [{ wave: 'noise', from: 0, band: 3200, length: 0.025, gain: 0.35 }, tone(1400, 0, 0.03, 0.08, 'square')],
+    pageFlip: [{ wave: 'noise', from: 0, band: 2400, length: 0.22, gain: 0.3 }],
+    quillWrite: [...rattle(3, 0.07, 5200)],
+    levelUp: [tone(392, 0, 0.12), tone(523, 0.12, 0.12), tone(659, 0.24, 0.12), tone(784, 0.36, 0.12), tone(1047, 0.48, 0.6, 0.3)],
+    spellCast: [{ wave: 'sine', from: 300, to: 1200, length: 0.5, gain: 0.25 }, { wave: 'sine', from: 450, to: 1800, at: 0.05, length: 0.45, gain: 0.12 }],
+    coinDrop: [tone(2093, 0, 0.1, 0.2, 'sine'), tone(2637, 0.09, 0.14, 0.2, 'sine'), tone(2093, 0.2, 0.2, 0.12, 'sine')],
+    questComplete: [tone(523, 0, 0.18), tone(659, 0, 0.18), tone(784, 0.2, 0.18), tone(1047, 0.4, 0.7, 0.3)],
+    itemFound: [tone(880, 0, 0.1, 0.2, 'sine'), tone(1319, 0.1, 0.3, 0.2, 'sine')],
+    doorOpen: [{ wave: 'sawtooth', from: 90, to: 140, length: 0.6, gain: 0.12 }, { wave: 'noise', from: 0, band: 400, at: 0.55, length: 0.12, gain: 0.4 }],
+    swordHit: [{ wave: 'noise', from: 0, band: 3000, length: 0.08, gain: 0.5 }, tone(1760, 0, 0.35, 0.12, 'square'), tone(2350, 0, 0.3, 0.08, 'sine')],
+    arrowShoot: [{ wave: 'noise', from: 0, band: 1500, length: 0.25, gain: 0.3 }, { wave: 'sine', from: 900, to: 300, length: 0.25, gain: 0.1 }],
+    shieldBlock: [{ wave: 'noise', from: 0, band: 600, length: 0.12, gain: 0.6 }, tone(180, 0, 0.3, 0.2, 'square')],
+    healSpell: [tone(523, 0, 0.3, 0.18, 'sine'), tone(659, 0.1, 0.3, 0.18, 'sine'), tone(784, 0.2, 0.5, 0.18, 'sine')],
+    fireSpell: [{ wave: 'noise', from: 0, band: 700, length: 0.7, gain: 0.45 }, { wave: 'sawtooth', from: 120, to: 60, length: 0.6, gain: 0.1 }],
+    restoreEnergy: [{ wave: 'sine', from: 220, to: 880, length: 0.6, gain: 0.2 }],
+    inspiration: [tone(659, 0, 0.14, 0.2, 'sine'), tone(988, 0.12, 0.14, 0.2, 'sine'), tone(1319, 0.24, 0.5, 0.25, 'sine')]
+  } satisfies Record<string, Voice[]>;
+
+  type SoundKey = keyof typeof recipes;
+
   const funnyTexts = {
     criticalHit: [
       "By the gods! What a strike!",
@@ -105,200 +118,93 @@
       "Your legend grows ever brighter!"
     ]
   };
-  
-  let volume = $state(parseFloat(localStorage.getItem('dnd_sound_volume') || '0.7'));
-  let soundEnabled = $state(localStorage.getItem('dnd_sound_enabled') !== 'false');
-  
-  $effect(() => {
-    localStorage.setItem('dnd_sound_volume', volume.toString());
-    localStorage.setItem('dnd_sound_enabled', soundEnabled.toString());
-  });
-  
-  function getAudio(sound: SoundKey): Promise<HTMLAudioElement | null> {
-    if (!audioCache.has(sound)) {
-      const url = `${SOUND_PATH}/${sound.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`)}.wav`;
-      audioCache.set(sound, fetch(url, { method: 'HEAD' })
-        .then(res => {
-          if (!res.ok || !res.headers.get('content-type')?.startsWith('audio/')) return null;
-          const audio = new Audio(url);
-          audio.volume = volume;
-          return audio;
-        })
-        .catch(() => null));
+
+  const soundEnabled = $derived($userProfile?.preferences?.sound_enabled ?? true);
+  const volume = $derived($userProfile?.preferences?.sound_volume ?? 0.7);
+
+  let context: AudioContext | null = null;
+  let noise: AudioBuffer | null = null;
+
+  function getContext(): AudioContext {
+    context ??= new AudioContext();
+    if (!noise) {
+      noise = context.createBuffer(1, context.sampleRate, context.sampleRate);
+      const data = noise.getChannelData(0);
+      for (let index = 0; index < data.length; index++) data[index] = Math.random() * 2 - 1;
     }
-    return audioCache.get(sound)!;
+    return context;
   }
-  
-  async function playSound(sound: SoundKey, showText: boolean = true) {
+
+  function playVoice(audio: AudioContext, output: AudioNode, voice: Voice) {
+    const start = audio.currentTime + (voice.at ?? 0);
+    const end = start + voice.length;
+    const envelope = audio.createGain();
+    envelope.gain.setValueAtTime(0.0001, start);
+    envelope.gain.exponentialRampToValueAtTime(voice.gain ?? 0.25, start + Math.min(0.01, voice.length / 4));
+    envelope.gain.exponentialRampToValueAtTime(0.0001, end);
+    envelope.connect(output);
+
+    if (voice.wave === 'noise') {
+      const source = audio.createBufferSource();
+      source.buffer = noise;
+      const band = audio.createBiquadFilter();
+      band.type = 'bandpass';
+      band.frequency.value = voice.band ?? 1000;
+      band.Q.value = 1.2;
+      source.connect(band).connect(envelope);
+      source.start(start, Math.random() * 0.5, voice.length);
+      return;
+    }
+
+    const oscillator = audio.createOscillator();
+    oscillator.type = voice.wave;
+    oscillator.frequency.setValueAtTime(voice.from, start);
+    if (voice.to) oscillator.frequency.exponentialRampToValueAtTime(voice.to, end);
+    oscillator.connect(envelope);
+    oscillator.start(start);
+    oscillator.stop(end + 0.02);
+  }
+
+  function playSound(sound: SoundKey, showText: boolean = true) {
     if (!soundEnabled) return;
-    
+
     if (showText && sound in funnyTexts) {
       showRandomText(sound as keyof typeof funnyTexts);
     }
-    
-    const audio = await getAudio(sound);
-    if (!audio) return;
-    
-    audio.volume = volume;
-    audio.currentTime = 0;
-    audio.play().catch(error => {
-      console.warn(`Could not play sound ${sound}:`, error);
-    });
+
+    if (volume <= 0) return;
+
+    const audio = getContext();
+    if (audio.state === 'suspended') audio.resume();
+    const output = audio.createGain();
+    output.gain.value = volume;
+    output.connect(audio.destination);
+
+    for (const voice of recipes[sound]) playVoice(audio, output, voice);
   }
-  
+
   function showRandomText(category: keyof typeof funnyTexts) {
     const texts = funnyTexts[category];
     if (!texts || texts.length === 0) return;
-    
+
     const randomText = texts[Math.floor(Math.random() * texts.length)];
-    
+
     window.dispatchEvent(new CustomEvent('showFunnyText', {
       detail: { text: randomText, category }
     }));
   }
-  
+
   onMount(() => {
-    const listeners: Array<() => void> = [];
-    
-    soundEvents.forEach(({ event, sound }) => {
-      const listener = (e: Event) => {
-        const customEvent = e as CustomEvent;
-        const showText = customEvent.detail?.showText !== false;
-        playSound(sound, showText);
-      };
-      
+    const listeners = (Object.keys(recipes) as SoundKey[]).map((sound) => {
+      const event = `play${sound.charAt(0).toUpperCase()}${sound.slice(1)}`;
+      const listener = (e: Event) => playSound(sound, (e as CustomEvent).detail?.showText !== false);
       window.addEventListener(event, listener);
-      listeners.push(() => window.removeEventListener(event, listener));
+      return () => window.removeEventListener(event, listener);
     });
-    
+
     return () => {
-      listeners.forEach(cleanup => cleanup());
+      listeners.forEach((cleanup) => cleanup());
+      context?.close();
     };
   });
-  
-  (globalThis as any).soundManager = {
-    playSound,
-    setVolume: (newVolume: number) => {
-      volume = Math.max(0, Math.min(1, newVolume));
-      audioCache.forEach(pending => {
-        pending.then(audio => {
-          if (audio) audio.volume = volume;
-        });
-      });
-    },
-    toggleSound: () => {
-      soundEnabled = !soundEnabled;
-    },
-    getVolume: () => volume,
-    isEnabled: () => soundEnabled,
-    getSoundState: () => soundEnabled,
-    setSoundState: (enabled: boolean) => {
-      soundEnabled = enabled;
-    }
-  };
 </script>
-
-<!-- Sound control panel (hidden by default, can be toggled) -->
-<div class="sound-controls" class:visible={false}>
-  <div class="sound-panel">
-    <h4>🎵 Sound Settings</h4>
-    
-    <div class="control">
-      <label>
-        <input type="checkbox" bind:checked={soundEnabled} />
-        Enable Sounds
-      </label>
-    </div>
-    
-    <div class="control">
-      <label>
-        Volume: {Math.round(volume * 100)}%
-        <input 
-          type="range" 
-          min="0" 
-          max="1" 
-          step="0.1" 
-          bind:value={volume}
-          disabled={!soundEnabled}
-        />
-      </label>
-    </div>
-    
-    <div class="test-sounds">
-      <button onclick={() => playSound('diceRoll')}>🎲 Dice</button>
-      <button onclick={() => playSound('criticalHit')}>⚡ Crit</button>
-      <button onclick={() => playSound('spellCast')}>✨ Spell</button>
-      <button onclick={() => playSound('inspiration')}>💡 Inspire</button>
-    </div>
-  </div>
-</div>
-
-<style>
-  .sound-controls {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 9998;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-  
-  .sound-controls.visible {
-    opacity: 1;
-    pointer-events: all;
-  }
-  
-  .sound-panel {
-    background: var(--ground-deep);
-    border: 2px solid var(--metal);
-    border-radius: 12px;
-    padding: 16px;
-    color: var(--ink);
-    font-family: var(--font-display);
-    min-width: 200px;
-    box-shadow: 0 4px 12px var(--shade-soft);
-  }
-  
-  .sound-panel h4 {
-    margin: 0 0 12px 0;
-    color: var(--metal);
-    text-align: center;
-  }
-  
-  .control {
-    margin: 8px 0;
-  }
-  
-  .control label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.9em;
-  }
-  
-  .control input[type="range"] {
-    width: 100%;
-  }
-  
-  .test-sounds {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    justify-content: space-around;
-  }
-  
-  .test-sounds button {
-    background: var(--metal);
-    border: 1px solid var(--metal-dim);
-    border-radius: 6px;
-    padding: 6px 8px;
-    cursor: pointer;
-    font-size: 0.8em;
-    transition: transform 0.2s ease;
-  }
-  
-  .test-sounds button:hover {
-    transform: scale(1.1);
-  }
-</style>

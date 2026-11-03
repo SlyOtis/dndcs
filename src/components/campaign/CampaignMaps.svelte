@@ -1,63 +1,90 @@
 <script lang="ts">
   import { onDestroy, untrack } from 'svelte'
+  import { navigate } from 'sly-svelte-location-router'
   import { campaignService } from '$lib/firestore.service'
   import type {
-    CampaignLocation,
     CampaignMap,
-    CampaignNpc,
-    CampaignQuest,
     CampaignRecordKind,
     MapLayer,
     MapMarker,
     MapMarkerKind
   } from '$lib/firestore.types'
+  import { RESOURCES, type Character, type Place, type Quest } from '$lib/resources'
   import { postFile } from '$lib/storage.service'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import Fold from '$components/ui/Fold.svelte'
+  import IconBtn from '$components/ui/IconBtn.svelte'
   import MapCanvas from './MapCanvas.svelte'
   import MapIcon from './MapIcon.svelte'
 
-  const {
+  let {
     campaignId,
     isDm = false,
     locations = [],
     npcs = [],
-    quests = []
+    quests = [],
+    maps = [],
+    selectedId = $bindable(null),
+    placing = $bindable(null),
+    editing = $bindable(null),
+    mode = 'canvas'
   }: {
     /** Campaign the maps belong to. */
     campaignId: string
     /** Grants uploading, placing, revealing and deleting. Players get a read only view. */
     isDm?: boolean
     /** Places a pin can stand for. */
-    locations?: CampaignLocation[]
+    locations?: Place[]
     /** People a pin can stand for. */
-    npcs?: CampaignNpc[]
+    npcs?: Character[]
     /** Quests a pin can stand for. */
-    quests?: CampaignQuest[]
+    quests?: Quest[]
+    /** Every map the campaign holds, newest listener state. */
+    maps?: CampaignMap[]
+    /** The map on the canvas, bound to whatever drives the table of contents. */
+    selectedId?: string | null
+    /** The marker kind the next map click drops, shared with the tools. */
+    placing?: MapMarkerKind | null
+    /** The marker the editor is open on, shared with the tools. */
+    editing?: string | null
+    /** Draws the map itself, or the controls that drive it. */
+    mode?: 'canvas' | 'tools'
   } = $props()
 
-  const KINDS: MapMarkerKind[] = [
-    'region', 'city', 'town', 'keep', 'dungeon', 'inn',
-    'temple', 'npc', 'quest', 'danger', 'treasure', 'note'
+  const FAMILIES: { name: string; kinds: MapMarkerKind[] }[] = [
+    { name: 'Settlements', kinds: ['region', 'city', 'town', 'village', 'camp', 'market'] },
+    { name: 'Strongholds', kinds: ['keep', 'tower', 'temple', 'shrine', 'inn', 'forge'] },
+    { name: 'Depths', kinds: ['dungeon', 'cave', 'ruin', 'grave', 'portal', 'bridge'] },
+    { name: 'Wilds', kinds: ['forest', 'mountain', 'swamp', 'lake', 'harbour', 'road'] },
+    { name: 'Marks', kinds: ['npc', 'quest', 'battle', 'danger', 'treasure', 'note'] }
   ]
 
-  let maps = $state<CampaignMap[]>([])
-  let selectedId = $state<string | null>(null)
+  const KINDS: MapMarkerKind[] = FAMILIES.flatMap((family) => family.kinds)
+
   let error = $state<string | null>(null)
   let busy = $state(false)
-  let placing = $state<MapMarkerKind | null>(null)
-  let editing = $state<string | null>(null)
   let title = $state('')
+  let shown = $state<Record<string, boolean>>({ pins: true, layers: false, chart: false, add: false })
+
+  function toggle(id: string) {
+    shown = { ...shown, [id]: !shown[id] }
+  }
 
   const visible = $derived(isDm ? maps : maps.filter((map) => map.is_visible))
   const selected = $derived(visible.find((map) => map.id === selectedId) ?? visible[0] ?? null)
   const marker = $derived(selected?.markers.find((entry) => entry.id === editing) ?? null)
 
-  const stop = campaignService.postMapsListener(untrack(() => campaignId), (loaded) => {
-    maps = loaded.sort((a, b) => a.title.localeCompare(b.title))
+  const trail = $derived.by(() => {
+    const walk: CampaignMap[] = []
+    let step: CampaignMap | null = selected
+    while (step && !walk.some((one) => one.id === step!.id)) {
+      const here: CampaignMap = step
+      walk.unshift(here)
+      step = visible.find((one) => one.id === here.parent_map_id) ?? null
+    }
+    return walk
   })
-
-  onDestroy(stop)
 
   function report(reason: unknown) {
     error = reason instanceof Error ? reason.message : String(reason)
@@ -155,6 +182,37 @@
     await campaignService.putMap(campaignId, selected.id, { markers: next }).catch(report)
   }
 
+  async function linkMap(markerId: string, childId: string) {
+    if (!selected) return
+    await putMarker(markerId, { link_map_id: childId || undefined })
+    if (childId) await campaignService.putMap(campaignId, childId, { parent_map_id: selected.id }).catch(report)
+  }
+
+  function lookup(pin: MapMarker) {
+    const child = pin.link_map_id ? visible.find((one) => one.id === pin.link_map_id) : null
+    if (child) return { name: child.title, note: `${child.markers.length} pins`, body: '', image: child.image_url }
+
+    if (pin.record_kind === 'place' && pin.record_id) {
+      const place = locations.find((one) => one.id === pin.record_id)
+      if (place) return { name: place.title, note: RESOURCES.places.mark(place), body: place.description, image: place.image, href: `/main/campaign/${campaignId}/places/${place.id}` }
+    }
+    if (pin.record_kind === 'character' && pin.record_id) {
+      const who = npcs.find((one) => one.id === pin.record_id)
+      if (who) return { name: who.title, note: RESOURCES.characters.mark(who), body: who.description, image: who.image, href: `/main/campaign/${campaignId}/characters/${who.id}` }
+    }
+    if (pin.record_kind === 'quest' && pin.record_id) {
+      const errand = quests.find((one) => one.id === pin.record_id)
+      if (errand) return { name: errand.title, note: RESOURCES.quests.mark(errand), body: errand.description, image: errand.image, href: `/main/campaign/${campaignId}/quests/${errand.id}` }
+    }
+
+    return { name: pin.title, note: pin.kind, body: pin.description ?? '', image: '' }
+  }
+
+  function open(pin: MapMarker) {
+    const card = lookup(pin)
+    if (card.href) navigate(card.href)
+  }
+
   function follow(pin: MapMarker) {
     if (pin.link_map_id && visible.some((map) => map.id === pin.link_map_id)) {
       selectedId = pin.link_map_id
@@ -165,127 +223,140 @@
   }
 </script>
 
-<section class="dnd-maps">
+<section class="dnd-maps" class:dnd-maps-tools={mode === 'tools'}>
   {#if error}
     <p class="dnd-maps-error">{error}</p>
   {/if}
 
-  {#if visible.length === 0}
-    <p class="dnd-maps-note">No map has been shared yet.</p>
-  {:else}
-    <div class="dnd-maps-tabs">
-      {#each visible as map (map.id)}
-        <Button
-          variant={map.id === selected?.id ? 'primary' : 'secondary'}
-          onclick={() => { selectedId = map.id; editing = null }}
-        >
-          {map.title}{#if isDm && !map.is_visible}<span class="dnd-maps-flag"> hidden</span>{/if}
-        </Button>
-      {/each}
-    </div>
-  {/if}
-
-  {#if selected}
-    <MapCanvas
-      map={selected}
-      canEdit={isDm}
-      {placing}
-      onPlace={place}
-      onSelect={follow}
-    />
-
-    {#if isDm}
-      <div class="dnd-maps-kinds">
-        {#each KINDS as kind}
+  {#if mode === 'canvas'}
+    {#if visible.length === 0}
+      <p class="dnd-maps-note">No map has been shared yet.</p>
+    {:else if trail.length > 1}
+      <nav class="dnd-maps-trail" aria-label="Where this map sits">
+        {#each trail as step, index (step.id)}
           <button
             type="button"
-            class="dnd-maps-kind"
-            class:dnd-maps-kind-active={placing === kind}
-            onclick={() => (placing = placing === kind ? null : kind)}
+            class="dnd-maps-step"
+            disabled={index === trail.length - 1}
+            onclick={() => { selectedId = step.id; editing = null }}
           >
-            <MapIcon {kind} size={16} />
-            {kind}
+            {step.title}
           </button>
         {/each}
-      </div>
+      </nav>
+    {/if}
+
+    {#if selected}
+      <MapCanvas
+        map={selected}
+        canEdit={isDm}
+        {placing}
+        onPlace={place}
+        onSelect={follow}
+        onDescend={follow}
+        {lookup}
+        onOpen={open}
+      />
+    {/if}
+  {:else if selected && isDm}
+    <Fold title="Drop a pin" count={selected.markers.length} open={shown.pins} ontoggle={() => toggle('pins')}>
+      {#each FAMILIES as family (family.name)}
+        <p class="dnd-maps-title">{family.name}</p>
+        <div class="dnd-maps-kinds">
+          {#each family.kinds as kind (kind)}
+            <IconBtn
+              title="Place a {kind} pin"
+              active={placing === kind}
+              onclick={() => (placing = placing === kind ? null : kind)}
+            >
+              <MapIcon {kind} size={18} />
+            </IconBtn>
+          {/each}
+        </div>
+      {/each}
 
       {#if placing}
         <p class="dnd-maps-note">Click the map to drop a {placing} pin at the current zoom.</p>
       {/if}
+    </Fold>
 
-      {#if marker}
-        <div class="dnd-maps-editor dnd-panel dnd-keyline">
-          <h4>{marker.title}</h4>
-          <Field label="Title" id="pin-title">
-            <input id="pin-title" value={marker.title} onchange={(e) => putMarker(marker.id, { title: e.currentTarget.value })} />
+    {#if marker}
+      <Fold title={marker.title} count={marker.kind} open ontoggle={() => (editing = null)}>
+        <Field label="Title" id="pin-title">
+          <input id="pin-title" value={marker.title} onchange={(e) => putMarker(marker.id, { title: e.currentTarget.value })} />
+        </Field>
+        <Field label="Description" id="pin-description">
+          <textarea id="pin-description" rows="2" value={marker.description ?? ''} onchange={(e) => putMarker(marker.id, { description: e.currentTarget.value })}></textarea>
+        </Field>
+        <Field label="Icon" id="pin-kind">
+          <select id="pin-kind" value={marker.kind} onchange={(e) => putMarker(marker.id, { kind: e.currentTarget.value as MapMarkerKind })}>
+            {#each KINDS as kind}<option value={kind}>{kind}</option>{/each}
+          </select>
+        </Field>
+        <div class="dnd-maps-pair">
+          <Field label="Appears from zoom" id="pin-min">
+            <input id="pin-min" type="number" step="0.1" min={selected.min_zoom} max={selected.max_zoom} value={marker.min_zoom} onchange={(e) => putMarker(marker.id, { min_zoom: Number(e.currentTarget.value) })} />
           </Field>
-          <Field label="Description" id="pin-description">
-            <textarea id="pin-description" rows="2" value={marker.description ?? ''} onchange={(e) => putMarker(marker.id, { description: e.currentTarget.value })}></textarea>
+          <Field label="Disappears past zoom" id="pin-max">
+            <input id="pin-max" type="number" step="0.1" min={selected.min_zoom} max={selected.max_zoom} value={marker.max_zoom} onchange={(e) => putMarker(marker.id, { max_zoom: Number(e.currentTarget.value) })} />
           </Field>
-          <Field label="Icon" id="pin-kind">
-            <select id="pin-kind" value={marker.kind} onchange={(e) => putMarker(marker.id, { kind: e.currentTarget.value as MapMarkerKind })}>
-              {#each KINDS as kind}<option value={kind}>{kind}</option>{/each}
-            </select>
-          </Field>
-          <div class="dnd-maps-pair">
-            <Field label="Appears from zoom" id="pin-min">
-              <input id="pin-min" type="number" step="0.1" min={selected.min_zoom} max={selected.max_zoom} value={marker.min_zoom} onchange={(e) => putMarker(marker.id, { min_zoom: Number(e.currentTarget.value) })} />
-            </Field>
-            <Field label="Disappears past zoom" id="pin-max">
-              <input id="pin-max" type="number" step="0.1" min={selected.min_zoom} max={selected.max_zoom} value={marker.max_zoom} onchange={(e) => putMarker(marker.id, { max_zoom: Number(e.currentTarget.value) })} />
-            </Field>
-          </div>
-          <Field label="Opens map" id="pin-link" help="Clicking the pin jumps to this map.">
-            <select id="pin-link" value={marker.link_map_id ?? ''} onchange={(e) => putMarker(marker.id, { link_map_id: e.currentTarget.value || undefined })}>
-              <option value="">None</option>
-              {#each maps.filter((entry) => entry.id !== selected.id) as entry}<option value={entry.id}>{entry.title}</option>{/each}
-            </select>
-          </Field>
-          <Field label="Stands for" id="pin-record" help="Points the pin at a place, a person or a quest so the text lives in one record.">
-            <select
-              id="pin-record"
-              value={marker.record_kind && marker.record_id ? `${marker.record_kind}:${marker.record_id}` : ''}
-              onchange={(e) => {
-                const [kind, id] = e.currentTarget.value.split(':')
-                putMarker(marker.id, {
-                  record_kind: id ? (kind as CampaignRecordKind) : undefined,
-                  record_id: id || undefined
-                })
-              }}
-            >
-              <option value="">Nothing</option>
-              {#each locations as place}<option value="location:{place.id}">Place — {place.name}</option>{/each}
-              {#each npcs as npc}<option value="npc:{npc.id}">Person — {npc.name}</option>{/each}
-              {#each quests as quest}<option value="quest:{quest.id}">Quest — {quest.title}</option>{/each}
-            </select>
-          </Field>
-          <div class="dnd-maps-row">
-            <Button variant={marker.is_visible ? 'secondary' : 'primary'} onclick={() => putMarker(marker.id, { is_visible: !marker.is_visible })}>
-              {marker.is_visible ? 'Revealed' : 'Reveal to players'}
-            </Button>
-            <Button variant="ghost" onclick={() => (editing = null)}>Close</Button>
-            <Button variant="danger" onclick={() => deleteMarker(marker.id)}>Remove pin</Button>
-          </div>
         </div>
-      {/if}
+        <Field label="Opens map" id="pin-link" help="Clicking the pin jumps to this map.">
+          <select id="pin-link" value={marker.link_map_id ?? ''} onchange={(e) => linkMap(marker.id, e.currentTarget.value)}>
+            <option value="">None</option>
+            {#each maps.filter((entry) => entry.id !== selected.id) as entry}<option value={entry.id}>{entry.title}</option>{/each}
+          </select>
+        </Field>
+        <Field label="Stands for" id="pin-record" help="Points the pin at a place, a person or a quest so the text lives in one record.">
+          <select
+            id="pin-record"
+            value={marker.record_kind && marker.record_id ? `${marker.record_kind}:${marker.record_id}` : ''}
+            onchange={(e) => {
+              const [kind, id] = e.currentTarget.value.split(':')
+              putMarker(marker.id, {
+                record_kind: id ? (kind as CampaignRecordKind) : undefined,
+                record_id: id || undefined
+              })
+            }}
+          >
+            <option value="">Nothing</option>
+            {#each locations as place}<option value="location:{place.id}">Place — {place.title}</option>{/each}
+            {#each npcs as npc}<option value="npc:{npc.id}">Person — {npc.title}</option>{/each}
+            {#each quests as quest}<option value="quest:{quest.id}">Quest — {quest.title}</option>{/each}
+          </select>
+        </Field>
+        <div class="dnd-maps-row">
+          <Button variant={marker.is_visible ? 'secondary' : 'primary'} onclick={() => putMarker(marker.id, { is_visible: !marker.is_visible })}>
+            {marker.is_visible ? 'Revealed' : 'Reveal to players'}
+          </Button>
+          <Button variant="danger" onclick={() => deleteMarker(marker.id)}>Remove pin</Button>
+        </div>
+      </Fold>
+    {/if}
 
-      <div class="dnd-maps-panel dnd-panel dnd-keyline">
-        <h4>Detail layers</h4>
-        <p class="dnd-maps-note">A layer replaces the picture once the zoom passes its threshold.</p>
-        {#each selected.layers as entry (entry.id)}
-          <div class="dnd-maps-row">
-            <input class="dnd-maps-input" value={entry.title} onchange={(e) => putLayer(entry.id, { title: e.currentTarget.value })} />
-            <label class="dnd-maps-inline">from <input class="dnd-maps-number" type="number" step="0.1" value={entry.min_zoom} onchange={(e) => putLayer(entry.id, { min_zoom: Number(e.currentTarget.value) })} /></label>
-            <label class="dnd-maps-inline">to <input class="dnd-maps-number" type="number" step="0.1" value={entry.max_zoom} onchange={(e) => putLayer(entry.id, { max_zoom: Number(e.currentTarget.value) })} /></label>
-            <Button variant="danger" onclick={() => deleteLayer(entry.id)}>Remove</Button>
-          </div>
-        {/each}
-        <label class="dnd-maps-upload">
-          <span>Add a detail layer</span>
-          <input type="file" accept="image/*" disabled={busy} onchange={addLayer} />
-        </label>
-      </div>
+    <Fold title="Detail layers" count={selected.layers.length} open={shown.layers} ontoggle={() => toggle('layers')}>
+      <p class="dnd-maps-note">A layer replaces the picture once the zoom passes its threshold.</p>
+      {#each selected.layers as entry (entry.id)}
+        <div class="dnd-maps-row">
+          <input class="dnd-maps-input" value={entry.title} onchange={(e) => putLayer(entry.id, { title: e.currentTarget.value })} />
+          <label class="dnd-maps-inline">from <input class="dnd-maps-number" type="number" step="0.1" value={entry.min_zoom} onchange={(e) => putLayer(entry.id, { min_zoom: Number(e.currentTarget.value) })} /></label>
+          <label class="dnd-maps-inline">to <input class="dnd-maps-number" type="number" step="0.1" value={entry.max_zoom} onchange={(e) => putLayer(entry.id, { max_zoom: Number(e.currentTarget.value) })} /></label>
+          <Button variant="danger" onclick={() => deleteLayer(entry.id)}>Remove</Button>
+        </div>
+        <div class="dnd-maps-row">
+          <label class="dnd-maps-inline">x <input class="dnd-maps-number" type="number" step="0.01" min="0" max="1" value={entry.x ?? 0} onchange={(e) => putLayer(entry.id, { x: Number(e.currentTarget.value) })} /></label>
+          <label class="dnd-maps-inline">y <input class="dnd-maps-number" type="number" step="0.01" min="0" max="1" value={entry.y ?? 0} onchange={(e) => putLayer(entry.id, { y: Number(e.currentTarget.value) })} /></label>
+          <label class="dnd-maps-inline">w <input class="dnd-maps-number" type="number" step="0.01" min="0" max="1" value={entry.width ?? ''} placeholder="whole" onchange={(e) => putLayer(entry.id, { width: e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value) })} /></label>
+          <label class="dnd-maps-inline">h <input class="dnd-maps-number" type="number" step="0.01" min="0" max="1" value={entry.height ?? ''} placeholder="whole" onchange={(e) => putLayer(entry.id, { height: e.currentTarget.value === '' ? undefined : Number(e.currentTarget.value) })} /></label>
+        </div>
+      {/each}
+      <label class="dnd-maps-upload">
+        <span>Add a detail layer</span>
+        <input type="file" accept="image/*" disabled={busy} onchange={addLayer} />
+      </label>
+    </Fold>
 
+    <Fold title="This map" count={selected.is_visible ? 'shared' : 'hidden'} open={shown.chart} ontoggle={() => toggle('chart')}>
       <div class="dnd-maps-row">
         <Button
           variant={selected.is_visible ? 'secondary' : 'primary'}
@@ -297,12 +368,11 @@
           Delete map
         </Button>
       </div>
-    {/if}
+    </Fold>
   {/if}
 
-  {#if isDm}
-    <div class="dnd-maps-panel dnd-panel dnd-keyline">
-      <h4>Add a map</h4>
+  {#if isDm && mode === 'tools'}
+    <Fold title="Add a map" count={maps.length} open={shown.add} ontoggle={() => toggle('add')}>
       <Field label="Title" id="map-title" help="Left blank, the file name is used.">
         <input id="map-title" bind:value={title} placeholder="The Sword Coast" />
       </Field>
@@ -310,19 +380,26 @@
         <span>{busy ? 'Uploading...' : 'Choose an image'}</span>
         <input type="file" accept="image/*" disabled={busy} onchange={addMap} />
       </label>
-    </div>
+    </Fold>
   {/if}
+
 </section>
 
 <style>
   .dnd-maps {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: var(--space-4);
   }
 
-  .dnd-maps-tabs,
-  .dnd-maps-kinds,
+  .dnd-maps-tools {
+    flex: none;
+  }
+
+  .dnd-maps-trail,
   .dnd-maps-row {
     display: flex;
     flex-wrap: wrap;
@@ -330,45 +407,23 @@
     gap: var(--space-2);
   }
 
-  .dnd-maps-kind {
-    display: inline-flex;
-    align-items: center;
+  .dnd-maps-kinds {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-rows: var(--space-7);
     gap: var(--space-1);
-    padding: var(--space-1) var(--space-2);
-    border: var(--border-width) solid var(--ground-lift);
-    border-radius: var(--radius-md);
-    background: var(--ground-raised);
-    color: var(--ink);
-    font-family: inherit;
-    font-size: var(--text-xs);
-    cursor: pointer;
+    justify-items: center;
   }
 
-  .dnd-maps-kind-active {
-    border-color: var(--metal);
-    color: var(--metal);
-  }
-
-  .dnd-maps-kind:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .dnd-maps-panel,
-  .dnd-maps-editor {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-    padding: var(--space-4);
-    border-radius: var(--radius-lg);
-    background: var(--ground);
-  }
-
-  .dnd-maps-panel h4,
-  .dnd-maps-editor h4 {
+  .dnd-maps-title {
     margin: 0;
-    font-size: var(--text-sm);
     color: var(--metal);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-maps-pair {
@@ -379,13 +434,23 @@
 
   .dnd-maps-input,
   .dnd-maps-number {
+    min-width: 0;
     padding: var(--space-2);
-    background: var(--ground-raised);
-    border: var(--border-width) solid var(--ground-lift);
-    border-radius: var(--radius-md);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep), var(--ground));
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
     color: var(--ink);
     font-family: inherit;
     font-size: var(--text-sm);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .dnd-maps-input:focus,
+  .dnd-maps-number:focus {
+    outline: none;
+    border-color: var(--metal-bright);
+    box-shadow: var(--bevel-down), var(--glow-metal);
   }
 
   .dnd-maps-input {
@@ -393,7 +458,9 @@
   }
 
   .dnd-maps-number {
-    width: 72px;
+    width: 4.5rem;
+    font-family: var(--font-figures);
+    font-variant-numeric: lining-nums tabular-nums;
   }
 
   .dnd-maps-inline {
@@ -418,7 +485,6 @@
     color: var(--ink-dim);
   }
 
-  .dnd-maps-flag,
   .dnd-maps-note {
     font-size: var(--text-xs);
     color: var(--ink-dim);
@@ -432,8 +498,10 @@
   .dnd-maps-error {
     margin: 0;
     padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    border: var(--border-hair) solid var(--state-bad);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 14%, var(--ground-raised)), var(--ground-deep));
+    box-shadow: var(--bevel-down);
     color: var(--ink);
     font-size: var(--text-sm);
   }

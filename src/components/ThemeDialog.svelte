@@ -83,12 +83,11 @@
 
   .realms {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(15.5rem, 100%), 1fr));
     gap: var(--space-4);
   }
 
   .realm {
-    --realm-rim: var(--metal-dim);
     --realm-light: transparent;
     position: relative;
     display: flex;
@@ -96,48 +95,62 @@
     gap: var(--space-2);
     padding: var(--space-5) var(--space-4) var(--space-4);
     background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--realm-rim);
-    border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-sm);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-sm);
     color: var(--ink);
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
   }
 
   .realm::before {
     content: '';
     position: absolute;
-    inset: 4px;
-    border: var(--border-hair) solid var(--metal-edge);
-    border-radius: calc(var(--radius-xl) - 4px) calc(var(--radius-xl) - 4px) var(--radius-sm) var(--radius-sm);
-    opacity: 0.6;
+    inset: var(--space-2);
+    border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 50%, transparent);
+    border-radius: 0;
     pointer-events: none;
   }
 
   .realm:hover {
-    --realm-rim: var(--metal);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md), inset 0 1px 0 var(--metal-edge);
+    box-shadow:
+      inset 0 0 0 1px var(--keyline),
+      inset 0 0 0 2px var(--metal-bright),
+      inset 0 0 0 3px var(--keyline),
+      inset 0 0 16px 2px var(--shade-hard),
+      var(--shadow-md);
+  }
+
+  .realm:hover .realm-name {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
+  }
+
+  .realm:active {
+    filter: brightness(0.85);
   }
 
   .realm:focus-visible {
     outline: none;
-    box-shadow: var(--focus-ring);
+    box-shadow: var(--rim-thin), var(--focus-ring);
   }
 
   .realm-lit {
-    --realm-rim: var(--metal);
     --realm-light: var(--ember-glow);
-    box-shadow: var(--shadow-md), inset 0 0 26px -8px var(--realm-light), var(--glow-metal);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, var(--ember-glow) 0%, transparent 70%),
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim), inset 0 0 26px -8px var(--realm-light), var(--glow-metal);
   }
 
   .realm-cusp {
     position: absolute;
-    top: -1px;
-    left: -1px;
+    top: 0;
+    left: 0;
     opacity: 0.7;
     pointer-events: none;
   }
@@ -150,24 +163,31 @@
   }
 
   .realm-hue {
-    width: 30px;
-    height: 30px;
+    width: 1.9rem;
+    height: 1.9rem;
     border-radius: var(--radius-pill);
-    border: var(--border-width) solid var(--metal-dim);
-    box-shadow: inset 0 -6px 10px -6px var(--shade-hard), 0 0 10px -2px var(--realm-light);
+    border: none;
+    box-shadow: var(--rim-thin), inset 0 -6px 10px -6px var(--shade-hard), 0 0 10px -2px var(--realm-light);
   }
 
   .realm-name {
     font-family: var(--font-display);
     font-size: var(--text-md);
     font-weight: 700;
-    letter-spacing: var(--tracking-wide);
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000;
+    transition: color 0.18s ease, text-shadow 0.18s ease;
+  }
+
+  .realm-lit .realm-name {
     color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .realm-note {
-    color: var(--ink-faint);
+    color: var(--ink-dim);
     font-size: var(--text-xs);
     line-height: 1.4;
   }

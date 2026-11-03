@@ -34,7 +34,33 @@ vi.mock('./firestore.service', () => ({
   }
 }))
 
-import { applyStateToCharacter, characterWriteError, getCharacterStore, getEmptyCharacter } from './engine'
+vi.mock('./dice', () => ({
+  postThrow: () => Promise.resolve()
+}))
+
+import dnd5e from '../../public/sources/systems/dnd5e.json'
+import { getResolvedCharacter } from './rules/derive'
+import { getSheet } from './rules/sheet'
+import type { RuleSystem } from './rules/spec.types'
+import {
+  applyStateToCharacter,
+  characterWriteError,
+  deleteCondition,
+  deleteItem,
+  getCharacterStore,
+  getEmptyCharacter,
+  postCast,
+  postItem,
+  postLongRest,
+  postShortRest,
+  putCondition,
+  putDamage,
+  putDeathSave,
+  putHealing,
+  putItem,
+  putSlots,
+  putTemporaryHitPoints
+} from './engine'
 
 const vault = (): Character => {
   const character = getEmptyCharacter()
@@ -151,5 +177,201 @@ describe('a sheet edit reaching the character document', () => {
     expect(get(characterWriteError)).toBe('')
     expect(wire.updates).toHaveLength(1)
     expect(wire.updates[0].character.info.ac).toBe(16)
+  })
+})
+
+const system = dnd5e as unknown as RuleSystem
+
+const rules = (store: ReturnType<typeof getCharacterStore>) => {
+  const character = Object.fromEntries(
+    Object.entries(store).filter(([key]) => key !== 'unsubscribe').map(([key, value]) => [key, get(value as any)])
+  ) as unknown as Character
+  return getResolvedCharacter(system, getSheet(character, system))
+}
+
+const hp = (store: ReturnType<typeof getCharacterStore>) => get(store.info).hp
+
+describe('hit points taken and given back', () => {
+  it('eats temporary hit points before the current ones', () => {
+    const { store } = opened()
+    putTemporaryHitPoints(5)
+    putDamage(8)
+
+    expect(hp(store)).toMatchObject({ current: 19, temporary: 0 })
+  })
+
+  it('never drops below zero', () => {
+    const { store } = opened()
+    putDamage(100)
+
+    expect(hp(store).current).toBe(0)
+  })
+
+  it('caps healing at the maximum and clears the death saves', () => {
+    const { store } = opened()
+    store.info.update((info) => ({ ...info, hp: { ...info.hp, current: 0, deathSaves: { successes: 2, failures: 1 } } }))
+    putHealing(100)
+
+    expect(hp(store)).toMatchObject({ current: 30, deathSaves: { successes: 0, failures: 0 } })
+  })
+
+  it('replaces temporary hit points rather than stacking them', () => {
+    const { store } = opened()
+    putTemporaryHitPoints(6)
+    putTemporaryHitPoints(4)
+
+    expect(hp(store).temporary).toBe(4)
+  })
+})
+
+describe('a death save rolled at zero hit points', () => {
+  const dying = () => {
+    const opening = opened()
+    opening.store.info.update((info) => ({ ...info, hp: { ...info.hp, current: 0 } }))
+    return opening.store
+  }
+
+  it('counts ten or more as a success and less as a failure', () => {
+    const store = dying()
+    putDeathSave(10, rules(store).scope)
+    putDeathSave(9, rules(store).scope)
+
+    expect(hp(store).deathSaves).toEqual({ successes: 1, failures: 1 })
+  })
+
+  it('counts a natural one as two failures and stops at three', () => {
+    const store = dying()
+    putDeathSave(1, rules(store).scope)
+    putDeathSave(1, rules(store).scope)
+
+    expect(hp(store).deathSaves).toEqual({ successes: 0, failures: 3 })
+  })
+
+  it('brings the character back with one hit point on a natural twenty', () => {
+    const store = dying()
+    putDeathSave(5, rules(store).scope)
+    putDeathSave(20, rules(store).scope)
+
+    expect(hp(store)).toMatchObject({ current: 1, deathSaves: { successes: 0, failures: 0 } })
+  })
+})
+
+describe('spell slots spent and restored', () => {
+  const caster = () => {
+    const opening = opened()
+    opening.store.info.update((info) => ({ ...info, spells: { modifier: 'wis', slots: { 1: 2, 2: 1 } } }))
+    return opening.store
+  }
+
+  it('spends one slot of the level a spell is cast at, and refuses when none is left', async () => {
+    const store = caster()
+    const spell = { id: 'bless', title: 'Bless', level: 1, prepared: true }
+
+    expect(await postCast(spell, 2, 0)).toBe(true)
+    expect(await postCast(spell, 2, 0)).toBe(false)
+    expect(get(store.info).spells?.expended).toEqual({ 2: 1 })
+  })
+
+  it('spends no slot for a cantrip', async () => {
+    const store = caster()
+
+    expect(await postCast({ id: 'light', title: 'Light', level: 0, prepared: true }, 0, 0)).toBe(true)
+    expect(get(store.info).spells?.expended).toBeUndefined()
+  })
+
+  it('clamps a pip toggle between none and the level maximum', () => {
+    const store = caster()
+    putSlots(5, 1)
+    expect(get(store.info).spells?.expended?.[1]).toBe(2)
+    putSlots(-1, 1)
+    expect(get(store.info).spells?.expended?.[1]).toBe(0)
+  })
+
+  it('reads the save DC and the attack bonus off the spellcasting ability', () => {
+    const store = caster()
+    store.abilities.set([{ id: 'wisdom', title: 'Wisdom', score: 16, modifier: 3 }])
+    const derived = (id: string) => rules(store).derived.find((entry) => entry.id === id)?.value
+
+    expect(derived('spellSaveDc')).toBe(13)
+    expect(derived('spellAttack')).toBe(5)
+  })
+})
+
+describe('resting', () => {
+  const tired = () => {
+    const opening = opened()
+    opening.store.info.update((info) => ({
+      ...info,
+      level: 4,
+      class: { name: 'Cleric', hitDice: { amount: 4, die: 8 } },
+      hp: { current: 5, max: 30, temporary: 3, hitDiceSpent: 3, deathSaves: { successes: 1, failures: 1 } },
+      spells: { modifier: 'wis', slots: { 1: 4 }, expended: { 1: 3 } },
+      slots: { title: 'Pact', description: '', amount: 2, expended: 2, regainedAt: 'short rest' }
+    }))
+    opening.store.special.set({ name: 'Channel Divinity', regain: 'Short rest', current: 0, max: 1 })
+    return opening.store
+  }
+
+  it('spends hit dice on a short rest, never more than remain, and heals what they roll', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, text: async () => '6\n' })))
+    const store = tired()
+    const { spend, healing } = await postShortRest(3, rules(store))
+    vi.unstubAllGlobals()
+
+    expect(spend).toBe(1)
+    expect(healing).toBe(6)
+    expect(hp(store)).toMatchObject({ current: 11, hitDiceSpent: 4 })
+    expect(get(store.info).slots?.expended).toBe(0)
+    expect(get(store.info).spells?.expended).toEqual({ 1: 3 })
+    expect(get(store.special).current).toBe(1)
+  })
+
+  it('restores hit points, slots and half the hit dice on a long rest', () => {
+    const store = tired()
+    postLongRest(rules(store))
+
+    expect(hp(store)).toMatchObject({ current: 30, temporary: 0, hitDiceSpent: 1, deathSaves: { successes: 0, failures: 0 } })
+    expect(get(store.info).spells?.expended).toEqual({})
+    expect(get(store.info).slots?.expended).toBe(0)
+    expect(get(store.special).current).toBe(1)
+  })
+})
+
+describe('conditions and items', () => {
+  it('sets an exhaustion level on the one condition and removes it by title', () => {
+    const { store } = opened()
+    putCondition({ title: 'Exhaustion', level: 1 })
+    putCondition({ title: 'Exhaustion', level: 2 })
+    expect(get(store.info).conditions).toEqual([{ title: 'Exhaustion', level: 2 }])
+
+    deleteCondition('exhaustion')
+    expect(get(store.info).conditions).toEqual([])
+  })
+
+  it('removes an item whose quantity reaches zero and unequips it', () => {
+    const { store } = opened()
+    const item = {
+      id: 'rope', title: 'Rope', type: 'misc' as const, rarity: 'common' as const, attributes: [], description: '',
+      value: { amount: 1, currency: 'gp' as const }, weight: 10, quantity: 2, equippable: true, equipped: false
+    }
+    postItem(item)
+    store.equipped.set([{ id: 'rope', title: 'Rope', type: 'misc' }])
+    putItem({ ...item, quantity: 1 })
+    expect(get(store.inventory)[0].quantity).toBe(1)
+
+    putItem({ ...item, quantity: 0 })
+    expect(get(store.inventory)).toEqual([])
+    expect(get(store.equipped)).toEqual([])
+  })
+
+  it('keeps one deletion path for an item', () => {
+    const { store } = opened()
+    postItem({
+      id: 'torch', title: 'Torch', type: 'misc', rarity: 'common', attributes: [], description: '',
+      value: { amount: 1, currency: 'cp' }, weight: 1, quantity: 1, equippable: false, equipped: false
+    })
+    deleteItem('torch')
+
+    expect(get(store.inventory)).toEqual([])
   })
 })

@@ -52,11 +52,11 @@ update:
 rules:
     firebase deploy --only firestore:rules,firestore:indexes
 
-deploy: gate
-    firebase deploy --only hosting,firestore:rules,firestore:indexes
-
-storage-rules:
-    firebase deploy --only storage:rules
+deploy: gate rules
+    firebase deploy --only hosting
 
 reference kind *ARGS:
     bash scripts/reference.sh {{kind}} {{ARGS}}
+
+storage-rules:
+    firebase deploy --only storage:rules

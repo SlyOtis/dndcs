@@ -130,10 +130,11 @@ describe('the sheet holds until the routed character loads', () => {
     const settled = getNodes(
       page.instance,
       (node) =>
-        node.type === 'CallExpression' && getName(getPart(node.callee, 'property')) === 'finally'
+        node.type === 'CallExpression' &&
+        getName(getPart(node.callee, 'property')) === 'finally' &&
+        getNodes(node, (inner) => inner === assignments[0]).length === 1
     )
 
     expect(settled).toHaveLength(1)
-    expect(getNodes(settled[0], (node) => node === assignments[0])).toHaveLength(1)
   })
 })

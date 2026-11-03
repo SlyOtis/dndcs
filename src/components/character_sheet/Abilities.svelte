@@ -27,16 +27,10 @@
 <style>
     .root {
         position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 16px;
-        width: auto;
-        height: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+        align-items: stretch;
+        gap: var(--space-3);
         min-width: 0;
-        grid-column: 1 / 3;
-        grid-row: 1;
     }
 </style>

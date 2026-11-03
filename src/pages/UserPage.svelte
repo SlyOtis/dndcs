@@ -1,29 +1,42 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { navigate } from 'sly-svelte-location-router'
-  import { getTheme, setTheme } from '$lib/dialogs/theme'
+  import { availableThemes, getDefaultTheme, getTheme, setTheme } from '$lib/dialogs/theme'
   import { userService } from '$lib/firestore.service'
   import { authService } from '$lib/auth.service'
   import { userDetails, userProfile } from '$lib/stores/auth.store'
   import { INTEGRATIONS, type Integration } from '$lib/integrations'
   import { postFile } from '$lib/storage.service'
+  import { getAction, putShortcuts, shortcuts } from '$lib/actions'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import Glyph from '$components/ui/Glyph.svelte'
+  import IconBtn from '$components/ui/IconBtn.svelte'
   import Panel from '$components/ui/Panel.svelte'
   import Portrait from '$components/ui/Portrait.svelte'
   import Shell from '$components/ui/Shell.svelte'
   import Ornament from '$components/ui/Ornament.svelte'
+  import ShortcutDialog from '$components/ShortcutDialog.svelte'
 
   let displayName = $state('')
+  let theme = $state('')
+  let shortcutOpen = $state(false)
   let keys = $state<Record<string, string>>({})
   let busy = $state(false)
   let error = $state<string | null>(null)
   let saved = $state<string | null>(null)
   let dragging = $state(false)
+  let soundOn = $state('on')
+  let volume = $state(0.7)
+  let animationsOn = $state('on')
 
   onMount(() => {
     setTheme(getTheme())
     displayName = $userProfile?.display_name ?? ''
+    theme = getDefaultTheme()
+    soundOn = $userProfile?.preferences?.sound_enabled === false ? 'off' : 'on'
+    volume = $userProfile?.preferences?.sound_volume ?? 0.7
+    animationsOn = $userProfile?.preferences?.animations_enabled === false ? 'off' : 'on'
     for (const entry of INTEGRATIONS) {
       if (entry.keyField) keys[entry.keyField] = ($userDetails as Record<string, any>)?.[entry.keyField] ?? ''
     }
@@ -48,6 +61,15 @@
     navigate('/login')
   }
 
+  async function unpin(action: string) {
+    error = null
+    try {
+      await putShortcuts($shortcuts.filter((one) => one.action !== action))
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason)
+    }
+  }
+
   async function putProfile() {
     busy = true
     error = null
@@ -67,9 +89,31 @@
 
     try {
       await userService.updateProfile({ display_name: displayName.trim() })
+      await userService.updatePreferences({ ...$userProfile?.preferences, theme })
+      userProfile.update((profile) => (profile ? { ...profile, preferences: { ...profile.preferences, theme } } : profile))
+      setTheme(theme)
       await userService.putUserSecrets(secrets)
       userDetails.update((details) => ({ ...(details ?? {}), ...secrets }))
       saved = 'Saved.'
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason)
+    } finally {
+      busy = false
+    }
+  }
+
+  async function putPreferences() {
+    busy = true
+    error = null
+    saved = null
+    try {
+      await userService.updatePreferences({
+        ...$userProfile?.preferences,
+        sound_enabled: soundOn === 'on',
+        sound_volume: volume,
+        animations_enabled: animationsOn === 'on'
+      })
+      saved = 'Preferences saved.'
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
     } finally {
@@ -137,6 +181,14 @@
       <input id="user-name" bind:value={displayName} />
     </Field>
 
+    <Field label="Theme" id="user-theme" help="The realm every sheet opens in until you pick another">
+      <select id="user-theme" bind:value={theme} onchange={() => setTheme(theme)}>
+        {#each availableThemes as one (one.id)}
+          <option value={one.id}>{one.name}</option>
+        {/each}
+      </select>
+    </Field>
+
     <p class="dnd-label user-label">Picture</p>
     <div
       class="user-drop"
@@ -165,6 +217,60 @@
         onchange={putAvatar}
       />
     </div>
+  </Panel>
+
+  <Panel title="Preferences">
+    <Field label="Sound" id="user-sound" help="Dice, crits, spells and the rest of the table noise">
+      <select id="user-sound" bind:value={soundOn}>
+        <option value="on">On</option>
+        <option value="off">Off</option>
+      </select>
+    </Field>
+
+    <Field label="Volume {Math.round(volume * 100)}%" id="user-volume">
+      <input id="user-volume" type="range" min="0" max="1" step="0.05" bind:value={volume} disabled={soundOn === 'off'} />
+    </Field>
+
+    <Field label="Animations" id="user-animations" help="Off keeps the dice from tumbling across the screen">
+      <select id="user-animations" bind:value={animationsOn}>
+        <option value="on">On</option>
+        <option value="off">Off</option>
+      </select>
+    </Field>
+
+    {#snippet actions()}
+      <Button size="sm" onclick={putPreferences} loading={busy}>Save</Button>
+    {/snippet}
+  </Panel>
+
+  <Panel title="Shortcuts">
+    <p class="user-note">The actions pinned to the navigator, and the key that fires each one.</p>
+
+    {#if $shortcuts.length === 0}
+      <p class="user-note">Nothing is pinned.</p>
+    {:else}
+      <ul class="user-list">
+        {#each $shortcuts as pin (pin.action)}
+          {@const action = getAction(pin.action)}
+          {#if action}
+            <li class="user-key">
+              <span class="user-key-mark"><Glyph name={action.glyph} size="sm" /></span>
+              <span class="user-key-name">{action.title}</span>
+              <span class="user-key-code">{pin.key || 'No key'}</span>
+              <span class="user-key-acts">
+                <IconBtn title="Unpin {action.title}" tone="ink" onclick={() => unpin(pin.action)}>
+                  <Glyph name="close" size="sm" />
+                </IconBtn>
+              </span>
+            </li>
+          {/if}
+        {/each}
+      </ul>
+    {/if}
+
+    {#snippet actions()}
+      <Button size="sm" variant="secondary" onclick={() => (shortcutOpen = true)}>Pin an action</Button>
+    {/snippet}
   </Panel>
 
   <Panel title="Integrations">
@@ -204,6 +310,10 @@
   <div class="user-leave">
     <Button variant="danger" onclick={signOut}>Sign Out</Button>
   </div>
+
+  {#if shortcutOpen}
+    <ShortcutDialog bind:isOpen={shortcutOpen} />
+  {/if}
 </Shell>
 
 <style>
@@ -216,12 +326,12 @@
     padding: var(--space-4) var(--space-5);
     min-width: 0;
     background:
-      var(--texture-noise),
-      linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground-deep) 100%);
-    background-blend-mode: overlay, normal;
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md), inset 0 var(--border-hair) 0 var(--metal-edge);
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim), var(--bevel-up), inset 0 0 1rem 0.125rem var(--shade-hard), var(--shadow-md);
   }
 
   .user-lines {
@@ -234,15 +344,18 @@
 
   .user-name {
     margin: 0;
-    font-size: var(--text-xl);
-    overflow-wrap: anywhere;
+    font-size: clamp(var(--text-md), 5.5cqi, var(--text-xl));
+    color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0 0.75rem var(--ember-glow);
+    overflow-wrap: break-word;
   }
 
   .user-mail {
     margin: 0;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: var(--text-xs);
-    color: var(--ink-faint);
+    color: var(--ink-dim);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
     overflow-wrap: anywhere;
   }
 
@@ -261,13 +374,14 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 0.75rem 0.125rem var(--shade-hard);
   }
 
   .user-label {
     margin: 0;
     color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .user-drop {
@@ -283,8 +397,8 @@
     padding: var(--space-4);
     overflow: hidden;
     border: var(--border-width) dashed var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     box-shadow: var(--user-drop-sink);
     text-align: center;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -293,7 +407,13 @@
   .user-drop-live,
   .user-drop:focus-within {
     border-color: var(--metal);
-    box-shadow: var(--user-drop-sink), var(--glow-metal);
+    box-shadow: var(--user-drop-sink), var(--glow-metal), inset 0 0 2rem -0.5rem var(--ember-glow);
+  }
+
+  .user-drop-live .user-drop-note,
+  .user-drop:focus-within .user-drop-note {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .user-drop-note {
@@ -301,6 +421,8 @@
     font-family: var(--font-display);
     font-size: var(--text-sm);
     color: var(--ink-dim);
+    letter-spacing: var(--tracking-wide);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .user-drop-input {
@@ -326,18 +448,73 @@
     list-style: none;
   }
 
+  .user-key {
+    --user-key-row: var(--space-7);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--user-key-row);
+    padding: 0 var(--space-3);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 0.75rem 0.125rem var(--shade-hard);
+    transition: box-shadow 0.18s ease;
+  }
+
+  .user-key:hover {
+    box-shadow: var(--rim-thin), inset 0 0 0.75rem 0.125rem var(--shade-hard), 0 0 0.75rem var(--ember-glow);
+  }
+
+  .user-key-mark {
+    display: flex;
+    flex: none;
+    color: var(--metal);
+  }
+
+  .user-key-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: var(--text-sm);
+    color: var(--ink);
+  }
+
+  .user-key-code {
+    flex: none;
+    padding: 0 var(--space-2);
+    border: var(--border-hair) solid var(--metal-dim);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
+    font-family: var(--font-body);
+    font-size: var(--text-xs);
+    color: var(--metal);
+  }
+
+  .user-key-acts {
+    display: flex;
+    flex: none;
+    height: var(--space-6);
+  }
+
   .user-service {
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
     padding: var(--space-4);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 1rem 0.125rem var(--shade-hard);
   }
 
   .user-service-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
@@ -347,6 +524,8 @@
   .user-service-name {
     margin: 0;
     font-size: var(--text-md);
+    color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
     min-width: 0;
     overflow-wrap: anywhere;
   }
@@ -355,7 +534,8 @@
     flex: none;
     padding: var(--space-1) var(--space-3);
     border: var(--border-hair) solid transparent;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
@@ -407,7 +587,8 @@
     margin: 0;
     padding: var(--space-3) var(--space-4);
     border: var(--border-hair) solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
     font-size: var(--text-sm);
     color: var(--ink);
   }

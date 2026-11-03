@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/paladin.svg",
   "hitDie": 10,
+  "casting": "half",
   "primaryAbility": [
     "STR",
     "CHA"

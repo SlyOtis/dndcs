@@ -82,12 +82,12 @@ describe('the walk measures the sideways run', () => {
       '/main/create/character/class',
       '/main/create/character/race',
       '/main/create/campaign',
-      '/user'
+      '/main/user'
     ]) {
       expect(walk, route).toContain(`visit ${route} "`)
     }
 
-    expect(walk).toContain("location.pathname.startsWith('/campaign/')")
+    expect(walk).toContain("location.pathname.startsWith('/main/campaign/')")
     expect(walk).toContain("document.querySelector('.source-crown') !== null")
   })
 })
@@ -123,7 +123,7 @@ describe("the walk's sign in waits for the hearth", () => {
   it('waits on nothing a pathname can hold, because both gates navigate to the root', () => {
     expect(read('src/pages/LoginPage.svelte')).toContain('navigate("/")')
     expect(read('src/pages/SignupPage.svelte')).toContain('navigate("/")')
-    expect(read('src/App.svelte')).toMatch(/"\/":\s*"\/main"/)
+    expect(read('src/App.svelte')).toMatch(/"\/":\s*\{[^}]*guard: async \(\) => "\/main"/)
   })
 
   it('names selectors the hearth and the refused sign in still render', () => {

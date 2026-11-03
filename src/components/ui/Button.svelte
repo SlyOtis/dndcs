@@ -65,54 +65,53 @@
     background: none;
     cursor: pointer;
     isolation: isolate;
-    --button-h: 40px;
+    --button-h: 2.4rem;
     --button-pad: var(--space-5);
     --button-text: var(--text-sm);
-    --button-light: var(--ember);
-    --button-cusp: 14px;
-    --button-edge: 2px;
-    --button-inlay: 4px;
-    --button-tick: calc(var(--button-cusp) * 0.7);
-    --button-rim: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 44%, var(--metal-dim) 100%);
-    --button-line: var(--metal-edge);
-    --button-well: var(--ground-deep);
+    --button-light: var(--ember-glow);
+    --button-cut: 0.45rem;
+    --button-edge: 0.16rem;
+    --button-rim: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 38%, var(--metal-dim) 70%, var(--metal) 100%);
+    --button-stone: var(--stone);
+    --button-tint: transparent;
+    --button-ink: var(--metal);
     --button-shape: polygon(
-      var(--button-cusp) 0,
-      calc(100% - var(--button-cusp)) 0,
-      100% 50%,
-      calc(100% - var(--button-cusp)) 100%,
-      var(--button-cusp) 100%,
-      0 50%
+      var(--button-cut) 0,
+      calc(100% - var(--button-cut)) 0,
+      100% var(--button-cut),
+      100% calc(100% - var(--button-cut)),
+      calc(100% - var(--button-cut)) 100%,
+      var(--button-cut) 100%,
+      0 calc(100% - var(--button-cut)),
+      0 var(--button-cut)
     );
     min-height: var(--button-h);
-    transition: filter 0.15s ease, transform 0.12s ease;
+    filter: drop-shadow(0 2px 3px var(--shade-hard));
+    transition: filter 0.18s ease;
   }
 
   .dnd-button-sm {
-    --button-h: 30px;
+    --button-h: 1.8rem;
     --button-pad: var(--space-4);
     --button-text: var(--text-xs);
-    --button-cusp: 9px;
-    --button-edge: 1px;
-    --button-inlay: 3px;
+    --button-cut: 0.32rem;
+    --button-edge: 0.12rem;
   }
 
   .dnd-button-md {
-    --button-h: 40px;
+    --button-h: 2.4rem;
     --button-pad: var(--space-5);
     --button-text: var(--text-sm);
-    --button-cusp: 14px;
-    --button-edge: 2px;
-    --button-inlay: 4px;
+    --button-cut: 0.45rem;
+    --button-edge: 0.16rem;
   }
 
   .dnd-button-lg {
-    --button-h: 54px;
+    --button-h: 3.2rem;
     --button-pad: var(--space-6);
     --button-text: var(--text-md);
-    --button-cusp: 19px;
-    --button-edge: 2px;
-    --button-inlay: 5px;
+    --button-cut: 0.6rem;
+    --button-edge: 0.18rem;
   }
 
   .dnd-button-fill {
@@ -132,40 +131,29 @@
     position: absolute;
     inset: var(--button-edge);
     z-index: 1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 52%, var(--ground-deep) 100%);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 42%, transparent) 38%, color-mix(in srgb, #000 72%, transparent) 100%),
+      linear-gradient(var(--button-tint), var(--button-tint)),
+      var(--texture-stone),
+      var(--button-stone);
     clip-path: var(--button-shape);
     box-shadow:
-      inset 0 -12px 20px -14px var(--shade-hard),
-      inset 0 0 0 var(--button-inlay) var(--button-well),
-      inset 0 0 0 calc(var(--button-inlay) + var(--border-hair)) var(--button-line);
+      inset 0 1px 0 var(--sheen-strong),
+      inset 0 -2px 0 var(--shade-hard),
+      inset 0 0 0 1px var(--keyline);
     pointer-events: none;
-  }
-
-  .dnd-button-face::before,
-  .dnd-button-face::after {
-    content: '';
-    position: absolute;
-    top: 30%;
-    bottom: 30%;
-    width: var(--border-hair);
-    background: var(--button-line);
-  }
-
-  .dnd-button-face::before {
-    left: var(--button-tick);
-  }
-
-  .dnd-button-face::after {
-    right: var(--button-tick);
+    transition: filter 0.18s ease;
   }
 
   .dnd-button-sheen {
     position: absolute;
     inset: var(--button-edge);
     z-index: 2;
-    background: linear-gradient(180deg, var(--sheen) 0%, transparent 46%);
+    background: radial-gradient(ellipse 70% 120% at 50% 110%, var(--button-light) 0%, transparent 70%);
     clip-path: var(--button-shape);
+    opacity: 0;
     pointer-events: none;
+    transition: opacity 0.18s ease;
   }
 
   .dnd-button-inner {
@@ -183,103 +171,90 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     line-height: 1.1;
-    color: var(--metal-bright);
-    text-shadow: 0 1px 2px var(--shade-hard);
+    color: var(--button-ink);
+    text-shadow: 0 1px 0 #000, 0 0 2px #000;
+    transition: color 0.18s ease, text-shadow 0.18s ease;
   }
 
   .dnd-button:hover:not(:disabled) {
-    transform: translateY(-1px);
-    filter: brightness(1.12) drop-shadow(0 0 10px var(--button-light));
+    filter: drop-shadow(0 2px 3px var(--shade-hard)) brightness(1.08);
   }
 
-  .dnd-button:active:not(:disabled) {
+  .dnd-button:hover:not(:disabled) .dnd-button-sheen {
+    opacity: 1;
+  }
+
+  .dnd-button:hover:not(:disabled) .dnd-button-inner {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
+  }
+
+  .dnd-button:active:not(:disabled) .dnd-button-face {
+    box-shadow:
+      inset 0 3px 5px var(--shade-hard),
+      inset 0 -1px 0 var(--sheen-soft),
+      inset 0 0 0 1px var(--keyline);
+    filter: brightness(0.82);
+  }
+
+  .dnd-button:active:not(:disabled) .dnd-button-inner {
     transform: translateY(1px);
-    filter: brightness(0.94);
   }
 
   .dnd-button:focus-visible {
     outline: none;
-    box-shadow: var(--focus-ring);
-  }
-
-  .dnd-button:focus-visible .dnd-button-face {
-    box-shadow:
-      inset 0 0 0 var(--button-inlay) var(--button-well),
-      inset 0 0 0 calc(var(--button-inlay) + var(--border-width)) var(--metal-bright);
+    box-shadow: none;
+    filter: drop-shadow(0 0 0.15rem var(--metal-bright)) drop-shadow(0 0 0.5rem var(--ember-glow));
   }
 
   .dnd-button:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
-    filter: grayscale(0.6);
+    opacity: 0.5;
+    filter: grayscale(0.85);
   }
 
   .dnd-button-primary {
-    --button-rim: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 40%, var(--metal-dim) 100%);
-    --button-line: var(--ember-core);
-    --button-well: color-mix(in srgb, var(--ember) 52%, black);
+    --button-rim: linear-gradient(180deg, var(--ember-core) 0%, var(--metal-bright) 22%, var(--metal) 55%, var(--metal-dim) 100%);
+    --button-tint: color-mix(in srgb, var(--ember) 16%, transparent);
+    --button-ink: var(--metal-bright);
   }
 
-  .dnd-button-primary .dnd-button-face {
-    background: linear-gradient(180deg, var(--ember) 0%, color-mix(in srgb, var(--ember) 45%, black) 100%);
-  }
-
-  .dnd-button-primary .dnd-button-inner {
-    color: var(--ground-deep);
-    text-shadow: 0 1px 0 var(--ember-core);
+  .dnd-button-primary .dnd-button-sheen {
+    opacity: 0.45;
   }
 
   .dnd-button-secondary {
-    --button-light: var(--metal);
-    --button-rim: linear-gradient(180deg, var(--metal) 0%, var(--metal-dim) 100%);
+    --button-light: color-mix(in srgb, var(--metal) 40%, transparent);
   }
 
   .dnd-button-ghost {
-    --button-light: var(--metal);
-    --button-rim: linear-gradient(180deg, var(--metal-dim) 0%, color-mix(in srgb, var(--metal-dim) 40%, transparent) 100%);
-    --button-line: color-mix(in srgb, var(--metal-edge) 60%, transparent);
+    --button-light: color-mix(in srgb, var(--metal) 30%, transparent);
+    --button-rim: linear-gradient(180deg, var(--metal-dim) 0%, color-mix(in srgb, var(--metal-dim) 50%, #000) 100%);
+    --button-stone: var(--ground-raised);
+    --button-ink: var(--metal);
   }
 
   .dnd-button-ghost .dnd-button-face {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--ground-lift) 72%, transparent) 0%,
-      color-mix(in srgb, var(--ground-deep) 82%, transparent) 100%
-    );
-    box-shadow:
-      inset 0 0 0 var(--border-hair) var(--button-line),
-      inset 0 1px 0 color-mix(in srgb, var(--metal-edge) 55%, transparent);
-  }
-
-  .dnd-button-ghost .dnd-button-sheen {
-    background: linear-gradient(180deg, var(--sheen-soft) 0%, transparent 42%);
-  }
-
-  .dnd-button-ghost .dnd-button-inner {
-    color: var(--metal);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--ground-lift) 70%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 90%, transparent) 100%),
+      var(--texture-noise),
+      var(--button-stone);
   }
 
   .dnd-button-ghost:hover:not(:disabled) {
     --button-rim: linear-gradient(180deg, var(--metal) 0%, var(--metal-dim) 100%);
   }
 
-  .dnd-button-ghost:hover:not(:disabled) .dnd-button-inner {
-    color: var(--metal-bright);
-  }
-
   .dnd-button-danger {
-    --button-light: var(--state-bad);
-    --button-rim: linear-gradient(180deg, var(--state-bad) 0%, color-mix(in srgb, var(--state-bad) 35%, black) 100%);
-    --button-line: color-mix(in srgb, var(--state-bad) 55%, var(--ink));
-    --button-well: color-mix(in srgb, var(--state-bad) 28%, black);
+    --button-light: color-mix(in srgb, var(--state-bad) 55%, transparent);
+    --button-rim: linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 60%, var(--metal-bright)) 0%, color-mix(in srgb, var(--state-bad) 70%, #000) 60%, color-mix(in srgb, var(--state-bad) 40%, #000) 100%);
+    --button-tint: color-mix(in srgb, var(--state-bad) 30%, transparent);
+    --button-ink: color-mix(in srgb, var(--state-bad) 30%, var(--ink));
   }
 
-  .dnd-button-danger .dnd-button-face {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 70%, black) 0%, var(--ground-deep) 100%);
-  }
-
-  .dnd-button-danger .dnd-button-inner {
+  .dnd-button-danger:hover:not(:disabled) .dnd-button-inner {
     color: var(--ink);
+    text-shadow: 0 0 8px var(--state-bad), 0 1px 1px #000;
   }
 
   .dnd-button-spinner {

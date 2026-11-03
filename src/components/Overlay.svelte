@@ -380,7 +380,7 @@
     ctx.textBaseline = 'middle';
     
     const fontSize = (text.type === 'critical' ? 48 : 36) * text.scale;
-    ctx.font = `bold ${fontSize}px var(--font-display)`;
+    ctx.font = `bold ${fontSize}px ${getComputedStyle(document.documentElement).getPropertyValue('--font-display').trim() || 'serif'}`;
     
     ctx.strokeStyle = 'var(--ground-deep)';
     ctx.lineWidth = 4;
@@ -623,35 +623,38 @@
   
   .overlay-text {
     position: absolute;
-    color: white;
+    color: var(--ink);
     font-family: var(--font-display);
     font-size: 1.4em;
     font-weight: 700;
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
-      -1px -1px 2px var(--shade),
-      1px 1px 3px var(--shade-hard);
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      0 1px 0 #000,
+      0 -1px 0 #000,
+      1px 0 0 #000,
+      -1px 0 0 #000,
+      0 2px 6px var(--shade-hard);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     transform-origin: center;
     white-space: nowrap;
-    letter-spacing: 1px;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
     user-select: none;
   }
   
   .overlay-text.criticalHit {
-    color: var(--metal);
+    color: var(--metal-bright);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
-      0 0 10px var(--metal),
-      0 0 20px var(--metal),
-      0 0 30px var(--metal);
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
+      0 0 10px var(--ember-glow),
+      0 0 20px var(--ember),
+      0 0 30px var(--ember-glow);
     animation: criticalPulse 0.6s ease-in-out;
   }
   
   .overlay-text.criticalFail {
-    color: var(--state-bad);
+    color: color-mix(in srgb, var(--state-bad) 70%, var(--ink));
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 10px var(--state-bad),
       0 0 20px var(--state-bad);
     animation: shakeFail 0.6s ease-in-out;
@@ -660,7 +663,7 @@
   .overlay-text.levelUp {
     color: var(--state-good);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 15px var(--state-good),
       0 0 25px var(--state-good),
       0 0 35px var(--state-good);
@@ -671,7 +674,7 @@
   .overlay-text.healing {
     color: var(--state-good);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 12px var(--state-good),
       0 0 22px var(--state-good);
     animation: healingPulse 0.8s ease-in-out;
@@ -680,17 +683,17 @@
   .overlay-text.spellCast {
     color: var(--metal-bright);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 12px var(--metal-bright),
-      0 0 22px var(--metal-bright),
-      0 0 32px var(--metal-bright);
+      0 0 22px var(--ember-glow),
+      0 0 32px var(--ember-glow);
     animation: magicSparkle 1s ease-in-out;
   }
   
   .overlay-text.treasure {
     color: var(--state-warn);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 12px var(--state-warn),
       0 0 22px var(--state-warn),
       0 0 32px var(--state-warn);
@@ -700,7 +703,7 @@
   .overlay-text.inspiration {
     color: var(--ember-core);
     text-shadow: 
-      2px 2px 4px var(--shade-hard),
+      0 1px 0 #000, 0 -1px 0 #000, 1px 0 0 #000, -1px 0 0 #000,
       0 0 15px var(--ember-core),
       0 0 25px var(--ember-core),
       0 0 35px var(--ember-core);
@@ -738,11 +741,11 @@
   }
   
   @keyframes magicSparkle {
-    0% { transform: scale(1) rotate(0deg); filter: hue-rotate(0deg); }
-    25% { transform: scale(1.05) rotate(5deg); filter: hue-rotate(90deg); }
-    50% { transform: scale(1.1) rotate(-3deg); filter: hue-rotate(180deg); }
-    75% { transform: scale(1.05) rotate(4deg); filter: hue-rotate(270deg); }
-    100% { transform: scale(1) rotate(0deg); filter: hue-rotate(360deg); }
+    0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+    25% { transform: scale(1.05) rotate(5deg); filter: brightness(1.25); }
+    50% { transform: scale(1.1) rotate(-3deg); filter: brightness(1.45); }
+    75% { transform: scale(1.05) rotate(4deg); filter: brightness(1.25); }
+    100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
   }
   
   @keyframes treasureShine {
@@ -761,7 +764,7 @@
   @media (max-width: 768px) {
     .overlay-text {
       font-size: 1.1em;
-      letter-spacing: 0.5px;
+      letter-spacing: var(--tracking-wide);
     }
     
     .overlay-text.levelUp, .overlay-text.inspiration {

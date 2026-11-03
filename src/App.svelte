@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {Router, type RouteGuard, type Routes} from "sly-svelte-location-router";
+  import {Router, type RouteComponent, type RouteGuard, type Routes} from "sly-svelte-location-router";
   import {onMount, onDestroy} from "svelte";
   import { get } from "svelte/store";
   import { initializeAuth } from "$lib/auth.init";
@@ -9,6 +9,8 @@
   import Ornament from "$components/ui/Ornament.svelte";
   import Flame from "$components/ui/Flame.svelte";
   import Search from "$components/search/Search.svelte";
+  import Dialogs from "$dialogs/Dialogs.svelte";
+  import SoundManager from "$components/SoundManager.svelte";
   import { handleGlobalKeydown } from "$lib/globalEvents";
 
   const requireSignIn: RouteGuard = async () =>
@@ -29,7 +31,11 @@
   }
 
   const routes: Routes = {
-    "/": "/main",
+    "/": {
+      name: "root",
+      component: page("MainPage", () => import("./pages/MainPage.svelte")),
+      guard: async () => "/main"
+    },
     "/main": {
       name: "main",
       component: page("MainPage", () => import("./pages/MainPage.svelte")),
@@ -43,6 +49,7 @@
       name: "signup",
       component: page("SignupPage", () => import("./pages/SignupPage.svelte")),
     },
+    "/main/create": "/main",
     "/main/create/character": {
       name: "character-create",
       component: page("CharacterCreatePage", () => import("./pages/CharacterCreatePage.svelte")),
@@ -58,7 +65,7 @@
       component: page("CharacterRacePage", () => import("./pages/CharacterRacePage.svelte")),
       guard: requireSignIn
     },
-    "/sources/:kind/:id": {
+    "/main/sources/:kind/:id": {
       name: "source-view",
       component: page("SourcePage", () => import("./pages/SourcePage.svelte")),
       guard: requireSignIn
@@ -68,20 +75,105 @@
       component: page("CampaignCreatePage", () => import("./pages/CampaignCreatePage.svelte")),
       guard: requireSignIn
     },
-    "/character/:id": {
+    "/main/character": "/main/characters",
+    "/main/character/:id": {
       name: "character-view",
       component: page("CharacterPage", () => import("./pages/CharacterPage.svelte")),
       guard: requireSignIn
     },
-    "/user": {
+    "/main/user": {
       name: "user",
       component: page("UserPage", () => import("./pages/UserPage.svelte")),
       guard: requireSignIn
     },
-    "/campaign/:id": {
+    "/main/campaign": "/main/campaigns",
+    "/main/campaigns": {
+      name: "campaigns-list",
+      component: page("CampaignsPage", () => import("./pages/CampaignsPage.svelte")),
+      guard: requireSignIn
+    },
+    "/main/campaign/:id": {
       name: "campaign-view",
       component: page("CampaignPage", () => import("./pages/CampaignPage.svelte")),
       guard: requireSignIn
+    },
+    "/main/create/party": {
+      name: "party-create",
+      component: page("PartyCreatePage", () => import("./pages/PartyCreatePage.svelte")),
+      guard: requireSignIn
+    },
+    "/main/party/:id": {
+      name: "party-view",
+      component: page("PartyPage", () => import("./pages/PartyPage.svelte")),
+      guard: requireSignIn
+    }
+  }
+
+  const RESOURCE_PAGES: Record<string, { name: string; roll: RouteComponent; one: RouteComponent }> = {
+    entries: {
+      name: "Entry",
+      roll: () => import("./pages/resource/EntryListPage.svelte"),
+      one: () => import("./pages/resource/EntryPage.svelte")
+    },
+    characters: {
+      name: "Npc",
+      roll: () => import("./pages/resource/NpcListPage.svelte"),
+      one: () => import("./pages/resource/NpcPage.svelte")
+    },
+    heroes: {
+      name: "Hero",
+      roll: () => import("./pages/resource/HeroListPage.svelte"),
+      one: () => import("./pages/resource/HeroPage.svelte")
+    },
+    items: {
+      name: "Item",
+      roll: () => import("./pages/resource/ItemListPage.svelte"),
+      one: () => import("./pages/resource/ItemPage.svelte")
+    },
+    weapons: {
+      name: "Weapon",
+      roll: () => import("./pages/resource/WeaponListPage.svelte"),
+      one: () => import("./pages/resource/WeaponPage.svelte")
+    },
+    armor: {
+      name: "Armor",
+      roll: () => import("./pages/resource/ArmorListPage.svelte"),
+      one: () => import("./pages/resource/ArmorPage.svelte")
+    },
+    places: {
+      name: "Place",
+      roll: () => import("./pages/resource/PlaceListPage.svelte"),
+      one: () => import("./pages/resource/PlacePage.svelte")
+    },
+    maps: {
+      name: "Map",
+      roll: () => import("./pages/resource/MapListPage.svelte"),
+      one: () => import("./pages/resource/MapPage.svelte")
+    },
+    sessions: {
+      name: "Session",
+      roll: () => import("./pages/resource/SessionListPage.svelte"),
+      one: () => import("./pages/resource/SessionPage.svelte")
+    },
+    quests: {
+      name: "Quest",
+      roll: () => import("./pages/resource/QuestListPage.svelte"),
+      one: () => import("./pages/resource/QuestPage.svelte")
+    }
+  };
+
+  for (const [kind, held] of Object.entries(RESOURCE_PAGES)) {
+    for (const under of [`/main/${kind}`, `/main/campaign/:id/${kind}`]) {
+      routes[under] = {
+        name: `${kind}-list`,
+        component: page(`${held.name}ListPage`, held.roll),
+        guard: requireSignIn
+      };
+      routes[`${under}/:resourceId`] = {
+        name: `${kind}-view`,
+        component: page(`${held.name}Page`, held.one),
+        guard: requireSignIn
+      };
     }
   }
 
@@ -103,6 +195,8 @@
 
 <EffectDefs />
 <Search />
+<Dialogs />
+<SoundManager />
 
 {#if $isLoading}
   <div class="loading-screen">
@@ -178,12 +272,14 @@
 
   .loading-rule {
     display: block;
-    width: min(340px, 70vw);
+    width: min(21.25rem, 70vw);
   }
 
   .loading-note {
     margin: 0;
     color: var(--ink-dim);
+    font-style: italic;
+    text-shadow: 0 1px 0 #000;
   }
 
   .page-broke {
@@ -194,9 +290,13 @@
     max-width: 70ch;
     margin: var(--space-8) auto;
     padding: var(--space-6);
-    border: var(--border-width) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--state-bad) 14%, var(--ground-raised));
+    border: none;
+    border-radius: var(--radius-sm);
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--state-bad) 16%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
   }
 
   .page-broke-text {
@@ -215,14 +315,30 @@
 
   .page-broke-again {
     padding: var(--space-2) var(--space-5);
-    border: var(--border-hair) solid var(--metal);
-    border-radius: var(--radius-pill);
-    background: linear-gradient(180deg, var(--metal) 0%, var(--metal-dim) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
     font-family: var(--font-display);
     font-size: var(--text-xs);
+    font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ground-deep);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000;
     cursor: pointer;
+  }
+
+  .page-broke-again:hover {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
+    filter: brightness(1.1);
+  }
+
+  .page-broke-again:active {
+    filter: brightness(0.85);
   }
 </style>

@@ -3,9 +3,6 @@
   import type {CharacterAction} from "$lib/character.types";
 
   let {action}: { action: CharacterAction } = $props()
-
-  // TODO:: Use context instead
-
 </script>
 
 <li class="root">
@@ -29,12 +26,28 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
-        margin-bottom: 16px;
+        gap: var(--space-1);
+        margin-bottom: var(--space-4);
+        padding-left: var(--space-3);
+        border: var(--border-hair) solid var(--metal-dim);
     }
 
     h4, p {
         margin: 0;
         padding: 0;
+    }
+
+    h4 {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000;
+    }
+
+    p {
+        font-size: var(--text-sm);
+        color: var(--ink);
     }
 
     .content {

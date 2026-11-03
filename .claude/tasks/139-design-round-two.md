@@ -5,7 +5,7 @@ depends: [140, 141, 142, 143]
 relations: []
 title: A second design round: the fantasy UI language is researched again and carried through tokens, type, frames and the bar
 type: epic
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,10 +15,12 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T21:24:24Z
-updated_at: 2026-09-07T10:53:31Z
+updated_at: 2026-09-08T09:39:52Z
 questions: []
 images: []
 agent: lcp-worker-139
+scope: [src/app.css]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

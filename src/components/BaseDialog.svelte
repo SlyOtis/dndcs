@@ -143,34 +143,34 @@
     padding: 0;
     background:
       var(--texture-motes),
-      radial-gradient(ellipse at 50% 50%, var(--shade) 0%, var(--shade-hard) 100%);
-    backdrop-filter: blur(5px) saturate(0.6);
+      radial-gradient(ellipse 70% 60% at 50% 45%, color-mix(in srgb, var(--ember-glow) 22%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--ground-deep) 55%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 92%, transparent) 100%);
+    backdrop-filter: blur(4px) saturate(0.55) sepia(0.25);
     cursor: default;
     animation: dialog-veil 0.2s ease-out;
   }
 
   .dialog {
-    --dialog-rim: var(--metal-dim);
-    --dialog-key: var(--metal-edge);
-    --dialog-head: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
-    --dialog-glass:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 60%, var(--ground-deep) 100%);
-    --dialog-arch: var(--radius-xl);
-    --dialog-foot: var(--radius-lg);
+    --dialog-radius: var(--radius-sm);
+    --dialog-rim-w: 0.375rem;
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
-    background: var(--dialog-glass);
-    border: var(--border-width) solid var(--dialog-rim);
-    border-radius: var(--dialog-arch) var(--dialog-arch) var(--dialog-foot) var(--dialog-foot);
+    padding: var(--dialog-rim-w);
+    background:
+      var(--texture-noise),
+      radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--ember-glow) 18%, transparent) 0%, transparent 70%),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 55%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--dialog-radius);
     box-shadow:
+      var(--rim),
+      inset 0 0 22px 6px var(--shade-hard),
       var(--shadow-lg),
-      inset 0 0 0 var(--border-hair) var(--dialog-key),
-      inset 0 0 50px -18px var(--ember-glow);
+      0 0 0 1px var(--keyline);
     outline: none;
     animation: dialog-enter 0.22s ease-out;
   }
@@ -178,11 +178,10 @@
   .dialog::before {
     content: '';
     position: absolute;
-    inset: 5px;
+    inset: calc(var(--dialog-rim-w) + var(--space-1));
     z-index: 4;
-    border: var(--border-hair) solid var(--dialog-key);
-    border-radius: calc(var(--dialog-arch) - 5px) calc(var(--dialog-arch) - 5px) calc(var(--dialog-foot) - 5px)
-      calc(var(--dialog-foot) - 5px);
+    border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 55%, transparent);
+    border-radius: 0;
     pointer-events: none;
   }
 
@@ -195,36 +194,40 @@
     transform: translate(-50%, -58%);
     padding: var(--space-1);
     border-radius: var(--radius-pill);
-    background: radial-gradient(circle at 50% 40%, var(--ground-raised) 55%, var(--ground-deep) 100%);
+    background:
+      radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--stone-light) 40%, transparent) 0%, transparent 60%),
+      var(--texture-stone),
+      var(--stone-dark);
+    box-shadow: var(--rim-thin), var(--bevel-up);
     pointer-events: none;
     filter: drop-shadow(0 2px 8px var(--shade-hard));
   }
 
   .dialog-corner {
     position: absolute;
-    z-index: 3;
-    opacity: 0.8;
+    z-index: 5;
     pointer-events: none;
+    filter: drop-shadow(0 1px 2px var(--shade-hard));
   }
 
   .dialog-corner-head-start {
-    top: -3px;
-    left: -3px;
+    top: 0;
+    left: 0;
   }
 
   .dialog-corner-head-end {
-    top: -3px;
-    right: -3px;
+    top: 0;
+    right: 0;
   }
 
   .dialog-corner-foot-start {
-    bottom: -2px;
-    left: -2px;
+    bottom: 0;
+    left: 0;
   }
 
   .dialog-corner-foot-end {
-    bottom: -2px;
-    right: -2px;
+    bottom: 0;
+    right: 0;
   }
 
   .dialog-header {
@@ -234,11 +237,20 @@
     justify-content: space-between;
     align-items: center;
     gap: var(--space-4);
-    padding: var(--space-4) var(--space-5);
-    background: var(--dialog-head);
-    border-bottom: var(--border-hair) solid var(--dialog-rim);
-    border-radius: calc(var(--dialog-arch) - var(--border-width)) calc(var(--dialog-arch) - var(--border-width)) 0 0;
-    box-shadow: inset 0 1px 0 var(--dialog-key), 0 3px 12px var(--shade);
+    padding: var(--space-3) var(--space-5);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 22%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    border-bottom: none;
+    border-radius: 0;
+    box-shadow:
+      var(--bevel-up),
+      inset 0 -1px 0 var(--keyline),
+      0 1px 0 var(--metal-dim),
+      0 2px 0 var(--metal),
+      0 3px 0 var(--keyline),
+      0 5px 10px var(--shade);
   }
 
   .dialog-title {
@@ -249,15 +261,15 @@
     font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--metal-bright);
-    text-shadow: 0 1px 2px var(--shade-hard);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000, 0 0 2px #000, 0 0 12px color-mix(in srgb, var(--ember-glow) 60%, transparent);
   }
 
   .dialog-key {
     position: relative;
     z-index: 3;
     display: block;
-    width: 220px;
+    width: min(14rem, 60%);
     margin: calc(var(--space-3) * -1) auto var(--space-1);
     opacity: 0.85;
     pointer-events: none;
@@ -269,7 +281,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    border-radius: 0 0 calc(var(--dialog-foot) - var(--border-width)) calc(var(--dialog-foot) - var(--border-width));
+    border-radius: 0;
   }
 
   @keyframes dialog-veil {
@@ -284,7 +296,7 @@
   @keyframes dialog-enter {
     from {
       opacity: 0;
-      transform: translate(-50%, -46%) scale(0.96);
+      transform: translate(-50%, -48%) scale(0.97);
     }
     to {
       opacity: 1;

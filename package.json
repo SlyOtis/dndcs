@@ -4,15 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "pnpm run brave & vite",
+    "brave": "pgrep -x 'Brave Browser' >/dev/null || { for i in $(seq 40); do nc -z localhost 5173 2>/dev/null && break; sleep 0.3; done; open -a 'Brave Browser' http://localhost:5173; }",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsgo --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
     "test": "vitest run"
   },
   "devDependencies": {
+    "@slyotis/lcp-inspect": "^0.1.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@tsconfig/svelte": "^5.0.8",
+    "@types/three": "^0.186.0",
     "@typescript/native": "npm:typescript@^7.0.2",
     "dotenv": "^17.4.2",
     "svelte": "^5.57.0",
@@ -24,16 +27,20 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",
+    "cannon-es": "^0.20.0",
     "date-fns": "^4.4.0",
     "firebase": "^12.18.0",
     "marked": "^18.0.11",
     "marked-emoji": "^2.0.3",
     "marked-gfm-heading-id": "^4.1.4",
     "marked-xhtml": "^1.0.15",
+    "mermaid": "^12.0.0",
     "normalize.css": "^8.0.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
     "replicate": "^1.4.0",
-    "sly-svelte-location-router": "^3.3.5"
+    "sly-svelte-location-router": "^3.3.5",
+    "three": "^0.186.1",
+    "yjs": "^13.6.32"
   }
 }

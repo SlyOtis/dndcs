@@ -1,0 +1,36 @@
+{
+  "git": {
+    "remote": {
+      "name": "origin",
+      "url": "git@github.com:SlyOtis/dndcs.git",
+      "gh": true
+    },
+    "default_branch": "main",
+    "commit": {
+      "style": "Subjects are lower-case and written as a short descriptive sentence prefixed by the GitHub issue number and a colon, ending with that issue's #N reference (e.g. \"146: the hearth is friends, campaigns, characters and one Lore list #146\"), with occasional plain subjects like \"Update the board\" for board-sync commits; no feat:/fix: prefixes, scopes, or body trailers are used.",
+      "max": 94,
+      "examples": [
+        "Drop the lcp-inspect plugin line and name the dev url for its daemon",
+        "146: the hearth is friends, campaigns, characters and one Lore list #146",
+        "145: the walk measures the hearth grid at 1280 and 1600 and the gate is clean #145",
+        "144: the engine spec, the read back probe and the gate prove the sheet write #144",
+        "Update the board"
+      ]
+    },
+    "tests": [
+      "pnpm check",
+      "pnpm test",
+      "pnpm build",
+      "just gate"
+    ]
+  },
+  "gate": "just gate",
+  "serve": {
+    "command": "just dev",
+    "url": "http://localhost:5173",
+    "before": [
+      "pnpm install",
+      "[ -f .env ] || cp .env.example .env"
+    ]
+  }
+}

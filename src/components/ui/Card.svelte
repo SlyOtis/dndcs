@@ -10,6 +10,7 @@
     badge,
     tone = 'metal',
     layout = 'row',
+    on = false,
     onclick,
     children
   }: {
@@ -25,6 +26,8 @@
     tone?: 'metal' | 'ember' | 'verdigris'
     /** Row fills the width of a column. Tile is a fixed width portrait for a rail. */
     layout?: 'row' | 'tile'
+    /** Marks the card as the one being read. */
+    on?: boolean
     /** Runs when the card is pressed. */
     onclick?: (event: MouseEvent) => void
     /** The stat row written under the sub line. */
@@ -34,7 +37,13 @@
   const initial = $derived(title.charAt(0).toUpperCase())
 </script>
 
-<button type="button" class="dnd-card dnd-card-{tone} dnd-card-{layout}" {onclick}>
+<button
+  type="button"
+  class="dnd-card dnd-card-{tone} dnd-card-{layout}"
+  class:dnd-card-on={on}
+  aria-current={on ? 'page' : undefined}
+  {onclick}
+>
   {#if layout === 'tile'}
     <span class="dnd-card-finial"><Ornament name="finial" size="xs" tone="metal" /></span>
   {/if}
@@ -69,21 +78,27 @@
     --card-light: var(--metal);
     --card-keyline: var(--space-1);
     background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--metal-dim);
+      var(--rivets),
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--card-light) 7%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
     border-radius: var(--radius-sm);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
-    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: var(--rim-thin), inset 0 0 18px 2px var(--shade-hard), var(--shadow-sm);
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
+  }
+
+  .dnd-card-on {
+    box-shadow: var(--rim), inset 0 0 18px 2px var(--shade-hard), var(--shadow-sm), 0 0 14px var(--ember-glow);
   }
 
   .dnd-card::after {
     content: '';
     position: absolute;
     inset: var(--card-keyline);
-    border: var(--border-hair) solid var(--metal-edge);
+    border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 70%, transparent);
     border-radius: var(--radius-sm);
-    opacity: 0.5;
+    opacity: 0.6;
     pointer-events: none;
     transition: opacity 0.15s ease;
   }
@@ -101,7 +116,7 @@
   .dnd-card-tile {
     flex-direction: column;
     gap: var(--space-3);
-    width: 194px;
+    width: 11.4rem;
     padding: var(--space-3);
   }
 
@@ -114,16 +129,12 @@
   }
 
   .dnd-card:hover {
-    border-color: var(--card-light);
-    box-shadow: var(--shadow-md), 0 0 16px color-mix(in srgb, var(--card-light) 35%, transparent);
+    box-shadow: var(--rim), inset 0 0 18px 2px var(--shade-hard), var(--shadow-md), 0 0 16px color-mix(in srgb, var(--card-light) 40%, transparent);
+    filter: brightness(1.06);
   }
 
-  .dnd-card-row:hover {
-    transform: translateX(3px);
-  }
-
-  .dnd-card-tile:hover {
-    transform: translateY(-4px);
+  .dnd-card:active {
+    filter: brightness(0.88);
   }
 
   .dnd-card:focus-visible {
@@ -142,8 +153,8 @@
   }
 
   .dnd-card-row .dnd-card-medallion {
-    width: 56px;
-    height: 56px;
+    width: 3.3rem;
+    height: 3.3rem;
     border-radius: var(--radius-pill);
   }
 
@@ -191,9 +202,12 @@
     inset: 0;
     border-radius: inherit;
     box-shadow:
-      inset 0 0 0 var(--border-width) var(--metal-dim),
-      inset 0 0 0 var(--border-heavy) var(--metal-edge),
-      inset 0 0 12px var(--shade-hard);
+      inset 0 0 0 1px var(--keyline),
+      inset 0 0 0 2px var(--metal-dim),
+      inset 0 0 0 3px var(--metal),
+      inset 0 0 0 4px var(--metal-bright),
+      inset 0 0 0 5px var(--keyline),
+      inset 0 0 14px var(--shade-hard);
     pointer-events: none;
   }
 
@@ -247,9 +261,9 @@
     flex-wrap: wrap;
     gap: var(--space-3);
     margin-top: var(--space-1);
-    font-family: var(--font-mono);
+    font-family: var(--font-figures);
     font-size: var(--text-xs);
-    color: var(--ink-faint);
+    color: var(--ink-dim);
   }
 
   .dnd-card-badge {
@@ -269,8 +283,20 @@
       0 var(--space-1)
     );
     background: var(--ground-deep);
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-size: var(--text-xs);
     color: var(--metal);
+  }
+
+  @media (max-width: 40rem) {
+    .dnd-card-row .dnd-card-badge {
+      position: static;
+      flex: 0 1 auto;
+      align-self: flex-start;
+      max-width: 40%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 </style>

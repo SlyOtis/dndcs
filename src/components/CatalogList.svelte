@@ -57,7 +57,7 @@
 
   function open(entry: CatalogEntry, event: MouseEvent) {
     event.preventDefault()
-    navigate(`/sources/${kind}/${entry.id}`)
+    navigate(`/main/sources/${kind}/${entry.id}`)
   }
 </script>
 
@@ -95,7 +95,7 @@
         </span>
       </button>
 
-      <a class="dnd-catalog-more" href="/sources/{kind}/{entry.id}" onclick={(event) => open(entry, event)}>
+      <a class="dnd-catalog-more" href="/main/sources/{kind}/{entry.id}" onclick={(event) => open(entry, event)}>
         Read more
       </a>
     </li>
@@ -218,13 +218,16 @@
     gap: var(--space-2);
     font-size: var(--text-xs);
     color: var(--ink);
+    font-family: var(--font-figures);
+    font-variant-numeric: lining-nums tabular-nums;
   }
 
   .dnd-catalog-fact-key {
     font-family: var(--font-display);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ink-faint);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-catalog-note {
@@ -239,24 +242,28 @@
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4) var(--space-5);
-    border: var(--border-width) solid var(--metal-dim);
-    border-radius: var(--radius-lg);
+    border: none;
+    border-radius: var(--radius-sm);
     background:
-      var(--texture-weave),
+      radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--metal) 7%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    box-shadow: var(--rim-thin), inset 0 0 18px 2px var(--shade-hard), var(--shadow-sm);
+    transition: box-shadow 0.18s ease, filter 0.18s ease;
   }
 
   .dnd-catalog-seat:hover {
-    border-color: var(--metal);
-    box-shadow: var(--shadow-md), var(--glow-metal);
-    transform: translateY(-1px);
+    box-shadow: var(--rim), inset 0 0 18px 2px var(--shade-hard), var(--shadow-md), 0 0 16px color-mix(in srgb, var(--metal) 40%, transparent);
+    filter: brightness(1.06);
+  }
+
+  .dnd-catalog-seat:hover .dnd-catalog-name {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .dnd-catalog-seat-taken {
-    border-color: var(--metal);
-    box-shadow: var(--shadow-md), var(--glow-ember);
+    box-shadow: var(--rim), inset 0 0 18px 2px var(--shade-hard), var(--shadow-md), 0 0 16px var(--ember-glow);
   }
 
   .dnd-catalog-face {
@@ -264,10 +271,12 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    width: 64px;
-    height: 86px;
+    width: 4rem;
+    height: 5.375rem;
     overflow: hidden;
+    border-radius: var(--radius-sm);
     background: radial-gradient(circle at 38% 26%, var(--ground-lift) 0%, var(--ground-deep) 84%);
+    box-shadow: var(--rim-thin), inset 0 0 10px var(--shade-hard);
   }
 
   .dnd-catalog-face :global(img) {
@@ -280,7 +289,8 @@
     font-family: var(--font-display);
     font-size: var(--text-2xl);
     font-weight: 700;
-    color: var(--metal-dim);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000, 0 0 10px var(--ember-glow);
   }
 
   .dnd-catalog-body {
@@ -297,21 +307,31 @@
     display: inline-flex;
     align-items: center;
     padding: var(--space-2) var(--space-4);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-pill);
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 12%, transparent) 0%, color-mix(in srgb, #000 55%, transparent) 40%, color-mix(in srgb, #000 72%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
+    text-shadow: 0 1px 0 #000;
+    cursor: pointer;
     font-family: var(--font-display);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--metal);
+    color: var(--metal-bright);
     white-space: nowrap;
   }
 
   .dnd-catalog-more:hover {
-    border-color: var(--metal);
     color: var(--metal-bright);
-    box-shadow: var(--glow-metal);
+    text-shadow: var(--glow-text);
+    filter: brightness(1.1);
+  }
+
+  .dnd-catalog-more:active {
+    filter: brightness(0.85);
   }
 
   .dnd-catalog-more:focus-visible {
@@ -338,13 +358,14 @@
     padding: var(--space-2) var(--space-3);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
-    background: var(--ground-deep);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    box-shadow: var(--bevel-down);
   }
 
   .dnd-catalog-waits-name {
     flex: 1;
     min-width: 0;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: var(--text-xs);
     color: var(--ink-dim);
     overflow: hidden;
@@ -365,27 +386,38 @@
 
   .dnd-catalog-waits-drop:hover {
     color: var(--state-bad);
+    text-shadow: 0 0 8px var(--state-bad), 0 1px 1px #000;
   }
 
   .dnd-catalog-import {
     position: relative;
     z-index: 1;
     padding: var(--space-2) var(--space-5);
-    border: var(--border-hair) solid var(--metal);
-    border-radius: var(--radius-pill);
-    background: linear-gradient(180deg, var(--metal) 0%, var(--metal-dim) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(color-mix(in srgb, var(--ember) 16%, transparent), color-mix(in srgb, var(--ember) 16%, transparent)),
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim), var(--bevel-up), var(--shadow-sm);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     font-weight: 700;
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ground-deep);
+    color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
     cursor: pointer;
   }
 
   .dnd-catalog-import:hover:not(:disabled) {
-    filter: brightness(1.12);
-    box-shadow: var(--glow-metal);
+    filter: brightness(1.1);
+    text-shadow: var(--glow-text);
+  }
+
+  .dnd-catalog-import:active:not(:disabled) {
+    filter: brightness(0.85);
   }
 
   .dnd-catalog-import:disabled {
@@ -394,13 +426,14 @@
   }
 
   .dnd-catalog-own {
-    border-style: dashed;
+    outline: var(--border-hair) dashed var(--metal-dim);
+    outline-offset: -0.5rem;
   }
 
   .dnd-catalog-own-live,
   .dnd-catalog-own:focus-within {
-    border-color: var(--metal);
-    box-shadow: var(--shadow-md), var(--glow-metal);
+    outline-color: var(--metal-bright);
+    box-shadow: var(--rim), inset 0 0 18px 2px var(--shade-hard), var(--shadow-md), 0 0 16px var(--ember-glow);
   }
 
   .dnd-catalog-input {
@@ -421,8 +454,8 @@
   }
 
   .dnd-catalog-mark {
-    width: 16px;
-    height: 16px;
+    width: 1rem;
+    height: 1rem;
     flex: none;
   }
 </style>

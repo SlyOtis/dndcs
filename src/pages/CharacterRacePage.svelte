@@ -6,7 +6,10 @@
   import CatalogList from "$components/CatalogList.svelte";
   import { characterService } from "$lib/firestore.service";
   import type { Character } from "$lib/character.types";
-  import { getAbilities, getEmptyCharacterInfo } from "$lib/engine";
+  import type { RuleSystemOverlay } from "$lib/rules/spec.types";
+  import { getAbilities, getEmptyCharacter, getEmptyCharacterInfo } from "$lib/engine";
+  import { getSystemStack } from "$lib/rules/system";
+  import { getStartingCharacter } from "$lib/dialogs/levelUp";
   import Button from "$components/ui/Button.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
   import Shell from "$components/ui/Shell.svelte";
@@ -22,6 +25,8 @@
     selectedClass?: string;
     hitDie?: number;
     attributes?: unknown[];
+    systems: string[];
+    overlay: RuleSystemOverlay | null;
   }
 
   let characterData = $state<CharacterData | null>(null);
@@ -99,7 +104,8 @@
     if (!selectedRace || !characterData) return;
 
     try {
-      const character: Partial<Character> = {
+      const character: Character = {
+        ...getEmptyCharacter(),
         info: {
           ...getEmptyCharacterInfo(),
           name: characterData.name,
@@ -113,10 +119,15 @@
           race: { name: selectedRace, type: "Unknown" }
         },
         abilities: getAbilities(characterData.abilityScores),
-        background: { title: "Unknown", description: "" }
+        background: { title: "Unknown", description: "" },
+        systems: characterData.systems,
+        overlay: characterData.overlay
       };
 
-      const characterId = await characterService.createCharacter(character as Character, {
+      const system = await getSystemStack(character.systems, character.overlay ?? undefined);
+      const entry = (await getCatalog('classes')).find((one) => one.name === character.info.class.name) ?? null;
+
+      const characterId = await characterService.createCharacter(getStartingCharacter(character, system, entry), {
         tags: characterData.sources.length > 0 ? ["ai-generated", "sources-uploaded"] : ["manually-created"]
       });
 
@@ -124,16 +135,7 @@
         await characterService.setCharacterSources(characterId, characterData.sources);
       }
 
-      await characterService.setCharacterDetails(characterId, {
-        abilityScores: characterData.abilityScores,
-        attributes: characterData.attributes ?? [],
-        imageUrl: characterData.imageUrl,
-        backgroundUrl: characterData.backgroundUrl,
-        creationMethod: characterData.sources.length > 0 ? 'ai-assisted' : 'manual'
-      });
-
-      sessionStorage.removeItem('characterCreationData');
-      navigate(`/character/${characterId}`);
+      navigate(`/main/character/${characterId}`);
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
@@ -224,8 +226,11 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up);
   }
 
   .pick-name {
@@ -240,8 +245,9 @@
 
   .pick-lede {
     margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
+    font-family: var(--font-body);
+    font-size: var(--text-sm);
+    font-style: italic;
     color: var(--ink-dim);
   }
 
@@ -260,8 +266,9 @@
     margin: 0;
     padding: var(--space-3) var(--space-4);
     border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 18%, transparent), transparent), var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
     font-size: var(--text-sm);
     color: var(--ink);
   }
@@ -274,12 +281,13 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-6);
-    border: var(--border-width) solid var(--metal-dim);
-    border-radius: var(--radius-lg);
+    border: none;
+    border-radius: var(--radius-sm);
     background:
-      var(--texture-weave),
+      radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, var(--ember) 12%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    box-shadow: var(--shadow-md), inset 0 var(--border-hair) 0 var(--metal-edge);
+    box-shadow: var(--rim), inset 0 0 1.25rem 0.25rem var(--shade-hard), var(--shadow-md), 0 0 1.125rem var(--ember-glow);
     text-align: center;
   }
 
@@ -298,13 +306,16 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up);
   }
 
   .pick-settled-eyebrow {
     margin: 0;
-    color: var(--ink-faint);
+    color: var(--metal);
   }
 
   .pick-settled-name {
@@ -315,7 +326,7 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--metal-bright);
-    text-shadow: var(--glow-metal);
+    text-shadow: 0 0.125rem 0 var(--ground-deep), 0 0 0.875rem var(--ember-glow), 0 0 2rem color-mix(in srgb, var(--ember-glow) 55%, transparent);
     overflow-wrap: anywhere;
   }
 
@@ -327,6 +338,7 @@
 
   .pick-acts {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--space-3);
   }

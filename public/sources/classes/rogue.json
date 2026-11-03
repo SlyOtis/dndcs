@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/rogue.svg",
   "hitDie": 8,
+  "improvements": [4, 8, 10, 12, 16, 19],
   "primaryAbility": [
     "DEX"
   ],

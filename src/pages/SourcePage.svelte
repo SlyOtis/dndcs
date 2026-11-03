@@ -149,17 +149,22 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim-thin), var(--bevel-up);
   }
 
   .source-eyebrow {
     margin: 0;
-    color: var(--ink-faint);
+    color: var(--metal);
   }
 
   .source-name {
     font-size: var(--text-2xl);
+    color: var(--metal-bright);
+    text-shadow: 0 0.125rem 0 var(--ground-deep), 0 0 0.875rem var(--ember-glow), 0 0 2rem color-mix(in srgb, var(--ember-glow) 55%, transparent);
     overflow-wrap: anywhere;
   }
 
@@ -187,6 +192,11 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    align-items: center;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 0.75rem 0.125rem var(--shade-hard);
   }
 
   .source-fact dt {
@@ -194,14 +204,18 @@
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ink-faint);
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .source-fact dd {
     margin: 0;
-    font-family: var(--font-display);
+    font-family: var(--font-figures);
     font-size: var(--text-lg);
+    font-weight: 700;
+    font-variant-numeric: lining-nums tabular-nums;
     color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0 0.5rem var(--ember-glow);
   }
 
   .source-list {
@@ -218,12 +232,13 @@
     flex-direction: column;
     gap: var(--space-2);
     padding-bottom: var(--space-4);
-    border-bottom: var(--border-hair) solid var(--ground-lift);
+    border-bottom: none;
+    box-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0.125rem 0 color-mix(in srgb, var(--metal-dim) 70%, transparent);
   }
 
   .source-trait:last-child {
     padding-bottom: 0;
-    border-bottom: none;
+    box-shadow: none;
   }
 
   .source-trait-name {
@@ -232,6 +247,7 @@
     font-size: var(--text-md);
     letter-spacing: var(--tracking-wide);
     color: var(--metal-bright);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .source-trait-note {
@@ -263,8 +279,9 @@
     gap: var(--space-3);
     padding: var(--space-4);
     border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 18%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--state-bad) 18%, transparent), transparent), var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
   }
 
   .source-alarm-text {

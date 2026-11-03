@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { component } from './tables.fixture'
 
 const names = [
@@ -160,7 +162,6 @@ describe('no text character stands in for an icon', () => {
 
   it('sets every crest on a masked plate', () => {
     for (const name of [
-      'CampaignPage',
       'CharacterCreatePage',
       'CharacterClassPage',
       'CharacterRacePage',
@@ -196,7 +197,7 @@ describe('the shell holds the sideways backstop', () => {
   it('floors and caps the hold, so a wide child cannot push the track', () => {
     const hold = shell.style('.dnd-shell-hold')
     expect(hold?.['min-width']).toBe('0')
-    expect(hold?.['max-width']).toBe('100%')
+    expect(hold?.['max-width']).toBe('min(100%, var(--size-page-max))')
   })
 
   it('floors the content area and clips the shell itself', () => {
@@ -293,4 +294,19 @@ describe('every page imports only what it draws with', () => {
     expect(camp).toContain("import Card from '$components/ui/Card.svelte'")
     expect(camp).toMatch(/<Card[\s\S]*?image=\{entry\.character\?\.info\?\.imageUrl\}/)
   })
+})
+
+describe('no derived value reorders the state it reads', () => {
+  const sources = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+      entry.isDirectory() ? sources(join(dir, entry.name)) : entry.name.endsWith('.svelte') ? [join(dir, entry.name)] : []
+    )
+
+  for (const path of sources('src')) {
+    it(`${path} copies before it sorts or reverses inside $derived`, () => {
+      const code = readFileSync(path, 'utf8')
+      const inPlace = [...code.matchAll(/\$derived\(\s*([A-Za-z_$][\w$.]*)\s*\.(sort|reverse)\(/g)].map((m) => `${m[1]}.${m[2]}`)
+      expect(inPlace).toEqual([])
+    })
+  }
 })

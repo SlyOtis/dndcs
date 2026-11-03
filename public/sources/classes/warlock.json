@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/warlock.svg",
   "hitDie": 8,
+  "casting": "pact",
   "primaryAbility": [
     "CHA"
   ],

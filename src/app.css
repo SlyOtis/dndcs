@@ -1,19 +1,21 @@
 :root {
   --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  --font-body: 'Spectral', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Alegreya', 'Spectral', Georgia, serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  --font-figures: 'Cinzel', 'Trajan Pro', Georgia, serif;
 
-  --text-xs: 0.78rem;
-  --text-sm: 0.9rem;
-  --text-md: 1.06rem;
-  --text-lg: 1.28rem;
-  --text-xl: 1.6rem;
-  --text-2xl: 2.1rem;
-  --text-3xl: 2.9rem;
+  --text-xs: clamp(0.70rem, 0.59rem + 0.21vw, 0.92rem);
+  --text-sm: clamp(0.81rem, 0.68rem + 0.24vw, 1.06rem);
+  --text-md: clamp(0.95rem, 0.80rem + 0.28vw, 1.25rem);
+  --text-lg: clamp(1.15rem, 0.96rem + 0.34vw, 1.51rem);
+  --text-xl: clamp(1.44rem, 1.20rem + 0.43vw, 1.89rem);
+  --text-2xl: clamp(1.89rem, 1.58rem + 0.56vw, 2.48rem);
+  --text-3xl: clamp(2.61rem, 2.18rem + 0.77vw, 3.42rem);
 
   --tracking-caps: 0.14em;
   --tracking-wide: 0.05em;
 
+  --space-0: 2px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -34,6 +36,26 @@
   --border-width: 2px;
   --border-heavy: 3px;
 
+  --cusp: 30px;
+  --cusp-sm: 18px;
+  --cusp-xs: 16px;
+  --dip: 18px;
+  --dip-sm: 11px;
+  --dip-xs: 10px;
+  --arcade: 8px;
+  --arcade-step: 14px;
+  --beam: 14px;
+  --reach: 34px;
+  --corner-lift: 6px;
+  --plank: 58px;
+  --plank-gap: 60px;
+
+  --size-bar: clamp(3.6rem, 3.0rem + 1.06vw, 4.7rem);
+  --size-face: 2.2rem;
+  --size-split: 1.75rem;
+  --size-chip-max: 15rem;
+  --size-page-max: 1600px;
+
   --size-sidebar-curr: 0;
   --size-sidebar-max: 400px;
   --size-menu-curr: 0;
@@ -46,58 +68,109 @@
   --mask-arch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpath d='M0 140V50C0 22 22 0 50 0s50 22 50 50v90Z' fill='%23fff'/%3E%3C/svg%3E");
   --mask-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120' preserveAspectRatio='none'%3E%3Cpath d='M0 0h100v72c0 26-22 40-50 48C22 112 0 98 0 72Z' fill='%23fff'/%3E%3C/svg%3E");
 
-  --texture-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  --texture-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 12h24M12 0v24' stroke='%23ffffff' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
-  --texture-motes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23ffffff' fill-opacity='0.07'%3E%3Ccircle cx='12' cy='18' r='1.2'/%3E%3Ccircle cx='64' cy='9' r='.8'/%3E%3Ccircle cx='96' cy='42' r='1.1'/%3E%3Ccircle cx='31' cy='73' r='.9'/%3E%3Ccircle cx='78' cy='96' r='1.3'/%3E%3Ccircle cx='108' cy='110' r='.7'/%3E%3C/g%3E%3C/svg%3E");
+  --texture-stone: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='l' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.024' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='4.5' lighting-color='%23fff'%3E%3CfeDistantLight azimuth='235' elevation='40'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.92 0 0 0 0 0.78 1.4 0 0 0 -0.78'/%3E%3C/filter%3E%3Cfilter id='d' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.024' numOctaves='5' seed='11' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='4.5' lighting-color='%23fff'%3E%3CfeDistantLight azimuth='235' elevation='40'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 0 0 0 0.66'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23l)'/%3E%3Crect width='256' height='256' filter='url(%23d)'/%3E%3Cfilter id='m' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2 0 0 0 1.05'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23m)' opacity='0.5'/%3E%3C/svg%3E");
+  --texture-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='128'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0035 0.11' numOctaves='4' seed='4' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 0 0 0 1.15'/%3E%3C/filter%3E%3Crect width='512' height='128' filter='url(%23g)' opacity='0.55'/%3E%3C/svg%3E");
+  --texture-leather: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='l' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.22' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1.4' lighting-color='%23fff'%3E%3CfeDistantLight azimuth='235' elevation='40'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.92 0 0 0 0 0.78 0.6 0 0 0 -0.45'/%3E%3C/filter%3E%3Cfilter id='d' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.22' numOctaves='3' seed='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1.4' lighting-color='%23fff'%3E%3CfeDistantLight azimuth='235' elevation='40'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.8 0 0 0 0.42'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23l)'/%3E%3Crect width='256' height='256' filter='url(%23d)'/%3E%3C/svg%3E");
+  --texture-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.6 0 0 0 0.95'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  --texture-weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 12h24M12 0v24' stroke='%23ffffff' stroke-opacity='0.025' stroke-width='1'/%3E%3C/svg%3E");
+  --texture-motes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23ffd28a' fill-opacity='0.09'%3E%3Ccircle cx='12' cy='18' r='1.2'/%3E%3Ccircle cx='64' cy='9' r='.8'/%3E%3Ccircle cx='96' cy='42' r='1.1'/%3E%3Ccircle cx='31' cy='73' r='.9'/%3E%3Ccircle cx='78' cy='96' r='1.3'/%3E%3Ccircle cx='108' cy='110' r='.7'/%3E%3C/g%3E%3C/svg%3E");
 
-  --ground-deep: #04050a;
-  --ground: #0a0c12;
-  --ground-raised: #12151d;
-  --ground-lift: #1c202b;
-  --ground-veil: rgba(255, 255, 255, 0.05);
+  --ground-deep: #0a0806;
+  --ground: #15110c;
+  --ground-raised: #211a12;
+  --ground-lift: #30271b;
+  --ground-veil: rgba(255, 236, 200, 0.05);
+  --keyline: #0b0703;
 
-  --metal: #c9a227;
-  --metal-bright: #f4e2a1;
-  --metal-dim: #6d5717;
-  --metal-edge: rgba(244, 226, 161, 0.28);
+  --stone: #4a4034;
+  --stone-light: #7a6c58;
+  --stone-dark: #1f1a14;
+  --wood: #3a2413;
+  --wood-dark: #1c1009;
 
-  --verdigris: #2f8f7d;
-  --verdigris-dim: #164a43;
+  --metal: #d4a445;
+  --metal-bright: #ffe39a;
+  --metal-dim: #6e5120;
+  --metal-edge: rgba(255, 227, 154, 0.3);
 
-  --ember: #ff8a3d;
-  --ember-glow: rgba(255, 138, 61, 0.45);
-  --ember-core: #ffd8a8;
+  --verdigris: #4b82d8;
+  --verdigris-dim: #1f3663;
 
-  --ink: #ece3d2;
-  --ink-dim: #a2977f;
-  --ink-faint: #6a6252;
+  --ember: #ff9f2e;
+  --ember-glow: rgba(255, 159, 46, 0.42);
+  --ember-core: #ffe2b0;
 
-  --state-good: #4fbf7b;
-  --state-warn: #e0a92c;
-  --state-bad: #d4433f;
+  --ink: #f3e7cb;
+  --ink-dim: #bba888;
+  --ink-faint: #85745a;
+
+  --state-good: #3fd65a;
+  --state-warn: #ffcc00;
+  --state-bad: #e0351f;
 
   --backdrop:
-    radial-gradient(ellipse at 50% -10%, rgba(47, 143, 125, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 120%, rgba(255, 138, 61, 0.14) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(255, 150, 40, 0.2) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(255, 150, 40, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #1b150e 0%, var(--ground) 40%, var(--ground-deep) 100%);
 
   --shade-soft: rgba(0, 0, 0, 0.3);
   --shade: rgba(0, 0, 0, 0.6);
   --shade-hard: rgba(0, 0, 0, 0.9);
-  --sheen-soft: rgba(255, 255, 255, 0.08);
-  --sheen: rgba(255, 255, 255, 0.18);
-  --sheen-strong: rgba(255, 255, 255, 0.38);
+  --sheen-soft: rgba(255, 240, 210, 0.07);
+  --sheen: rgba(255, 240, 210, 0.16);
+  --sheen-strong: rgba(255, 240, 210, 0.34);
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.55);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.7);
-  --shadow-inset: inset 0 1px 0 var(--metal-edge), inset 0 -14px 24px -18px rgba(0, 0, 0, 0.9);
+  --rim:
+    inset 0 0 0 1px var(--keyline),
+    inset 1px 1px 0 2px var(--metal-bright),
+    inset 0 0 0 3px var(--metal),
+    inset -1px -1px 0 4px var(--metal-dim),
+    inset 0 0 0 5px var(--metal),
+    inset 1px 1px 0 6px var(--metal-bright),
+    inset 0 0 0 7px var(--metal-dim),
+    inset 0 0 0 8px var(--keyline),
+    inset 0 0 0 9px color-mix(in srgb, var(--metal-edge) 60%, transparent);
+  --rim-thin:
+    inset 0 0 0 1px var(--keyline),
+    inset 1px 1px 0 2px var(--metal-bright),
+    inset -1px -1px 0 3px var(--metal-dim),
+    inset 0 0 0 4px var(--metal),
+    inset 0 0 0 5px var(--keyline);
+  --rivet: radial-gradient(circle, var(--metal-bright) 0 0.08rem, var(--metal) 0.1rem, var(--metal-dim) 0.17rem, var(--keyline) 0.2rem, transparent 0.23rem);
+  --rivets:
+    var(--rivet) 0.45rem 0.45rem / 0.5rem 0.5rem no-repeat,
+    var(--rivet) calc(100% - 0.45rem) 0.45rem / 0.5rem 0.5rem no-repeat,
+    var(--rivet) 0.45rem calc(100% - 0.45rem) / 0.5rem 0.5rem no-repeat,
+    var(--rivet) calc(100% - 0.45rem) calc(100% - 0.45rem) / 0.5rem 0.5rem no-repeat;
+  --texture-parchment: radial-gradient(ellipse at 50% 40%, #e9d9b4 0%, #d7c091 60%, #b99a62 100%);
+  --ink-parchment: #2a1b0c;
+  --bevel-up: inset 0 1px 0 var(--sheen-strong), inset 1px 0 0 var(--sheen), inset 0 -2px 0 var(--shade-hard), inset -1px 0 0 var(--shade);
+  --bevel-down: inset 0 2px 3px var(--shade-hard), inset 0 -1px 0 var(--sheen-soft);
+  --glow-text: 0 0 6px var(--ember-glow), 0 0 14px var(--ember-glow), 0 1px 1px #000;
 
-  --glow-metal: 0 0 14px rgba(201, 162, 39, 0.35);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.75);
+  --shadow-inset: var(--rim), inset 0 0 28px 6px rgba(0, 0, 0, 0.55);
+  --shadow-lip: inset 0 1px 0 var(--metal-edge);
+  --shadow-plate: var(--bevel-up), 0 3px 8px var(--shade);
+  --shadow-hearth: inset 0 0 40px -14px var(--ember-glow);
+  --shadow-hearth-soft: inset 0 0 32px -16px var(--ember-glow);
+
+  --drop-frame: drop-shadow(0 16px 36px var(--shade-hard));
+  --drop-panel: drop-shadow(0 10px 22px var(--shade-hard));
+  --drop-crest: drop-shadow(0 4px 10px var(--shade-hard));
+  --drop-relief: drop-shadow(0 6px 16px var(--shade));
+  --drop-haze: drop-shadow(0 0 12px var(--shade-hard));
+  --shadow-bar: 0 6px 20px var(--shade-hard), inset 0 -3px 0 var(--metal-dim), inset 0 -4px 0 var(--metal), inset 0 -5px 0 var(--keyline);
+
+  --glow-metal: 0 0 12px rgba(255, 204, 80, 0.4);
   --glow-ember: 0 0 20px var(--ember-glow);
-  --glow-arcane: 0 0 22px rgba(47, 143, 125, 0.4);
+  --glow-arcane: 0 0 22px rgba(75, 130, 216, 0.45);
 
-  --focus-ring: 0 0 0 2px var(--ground), 0 0 0 4px var(--metal), var(--glow-metal);
+  --focus-ring: 0 0 0 2px var(--ground-deep), 0 0 0 4px var(--metal-bright), var(--glow-metal);
 
   color-scheme: dark;
   font-family: var(--font-body);
@@ -112,118 +185,163 @@
 }
 
 :root[data-theme='medieval'] {
-  --ground-deep: #04050a;
-  --ground: #0a0c12;
-  --ground-raised: #12151d;
-  --ground-lift: #1c202b;
-  --metal: #c9a227;
-  --metal-bright: #f4e2a1;
-  --metal-dim: #6d5717;
-  --metal-edge: rgba(244, 226, 161, 0.28);
-  --verdigris: #2f8f7d;
-  --verdigris-dim: #164a43;
-  --ember: #ff8a3d;
-  --ember-glow: rgba(255, 138, 61, 0.45);
-  --ember-core: #ffd8a8;
-  --ink: #ece3d2;
-  --ink-dim: #a2977f;
-  --ink-faint: #6a6252;
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-body: 'Alegreya', 'Spectral', Georgia, serif;
+  --ground-deep: #0a0806;
+  --ground: #15110c;
+  --ground-raised: #211a12;
+  --ground-lift: #30271b;
+  --stone: #4a4034;
+  --stone-light: #7a6c58;
+  --stone-dark: #1f1a14;
+  --wood: #3a2413;
+  --wood-dark: #1c1009;
+  --metal: #d4a445;
+  --metal-bright: #ffe39a;
+  --metal-dim: #6e5120;
+  --metal-edge: rgba(255, 227, 154, 0.3);
+  --verdigris: #4b82d8;
+  --verdigris-dim: #1f3663;
+  --ember: #ff9f2e;
+  --ember-glow: rgba(255, 159, 46, 0.42);
+  --ember-core: #ffe2b0;
+  --ink: #f3e7cb;
+  --ink-dim: #bba888;
+  --ink-faint: #85745a;
   --backdrop:
-    radial-gradient(ellipse at 50% -10%, rgba(47, 143, 125, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 120%, rgba(255, 138, 61, 0.14) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(255, 150, 40, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(255, 150, 40, 0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #1b150e 0%, var(--ground) 40%, var(--ground-deep) 100%);
 }
 
 :root[data-theme='forest'] {
-  --ground-deep: #040906;
-  --ground: #0a120d;
-  --ground-raised: #121d16;
-  --ground-lift: #1b2a20;
-  --metal: #9ab04a;
-  --metal-bright: #e2eeb0;
-  --metal-dim: #4a5a1f;
-  --metal-edge: rgba(226, 238, 176, 0.26);
-  --verdigris: #3fae7c;
-  --verdigris-dim: #17553c;
-  --ember: #d9f06a;
-  --ember-glow: rgba(217, 240, 106, 0.4);
-  --ember-core: #f2ffc4;
-  --ink: #e2ecd8;
-  --ink-dim: #97a68c;
-  --ink-faint: #5e6a56;
+  --font-display: 'Uncial Antiqua', 'Marcellus', Georgia, serif;
+  --font-body: 'Alegreya', 'Spectral', Georgia, serif;
+  --ground-deep: #07050d;
+  --ground: #0f0b19;
+  --ground-raised: #1a1428;
+  --ground-lift: #261d3a;
+  --stone: #3a3050;
+  --stone-light: #6a5c8a;
+  --stone-dark: #15101f;
+  --wood: #2c1f3d;
+  --wood-dark: #150e20;
+  --metal: #b39be6;
+  --metal-bright: #ece2ff;
+  --metal-dim: #4d3b7c;
+  --metal-edge: rgba(236, 226, 255, 0.28);
+  --verdigris: #4fc9a4;
+  --verdigris-dim: #17503f;
+  --ember: #7fe6d4;
+  --ember-glow: rgba(127, 230, 212, 0.4);
+  --ember-core: #dbfff8;
+  --ink: #ece6f7;
+  --ink-dim: #a79cbd;
+  --ink-faint: #6f6687;
   --backdrop:
-    radial-gradient(ellipse at 30% -10%, rgba(63, 174, 124, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 115%, rgba(154, 176, 74, 0.16) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(127, 230, 212, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(127, 230, 212, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #130e20 0%, var(--ground) 40%, var(--ground-deep) 100%);
 }
 
 :root[data-theme='fire'] {
-  --ground-deep: #0a0402;
-  --ground: #150806;
-  --ground-raised: #21100b;
-  --ground-lift: #331a12;
-  --metal: #e08b2d;
-  --metal-bright: #ffd79a;
-  --metal-dim: #7a4212;
-  --metal-edge: rgba(255, 215, 154, 0.3);
-  --verdigris: #b83a25;
-  --verdigris-dim: #5c1a10;
-  --ember: #ff5a1f;
-  --ember-glow: rgba(255, 90, 31, 0.55);
-  --ember-core: #ffe0b0;
-  --ink: #f3e0d0;
-  --ink-dim: #b3947c;
-  --ink-faint: #75604f;
+  --font-display: 'Grenze', 'Cinzel', Georgia, serif;
+  --font-body: 'Vollkorn', 'Spectral', Georgia, serif;
+  --ground-deep: #0c0503;
+  --ground: #180a06;
+  --ground-raised: #26120b;
+  --ground-lift: #381b10;
+  --stone: #4a3024;
+  --stone-light: #7d5a44;
+  --stone-dark: #1e110b;
+  --wood: #452414;
+  --wood-dark: #210f07;
+  --metal: #c2874a;
+  --metal-bright: #f7cf94;
+  --metal-dim: #5e3818;
+  --metal-edge: rgba(247, 207, 148, 0.3);
+  --verdigris: #b0301c;
+  --verdigris-dim: #521409;
+  --ember: #ff4a1c;
+  --ember-glow: rgba(255, 74, 28, 0.5);
+  --ember-core: #ffd9b0;
+  --ink: #f4e0cf;
+  --ink-dim: #b6927a;
+  --ink-faint: #7c5f4c;
   --backdrop:
-    radial-gradient(ellipse at 50% 115%, rgba(255, 90, 31, 0.3) 0%, transparent 60%),
-    radial-gradient(ellipse at 50% -10%, rgba(224, 139, 45, 0.16) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(255, 74, 28, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(255, 74, 28, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #22100a 0%, var(--ground) 40%, var(--ground-deep) 100%);
 }
 
 :root[data-theme='arcane'] {
-  --ground-deep: #05030d;
-  --ground: #0b0818;
-  --ground-raised: #150f26;
-  --ground-lift: #211936;
-  --metal: #9a7bd6;
-  --metal-bright: #ded0ff;
-  --metal-dim: #4a3480;
-  --metal-edge: rgba(222, 208, 255, 0.28);
-  --verdigris: #3f7fd6;
-  --verdigris-dim: #1c3a70;
-  --ember: #b25cff;
-  --ember-glow: rgba(178, 92, 255, 0.5);
-  --ember-core: #ecd9ff;
-  --ink: #e6e0f5;
-  --ink-dim: #9b93b5;
-  --ink-faint: #635d78;
+  --font-display: 'Metamorphous', 'Marcellus', Georgia, serif;
+  --font-body: 'EB Garamond', 'Spectral', Georgia, serif;
+  --ground-deep: #060806;
+  --ground: #0d110c;
+  --ground-raised: #161c14;
+  --ground-lift: #212a1e;
+  --stone: #383c32;
+  --stone-light: #6a6e5c;
+  --stone-dark: #141712;
+  --wood: #2a2620;
+  --wood-dark: #141210;
+  --metal: #cfc6a2;
+  --metal-bright: #f5f0dc;
+  --metal-dim: #5c5744;
+  --metal-edge: rgba(245, 240, 220, 0.26);
+  --verdigris: #7b45b5;
+  --verdigris-dim: #35194f;
+  --ember: #8fe04a;
+  --ember-glow: rgba(143, 224, 74, 0.42);
+  --ember-core: #e2ffc4;
+  --ink: #e8ecdd;
+  --ink-dim: #9ea58e;
+  --ink-faint: #666d58;
   --backdrop:
-    radial-gradient(ellipse at 50% -10%, rgba(178, 92, 255, 0.24) 0%, transparent 58%),
-    radial-gradient(ellipse at 20% 110%, rgba(63, 127, 214, 0.18) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(143, 224, 74, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(143, 224, 74, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #10160e 0%, var(--ground) 40%, var(--ground-deep) 100%);
 }
 
 :root[data-theme='ocean'] {
-  --ground-deep: #020709;
-  --ground: #061117;
-  --ground-raised: #0c1c25;
-  --ground-lift: #142b37;
-  --metal: #6fb7c4;
-  --metal-bright: #cdeef5;
-  --metal-dim: #2c5c66;
-  --metal-edge: rgba(205, 238, 245, 0.26);
-  --verdigris: #2f9fb8;
-  --verdigris-dim: #14515f;
-  --ember: #35d6c0;
-  --ember-glow: rgba(53, 214, 192, 0.42);
-  --ember-core: #d3fff7;
-  --ink: #dff0f2;
-  --ink-dim: #8ea6ac;
-  --ink-faint: #566a70;
+  --font-display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --font-body: 'Cardo', 'Spectral', Georgia, serif;
+  --ground-deep: #03070b;
+  --ground: #081119;
+  --ground-raised: #0f1c28;
+  --ground-lift: #172a3a;
+  --stone: #2f3c48;
+  --stone-light: #5d7486;
+  --stone-dark: #111a22;
+  --wood: #1f2c38;
+  --wood-dark: #0e161e;
+  --metal: #9ccbe6;
+  --metal-bright: #e8f8ff;
+  --metal-dim: #355a70;
+  --metal-edge: rgba(232, 248, 255, 0.28);
+  --verdigris: #4fa8e0;
+  --verdigris-dim: #18405a;
+  --ember: #6fdcff;
+  --ember-glow: rgba(111, 220, 255, 0.42);
+  --ember-core: #dcf7ff;
+  --ink: #e4f0f6;
+  --ink-dim: #93a9b6;
+  --ink-faint: #5d7280;
   --backdrop:
-    radial-gradient(ellipse at 50% -15%, rgba(53, 214, 192, 0.2) 0%, transparent 58%),
-    radial-gradient(ellipse at 50% 115%, rgba(47, 159, 184, 0.16) 0%, transparent 55%),
-    linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 45%, var(--ground-deep) 100%);
+    radial-gradient(ellipse 60% 45% at 0% 0%, rgba(111, 220, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(111, 220, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(0, 0, 0, 0.85) 0%, transparent 70%),
+    var(--texture-noise),
+    linear-gradient(180deg, #0b1824 0%, var(--ground) 40%, var(--ground-deep) 100%);
 }
 
 * {
@@ -288,61 +406,58 @@ a:hover {
 
 .dnd-surface {
   position: relative;
-  background:
-    var(--texture-weave),
-    linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
+  background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
   color: var(--ink);
 }
 
 .dnd-panel {
   position: relative;
-  background:
-    var(--texture-weave),
-    linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
-  border: var(--border-width) solid var(--metal-dim);
-  border-radius: var(--radius-lg);
+  background: var(--rivets), var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
+  border: none;
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md), var(--shadow-inset);
   color: var(--ink);
 }
 
 .dnd-panel-void {
-  background:
-    var(--texture-motes),
-    radial-gradient(ellipse at 50% 0%, var(--ground-raised) 0%, var(--ground-deep) 100%);
+  background: var(--rivets), var(--texture-motes), radial-gradient(ellipse at 50% 0%, var(--ground-raised) 0%, var(--ground-deep) 100%);
 }
 
 .dnd-panel-stone {
   background:
-    var(--texture-noise),
-    linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 60%, var(--ground) 100%);
-  background-blend-mode: overlay, normal;
+  var(--rivets),
+  linear-gradient(180deg, color-mix(in srgb, var(--ground-raised) 80%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 88%, transparent) 100%),
+  var(--texture-stone),
+  var(--stone);
+  background-blend-mode: normal;
 }
 
 .dnd-panel-parchment {
   background:
-    var(--texture-noise),
-    linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 100%);
-  background-blend-mode: soft-light, normal;
-  border-color: var(--metal);
+  var(--rivets),
+  linear-gradient(180deg, color-mix(in srgb, var(--wood) 55%, transparent) 0%, color-mix(in srgb, var(--wood-dark) 85%, transparent) 100%),
+  var(--texture-leather),
+  var(--wood);
+  background-blend-mode: normal;
 }
 
 .dnd-keyline {
-  box-shadow:
-    inset 0 0 0 var(--border-hair) var(--metal-edge),
-    inset 0 0 26px -10px var(--ember-glow),
-    var(--shadow-md);
+  box-shadow: var(--rim-thin), inset 0 0 26px -10px var(--ember-glow), var(--shadow-md);
 }
 
 .dnd-keyline-quiet {
-  box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+  box-shadow: var(--rim-thin);
 }
 
 .dnd-plate {
   position: relative;
-  background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground) 100%);
-  border: var(--border-hair) solid var(--metal-dim);
+  background:
+  linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 30%, transparent) 0%, color-mix(in srgb, var(--stone-dark) 70%, transparent) 100%),
+  var(--texture-stone),
+  var(--stone);
+  border: none;
   color: var(--ink);
-  box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+  box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
 }
 
 .dnd-plate-chamfer {
@@ -365,8 +480,8 @@ a:hover {
 .dnd-inset {
   background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
   border: var(--border-hair) solid var(--metal-dim);
-  border-radius: var(--radius-md);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--bevel-down);
   color: var(--ink);
 }
 
@@ -376,19 +491,15 @@ a:hover {
   font-weight: 600;
   letter-spacing: var(--tracking-wide);
   color: var(--metal-bright);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.9);
+  text-shadow: 0 1px 0 #000, 0 0 10px color-mix(in srgb, var(--ember-glow) 50%, transparent);
   margin: 0;
 }
 
 .dnd-heading-hero {
   font-size: var(--text-3xl);
   letter-spacing: var(--tracking-caps);
-  background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 55%, var(--metal-dim) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  text-shadow: none;
-  filter: drop-shadow(0 2px 10px var(--ember-glow));
+  color: var(--metal-bright);
+  text-shadow: 0 2px 0 #000, 0 0 18px var(--ember-glow), 0 0 42px color-mix(in srgb, var(--ember-glow) 60%, transparent);
 }
 
 .dnd-label {
@@ -398,6 +509,7 @@ a:hover {
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--metal);
+  text-shadow: 0 1px 0 #000;
 }
 
 .dnd-caps {
@@ -406,7 +518,7 @@ a:hover {
 }
 
 .dnd-value {
-  font-family: var(--font-display);
+  font-family: var(--font-figures);
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--ink);
@@ -419,10 +531,11 @@ a:hover {
 
 .dnd-rule {
   position: relative;
-  height: 1px;
+  height: 2px;
   border: none;
   margin: var(--space-4) 0;
-  background: linear-gradient(90deg, transparent, var(--metal-dim) 20%, var(--metal) 50%, var(--metal-dim) 80%, transparent);
+  background: linear-gradient(90deg, transparent, var(--metal-dim) 15%, var(--metal) 40%, var(--metal-bright) 50%, var(--metal) 60%, var(--metal-dim) 85%, transparent);
+  box-shadow: 0 1px 0 var(--keyline);
 }
 
 .dnd-rule::before {
@@ -430,12 +543,12 @@ a:hover {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 46px;
-  height: 7px;
+  width: 2.9rem;
+  height: 0.45rem;
   transform: translate(-50%, -50%);
-  background: var(--metal-dim);
+  background: linear-gradient(180deg, var(--metal) 0%, var(--metal-dim) 100%);
   clip-path: polygon(0 50%, 22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%);
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .dnd-rule::after {
@@ -443,10 +556,10 @@ a:hover {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 11px;
-  height: 11px;
+  width: 0.7rem;
+  height: 0.7rem;
   transform: translate(-50%, -50%) rotate(45deg);
-  background: var(--metal);
+  background: linear-gradient(135deg, var(--metal-bright) 0%, var(--metal) 45%, var(--metal-dim) 100%);
   box-shadow: var(--glow-metal);
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
@@ -499,11 +612,13 @@ a:hover {
 
 .dnd-scroll::-webkit-scrollbar-track {
   background: var(--ground-deep);
+  box-shadow: var(--bevel-down);
 }
 
 .dnd-scroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--metal), var(--metal-dim));
-  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--metal-dim), var(--metal), var(--metal-dim));
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 1px var(--keyline);
 }
 
 .dnd-scroll::-webkit-scrollbar-thumb:hover {
@@ -521,16 +636,18 @@ a:hover {
 }
 
 .dnd-num {
-  width: 68px;
+  width: 100%;
+  min-width: 0;
   padding: var(--space-2);
-  background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+  background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
   border: var(--border-hair) solid var(--metal-dim);
   border-radius: var(--radius-sm);
-  box-shadow: inset 0 2px 6px var(--shade-hard);
+  box-shadow: var(--bevel-down);
   color: var(--ink);
-  font-family: var(--font-display);
+  font-family: var(--font-figures);
   font-size: var(--text-md);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   text-align: center;
   -moz-appearance: textfield;
   appearance: textfield;
@@ -554,16 +671,16 @@ a:hover {
 .dnd-num:focus {
   outline: none;
   border-color: var(--metal-bright);
-  box-shadow: inset 0 2px 6px var(--shade-hard), var(--glow-metal);
+  box-shadow: var(--bevel-down), var(--glow-metal);
 }
 
 .dnd-search {
-  width: 160px;
+  width: clamp(7rem, 12vw, 11rem);
   padding: var(--space-2) var(--space-3);
-  background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+  background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
   border: var(--border-hair) solid var(--metal-dim);
   border-radius: var(--radius-sm);
-  box-shadow: inset 0 2px 6px var(--shade-hard);
+  box-shadow: var(--bevel-down);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-xs);
@@ -576,14 +693,9 @@ a:hover {
 .dnd-search:focus {
   outline: none;
   border-color: var(--metal);
-  box-shadow: inset 0 2px 6px var(--shade-hard), var(--glow-metal);
+  box-shadow: var(--bevel-down), var(--glow-metal);
 }
 
-@media (max-width: 1200px) {
-  .dnd-search {
-    width: 112px;
-  }
-}
 
 .dnd-empty {
   display: flex;
@@ -594,35 +706,39 @@ a:hover {
   gap: var(--space-3);
   padding: var(--space-6);
   text-align: center;
-  color: var(--ink-faint);
+  color: var(--ink-dim);
   font-size: var(--text-sm);
+  font-style: italic;
+  text-shadow: 0 1px 0 #000;
 }
 
 .dnd-empty-mark {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 3.3rem;
+  aspect-ratio: 1;
   font-size: var(--text-xl);
-  color: var(--metal-dim);
-  opacity: 0.75;
+  color: var(--metal);
+  opacity: 0.9;
+  filter: drop-shadow(0 0.25rem 0.5rem var(--shade-hard));
   -webkit-mask-image: var(--mask-arch);
   mask-image: var(--mask-arch);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 25%, transparent), color-mix(in srgb, var(--ground-deep) 80%, transparent)), var(--texture-stone), var(--stone);
 }
 
 .dnd-spinner {
-  width: 34px;
-  height: 34px;
+  width: 2.1rem;
+  height: 2.1rem;
   border: 2px solid var(--metal-dim);
   border-top-color: var(--metal-bright);
+  border-right-color: var(--ember);
   border-radius: var(--radius-pill);
-  box-shadow: var(--glow-metal);
+  box-shadow: 0 0 0 1px var(--keyline), inset 0 0 0 1px var(--keyline), var(--glow-metal), 0 0 1.2rem var(--ember-glow);
   animation: dnd-spin 0.9s linear infinite;
 }
 
@@ -717,4 +833,182 @@ a:hover {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+.dnd-facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  width: 100%;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.dnd-facts dt {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-wide);
+  color: var(--metal);
+  text-shadow: 0 1px 0 #000;
+}
+
+.dnd-facts dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+.dnd-facts input,
+.dnd-facts select {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-bottom: var(--border-hair) solid var(--metal-dim);
+  border-radius: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  caret-color: var(--metal);
+  transition: border-color 0.15s ease;
+}
+
+.dnd-facts input:hover,
+.dnd-facts select:hover {
+  border-bottom-color: var(--metal);
+}
+
+.dnd-facts input:focus-visible,
+.dnd-facts select:focus-visible {
+  outline: none;
+  box-shadow: 0 1px 0 var(--metal-bright), 0 0.4rem 0.6rem -0.4rem var(--ember-glow);
+  border-bottom-color: var(--metal-bright);
+}
+
+.dnd-facts input::placeholder {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+.dnd-sigil[title],
+.dnd-iconbtn[title],
+.dnd-button[title] {
+  position: relative;
+}
+
+.dnd-sigil[title]:hover::after,
+.dnd-iconbtn[title]:hover::after,
+.dnd-button[title]:hover::after,
+.dnd-sigil[title]:focus-visible::after,
+.dnd-iconbtn[title]:focus-visible::after,
+.dnd-button[title]:focus-visible::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + var(--space-1));
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  width: max-content;
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #000 86%, transparent);
+  box-shadow: var(--rim-thin), var(--shadow-lg);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--state-warn);
+  pointer-events: none;
+}
+
+.dnd-sigil[title]:first-child:not(:last-child):hover::after,
+.dnd-iconbtn[title]:first-child:not(:last-child):hover::after,
+.dnd-button[title]:first-child:not(:last-child):hover::after,
+.dnd-sigil[title]:first-child:not(:last-child):focus-visible::after,
+.dnd-iconbtn[title]:first-child:not(:last-child):focus-visible::after,
+.dnd-button[title]:first-child:not(:last-child):focus-visible::after {
+  left: 0;
+  transform: none;
+}
+
+.dnd-sigil[title]:last-child:not(:first-child):hover::after,
+.dnd-iconbtn[title]:last-child:not(:first-child):hover::after,
+.dnd-button[title]:last-child:not(:first-child):hover::after,
+.dnd-sigil[title]:last-child:not(:first-child):focus-visible::after,
+.dnd-iconbtn[title]:last-child:not(:first-child):focus-visible::after,
+.dnd-button[title]:last-child:not(:first-child):focus-visible::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.dnd-shell-handle:first-child .dnd-sigil[title]:hover::after,
+.dnd-shell-handle:first-child .dnd-sigil[title]:focus-visible::after,
+.dnd-menupanel-head .dnd-button[title]:hover::after,
+.dnd-menupanel-head .dnd-button[title]:focus-visible::after {
+  left: 0;
+  transform: none;
+}
+
+.dnd-shell-handle:last-child .dnd-sigil[title]:hover::after,
+.dnd-shell-handle:last-child .dnd-sigil[title]:focus-visible::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.dnd-band {
+  min-width: 0;
+  padding: var(--space-6);
+  margin-inline: calc(var(--space-6) * -1);
+  margin-block-start: calc(var(--space-6) * -1);
+  border-bottom: none;
+  background:
+    radial-gradient(ellipse 60% 120% at 50% 0%, color-mix(in srgb, var(--ember) 7%, transparent) 0%, transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, #000 58%, transparent) 0%, color-mix(in srgb, #000 72%, transparent) 55%, color-mix(in srgb, #000 82%, transparent) 100%),
+    var(--texture-stone),
+    var(--stone-dark);
+  box-shadow: inset 0 1px 0 var(--sheen-soft), 0 1px 0 var(--metal-dim), 0 2px 0 var(--metal), 0 3px 0 var(--keyline), 0 5px 8px var(--shade);
+}
+
+.dnd-band-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.dnd-band-acts {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  height: var(--space-7);
+}
+
+.dnd-band-acts .dnd-iconbtn[title]:hover::after,
+.dnd-band-acts .dnd-iconbtn[title]:focus-visible::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--metal) 55%, transparent);
+  color: var(--ground-deep);
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--metal-bright);
+  accent-color: var(--metal);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-faint);
 }

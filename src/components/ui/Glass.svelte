@@ -22,11 +22,11 @@
 
     <g clip-path="url(#dnd-glass-clip)">
       <rect x="0" y="0" width="200" height="320" fill="var(--ground-deep)" />
-      <path d="M20 96C20 50 56 14 100 14v130L20 96Z" fill="var(--verdigris)" opacity="0.55" />
+      <path d="M20 96C20 50 56 14 100 14v130L20 96Z" fill="var(--verdigris)" opacity="0.38" />
       <path d="M180 96C180 50 144 14 100 14v130l80-48Z" fill="var(--ember)" opacity="0.4" />
-      <path d="M20 96v88h80v-40L20 96Z" fill="var(--ember)" opacity="0.28" />
-      <path d="M180 96v88h-80v-40l80-48Z" fill="var(--verdigris)" opacity="0.42" />
-      <path d="M20 184h80v132H20V184Z" fill="var(--verdigris)" opacity="0.3" />
+      <path d="M20 96v88h80v-40L20 96Z" fill="var(--ember)" opacity="0.3" />
+      <path d="M180 96v88h-80v-40l80-48Z" fill="var(--metal)" opacity="0.32" />
+      <path d="M20 184h80v132H20V184Z" fill="var(--metal-dim)" opacity="0.5" />
       <path d="M100 184h80v132h-80V184Z" fill="var(--ember)" opacity="0.22" />
       <circle cx="100" cy="112" r="30" fill="var(--metal)" opacity="0.4" />
       <circle cx="100" cy="112" r="16" fill="var(--ember-core)" opacity="0.55" />
@@ -57,21 +57,21 @@
   .dnd-glass {
     position: relative;
     display: inline-block;
-    --glass-h: 320px;
+    --glass-h: 20rem;
     height: var(--glass-h);
     pointer-events: none;
   }
 
   .dnd-glass-md {
-    --glass-h: 200px;
+    --glass-h: 12.5rem;
   }
 
   .dnd-glass-lg {
-    --glass-h: 320px;
+    --glass-h: 20rem;
   }
 
   .dnd-glass-xl {
-    --glass-h: 520px;
+    --glass-h: 32.5rem;
   }
 
   .dnd-glass-panes {
@@ -79,7 +79,7 @@
     z-index: 1;
     height: 100%;
     width: auto;
-    filter: drop-shadow(0 0 24px var(--shade-hard));
+    filter: drop-shadow(0 0 1.5rem var(--shade-hard));
   }
 
   .dnd-glass-shine {
@@ -114,10 +114,10 @@
 
   @keyframes dnd-glass-warm {
     from {
-      filter: drop-shadow(0 0 24px var(--shade-hard)) brightness(0.92);
+      filter: drop-shadow(0 0 1.5rem var(--shade-hard)) brightness(0.92);
     }
     to {
-      filter: drop-shadow(0 0 34px var(--shade-hard)) brightness(1.12);
+      filter: drop-shadow(0 0 2.1rem var(--shade-hard)) brightness(1.12);
     }
   }
 

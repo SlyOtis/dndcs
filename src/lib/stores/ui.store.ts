@@ -2,11 +2,19 @@ import { writable } from 'svelte/store';
 
 interface UIState {
   isSearchDialogOpen: boolean;
+  searchSeed: string;
+  menuOpen: boolean;
+  menuView: 'menu' | 'soundboard' | 'music';
+  chatOpen: boolean;
   anyDialogOpen: boolean;
 }
 
 const initialState: UIState = {
   isSearchDialogOpen: false,
+  searchSeed: '',
+  menuOpen: false,
+  menuView: 'menu',
+  chatOpen: false,
   anyDialogOpen: false
 };
 
@@ -17,10 +25,16 @@ function createUIStore() {
     subscribe,
     
     // Search dialog management
-    openSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: true })),
-    closeSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: false })),
-    toggleSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: !state.isSearchDialogOpen })),
+    openSearchDialog: (seed = '') => update(state => ({ ...state, isSearchDialogOpen: true, searchSeed: seed })),
+    closeSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: false, searchSeed: '' })),
+    toggleSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: !state.isSearchDialogOpen, searchSeed: '' })),
     
+    toggleMenu: () => update(state => ({ ...state, menuOpen: !state.menuOpen })),
+    openSoundboard: () => update(state => ({ ...state, menuOpen: true, menuView: 'soundboard' })),
+    openMusic: () => update(state => ({ ...state, menuOpen: !(state.menuOpen && state.menuView === 'music'), menuView: 'music' })),
+    openMenu: () => update(state => ({ ...state, menuOpen: true, menuView: 'menu' })),
+    toggleChat: () => update(state => ({ ...state, chatOpen: !state.chatOpen })),
+
     // General dialog state management
     setDialogState: (isOpen: boolean) => update(state => ({ ...state, anyDialogOpen: isOpen })),
     
@@ -35,4 +49,8 @@ export const uiStore = createUIStore();
 import { derived } from 'svelte/store';
 
 export const isSearchDialogOpen = derived(uiStore, $ui => $ui.isSearchDialogOpen);
+export const searchSeed = derived(uiStore, $ui => $ui.searchSeed);
 export const anyDialogOpen = derived(uiStore, $ui => $ui.anyDialogOpen);
+export const menuOpen = derived(uiStore, $ui => $ui.menuOpen);
+export const menuView = derived(uiStore, $ui => $ui.menuView);
+export const chatOpen = derived(uiStore, $ui => $ui.chatOpen);

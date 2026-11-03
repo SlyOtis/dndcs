@@ -5,7 +5,7 @@ depends: [114]
 relations: []
 title: Every roll button on the sheet is one design drawn from the forged HUD sigil buttons
 type: task
-status: testing
+status: done
 session:
 review:
 blocked_from:
@@ -15,7 +15,7 @@ repos: [dndcs]
 skills: [components]
 commits: [d0ab00ec951f29253cfee118b3683bbf6f04367b]
 created_at: 2026-09-06T19:29:48Z
-updated_at: 2026-09-07T10:53:30Z
+updated_at: 2026-09-08T09:39:35Z
 questions: []
 images: []
 agent: ab6c8aa47d7e961be

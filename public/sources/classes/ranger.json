@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/ranger.svg",
   "hitDie": 10,
+  "casting": "half",
   "primaryAbility": [
     "DEX",
     "WIS"

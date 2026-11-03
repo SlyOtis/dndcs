@@ -926,11 +926,11 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     padding: var(--space-6) var(--space-4);
     text-align: center;
     background:
-      var(--texture-weave),
+      var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-xl) var(--radius-xl) var(--radius-sm) var(--radius-sm);
-    box-shadow: var(--shadow-inset);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim), inset 0 0 22px 4px var(--shade-hard);
   }
 
   .niche-arch {
@@ -943,9 +943,10 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     font-family: var(--font-display);
     font-size: var(--text-md);
     font-weight: 700;
-    letter-spacing: var(--tracking-wide);
+    letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--metal-bright);
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000, 0 0 12px color-mix(in srgb, var(--ember-glow) 60%, transparent);
   }
 
   .niche-note {
@@ -971,16 +972,16 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     gap: var(--space-4);
     padding: var(--space-3) var(--space-4);
     background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-raised) 55%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-sm);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
-    transition: border-color 0.15s ease, opacity 0.15s ease;
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 14px 2px var(--shade-hard), var(--shadow-sm);
+    transition: box-shadow 0.15s ease, opacity 0.15s ease;
   }
 
   .source:hover {
-    border-color: var(--metal);
+    box-shadow: inset 0 0 0 1px var(--keyline), inset 0 0 0 2px var(--metal-bright), inset 0 0 0 3px var(--keyline), inset 0 0 14px 2px var(--shade-hard), var(--shadow-sm);
   }
 
   .source-dim {
@@ -996,7 +997,7 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
-    box-shadow: inset 0 var(--border-width) var(--space-2) var(--shade-hard);
+    box-shadow: var(--bevel-down), inset 0 var(--border-width) var(--space-2) var(--shade-hard);
     cursor: pointer;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
@@ -1034,6 +1035,7 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     font-weight: 700;
     letter-spacing: var(--tracking-wide);
     color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1065,14 +1067,16 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     gap: var(--space-2);
     margin: 0;
     padding-top: var(--space-4);
-    border-top: var(--border-hair) solid var(--metal-edge);
+    border-top: var(--border-hair) solid var(--metal-dim);
+    box-shadow: inset 0 1px 0 var(--keyline);
     color: var(--ink-faint);
     font-size: var(--text-xs);
     text-align: center;
   }
 
   .tally strong {
-    color: var(--ink-dim);
+    font-family: var(--font-figures);
+    color: var(--metal-bright);
   }
 
   .tally-sep {
@@ -1101,18 +1105,19 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     gap: var(--space-3);
     padding: var(--space-5);
     background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    border: var(--border-width) dashed var(--metal-dim);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-inset);
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) dashed var(--metal-dim);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down), inset 0 0 22px 4px var(--shade-hard);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .drop-live,
   .drop:focus-within {
-    border-color: var(--metal);
-    box-shadow: var(--shadow-inset), var(--glow-metal);
+    border-color: var(--metal-bright);
+    border-style: solid;
+    box-shadow: var(--bevel-down), inset 0 0 22px 4px var(--shade-hard), inset 0 0 30px -10px var(--ember-glow), var(--glow-metal);
   }
 
   .drop-title {
@@ -1121,8 +1126,10 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     font-family: var(--font-display);
     font-size: var(--text-md);
     font-weight: 700;
-    letter-spacing: var(--tracking-wide);
-    color: var(--metal-bright);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .drop :global(input[type='file']) {
@@ -1135,8 +1142,9 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border: var(--border-hair) solid var(--message-rim);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--message-rim) 12%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--message-rim) 14%, transparent), transparent), var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
   }
 
   .message-bad {
@@ -1165,9 +1173,10 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-4);
-    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--metal-edge);
-    border-radius: var(--radius-md);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 14px 2px var(--shade-hard);
   }
 
   .formats-title {
@@ -1178,6 +1187,7 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--metal);
+    text-shadow: 0 1px 0 #000;
   }
 
   .formats-list {
@@ -1195,8 +1205,9 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
   .formats-note {
     padding: var(--space-3);
     border: var(--border-hair) solid var(--note-rim);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--note-rim) 10%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--note-rim) 10%, transparent), transparent), var(--ground-deep);
+    box-shadow: var(--bevel-down);
     color: var(--ink-dim);
     font-size: var(--text-xs);
     line-height: 1.5;
@@ -1227,6 +1238,8 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
   .formats-note code {
     padding: 0 var(--space-1);
     background: var(--ground-deep);
+    border: var(--border-hair) solid var(--metal-dim);
+    box-shadow: var(--bevel-down);
     border-radius: var(--radius-sm);
     color: var(--metal-bright);
     font-family: var(--font-mono);

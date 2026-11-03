@@ -39,6 +39,30 @@ export const INTEGRATIONS: Integration[] = [
     status: 'live',
     note: 'Public repository reads need no key.',
     siteUrl: 'https://github.com/'
+  },
+  {
+    id: 'random-org',
+    title: 'RANDOM.ORG',
+    purpose: 'Draws the true random numbers behind every die the sheet rolls.',
+    status: 'live',
+    note: 'The anonymous plain integer endpoint needs no key. It has a daily bit quota per address.',
+    siteUrl: 'https://www.random.org/'
+  },
+  {
+    id: 'unsplash',
+    title: 'Unsplash',
+    purpose: 'Pictures for items and creatures the chat finds.',
+    status: 'blocked',
+    note: 'The chat calls source.unsplash.com, which Unsplash retired and which answers 503. No picture arrives until it moves to the Unsplash API.',
+    siteUrl: 'https://unsplash.com/developers'
+  },
+  {
+    id: 'youtube',
+    title: 'YouTube',
+    purpose: 'Plays a YouTube link set as a character background as an embedded video.',
+    status: 'live',
+    note: 'Embeds through youtube-nocookie.com and needs no key.',
+    siteUrl: 'https://www.youtube.com/'
   }
 ]
 

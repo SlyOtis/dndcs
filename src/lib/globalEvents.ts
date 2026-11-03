@@ -2,6 +2,8 @@ import { get } from 'svelte/store';
 import { sidebarStore } from './navigation';
 import { uiStore } from './stores/ui.store';
 import { isAuthenticated } from './stores/auth.store';
+import { actionBlocks, getAction, getShortcutKey, shortcuts } from './actions';
+import { redoLastChange, undoLastChange } from './changelog';
 
 export function handleGlobalKeydown(event: KeyboardEvent) {
   const command = event.ctrlKey || event.metaKey;
@@ -20,9 +22,21 @@ export function handleGlobalKeydown(event: KeyboardEvent) {
   }
 
   const inField =
-    event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
+    event.target instanceof HTMLInputElement ||
+    event.target instanceof HTMLTextAreaElement ||
+    (event.target instanceof HTMLElement && event.target.isContentEditable);
 
   if (get(uiStore).anyDialogOpen || inField) return;
+
+  const pressed = getShortcutKey(event);
+  const bound = pressed ? get(shortcuts).find((one) => one.key === pressed) : undefined;
+  const action = bound ? getAction(bound.action) : undefined;
+
+  if (action) {
+    event.preventDefault();
+    if (!get(actionBlocks)[action.id]) action.run();
+    return;
+  }
 
   if (command && key === 'z' && !event.shiftKey) {
     handleUndoShortcut(event);
@@ -68,26 +82,22 @@ function handleEscapeKey(event: KeyboardEvent) {
 
 function handleUndoShortcut(event: KeyboardEvent) {
   event.preventDefault();
-  import('./changelog').then(({ undoLastChange }) => {
-    const result = undoLastChange();
-    if (result.success) {
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: `↶ Undone: ${result.description}`, type: 'info' }
-      }));
-    }
-  });
+  const result = undoLastChange();
+  if (result.success) {
+    window.dispatchEvent(new CustomEvent('showToast', {
+      detail: { message: `↶ Undone: ${result.description}`, type: 'info' }
+    }));
+  }
 }
 
 function handleRedoShortcut(event: KeyboardEvent) {
   event.preventDefault();
-  import('./changelog').then(({ redoLastChange }) => {
-    const result = redoLastChange();
-    if (result.success) {
-      window.dispatchEvent(new CustomEvent('showToast', {
-        detail: { message: `↷ Redone: ${result.description}`, type: 'info' }
-      }));
-    }
-  });
+  const result = redoLastChange();
+  if (result.success) {
+    window.dispatchEvent(new CustomEvent('showToast', {
+      detail: { message: `↷ Redone: ${result.description}`, type: 'info' }
+    }));
+  }
 }
 
 function handleChatToggleShortcut(event: KeyboardEvent) {

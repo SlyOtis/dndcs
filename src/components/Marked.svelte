@@ -103,8 +103,15 @@
     :global(.marked-link) {
         display: inline-block;
         width: max-content;
-        color: var(--ember);
+        color: var(--metal);
         text-decoration: underline;
+        text-decoration-color: var(--metal-dim);
+        text-underline-offset: 0.15em;
+    }
+
+    :global(.marked-link:hover) {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
     }
 
     :global(em) {

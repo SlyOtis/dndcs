@@ -69,12 +69,26 @@
     flex-direction: column;
     gap: var(--space-3);
     padding: var(--space-3);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised), var(--ground-deep));
+    box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
   }
 
   .dnd-rule-panel-title {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--metal);
+    margin: calc(var(--space-1) - var(--space-3)) calc(var(--space-1) - var(--space-3)) 0;
+    padding: var(--space-1) var(--space-3);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--bevel-up), inset 0 -1px 0 var(--metal-dim), inset 0 -2px 0 var(--keyline);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-rule-panel-body {
@@ -83,12 +97,12 @@
   }
 
   .dnd-rule-panel-grid {
-    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(var(--space-8), 1fr));
   }
 
   .dnd-rule-panel-row {
     grid-auto-flow: column;
-    grid-auto-columns: minmax(72px, 1fr);
+    grid-auto-columns: minmax(var(--space-8), 1fr);
   }
 
   .dnd-rule-panel-list {
@@ -102,29 +116,41 @@
     justify-content: center;
     gap: var(--space-1);
     padding: var(--space-2);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 60%, transparent);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
   }
 
   .dnd-rule-panel-value {
+    font-family: var(--font-figures);
     font-size: var(--text-lg);
     font-weight: 700;
-    color: var(--ink);
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000;
   }
 
   .dnd-rule-panel-label {
+    font-family: var(--font-display);
     font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
     color: var(--ink);
     text-align: center;
   }
 
   .dnd-rule-panel-note {
     font-size: var(--text-xs);
+    font-style: italic;
     color: var(--ink-dim);
   }
 
   .dnd-rule-panels-error {
     padding: var(--space-3);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-bad) 20%, transparent);
+    border: var(--border-hair) solid color-mix(in srgb, var(--state-bad) 55%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(color-mix(in srgb, var(--state-bad) 20%, transparent), color-mix(in srgb, var(--state-bad) 20%, transparent)), var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
     color: var(--ink);
     font-size: var(--text-sm);
   }

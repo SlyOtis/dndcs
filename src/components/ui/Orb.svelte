@@ -35,14 +35,17 @@
   aria-label={label ?? 'orb'}
 >
   <span class="dnd-orb-well">
-    <span class="dnd-orb-liquid" style="height: {percent}%">
-      <span class="dnd-orb-wave"></span>
+    <span class="dnd-orb-liquid" style="clip-path: inset({100 - percent}% 0 0 0)">
+      <span class="dnd-orb-wave" style="top: calc({100 - percent}% - 0.375rem)"></span>
     </span>
     <span class="dnd-orb-gloss"></span>
   </span>
 
   <svg class="dnd-orb-rim" viewBox="0 0 100 100" fill="none" focusable="false" aria-hidden="true">
-    <circle cx="50" cy="50" r="47" stroke="url(#dnd-grad-metal)" stroke-width="5" />
+    <circle cx="50" cy="50" r="49.3" stroke="var(--keyline)" stroke-width="1.4" />
+    <circle cx="50" cy="50" r="46.4" stroke="url(#dnd-grad-metal)" stroke-width="5.6" />
+    <circle cx="50" cy="50" r="47.6" stroke="var(--metal-bright)" stroke-width="0.6" stroke-opacity="0.7" />
+    <circle cx="50" cy="50" r="43.3" stroke="var(--keyline)" stroke-width="1.2" />
     <circle cx="50" cy="50" r="42" stroke="var(--metal-dim)" stroke-width="1.4" />
     <path d="M50 3 44 12h12L50 3Z" fill="var(--metal-bright)" />
     <path d="M50 97 44 88h12l-6 9Z" fill="var(--metal-bright)" />
@@ -62,23 +65,23 @@
     align-items: center;
     justify-content: center;
     flex: none;
-    --orb-d: 84px;
+    --orb-d: 5.25rem;
     --orb-liquid: var(--state-bad);
     width: var(--orb-d);
     height: var(--orb-d);
-    filter: drop-shadow(0 6px 14px var(--shade));
+    filter: drop-shadow(0 0.35rem 0.8rem var(--shade-hard));
   }
 
   .dnd-orb-sm {
-    --orb-d: 52px;
+    --orb-d: 3.25rem;
   }
 
   .dnd-orb-md {
-    --orb-d: 84px;
+    --orb-d: 5.25rem;
   }
 
   .dnd-orb-lg {
-    --orb-d: 132px;
+    --orb-d: 8.25rem;
   }
 
   .dnd-orb-life {
@@ -102,8 +105,10 @@
     inset: 8%;
     border-radius: var(--radius-pill);
     overflow: hidden;
-    background: radial-gradient(circle at 34% 26%, var(--ground-lift) 0%, var(--ground-deep) 78%);
-    box-shadow: inset 0 4px 12px var(--shade-hard);
+    background:
+      radial-gradient(circle at 50% 50%, transparent 55%, color-mix(in srgb, #000 70%, transparent) 100%),
+      radial-gradient(circle at 34% 26%, var(--ground-lift) 0%, var(--ground-deep) 70%, #000 100%);
+    box-shadow: inset 0 0 0 1px var(--keyline), inset 0 0.25rem 0.75rem var(--shade-hard);
   }
 
   .dnd-orb-liquid {
@@ -111,17 +116,20 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, var(--orb-liquid) 0%, color-mix(in srgb, var(--orb-liquid) 55%, black) 100%);
-    box-shadow: 0 0 20px var(--orb-liquid);
-    transition: height 400ms ease-out;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 100%, color-mix(in srgb, var(--orb-liquid) 80%, var(--ember-core)) 0%, transparent 70%),
+      linear-gradient(180deg, color-mix(in srgb, var(--orb-liquid) 85%, white) 0%, var(--orb-liquid) 18%, color-mix(in srgb, var(--orb-liquid) 45%, black) 100%);
+    box-shadow: 0 0 1.25rem var(--orb-liquid);
+    top: 0;
+    transition: clip-path 400ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .dnd-orb-wave {
     position: absolute;
-    top: -6px;
+    transition: top 400ms cubic-bezier(0.16, 1, 0.3, 1);
     left: -50%;
     width: 200%;
-    height: 12px;
+    height: 0.75rem;
     border-radius: var(--radius-pill);
     background: color-mix(in srgb, var(--orb-liquid) 70%, white);
     opacity: 0.7;
@@ -133,8 +141,10 @@
     inset: 0;
     border-radius: var(--radius-pill);
     background:
-      radial-gradient(ellipse at 32% 22%, var(--sheen-strong) 0%, transparent 42%),
-      radial-gradient(ellipse at 62% 88%, var(--sheen-soft) 0%, transparent 40%);
+      radial-gradient(ellipse 46% 30% at 38% 20%, color-mix(in srgb, white 55%, transparent) 0%, var(--sheen) 45%, transparent 100%),
+      radial-gradient(ellipse 30% 14% at 60% 88%, var(--sheen) 0%, transparent 100%),
+      radial-gradient(circle at 50% 50%, transparent 62%, color-mix(in srgb, var(--metal-edge) 40%, transparent) 70%, transparent 76%);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--metal-edge) 60%, transparent);
     pointer-events: none;
   }
 
@@ -149,11 +159,11 @@
   .dnd-orb-value {
     position: relative;
     z-index: 1;
-    font-family: var(--font-display);
+    font-family: var(--font-figures);
     font-size: calc(var(--orb-d) * 0.26);
     font-weight: 700;
     color: var(--ink);
-    text-shadow: 0 2px 4px var(--shade-hard);
+    text-shadow: 0 1px 0 #000, 0 0 4px #000, 0 0 10px var(--shade-hard);
   }
 
   @keyframes dnd-orb-wave {

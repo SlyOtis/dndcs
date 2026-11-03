@@ -37,6 +37,16 @@ export type SenseSpec = {
   unit?: string
 }
 
+export type TitledSpec = {
+  id: string
+  title: string
+  description?: string
+}
+
+export type ConditionSpec = TitledSpec & {
+  levels?: number
+}
+
 export type PoolRegain = 'short' | 'long' | 'turn' | 'never'
 
 export type PoolSpec = {
@@ -68,6 +78,19 @@ export type ProgressionSpec = {
   steps: ProgressionStep[]
 }
 
+export type ImprovementSpec = {
+  levels: number[]
+  points: number
+  cap: number
+}
+
+export type AdvancementSpec = {
+  firstHitPoints: Expression
+  hitPoints: Expression
+  improvement: ImprovementSpec
+  slots: Record<string, number[][]>
+}
+
 export type PanelField = {
   source: 'attribute' | 'skill' | 'save' | 'sense' | 'pool' | 'derived'
   id: string
@@ -94,7 +117,11 @@ export type RuleSystem = {
   pools: PoolSpec[]
   derived: DerivedSpec[]
   progression: ProgressionSpec
+  advancement?: AdvancementSpec
   panels: PanelSpec[]
+  conditions?: ConditionSpec[]
+  damageTypes?: TitledSpec[]
+  defences?: TitledSpec[]
 }
 
 export type RuleSystemOverlay = Partial<Omit<RuleSystem, 'id' | 'title' | 'version'>> & {
@@ -136,6 +163,7 @@ export type ResolvedPool = {
   spent: number
   remaining: number
   regainedAt: PoolRegain
+  regain: number
 }
 
 export type ResolvedAttribute = ResolvedValue & {

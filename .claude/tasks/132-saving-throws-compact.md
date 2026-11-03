@@ -5,7 +5,7 @@ depends: [117]
 relations: []
 title: The six saving throws read as one compact unit instead of six ability sized tiles
 type: task
-status: staged
+status: done
 session:
 review:
 blocked_from:
@@ -15,9 +15,11 @@ repos: [dndcs]
 skills: [components]
 commits: []
 created_at: 2026-09-06T19:29:48Z
-updated_at: 2026-09-07T10:53:30Z
+updated_at: 2026-09-08T09:39:40Z
 questions: []
 images: []
+scope: [src/components/character_sheet/SavingThrows.svelte, src/components/character_sheet/SavingThrow.svelte]
+base: b56157768c1dd382cdf366edde993b9455cb12e6
 ---
 
 ## Intent

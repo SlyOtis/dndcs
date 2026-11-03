@@ -1,18 +1,24 @@
 <script lang="ts">
   import {getContext} from "svelte";
   import type {CharacterContext} from "$lib/types";
-  import type {CharacterCurrency} from "$lib/character.types";
-  import {addCurrencies, asGold} from "$lib/engine";
+  import type {Character, CharacterCurrency, Currency, ItemType} from "$lib/character.types";
+  import {ChangeActions} from "$lib/changelog";
+  import {addCurrencies, asGold, deleteItem, postItem, putCurrency, putItem, updateCharacterWithChangeLog} from "$lib/engine";
   import Button from "$components/ui/Button.svelte";
+  import Field from "$components/ui/Field.svelte";
+  import Glyph, {type GlyphName} from "$components/ui/Glyph.svelte";
+  import IconBtn from "$components/ui/IconBtn.svelte";
   import Sigil from "$components/ui/Sigil.svelte";
+
+  type InventoryItem = Character['inventory'][number]
 
   const {inventory, info, currency, equipped} = getContext<CharacterContext>('character')
 
-  let carriedWeight = $derived($inventory.reduce((prev, curr) => {
-    return prev += curr.weight
-  }, 0))
+  const COINS: Currency[] = ['pp', 'gp', 'sp', 'cp']
+  const ITEM_TYPES: ItemType[] = ['weapon', 'armor', 'consumable', 'tool', 'container', 'treasure', 'ammunition', 'misc']
 
   let carryCapacity = $derived($info.carry_capacity)
+  let carriedWeight = $derived($inventory.reduce((prev, curr) => prev + curr.weight, 0))
   let encumbered = $derived(carriedWeight > carryCapacity)
   let inventoryValue = $derived($inventory.reduce((prev, curr) => {
     return {
@@ -23,54 +29,32 @@
 
   let totalValuables = $derived(addCurrencies(inventoryValue, $currency))
   let searchInput = $state('')
+  let draft = $state<InventoryItem | null>(null)
 
-  let filteredItems = $derived.by(() => {
-    const items = $inventory.filter(val => val.attributes.find(attr => attr.includes(searchInput)) ||
-      val.description.includes(searchInput) ||
-      val.enchantments?.find(ench => ench.name.includes(searchInput) || ench.description.includes(searchInput)) ||
-      val.rarity?.includes(searchInput) ||
-      val.subtype?.includes(searchInput) ||
-      val.type?.includes(searchInput) ||
-      val.id?.includes(searchInput) ||
-      val.title?.includes(searchInput))
-    
-    // Debug: Log items that are marked as consumable but might be ammunition
-    items.forEach(item => {
-      if (item.type === 'consumable' && (
-        item.title.toLowerCase().includes('ammunition') ||
-        item.title.toLowerCase().includes('rounds') ||
-        item.title.toLowerCase().includes('bullets') ||
-        item.title.toLowerCase().includes('shotshells') ||
-        item.title.toLowerCase().includes('arrows') ||
-        item.description.toLowerCase().includes('firearm')
-      )) {
-        console.warn('🔍 FOUND AMMUNITION MARKED AS CONSUMABLE:', {
-          title: item.title,
-          type: item.type,
-          description: item.description,
-          id: item.id
-        });
-      }
-    });
-    
-    return items;
-  })
+  let filteredItems = $derived($inventory.filter(val => val.attributes.find(attr => attr.includes(searchInput)) ||
+    val.description.includes(searchInput) ||
+    val.enchantments?.find(ench => ench.name.includes(searchInput) || ench.description.includes(searchInput)) ||
+    val.rarity?.includes(searchInput) ||
+    val.subtype?.includes(searchInput) ||
+    val.type?.includes(searchInput) ||
+    val.id?.includes(searchInput) ||
+    val.title?.includes(searchInput)))
 
-  function getEquipIcon(itemType: string): string {
-    const icons: {[key: string]: string} = {
-      weapon: '⚔️',
-      armor: '🛡️',
-      ammunition: '🏹',
-      tool: '🔨',
-      consumable: '🧪',
-      treasure: '💎',
-      container: '📦',
-      misc: '📄'
+  function getEquipIcon(itemType: string): GlyphName {
+    const icons: {[key: string]: GlyphName} = {
+      weapon: 'weapon',
+      armor: 'armor',
+      ammunition: 'ammunition',
+      tool: 'tool',
+      consumable: 'potion',
+      treasure: 'gem',
+      container: 'chest',
+      misc: 'scroll'
     }
-    return icons[itemType] || '⚙️'
+    return icons[itemType] || 'gear'
   }
 
-  function isAmmunition(item: any): boolean {
+  function isAmmunition(item: InventoryItem): boolean {
     return item.type === 'ammunition' || (
       item.type === 'consumable' && (
         item.title.toLowerCase().includes('ammunition') ||
@@ -83,131 +67,74 @@
     );
   }
 
-  function getDisplayType(item: any): string {
-    // If item is actually ammunition but marked as consumable, show "ammunition"
-    if (isAmmunition(item)) {
-      return 'ammunition';
-    }
-    
-    return item.type;
+  function getDisplayType(item: InventoryItem): string {
+    return isAmmunition(item) ? 'ammunition' : item.type;
   }
 
   function isItemEquipped(itemId: string): boolean {
-    if (!$equipped || !Array.isArray($equipped)) {
-      console.warn('Equipped is not an array:', $equipped);
-      return false;
+    return Array.isArray($equipped) && $equipped.some(equippedItem => equippedItem.id === itemId);
+  }
+
+  function equipItem(item: InventoryItem) {
+    const wearing = isItemEquipped(item.id)
+    updateCharacterWithChangeLog(
+      'equipped',
+      curr => {
+        const list = Array.isArray(curr) ? curr : []
+        if (wearing) return list.filter(equippedItem => equippedItem.id !== item.id)
+        return [
+          ...list.filter(equippedItem => !equippedItem.type.split(',').map(t => t.trim()).includes(item.type)),
+          {id: item.id, title: item.title, type: item.type}
+        ]
+      },
+      ChangeActions.EQUIPMENT_CHANGE,
+      `${wearing ? 'Unequipped' : 'Equipped'} ${item.title}`
+    )
+  }
+
+  function consumeItem(item: InventoryItem) {
+    putItem({...item, quantity: item.quantity - 1})
+  }
+
+  function openItem(item?: InventoryItem) {
+    draft = item ? {...item, value: {...item.value}} : {
+      id: '',
+      title: '',
+      type: 'misc',
+      rarity: 'common',
+      attributes: [],
+      description: '',
+      value: {amount: 0, currency: 'gp'},
+      weight: 0,
+      quantity: 1,
+      equippable: true,
+      equipped: false
     }
-    return $equipped.some(equippedItem => equippedItem.id === itemId);
   }
 
-  function equipItem(item: any) {
-    equipped.update(curr => {
-      // Ensure curr is an array
-      if (!Array.isArray(curr)) {
-        console.warn('Current equipped is not an array, initializing as empty array:', curr);
-        curr = [];
-      }
-      
-      const isCurrentlyEquipped = curr.some(equippedItem => equippedItem.id === item.id);
-      
-      if (isCurrentlyEquipped) {
-        // Unequip the item
-        const newEquipped = curr.filter(equippedItem => equippedItem.id !== item.id);
-        console.log('Equipment change - UNEQUIPPED:', {
-          itemType: item.type,
-          itemId: item.id,
-          itemTitle: item.title,
-          newEquipped
-        });
-        return newEquipped;
-      } else {
-        // Equip the item - first remove any items of the same primary type
-        const primaryType = item.type; // Use the primary type to avoid conflicts
-        const newEquipped = curr.filter(equippedItem => {
-          // Remove items that have the same primary type
-          const equippedTypes = equippedItem.type.split(',').map(t => t.trim());
-          return !equippedTypes.includes(primaryType);
-        });
-        
-        // Add the new equipped item
-        newEquipped.push({
-          id: item.id,
-          title: item.title,
-          type: item.type // This could be comma-separated types
-        });
-        
-        console.log('Equipment change - EQUIPPED:', {
-          itemType: item.type,
-          itemId: item.id,
-          itemTitle: item.title,
-          newEquipped,
-          equippedItemCreated: {
-            id: item.id,
-            title: item.title,
-            type: item.type
-          }
-        });
-        
-        return newEquipped;
-      }
-    });
+  function saveItem() {
+    if (!draft || !draft.title.trim()) return
+    const item: InventoryItem = {
+      ...draft,
+      title: draft.title.trim(),
+      quantity: Math.max(0, Number(draft.quantity) || 0),
+      weight: Math.max(0, Number(draft.weight) || 0),
+      value: {amount: Math.max(0, Number(draft.value.amount) || 0), currency: draft.value.currency}
+    }
+    if (draft.id) putItem(item)
+    else postItem({...item, id: crypto.randomUUID()})
+    draft = null
   }
 
-  function consumeItem(item: any) {
-    inventory.update(curr => {
-      return curr.map(invItem => {
-        if (invItem.id === item.id) {
-          const newQuantity = Math.max(0, invItem.quantity - 1);
-          console.log('Item consumed:', {
-            itemId: item.id,
-            itemTitle: item.title,
-            oldQuantity: invItem.quantity,
-            newQuantity
-          });
-          return {
-            ...invItem,
-            quantity: newQuantity
-          };
-        }
-        return invItem;
-      }).filter(invItem => invItem.quantity > 0); // Remove items with 0 quantity
-    });
+  function putCoin(coin: Currency, event: Event) {
+    putCurrency({...$currency, [coin]: Math.max(0, parseInt((event.target as HTMLInputElement).value) || 0)})
   }
-
-  // Debug function to fix ammunition type - call from browser console: window.fixAmmunitionType()
-  function fixAmmunitionType() {
-    inventory.update(curr => {
-      return curr.map(invItem => {
-        if (invItem.type === 'consumable' && (
-          invItem.title.toLowerCase().includes('ammunition') ||
-          invItem.title.toLowerCase().includes('rounds') ||
-          invItem.title.toLowerCase().includes('bullets') ||
-          invItem.title.toLowerCase().includes('shotshells') ||
-          invItem.title.toLowerCase().includes('arrows') ||
-          invItem.description.toLowerCase().includes('firearm')
-        )) {
-          console.log('🔧 FIXING ammunition item:', invItem.title, 'from consumable to ammunition');
-          return {
-            ...invItem,
-            type: 'ammunition'
-          };
-        }
-        return invItem;
-      });
-    });
-  }
-
-  // Expose function to window for debugging
-  if (typeof window !== 'undefined') {
-    (window as any).fixAmmunitionType = fixAmmunitionType;
-  }
-
 </script>
 
 <div class="root">
     <div class="header">
         <div class="weight">
-            <span><b>Weight carried:</b> {carryCapacity}/{carryCapacity} .lb</span>
+            <span><b>Weight carried:</b> {carriedWeight}/{carryCapacity} lb.</span>
             <span class="encumbered">
                 {#if encumbered}
                     ENCUMBERED
@@ -217,15 +144,61 @@
             </span>
         </div>
         <div class="currency">
-            <span><b>Currency carried:</b> {$currency.gp}gp, {$currency.sp}sp, {$currency.pp}pp, {$currency.cp}
-                cp, or {asGold($currency)}gp</span>
+            <span class="coins">
+                {#each COINS as coin (coin)}
+                    <Field label={coin} id="coin-{coin}">
+                        <input id="coin-{coin}" class="dnd-num" type="number" min="0" value={$currency[coin] ?? 0} onchange={event => putCoin(coin, event)} />
+                    </Field>
+                {/each}
+            </span>
+            <span><b>Currency carried:</b> {asGold($currency)}gp</span>
             <span><b>Total valuables:</b> {asGold(totalValuables)}gp</span>
         </div>
     </div>
     <div class="search">
         <input placeholder="search" bind:value={searchInput}/>
-        <Button variant="secondary" size="sm" title="Search the inventory">Search</Button>
+        <Button variant="secondary" size="sm" title="Add an item" onclick={() => openItem()}>Add item</Button>
     </div>
+    {#if draft}
+        <form class="draft" onsubmit={event => { event.preventDefault(); saveItem() }}>
+            <Field label="Name" id="item-title" required>
+                <input id="item-title" bind:value={draft.title} />
+            </Field>
+            <Field label="Type" id="item-type">
+                <select id="item-type" bind:value={draft.type}>
+                    {#each ITEM_TYPES as type (type)}
+                        <option value={type}>{type}</option>
+                    {/each}
+                </select>
+            </Field>
+            <Field label="Quantity" id="item-quantity">
+                <input id="item-quantity" type="number" min="0" bind:value={draft.quantity} />
+            </Field>
+            <Field label="Weight (lb)" id="item-weight">
+                <input id="item-weight" type="number" min="0" step="0.01" bind:value={draft.weight} />
+            </Field>
+            <Field label="Cost" id="item-cost">
+                <input id="item-cost" type="number" min="0" step="0.01" bind:value={draft.value.amount} />
+            </Field>
+            <Field label="Coin" id="item-coin">
+                <select id="item-coin" bind:value={draft.value.currency}>
+                    {#each COINS as coin (coin)}
+                        <option value={coin}>{coin}</option>
+                    {/each}
+                </select>
+            </Field>
+            <Field label="Notes" id="item-description">
+                <textarea id="item-description" rows="2" bind:value={draft.description}></textarea>
+            </Field>
+            <span class="draft-acts">
+                <Button type="submit" size="sm" disabled={!draft.title.trim()}>Save item</Button>
+                <Button variant="ghost" size="sm" onclick={() => (draft = null)}>Cancel</Button>
+                {#if draft.id}
+                    <Button variant="danger" size="sm" onclick={() => { if (draft) deleteItem(draft.id); draft = null }}>Remove item</Button>
+                {/if}
+            </span>
+        </form>
+    {/if}
     <div class="scroll">
         <ul>
             <li class="items-header">
@@ -236,7 +209,7 @@
                 <span>Cost (gp)</span>
                 <span>Notes</span>
             </li>
-            {#each filteredItems as item}
+            {#each filteredItems as item (item.id)}
                 <li class="item">
                     <div class="equippable center">
                         {#if item.type === 'consumable' && !isAmmunition(item)}
@@ -246,7 +219,7 @@
                                 title="Consume {item.title}"
                                 onclick={() => consumeItem(item)}
                             >
-                                🧪
+                                <Glyph name="potion" size="sm" />
                             </Sigil>
                         {:else}
                             <Sigil
@@ -256,7 +229,7 @@
                                 title="{isItemEquipped(item.id) ? 'Unequip' : 'Equip'} {item.title}"
                                 onclick={() => equipItem(item)}
                             >
-                                {isAmmunition(item) ? '🏹' : getEquipIcon(item.type)}
+                                <Glyph name={isAmmunition(item) ? 'ammunition' : getEquipIcon(item.type)} size="sm" />
                             </Sigil>
                         {/if}
                     </div>
@@ -268,13 +241,27 @@
                         <span><b>{item.weight}</b> lb.</span>
                     </div>
                     <div class="qty center">
-                        <span><b>{item.quantity}</b></span>
+                        <span class="stepper">
+                            <IconBtn title="One fewer {item.title}" onclick={() => putItem({...item, quantity: item.quantity - 1})}>
+                                <Glyph name="minus" size="sm" />
+                            </IconBtn>
+                            <b>{item.quantity}</b>
+                            <IconBtn title="One more {item.title}" onclick={() => putItem({...item, quantity: item.quantity + 1})}>
+                                <Glyph name="add" size="sm" />
+                            </IconBtn>
+                        </span>
                     </div>
                     <div class="cost center">
                         <span><b>{item.value.amount}</b> {item.value.currency}</span>
                     </div>
                     <div class="notes">
                         <p title={item.description}>{item.description}</p>
+                        <IconBtn title="Edit {item.title}" onclick={() => openItem(item)}>
+                            <Glyph name="edit" size="sm" />
+                        </IconBtn>
+                        <IconBtn title="Remove {item.title}" onclick={() => deleteItem(item.id)}>
+                            <Glyph name="remove" size="sm" />
+                        </IconBtn>
                     </div>
                 </li>
             {/each}
@@ -292,6 +279,7 @@
         justify-content: start;
         align-items: start;
         flex-direction: column;
+        gap: var(--space-2);
         overflow: hidden;
     }
 
@@ -303,23 +291,87 @@
         justify-content: space-between;
         align-items: center;
         flex-direction: row;
-        padding: 8px 16px;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-4);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+        border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 60%, transparent);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-down);
     }
 
     .weight {
-        font-size: 0.8em;
+        font-size: var(--text-xs);
+        font-family: var(--font-figures);
+        font-variant-numeric: lining-nums tabular-nums;
         display: flex;
         flex-direction: column;
         justify-content: start;
         align-items: start;
+        gap: var(--space-1);
+        color: var(--ink-dim);
+    }
+
+    .header b {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: var(--tracking-wide);
+        color: var(--metal);
+    }
+
+    .encumbered {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000, 0 0 0.5rem var(--ember-glow);
     }
 
     .currency {
-        font-size: 0.8em;
+        font-size: var(--text-xs);
+        font-family: var(--font-figures);
+        font-variant-numeric: lining-nums tabular-nums;
         display: flex;
         flex-direction: column;
         align-items: end;
         justify-content: center;
+        gap: var(--space-1);
+        min-width: 0;
+        color: var(--ink-dim);
+    }
+
+    .coins {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-1);
+        min-width: 0;
+    }
+
+    .coins :global(input.dnd-num) {
+        font-family: var(--font-figures);
+        font-variant-numeric: lining-nums tabular-nums;
+    }
+
+    .draft {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+        align-items: end;
+        gap: var(--space-2);
+        width: 100%;
+        padding: var(--space-2) var(--space-3);
+    }
+
+    .draft-acts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        grid-column: 1 / -1;
+    }
+
+    .stepper {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-0);
     }
 
     .search {
@@ -330,30 +382,48 @@
         justify-content: center;
         align-items: center;
         flex-direction: row;
+        gap: var(--space-2);
     }
 
     .search > input {
         position: relative;
         width: 100%;
+        min-width: 0;
         height: 100%;
-        border: none;
+        padding: var(--space-2) var(--space-3);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+        border: var(--border-hair) solid var(--metal-dim);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-down);
         outline: none;
-        padding: 8px;
+        color: var(--ink);
+        font-family: var(--font-body);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search > input::placeholder {
+        color: var(--ink-faint);
+        font-style: italic;
+    }
+
+    .search > input:focus {
+        border-color: var(--metal-bright);
+        box-shadow: var(--bevel-down), var(--glow-metal);
     }
 
     ul {
         position: relative;
         width: 100%;
         height: auto;
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
         margin: 0;
         list-style: none;
         display: grid;
         align-items: center;
         grid-template-columns: auto 2fr auto auto auto 3fr;
         grid-auto-rows: auto;
-        grid-column-gap: 8px;
-        grid-row-gap: 8px;
+        grid-column-gap: 0;
+        grid-row-gap: var(--space-1);
     }
 
     li {
@@ -369,7 +439,39 @@
     }
 
     .items-header span {
+        align-self: stretch;
+        padding: var(--space-1) var(--space-2);
+        border-bottom: var(--border-hair) solid var(--metal-dim);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
         white-space: nowrap;
+        color: var(--metal);
+        text-shadow: 0 1px 0 #000;
+    }
+
+    .item > div {
+        align-self: stretch;
+        padding-inline: var(--space-1);
+        box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--metal-dim) 40%, transparent);
+        transition: background-color 0.15s ease;
+    }
+
+    .item:hover > div {
+        background-color: color-mix(in srgb, var(--ember) 9%, transparent);
+    }
+
+    .item:hover h4 {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
+    }
+
+    .item b {
+        font-family: var(--font-figures);
+        font-variant-numeric: lining-nums tabular-nums;
+        color: var(--ink);
     }
 
     .scroll {
@@ -390,12 +492,17 @@
         width: 100%;
         height: 100%;
         white-space: nowrap;
+        font-size: var(--text-xs);
+        color: var(--ink-dim);
     }
 
     .name {
         position: relative;
         min-width: 0;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .name > * {
@@ -407,13 +514,34 @@
         white-space: nowrap;
     }
 
+    .name h4 {
+        font-family: var(--font-display);
+        font-size: var(--text-sm);
+        font-weight: 700;
+        color: var(--ink);
+        text-shadow: 0 1px 0 #000;
+        transition: color 0.15s ease, text-shadow 0.15s ease;
+    }
+
+    .name span {
+        font-size: var(--text-xs);
+        font-style: italic;
+        color: var(--ink-faint);
+    }
+
     .notes {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
         min-width: 0;
         overflow: hidden;
-        font-size: 0.6em;
+        font-size: var(--text-xs);
+        color: var(--ink-dim);
     }
 
     .notes > p {
+        flex: 1;
+        min-width: 0;
         margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;

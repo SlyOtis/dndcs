@@ -16,14 +16,23 @@ Firestore is snake_case throughout: `display_name`, `photo_url`, `replicate_api_
 
 ## The campaign is the story
 
-A campaign document holds only its identity, its members and its settings. Everything the party lives through sits in four subcollections under it:
+A campaign document holds only its identity, its members and its settings. Everything the party lives through sits in five subcollections under it:
 
 - `sessions` is the log: a number, a title, a play date, a summary, and who was present.
-- `quests` carries a state of active, done or abandoned, the NPC who gave it and the place it points at.
-- `npcs` is the cast: a role, a disposition, where they are found, a portrait.
-- `locations` is every place charted, its kind, and the map and marker that fix its position.
+- `quests` carries a state of active, done or abandoned, the character who gave it and the place it points at.
+- `npcs` is the cast, called **Characters** everywhere a player reads it: a role, a disposition, where they are found, a portrait.
+- `locations` is every **Place** charted, its kind, and the map and marker that fix its position.
+- `items` is every **Item**: a kind, a rarity, whether it needs attunement, its weight and worth, who holds it and where it lies.
 
-Every record carries a reveal flag, `is_known`, so the DM decides what the party sees. A component filters on it rather than trusting the query.
+The collection names are the old ones and stay that way; the display names are Characters, Items and Places. `CampaignRecordKind` is the display vocabulary, `'place' | 'character' | 'item' | 'quest' | 'session'`.
+
+Prose on a record is a block document, stored as the JSON that `src/lib/blocks.ts` writes, never as loose markdown. `getDocument` reads a stored string whether it is that JSON or older markdown, so a record written before the editor still opens.
+
+Every record carries the access fields, not a reveal flag. `owner_id` is the uid that made it and is the only one who may write it. `share` is `private`, `campaign`, `party` or `users`; `share_party` names the party when it is one; `share_users` names people who read it whatever `share` says. `is_known` is gone and so is the DM override: a record the owner did not share is hidden from the DM too.
+
+`readers` is the resolved uid list, written by `getReaders` in `resources.ts` at every write. Firestore rules filter nothing, so a list query that a rule would reject is rejected whole; every read is therefore `where('readers', 'array-contains', uid)` and the rule reads the same field. Membership changes do not propagate to `readers` on their own, so a resource is rewritten when the campaign or party it is shared with changes.
+
+A component never filters on access. What the query returns is what the reader may see.
 
 A map pin holds `record_kind` and `record_id` rather than its own prose. A place is one record whether it is read on the map or in the list. Never duplicate a description onto a pin.
 
@@ -61,7 +70,7 @@ A file with `count: 0` has no floor and the swarm is the only source, so `getFil
 
 ## Access
 
-`firestore.rules` and `storage.rules` are the access model and both end in a deny. A user owns their profile, their `data` subtree and their `files` subtree, and any signed in user reads `files` so a portrait renders at another table. A character is reachable by its owner, its viewers, its editors, the DM of its campaign, or anyone when `metadata.is_public`. A campaign is reachable by its DM and its `player_ids`, and its subcollections are read by members and written by the DM.
+`firestore.rules` and `storage.rules` are the access model and both end in a deny. A user owns their profile, their `data` subtree and their `files` subtree, and any signed in user reads `files` so a portrait renders at another table. A character is reachable by its owner, its viewers, its editors, the DM of its campaign, or anyone when `metadata.is_public`. A campaign is reachable by its DM and its `player_ids`. Its subcollections are read by anyone in the record's `readers`, created by anyone at the table, and updated or deleted only by `owner_id`. A user's own resources sit at `users/{uid}/{kind}` for the same ten kinds and follow the same rule. A party is its own document at `parties/{id}`, read by its `member_ids` and written by its `owner_id`.
 
 A rule change ships with the code that needs it. `just deploy` pushes both.
 

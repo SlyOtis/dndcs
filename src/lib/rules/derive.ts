@@ -181,7 +181,8 @@ export function getResolvedCharacter(system: RuleSystem, sheet: CharacterSheet):
       regainedAt: pool.regainedAt,
       max,
       spent,
-      remaining: max - spent
+      remaining: max - spent,
+      regain: pool.regainAmount ? getExpressionValue(pool.regainAmount, scope) : max
     }
   })
 

@@ -89,7 +89,7 @@
   }
 
   .dnd-aura-verdigris {
-    color: var(--verdigris);
+    color: color-mix(in srgb, var(--verdigris) 35%, var(--ember));
   }
 
   .dnd-aura-metal {
@@ -98,12 +98,12 @@
 
   .dnd-aura-mote {
     position: absolute;
-    bottom: -8px;
-    width: 4px;
-    height: 4px;
+    bottom: -0.5rem;
+    width: 0.25rem;
+    height: 0.25rem;
     border-radius: var(--radius-pill);
-    background: currentColor;
-    box-shadow: 0 0 8px currentColor;
+    background: radial-gradient(circle, var(--ember-core) 0%, currentColor 60%);
+    box-shadow: 0 0 0.5rem currentColor, 0 0 1rem var(--ember-glow);
     opacity: 0;
     animation-name: dnd-aura-rise;
     animation-timing-function: ease-in-out;
@@ -114,7 +114,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: min(88%, 640px);
+    width: min(88%, 40rem);
     height: auto;
     transform: translate(-50%, -50%);
     opacity: 0.5;

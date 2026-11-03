@@ -66,6 +66,26 @@ describe('getResolvedCharacter on the 5e core', () => {
     expect(hitPoints?.remaining).toBe(10)
   })
 
+  it('resolves what a pool regains, and the whole pool when it declares no amount', () => {
+    const pool = (id: string) => resolved.pools.find((entry) => entry.id === id)?.regain
+    expect(pool('hitDice')).toBe(2)
+    expect(pool('hitPoints')).toBe(10)
+  })
+
+  it('keeps the death save thresholds and the hit die healing in the system', () => {
+    expect(resolved.scope['derived.deathSaveTarget']).toBe(10)
+    expect(resolved.scope['derived.deathSaveFumbleFailures']).toBe(2)
+    expect(resolved.scope['derived.hitDieHealing']).toBe(2)
+    expect(resolved.derived.some((entry) => entry.id === 'deathSaveTarget')).toBe(false)
+  })
+
+  it('declares the conditions and the damage types a sheet offers', () => {
+    expect(core.conditions?.find((entry) => entry.id === 'exhaustion')?.levels).toBe(6)
+    expect(core.conditions).toHaveLength(15)
+    expect(core.damageTypes).toHaveLength(13)
+    expect(core.defences?.map((entry) => entry.id)).toEqual(['resistance', 'immunity', 'vulnerability'])
+  })
+
   it('spends against a pool without going below zero', () => {
     const hurt = getResolvedCharacter(core, { ...lars, pools: { hitPoints: 99 } })
     const hitPoints = hurt.pools.find((entry) => entry.id === 'hitPoints')

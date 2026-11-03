@@ -559,7 +559,9 @@ const character: Character = {
     id: "default_soundboard",
     name: "My Sound Board",
     clips: []
-  }
+  },
+  systems: ["dnd5e", "gunslinger"],
+  overlay: null
 }
 
 export default character

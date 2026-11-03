@@ -2,9 +2,12 @@
   import {onDestroy, getContext} from "svelte";
   import {type ChatLog, detectAction, getChatLog} from "$lib/chat";
   import ChatItem from "./ChatItem.svelte";
-  import { userDetails } from "$lib/stores/auth.store";
+  import { user, userDetails } from "$lib/stores/auth.store";
   import Sigil from "$components/ui/Sigil.svelte";
   import Glyph from "$components/ui/Glyph.svelte";
+  import { rollMode, rollHidden, type RollMode } from "$lib/engine";
+  import { currentCampaignId } from "$lib/stores/campaign.store";
+  import { campaignService } from "$lib/firestore.service";
 
   const {unsubscribeChat, chatStore} = getChatLog()
 
@@ -22,6 +25,25 @@
   let stateThinking = $state<string | undefined>(undefined)
   let stateError = $state<string | undefined>(undefined)
   let showHidden = $state<boolean>(false)
+  let dmOf = $state<string | null>(null)
+
+  const MODES: { id: RollMode, title: string, mark: string }[] = [
+    { id: "disadvantage", title: "Roll the next d20 with disadvantage", mark: "Dis" },
+    { id: "normal", title: "Roll the next d20 straight", mark: "—" },
+    { id: "advantage", title: "Roll the next d20 with advantage", mark: "Adv" }
+  ]
+
+  $effect(() => {
+    const campaignId = $currentCampaignId
+    dmOf = null
+    rollHidden.set(false)
+    if (!campaignId) return
+    campaignService.getCampaign(campaignId).then((campaign) => {
+      if ($currentCampaignId === campaignId) dmOf = campaign?.dm_id ?? null
+    })
+  })
+
+  const isDm = $derived(Boolean($user?.uid) && dmOf === $user?.uid)
   let scroller: HTMLElement
   
   // Audio recording state
@@ -272,6 +294,28 @@
                 <span class="thinking">{stateThinking || stateError}</span>
             </div>
         {/if}
+        <div class="modes" role="group" aria-label="The next d20">
+            {#each MODES as mode (mode.id)}
+                <button
+                    type="button"
+                    class="mode"
+                    class:mode-on={$rollMode === mode.id}
+                    title={mode.title}
+                    aria-pressed={$rollMode === mode.id}
+                    onclick={() => rollMode.set(mode.id)}
+                >{mode.mark}</button>
+            {/each}
+            {#if isDm}
+                <button
+                    type="button"
+                    class="mode mode-hidden"
+                    class:mode-on={$rollHidden}
+                    title={$rollHidden ? 'Your rolls reach only you' : 'Your rolls reach the whole table'}
+                    aria-pressed={$rollHidden}
+                    onclick={() => rollHidden.update((hidden) => !hidden)}
+                >{$rollHidden ? 'Hidden' : 'Open'}</button>
+            {/if}
+        </div>
         <div class="input" class:disabled={Boolean(stateThinking?.length || stateError?.length || isDialogOpen)}>
             <textarea bind:value={chatInput} onkeydown={onKeyDown}></textarea>
             <div class="actions">
@@ -292,7 +336,7 @@
                     disabled={Boolean(stateThinking?.length || stateError?.length || isDialogOpen)}
                     onclick={toggleRecording}
                 >
-                    {isRecording ? '■' : '🜄'}
+                    <Glyph name={isRecording ? 'stop' : 'record'} size="sm" />
                 </Sigil>
 
                 <Sigil title="Send" tone="metal" size="sm" frame="star" onclick={onSend}>
@@ -309,7 +353,7 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background-color: var(--ground);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
         z-index: 100;
     }
 
@@ -338,6 +382,7 @@
         align-items: start;
         overflow: hidden;
         overflow-y: scroll;
+        box-shadow: inset 0 0 18px 4px var(--shade-hard);
     }
 
     .input {
@@ -346,67 +391,62 @@
         height: auto;
         display: flex;
         justify-content: stretch;
-        align-items: flex-end;
+        align-items: stretch;
         flex-direction: row;
-        border-top: var(--border-hair) solid var(--metal-dim);
         overflow: hidden;
-        background: linear-gradient(135deg, 
-            var(--ground-raised) 0%, 
-            color-mix(in srgb, var(--ground-raised) 95%, var(--ember)) 50%,
-            var(--ground-raised) 100%);
-        box-shadow: 
-            inset 0 2px 4px var(--shade-soft),
-            0 -2px 8px var(--shade-soft);
-        border-radius: 12px 12px 0 0;
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone);
+        box-shadow:
+            var(--bevel-up),
+            inset 0 1px 0 var(--keyline),
+            inset 0 2px 0 var(--metal),
+            inset 0 3px 0 var(--keyline),
+            0 -4px 10px var(--shade);
     }
 
     .input > textarea {
         position: relative;
-        width: 100%;
-        min-height: calc(var(--text-sm) * 4.5);
+        flex: 1;
+        min-width: 0;
+        height: auto;
+        min-height: 0;
         max-height: 40vh;
         field-sizing: content;
         overflow-y: auto;
         resize: none;
-        margin: var(--space-2);
+        margin: var(--space-3) var(--space-2) var(--space-2) var(--space-3);
         padding: var(--space-2) var(--space-3);
-        background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+        background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
         color: var(--ink);
         outline: none;
         font-family: var(--font-body);
         font-size: var(--text-sm);
         line-height: 1.45;
         border: var(--border-hair) solid var(--metal-dim);
-        border-radius: var(--radius-md);
-        box-shadow: inset 0 2px 6px var(--shade-hard);
+        border-radius: var(--radius-sm);
+        box-shadow: var(--bevel-down), inset 0 2px 6px var(--shade-hard);
         transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
     .input > textarea:focus {
-        border-color: var(--ember);
-        box-shadow: 
-            inset 0 2px 6px var(--shade-soft),
-            0 0 0 3px color-mix(in srgb, var(--ember) 30%, transparent),
-            0 2px 8px var(--shade-soft);
-        background: linear-gradient(145deg, 
-            color-mix(in srgb, var(--ground-raised) 95%, var(--ember)) 0%,
-            var(--ground-raised) 100%);
+        border-color: var(--metal-bright);
+        box-shadow: var(--bevel-down), inset 0 2px 6px var(--shade-hard), var(--glow-metal);
     }
 
     .input > textarea::placeholder {
-        color: color-mix(in srgb, var(--ink) 60%, transparent);
+        color: var(--ink-faint);
         font-style: italic;
     }
-
 
     ul {
         position: relative;
         width: 100%;
         height: auto;
         margin: 0;
-        padding: 0;
+        padding: var(--space-1) var(--space-2);
         list-style: none;
-        background-color: var(--ground-lift);
         color: var(--ink);
     }
 
@@ -423,11 +463,83 @@
         cursor: default;
         opacity: 0.65;
     }
-    
+
     .root.disabled {
         filter: grayscale(0.5);
         pointer-events: none;
         user-select: none;
+    }
+
+    .modes {
+        display: flex;
+        align-self: stretch;
+        gap: 0;
+        margin: var(--space-2) var(--space-3);
+        padding: 0.2rem;
+        border-radius: var(--radius-sm);
+        background: var(--texture-noise), var(--ground-deep);
+        box-shadow: var(--rim-thin), var(--bevel-down);
+    }
+
+    .mode {
+        position: relative;
+        flex: 1;
+        padding: var(--space-1) var(--space-2);
+        border: none;
+        border-radius: 0;
+        background:
+            linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 16%, transparent) 0%, color-mix(in srgb, #000 50%, transparent) 60%, color-mix(in srgb, #000 70%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone-dark);
+        box-shadow: var(--bevel-up), inset 0 0 0 1px var(--keyline);
+        color: var(--ink-dim);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
+        text-shadow: 0 1px 0 #000;
+        cursor: pointer;
+        transition: color 0.18s ease, text-shadow 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .mode:first-child {
+        border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+
+    .mode:last-child {
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .mode:hover {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
+    }
+
+    .mode:active {
+        filter: brightness(0.85);
+    }
+
+    .mode:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+        z-index: 1;
+    }
+
+    .mode-on {
+        color: var(--metal-bright);
+        text-shadow: var(--glow-text);
+        background:
+            radial-gradient(ellipse 90% 130% at 50% 110%, color-mix(in srgb, var(--ember) 55%, transparent) 0%, transparent 70%),
+            linear-gradient(180deg, color-mix(in srgb, #000 55%, transparent) 0%, color-mix(in srgb, #000 30%, transparent) 100%),
+            var(--texture-stone),
+            var(--stone);
+        box-shadow: var(--bevel-down), inset 0 0 0 1px var(--metal-bright), inset 0 0 12px var(--ember-glow), 0 0 10px var(--ember-glow);
+        z-index: 1;
+    }
+
+    .mode-hidden {
+        flex: 1.4;
     }
 
     .actions {
@@ -435,10 +547,19 @@
         flex: none;
         flex-direction: column;
         align-items: stretch;
-        justify-content: center;
+        justify-content: space-between;
         gap: var(--space-1);
         align-self: stretch;
-        padding: var(--space-2) var(--space-2) var(--space-2) 0;
+        padding: var(--space-3) var(--space-3) var(--space-2) 0;
+    }
+
+    .actions :global(.dnd-sigil[title]:hover::after),
+    .actions :global(.dnd-sigil[title]:focus-visible::after) {
+        top: 50%;
+        right: calc(100% + var(--space-2));
+        bottom: auto;
+        left: auto;
+        transform: translateY(-50%);
     }
 
     .status {
@@ -449,11 +570,20 @@
         justify-content: center;
         align-items: center;
         flex-direction: row;
-        border-top: 1px solid var(--metal);
+        padding: var(--space-1) var(--space-3);
+        border-top: var(--border-hair) solid var(--metal-dim);
+        background: var(--texture-noise), var(--ground-deep);
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-caps);
+        text-transform: uppercase;
+        color: var(--metal);
+        text-shadow: var(--glow-text);
     }
 
     .status.error {
-        border-color: red;
-        color: red;
+        border-color: var(--state-bad);
+        color: var(--state-bad);
+        text-shadow: 0 1px 0 #000;
     }
 </style>

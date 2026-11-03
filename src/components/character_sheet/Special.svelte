@@ -51,12 +51,12 @@
     padding: var(--space-3) var(--space-4);
     min-width: 0;
     background:
+      radial-gradient(ellipse 80% 60% at 50% 100%, color-mix(in srgb, var(--ember) 10%, transparent) 0%, transparent 70%),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    background-blend-mode: overlay, normal;
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm), inset 0 1px 0 var(--metal-edge);
+    border: none;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
   }
 
   .pool-head {
@@ -64,12 +64,14 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 70%, transparent);
   }
 
   .pool-title {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-0);
     min-width: 0;
   }
 
@@ -80,15 +82,17 @@
   }
 
   .pool-count {
-    font-family: var(--font-display);
-    font-size: var(--text-md);
+    font-family: var(--font-figures);
+    font-size: var(--text-lg);
     font-weight: 700;
+    font-variant-numeric: lining-nums tabular-nums;
     color: var(--metal-bright);
+    text-shadow: 0 1px 0 #000, 0 0 0.6rem var(--ember-glow);
   }
 
   .pool-slash {
-    color: var(--ink-faint);
-    padding: 0 2px;
+    color: var(--metal-dim);
+    padding: 0 var(--space-0);
   }
 
   .pool-pips {

@@ -27,3 +27,18 @@ reference/
 .playwright-mcp/
 
 .lcp_inspect
+
+/media/
+.lcp/cache/
+
+/test/[0-9]*/
+/test.hurl
+/test/*.hurl
+/src/lib/replicate.ts
+/*.png
+/*.jpeg
+/*.jpg
+/docs/inspiration/
+/inpsiration/
+/.claude/tasks/*/
+/.impeccable/

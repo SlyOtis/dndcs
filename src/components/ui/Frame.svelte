@@ -38,8 +38,10 @@
   class:dnd-frame-fill={fill}
   aria-label={title}
 >
-  <div class="dnd-frame-ground"></div>
+  <div class="dnd-frame-edge"></div>
+  <div class="dnd-frame-gap"></div>
   <div class="dnd-frame-keyline"></div>
+  <div class="dnd-frame-ground"></div>
 
   {#if variant !== 'timber'}
     <span class="dnd-frame-corner dnd-frame-corner-tl">
@@ -129,8 +131,11 @@
 
 <style>
   .dnd-frame {
-    --frame-cusp: 30px;
-    --frame-dip: 18px;
+    --frame-cusp: var(--cusp);
+    --frame-dip: var(--dip);
+    --frame-edge: 0.25rem;
+    --frame-gap: clamp(0.4rem, 0.3rem + 0.3vw, 0.6rem);
+    --frame-line: var(--border-width);
     --frame-cut: polygon(
       var(--frame-cusp) 0,
       calc(100% - var(--frame-cusp)) 0,
@@ -151,37 +156,45 @@
     height: 100%;
   }
 
+  .dnd-frame-edge,
+  .dnd-frame-gap,
+  .dnd-frame-keyline,
   .dnd-frame-ground {
     position: absolute;
-    inset: 0;
     z-index: 0;
     border-radius: inherit;
-    background:
-      var(--texture-weave),
-      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 55%, var(--ground-deep) 100%);
     clip-path: var(--frame-cut);
-    filter: drop-shadow(0 16px 36px var(--shade-hard));
-  }
-
-  .dnd-frame-keyline {
-    position: absolute;
-    inset: 6px;
-    z-index: 1;
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: calc(var(--radius-xl) - 4px);
-    box-shadow:
-      inset 0 0 0 var(--border-hair) var(--metal-edge),
-      inset 0 0 40px -14px var(--ember-glow);
     pointer-events: none;
   }
 
-  .dnd-frame-keyline::after {
-    content: '';
-    position: absolute;
-    inset: var(--space-1);
-    border: var(--border-hair) solid var(--metal-edge);
-    border-radius: calc(var(--radius-xl) - 8px);
-    opacity: 0.55;
+  .dnd-frame-edge {
+    inset: 0;
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 22%, var(--metal-dim) 55%, var(--metal) 82%, var(--metal-dim) 100%);
+    box-shadow: inset 0 0 0 1px var(--keyline);
+    filter: var(--drop-frame);
+  }
+
+  .dnd-frame-gap {
+    inset: var(--frame-edge);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 40%, transparent) 55%, color-mix(in srgb, #000 62%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: inset 0 0 0 1px var(--keyline), var(--bevel-up);
+  }
+
+  .dnd-frame-keyline {
+    inset: calc(var(--frame-edge) + var(--frame-gap));
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 40%, var(--metal-dim) 100%);
+    box-shadow: 0 0 0.4rem var(--shade-hard);
+  }
+
+  .dnd-frame-ground {
+    inset: calc(var(--frame-edge) + var(--frame-gap) + var(--frame-line));
+    background:
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 55%, var(--ground-deep) 100%);
+    box-shadow: inset 0 0 0 1px var(--keyline), inset 0 0 1.5rem 0.3rem var(--shade-hard), var(--shadow-hearth);
   }
 
   .dnd-frame-rose {
@@ -240,23 +253,23 @@
   }
 
   .dnd-frame-corner-tl {
-    top: -6px;
-    left: -6px;
+    top: calc(var(--corner-lift) * -1);
+    left: calc(var(--corner-lift) * -1);
   }
 
   .dnd-frame-corner-tr {
-    top: -6px;
-    right: -6px;
+    top: calc(var(--corner-lift) * -1);
+    right: calc(var(--corner-lift) * -1);
   }
 
   .dnd-frame-corner-bl {
-    bottom: -6px;
-    left: -6px;
+    bottom: calc(var(--corner-lift) * -1);
+    left: calc(var(--corner-lift) * -1);
   }
 
   .dnd-frame-corner-br {
-    bottom: -6px;
-    right: -6px;
+    bottom: calc(var(--corner-lift) * -1);
+    right: calc(var(--corner-lift) * -1);
   }
 
   .dnd-frame-crest {
@@ -265,7 +278,7 @@
     z-index: 4;
     transform: translateX(-50%);
     pointer-events: none;
-    filter: drop-shadow(0 4px 10px var(--shade-hard));
+    filter: var(--drop-crest);
   }
 
   .dnd-frame-crest-top {
@@ -299,20 +312,20 @@
     z-index: 2;
     opacity: 0.85;
     pointer-events: none;
-    filter: drop-shadow(0 0 12px var(--shade-hard));
+    filter: var(--drop-haze);
   }
 
   .dnd-frame-dragon-left {
-    left: -34px;
+    left: calc(var(--reach) * -1);
   }
 
   .dnd-frame-dragon-right {
-    right: -34px;
+    right: calc(var(--reach) * -1);
   }
 
   .dnd-frame-chain {
     position: absolute;
-    top: 4px;
+    top: var(--space-1);
     left: 12%;
     right: 12%;
     z-index: 2;
@@ -323,19 +336,23 @@
   .dnd-frame-cathedral .dnd-frame-ground {
     background:
       var(--texture-motes),
-      radial-gradient(ellipse at 50% 0%, var(--verdigris-dim) 0%, transparent 55%),
+      radial-gradient(ellipse 80% 45% at 50% 0%, color-mix(in srgb, var(--ember) 14%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
   }
 
   .dnd-frame-dragon .dnd-frame-ground {
     background:
-      var(--texture-weave),
+      var(--texture-noise),
       radial-gradient(ellipse at 50% 40%, var(--ground-raised) 0%, var(--ground-deep) 78%);
   }
 
+  .dnd-frame-dragon .dnd-frame-edge {
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 45%, var(--metal-dim) 100%);
+  }
+
   .dnd-frame-dragon .dnd-frame-keyline {
-    border-color: var(--metal);
-    border-radius: calc(var(--radius-xl) * 2) calc(var(--radius-xl) * 2) var(--radius-lg) var(--radius-lg);
+    background: linear-gradient(180deg, var(--ember-core) 0%, var(--metal-bright) 30%, var(--metal) 100%);
   }
 
   .dnd-frame-iron,
@@ -350,10 +367,17 @@
     background-blend-mode: overlay, normal;
   }
 
+  .dnd-frame-iron {
+    --frame-edge: var(--border-heavy);
+    --frame-gap: var(--border-width);
+  }
+
+  .dnd-frame-iron .dnd-frame-edge {
+    background: linear-gradient(180deg, var(--stone-light) 0%, var(--stone) 40%, var(--stone-dark) 100%);
+  }
+
   .dnd-frame-iron .dnd-frame-keyline {
-    border-width: var(--border-heavy);
-    border-color: var(--ground-lift);
-    border-radius: var(--radius-sm);
+    background: var(--metal-dim);
   }
 
   .dnd-frame-timber .dnd-frame-ground {
@@ -361,28 +385,38 @@
       var(--texture-noise),
       repeating-linear-gradient(
         90deg,
-        var(--ground-raised) 0px,
-        var(--ground-raised) 58px,
-        var(--ground) 58px,
-        var(--ground) 60px
+          var(--ground-raised) 0,
+        var(--ground-raised) var(--plank),
+        var(--ground) var(--plank),
+        var(--ground) var(--plank-gap)
       );
     background-blend-mode: soft-light, normal;
   }
 
+  .dnd-frame-timber {
+    --frame-gap: var(--beam);
+  }
+
+  .dnd-frame-timber .dnd-frame-edge {
+    background: linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+  }
+
+  .dnd-frame-timber .dnd-frame-gap {
+    background: var(--texture-grain), linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+  }
+
   .dnd-frame-timber .dnd-frame-keyline {
-    inset: 14px;
-    border-color: var(--metal-dim);
-    border-radius: var(--radius-sm);
+    background: var(--metal-dim);
   }
 
   .dnd-frame-beam {
     position: absolute;
     left: 0;
     right: 0;
-    height: 14px;
+    height: var(--beam);
     z-index: 2;
-    background: linear-gradient(180deg, var(--ground-lift), var(--ground-deep));
-    box-shadow: inset 0 1px 0 var(--metal-edge), var(--shadow-sm);
+    background: var(--texture-grain), linear-gradient(180deg, var(--wood), var(--wood-dark));
+    box-shadow: var(--shadow-lip), inset 0 -1px 0 var(--metal-dim), var(--shadow-sm);
     pointer-events: none;
   }
 
@@ -397,23 +431,27 @@
   }
 
   .dnd-frame-hairline {
-    --frame-cusp: 16px;
-    --frame-dip: 10px;
+    --frame-cusp: var(--cusp-xs);
+    --frame-dip: var(--dip-xs);
+    --frame-edge: var(--border-hair);
+    --frame-gap: var(--border-width);
+    --frame-line: var(--border-hair);
+  }
+
+  .dnd-frame-hairline .dnd-frame-edge {
+    background: var(--metal-dim);
+    box-shadow: none;
+    filter: var(--drop-relief);
+  }
+
+  .dnd-frame-hairline .dnd-frame-gap {
+    background: var(--ground-deep);
+    box-shadow: none;
   }
 
   .dnd-frame-hairline .dnd-frame-ground {
     background: linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
-    filter: drop-shadow(0 6px 16px var(--shade));
-  }
-
-  .dnd-frame-hairline .dnd-frame-keyline {
-    inset: 3px;
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
-  }
-
-  .dnd-frame-hairline .dnd-frame-keyline::after {
-    inset: 2px;
-    border-radius: calc(var(--radius-xl) - 8px);
+    box-shadow: none;
   }
 
   @media (max-width: 760px) {

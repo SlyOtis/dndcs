@@ -63,12 +63,85 @@
     { "id": "speed", "title": "Speed", "value": "30 + bonus.speed", "unit": "ft" },
     { "id": "maxHitPoints", "title": "Maximum Hit Points", "value": "max(1, bonus.hitPoints + mod.con * level)" },
     { "id": "spellSaveDc", "title": "Spell Save DC", "value": "8 + prof + bonus.spellcasting" },
-    { "id": "spellAttack", "title": "Spell Attack", "value": "prof + bonus.spellcasting" }
+    { "id": "spellAttack", "title": "Spell Attack", "value": "prof + bonus.spellcasting" },
+    { "id": "hitDieHealing", "title": "Hit Die Healing", "value": "mod.con", "hidden": true },
+    { "id": "deathSaveTarget", "title": "Death Save Target", "value": "10", "hidden": true },
+    { "id": "deathSaveSuccesses", "title": "Death Save Successes", "value": "3", "hidden": true },
+    { "id": "deathSaveFailures", "title": "Death Save Failures", "value": "3", "hidden": true },
+    { "id": "deathSaveCritical", "title": "Death Save Critical", "value": "20", "hidden": true },
+    { "id": "deathSaveCriticalHitPoints", "title": "Death Save Critical Hit Points", "value": "1", "hidden": true },
+    { "id": "deathSaveFumble", "title": "Death Save Fumble", "value": "1", "hidden": true },
+    { "id": "deathSaveFumbleFailures", "title": "Death Save Fumble Failures", "value": "2", "hidden": true }
+  ],
+  "conditions": [
+    { "id": "blinded", "title": "Blinded", "description": "Cannot see. Attacks against you have advantage, your attacks have disadvantage." },
+    { "id": "charmed", "title": "Charmed", "description": "Cannot attack the charmer, who has advantage on social checks against you." },
+    { "id": "deafened", "title": "Deafened", "description": "Cannot hear and fails any check that relies on hearing." },
+    { "id": "exhaustion", "title": "Exhaustion", "description": "Levels stack; each worsens checks, speed and hit points, and the last is death.", "levels": 6 },
+    { "id": "frightened", "title": "Frightened", "description": "Disadvantage on checks and attacks while the source is in sight, and cannot move closer to it." },
+    { "id": "grappled", "title": "Grappled", "description": "Speed becomes 0." },
+    { "id": "incapacitated", "title": "Incapacitated", "description": "Cannot take actions or reactions." },
+    { "id": "invisible", "title": "Invisible", "description": "Cannot be seen without magic. Your attacks have advantage, attacks against you disadvantage." },
+    { "id": "paralyzed", "title": "Paralyzed", "description": "Incapacitated, cannot move or speak, fails Strength and Dexterity saves; hits within 5 ft are critical." },
+    { "id": "petrified", "title": "Petrified", "description": "Turned to stone, incapacitated, resistant to all damage." },
+    { "id": "poisoned", "title": "Poisoned", "description": "Disadvantage on attack rolls and ability checks." },
+    { "id": "prone", "title": "Prone", "description": "Crawl only; disadvantage on attacks; melee attacks against you have advantage." },
+    { "id": "restrained", "title": "Restrained", "description": "Speed 0, disadvantage on attacks and Dexterity saves; attacks against you have advantage." },
+    { "id": "stunned", "title": "Stunned", "description": "Incapacitated, cannot move, fails Strength and Dexterity saves." },
+    { "id": "unconscious", "title": "Unconscious", "description": "Incapacitated, drops what it holds, falls prone; hits within 5 ft are critical." }
+  ],
+  "damageTypes": [
+    { "id": "acid", "title": "Acid" },
+    { "id": "bludgeoning", "title": "Bludgeoning" },
+    { "id": "cold", "title": "Cold" },
+    { "id": "fire", "title": "Fire" },
+    { "id": "force", "title": "Force" },
+    { "id": "lightning", "title": "Lightning" },
+    { "id": "necrotic", "title": "Necrotic" },
+    { "id": "piercing", "title": "Piercing" },
+    { "id": "poison", "title": "Poison" },
+    { "id": "psychic", "title": "Psychic" },
+    { "id": "radiant", "title": "Radiant" },
+    { "id": "slashing", "title": "Slashing" },
+    { "id": "thunder", "title": "Thunder" }
+  ],
+  "defences": [
+    { "id": "resistance", "title": "Resistance" },
+    { "id": "immunity", "title": "Immunity" },
+    { "id": "vulnerability", "title": "Vulnerability" }
   ],
   "progression": {
     "maxLevel": 20,
     "proficiency": "2 + floor((level - 1) / 4)",
     "steps": []
+  },
+  "advancement": {
+    "firstHitPoints": "max(1, die + mod.con)",
+    "hitPoints": "max(1, floor(die / 2) + 1 + mod.con)",
+    "improvement": { "levels": [4, 8, 12, 16, 19], "points": 2, "cap": 20 },
+    "slots": {
+      "full": [
+        [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2],
+        [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1, 1], [4, 3, 3, 3, 2, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1],
+        [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1], [4, 3, 3, 3, 3, 2, 1, 1, 1],
+        [4, 3, 3, 3, 3, 2, 2, 1, 1]
+      ],
+      "half": [
+        [], [2], [3], [3], [4, 2], [4, 2], [4, 3], [4, 3], [4, 3, 2], [4, 3, 2],
+        [4, 3, 3], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 2], [4, 3, 3, 3, 1], [4, 3, 3, 3, 1],
+        [4, 3, 3, 3, 2], [4, 3, 3, 3, 2]
+      ],
+      "artificer": [
+        [2], [2], [3], [3], [4, 2], [4, 2], [4, 3], [4, 3], [4, 3, 2], [4, 3, 2],
+        [4, 3, 3], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 2], [4, 3, 3, 3, 1], [4, 3, 3, 3, 1],
+        [4, 3, 3, 3, 2], [4, 3, 3, 3, 2]
+      ],
+      "pact": [
+        [1], [2], [0, 2], [0, 2], [0, 0, 2], [0, 0, 2], [0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 0, 0, 2], [0, 0, 0, 0, 2],
+        [0, 0, 0, 0, 3], [0, 0, 0, 0, 3], [0, 0, 0, 0, 3], [0, 0, 0, 0, 3], [0, 0, 0, 0, 3], [0, 0, 0, 0, 3],
+        [0, 0, 0, 0, 4], [0, 0, 0, 0, 4], [0, 0, 0, 0, 4], [0, 0, 0, 0, 4]
+      ]
+    }
   },
   "panels": [
     {

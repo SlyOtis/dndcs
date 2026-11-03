@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { navigate } from "sly-svelte-location-router";
-  import { getSystem } from "$lib/rules/system";
+  import { getSystems } from "$lib/rules/system";
   import { getExpressionValue } from "$lib/rules/expression";
-  import type { AttributeSpec } from "$lib/rules/spec.types";
+  import type { AttributeSpec, RuleSystem, RuleSystemOverlay } from "$lib/rules/spec.types";
   import { aiService, hasReplicateKey } from "$lib/ai";
   import { getSource, SOURCE_ACCEPT, type Source } from "$lib/sources";
   import { postFile } from "$lib/storage.service";
@@ -12,8 +12,8 @@
   import Glyph from "$components/ui/Glyph.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
   import Panel from "$components/ui/Panel.svelte";
-  import Portrait from "$components/ui/Portrait.svelte";
   import Shell from "$components/ui/Shell.svelte";
+  import Portrait from "$components/ui/Portrait.svelte";
 
   interface CharacterCreationData {
     name: string;
@@ -25,9 +25,9 @@
     imageUrl?: string;
     suggestedClass?: string;
     suggestedRace?: string;
+    systems: string[];
+    overlay: RuleSystemOverlay | null;
   }
-
-  const SYSTEM = 'dnd5e';
 
   const KINDS: Record<Source['kind'], string> = {
     pdf: 'PDF',
@@ -41,17 +41,45 @@
     level: 1,
     abilityScores: {},
     attributes: [],
-    sources: []
+    sources: [],
+    systems: [],
+    overlay: null
   });
 
   let adding = $state(false);
   let newTitle = $state('');
   let newShort = $state('');
+  let systems = $state<RuleSystem[]>([]);
+  let chosen = $state<RuleSystem | null>(null);
 
   onMount(async () => {
-    const system = await getSystem(SYSTEM);
-    for (const spec of system.attributes) postAttribute(spec);
+    try {
+      systems = await getSystems();
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason);
+      return;
+    }
+
+    if (systems[0]) putSystem(systems[0].id);
   });
+
+  function getOwnAttributes(): AttributeSpec[] {
+    return creationData.attributes.filter((spec) => !chosen?.attributes.some((entry) => entry.id === spec.id));
+  }
+
+  function putSystem(id: string) {
+    const next = systems.find((entry) => entry.id === id);
+    if (!next) return;
+
+    const own = getOwnAttributes().filter((spec) => !next.attributes.some((entry) => entry.id === spec.id));
+    const scores = creationData.abilityScores;
+
+    creationData.attributes = [...next.attributes, ...own];
+    creationData.abilityScores = Object.fromEntries(
+      creationData.attributes.map((spec) => [spec.id, scores[spec.id] ?? spec.default])
+    );
+    chosen = next;
+  }
 
   function postAttribute(spec: AttributeSpec) {
     if (creationData.attributes.some((held) => held.id === spec.id)) return;
@@ -99,7 +127,7 @@
   let portraitDragActive = $state(false);
   let backgroundDragActive = $state(false);
 
-  let canContinue = $derived(creationData.name.trim().length > 0);
+  let canContinue = $derived(creationData.name.trim().length > 0 && Boolean(chosen));
   let busy = $derived(Boolean(reading) || importing);
 
   function modifier(spec: AttributeSpec, score: number): string {
@@ -237,12 +265,18 @@
   }
 
   function continueToClass() {
-    if (!canContinue) {
-      error = 'Your character needs a name.';
+    if (!canContinue || !chosen) {
+      error = chosen ? 'Your character needs a name.' : 'Choose the rules your character plays by.';
       return;
     }
 
+    const own = getOwnAttributes();
+
     creationData.sources = sources.map((entry) => entry.text);
+    creationData.systems = [chosen.id];
+    creationData.overlay = own.length > 0
+      ? { id: 'own', title: `${creationData.name.trim()}, own rules`, version: '1.0.0', attributes: own }
+      : null;
 
     if (!putCreationData(creationData)) return;
     navigate('/main/create/character/class');
@@ -263,7 +297,7 @@
   <Panel title="The character">
     <div class="make-top">
       <div
-        class="make-drop"
+        class="make-drop make-face"
         class:make-drop-live={portraitDragActive}
         role="region"
         aria-label="Character image drop zone"
@@ -272,7 +306,7 @@
         ondrop={handlePortraitDrop}
       >
         {#if creationData.imageUrl}
-          <Portrait src={creationData.imageUrl} alt="Character" frame="lancet" size="lg" />
+          <span class="make-face-glass"><Portrait src={creationData.imageUrl} alt="Character" size="fill" /></span>
         {:else}
           <span class="dnd-empty-mark"><Ornament name="quatrefoil" size="sm" tone="metal" /></span>
           <p class="make-drop-note">Drop a portrait, or pick one</p>
@@ -288,6 +322,19 @@
         <Field label="Starting level" id="character-level">
           <input id="character-level" type="number" min="1" max="20" bind:value={creationData.level} />
         </Field>
+
+        <Field label="Rule system" id="character-system" help={chosen?.description}>
+          <select
+            id="character-system"
+            value={chosen?.id}
+            disabled={systems.length === 0}
+            onchange={(event) => putSystem(event.currentTarget.value)}
+          >
+            {#each systems as system (system.id)}
+              <option value={system.id}>{system.title}</option>
+            {/each}
+          </select>
+        </Field>
       </div>
     </div>
   </Panel>
@@ -299,7 +346,7 @@
           Reading source material runs on Replicate, and your account carries no key yet. Add one on your profile
           and it stays on your own user document.
         </p>
-        <Button variant="secondary" size="sm" onclick={() => navigate('/user')}>Add a Replicate key</Button>
+        <Button variant="secondary" size="sm" onclick={() => navigate('/main/user')}>Add a Replicate key</Button>
       </div>
     {:else}
       <div
@@ -460,12 +507,18 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 0 0 var(--border-hair) var(--metal-edge);
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--rim), var(--bevel-up), 0 0.5rem 1.2rem var(--shade);
   }
 
   .make-name {
     font-size: var(--text-2xl);
+    color: var(--metal-bright);
+    text-shadow: 0 0.125rem 0 var(--ground-deep), 0 0 0.875rem var(--ember-glow), 0 0 2rem color-mix(in srgb, var(--ember-glow) 55%, transparent);
   }
 
   .make-rule {
@@ -477,6 +530,7 @@
     max-width: 60ch;
     margin: 0;
     font-size: var(--text-sm);
+    font-style: italic;
     color: var(--ink-dim);
   }
 
@@ -491,7 +545,9 @@
   .make-lines {
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: var(--space-3);
+    align-self: stretch;
   }
 
   .make-drop {
@@ -507,8 +563,8 @@
     min-width: 0;
     overflow: hidden;
     border: var(--border-width) dashed var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     box-shadow: var(--make-drop-sink);
     text-align: center;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -516,7 +572,12 @@
 
   .make-drop-live {
     border-color: var(--metal);
-    box-shadow: var(--make-drop-sink), var(--glow-metal);
+    box-shadow: var(--make-drop-sink), var(--glow-metal), inset 0 0 2rem -0.5rem var(--ember-glow);
+  }
+
+  .make-drop-live .make-drop-note {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .make-drop:focus-within {
@@ -528,11 +589,31 @@
     min-height: var(--make-band-h);
   }
 
+  .make-face {
+    width: 100%;
+    aspect-ratio: 1;
+  }
+
+  .make-face-glass {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .make-face-glass :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
   .make-drop-note {
     margin: 0;
     font-family: var(--font-display);
     font-size: var(--text-sm);
     color: var(--ink-dim);
+    letter-spacing: var(--tracking-wide);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .make-drop-help {
@@ -557,12 +638,14 @@
 
   .make-gate {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4);
     border: var(--border-hair) solid color-mix(in srgb, var(--state-warn) 55%, transparent);
-    border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--state-warn) 14%, transparent);
+    border-radius: var(--radius-sm);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--state-warn) 14%, transparent), transparent), var(--texture-noise), var(--ground-deep);
+    box-shadow: var(--bevel-down);
   }
 
   .make-gate-text {
@@ -602,13 +685,15 @@
     align-items: flex-end;
     gap: var(--space-3);
     padding: var(--space-4);
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 1rem 0.125rem var(--shade-hard);
   }
 
   .make-own-acts {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
     margin-inline-start: auto;
   }
@@ -661,10 +746,13 @@
     gap: var(--space-2);
     padding: var(--space-3);
     min-width: 0;
-    border: var(--border-hair) solid var(--metal-dim);
-    border-radius: var(--radius-md);
-    background: linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    box-shadow: inset 0 var(--border-hair) 0 var(--metal-edge);
+    border: none;
+    border-radius: var(--radius-sm);
+    background:
+      radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--ember) 8%, transparent) 0%, transparent 70%),
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
+    box-shadow: var(--rim-thin), inset 0 0 1rem 0.125rem var(--shade-hard), var(--shadow-sm);
   }
 
   .make-score-label {
@@ -672,9 +760,12 @@
   }
 
   .make-score-mod {
-    font-family: var(--font-mono);
+    font-family: var(--font-figures);
     font-size: var(--text-sm);
-    color: var(--ink-dim);
+    font-weight: 700;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .make-sources {
@@ -693,19 +784,25 @@
     padding: var(--space-2) var(--space-3);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
-    background: var(--ground-deep);
+    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    box-shadow: var(--bevel-down);
   }
 
   .make-source-kind {
     flex: none;
     padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--verdigris) 25%, transparent);
+    border-radius: var(--radius-sm);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
+      var(--texture-stone),
+      var(--stone);
+    box-shadow: var(--bevel-up), inset 0 0 0 0.0625rem var(--ground-deep);
     font-family: var(--font-display);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--ink);
+    color: var(--metal);
+    text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .make-source-name {
@@ -720,7 +817,8 @@
 
   .make-source-size {
     flex: none;
-    font-family: var(--font-mono);
+    font-family: var(--font-figures);
+    font-variant-numeric: lining-nums tabular-nums;
     font-size: var(--text-xs);
     color: var(--ink-faint);
   }
@@ -730,7 +828,8 @@
     margin: 0;
     padding: var(--space-3) var(--space-4);
     border: var(--border-hair) solid transparent;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--bevel-down);
     font-size: var(--text-sm);
     color: var(--ink);
   }
@@ -747,6 +846,7 @@
 
   .make-acts {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--space-3);
   }

@@ -5,7 +5,7 @@
 
   const {feats} = getContext<CharacterContext>('character')
 
-  let orderFeats = $derived($feats.sort((a, b) => a.level - b.level));
+  let orderFeats = $derived([...$feats].sort((a, b) => a.level - b.level));
 
 
 </script>
@@ -59,25 +59,54 @@
     }
 
     ul {
-        padding: 8px 12px;
+        padding: var(--space-2) var(--space-3);
     }
 
     li {
-        margin-bottom: 12px;
+        margin-bottom: var(--space-3);
     }
 
     li:not(:last-child) {
-        padding-bottom: 16px;
-        border-bottom: 1px dashed var(--ink);
-        margin-bottom: 16px;
+        padding-bottom: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
+
+    li:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 10%;
+        bottom: 0;
+        left: 10%;
+        height: var(--border-hair);
+        background: linear-gradient(90deg, transparent, var(--metal-dim) 20%, var(--metal) 50%, var(--metal-dim) 80%, transparent);
+        box-shadow: 0 1px 0 #000;
+    }
+
+    h4 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: var(--text-md);
+        font-weight: 700;
+        color: var(--metal-bright);
+        text-shadow: 0 1px 0 #000, 0 0 0.6rem var(--ember-glow);
+    }
+
+    h4 i {
+        font-family: var(--font-figures);
+        font-size: var(--text-sm);
+        font-style: normal;
+        color: var(--metal);
     }
 
     .source {
-        font-size: 0.7em;
+        display: block;
+        font-family: var(--font-display);
+        font-size: var(--text-xs);
         font-weight: 600;
-        opacity: 0.75;
+        letter-spacing: var(--tracking-caps);
         text-transform: uppercase;
-        margin-bottom: 16px;
+        color: var(--ink-faint);
+        margin-bottom: var(--space-3);
     }
 
 </style>

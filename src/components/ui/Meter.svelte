@@ -49,8 +49,8 @@
     aria-valuemax={span}
     aria-label={label ?? 'meter'}
   >
-    <span class="dnd-meter-fill" style="width: {percent}%"></span>
-    <span class="dnd-meter-sheen" style="width: {percent}%"></span>
+    <span class="dnd-meter-fill" style="clip-path: inset(0 {100 - percent}% 0 0)"></span>
+    <span class="dnd-meter-sheen" style="clip-path: inset(0 {100 - percent}% 0 0)"></span>
     {#if segments > 0}
       <span class="dnd-meter-notches" style="--notch: {100 / segments}%"></span>
     {/if}
@@ -72,21 +72,21 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    --meter-h: 20px;
+    --meter-h: 1.25rem;
     --meter-fill: var(--state-bad);
     --meter-fill-bright: var(--ember-core);
   }
 
   .dnd-meter-sm {
-    --meter-h: 12px;
+    --meter-h: 0.8rem;
   }
 
   .dnd-meter-md {
-    --meter-h: 20px;
+    --meter-h: 1.25rem;
   }
 
   .dnd-meter-lg {
-    --meter-h: 30px;
+    --meter-h: 1.875rem;
   }
 
   .dnd-meter-life {
@@ -120,35 +120,43 @@
     height: var(--meter-h);
     min-width: 0;
     overflow: hidden;
-    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-    border: var(--border-hair) solid var(--metal-dim);
-    box-shadow: inset 0 2px 5px var(--shade-hard);
-    clip-path: polygon(
-      8px 0,
-      calc(100% - 8px) 0,
-      100% 50%,
-      calc(100% - 8px) 100%,
-      8px 100%,
-      0 50%
-    );
+    border-radius: var(--radius-sm);
+    background: var(--texture-noise), linear-gradient(180deg, #000 0%, var(--ground-deep) 60%, var(--ground) 100%);
+    box-shadow: var(--bevel-down);
+  }
+
+  .dnd-meter-track::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    box-shadow:
+      inset 0 0 0 1px var(--keyline),
+      inset 0 0 0 2px var(--metal),
+      inset 0 0 0 3px var(--keyline),
+      inset 0 3px 4px -1px var(--shade-hard);
+    pointer-events: none;
   }
 
   .dnd-meter-fill {
     position: absolute;
-    inset: 0 auto 0 0;
-    background: linear-gradient(180deg, var(--meter-fill-bright) 0%, var(--meter-fill) 40%, var(--meter-fill) 100%);
-    filter: saturate(1.2);
-    box-shadow: 0 0 12px var(--meter-fill);
-    transition: width 320ms ease-out;
+    inset: 0;
+    background:
+      linear-gradient(180deg, var(--meter-fill) 0%, color-mix(in srgb, var(--meter-fill-bright) 55%, var(--meter-fill)) 26%, var(--meter-fill) 48%, color-mix(in srgb, var(--meter-fill) 70%, #000) 78%, color-mix(in srgb, var(--meter-fill) 45%, #000) 100%);
+    filter: saturate(1.15);
+    box-shadow: inset -1px 0 0 color-mix(in srgb, var(--meter-fill-bright) 60%, transparent), 0 0 10px color-mix(in srgb, var(--meter-fill) 60%, transparent);
+    transition: clip-path 320ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .dnd-meter-sheen {
     position: absolute;
     top: 0;
     left: 0;
-    height: 45%;
-    background: linear-gradient(180deg, var(--sheen-strong), transparent);
-    transition: width 320ms ease-out;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, transparent 0%, transparent 22%, var(--sheen-strong) 34%, var(--sheen) 60%, transparent 100%);
+    transition: clip-path 320ms cubic-bezier(0.16, 1, 0.3, 1);
     pointer-events: none;
   }
 
@@ -168,6 +176,7 @@
   .dnd-meter-label {
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
     padding-inline-start: var(--space-3);
@@ -177,46 +186,50 @@
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
     color: var(--ink);
-    text-shadow: 0 1px 2px var(--shade-hard);
+    text-shadow: 0 1px 0 #000, 0 0 3px #000;
     pointer-events: none;
   }
 
   .dnd-meter-value {
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding-inline-end: var(--space-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-figures);
     font-size: var(--text-xs);
+    font-weight: 700;
+    line-height: 1;
     color: var(--ink);
-    text-shadow: 0 1px 2px var(--shade-hard);
+    text-shadow: 0 1px 0 #000, 0 0 3px #000, 0 0 6px #000;
     pointer-events: none;
   }
 
   .dnd-meter-slash {
     color: var(--ink-faint);
-    padding: 0 2px;
+    padding: 0 0.12rem;
   }
 
   .dnd-meter-cap {
     position: absolute;
     top: 50%;
-    width: 12px;
-    height: 12px;
+    z-index: 2;
+    width: 0.56rem;
+    height: 0.56rem;
     transform: translateY(-50%) rotate(45deg);
-    background: linear-gradient(135deg, var(--metal-bright), var(--metal-dim));
-    box-shadow: var(--glow-metal);
+    background: linear-gradient(135deg, var(--metal-bright), var(--metal) 45%, var(--metal-dim));
+    box-shadow: 0 0 0 1px var(--keyline), 0 1px 2px var(--shade-hard);
     pointer-events: none;
   }
 
   .dnd-meter-cap-start {
-    left: -6px;
+    left: -0.28rem;
   }
 
   .dnd-meter-cap-end {
-    right: -6px;
+    right: -0.28rem;
   }
 
   .dnd-meter-rune ~ .dnd-meter-cap-start {

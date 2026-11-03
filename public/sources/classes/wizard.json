@@ -8,6 +8,7 @@
   ],
   "image": "/sources/art/classes/wizard.svg",
   "hitDie": 6,
+  "casting": "full",
   "primaryAbility": [
     "INT"
   ],

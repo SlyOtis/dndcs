@@ -36,6 +36,8 @@ const pending = new Map<number, (answer: Frame | ArrayBuffer) => void>()
 let selfId = ''
 let swarmId = ''
 let ticket = 1
+let seats = 0
+let leaveSeat: (() => void) | null = null
 
 function getSelfId(): string {
   const uid = auth.currentUser?.uid
@@ -163,9 +165,23 @@ async function readSignal(from: string, kind: string, payload: any): Promise<voi
   await peer.connection.addIceCandidate(payload).catch(() => {})
 }
 
+function leaveHeld(): void {
+  seats = Math.max(0, seats - 1)
+  if (seats > 0) return
+  leaveSeat?.()
+  leaveSeat = null
+}
+
 export function joinSwarm(campaignId: string): () => void {
+  if (swarmId === campaignId && leaveSeat) {
+    seats++
+    return leaveHeld
+  }
+
+  leaveSeat?.()
   selfId = getSelfId()
   swarmId = campaignId
+  seats = 1
 
   const seat = doc(db, getPeersPath(campaignId), selfId)
   const beat = () =>
@@ -202,7 +218,7 @@ export function joinSwarm(campaignId: string): () => void {
     }, error: () => (stopped = true) })
   ]
 
-  return () => {
+  leaveSeat = () => {
     clearInterval(timer)
     for (const stop of watchers) stop()
     for (const peer of peers.values()) peer.connection.close()
@@ -211,6 +227,8 @@ export function joinSwarm(campaignId: string): () => void {
     selfId = ''
     swarmId = ''
   }
+
+  return leaveHeld
 }
 
 function ask<T extends Frame | ArrayBuffer>(peer: Peer, send: (id: number) => void): Promise<T | null> {
