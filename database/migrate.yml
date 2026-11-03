@@ -32,3 +32,14 @@ steps:
     include:
       - path: system/
         fallback: /database/system/
+
+  - name: Debug
+    type: seed
+    slug: debug
+    schemas: [public, claimius]
+    if: '[ -n "$SAUTH_DEBUG_USER_ID" ]'
+    vars:
+      debug_user_id: $SAUTH_DEBUG_USER_ID
+    include:
+      - path: debug/
+        fallback: /database/debug/

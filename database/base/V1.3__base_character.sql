@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS character (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL,
     campaign_id     UUID REFERENCES campaign(id),
-    party_id        UUID REFERENCES party(id),
     sheet           JSONB NOT NULL DEFAULT '{}'::jsonb,
     metadata        JSONB NOT NULL DEFAULT '{}'::jsonb,
     sources         JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -14,15 +14,15 @@ CREATE TABLE IF NOT EXISTS character (
     sa_deleted_at   TIMESTAMPTZ
 );
 
+CREATE INDEX IF NOT EXISTS idx_character_user ON character (user_id, sa_updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_character_campaign ON character (campaign_id);
-CREATE INDEX IF NOT EXISTS idx_character_party ON character (party_id);
 
 COMMENT ON TABLE character IS 'A player character: the sheet the rules engine resolves, its summary and the sources it was imported from';
 COMMENT ON COLUMN character.id IS 'The character id';
+COMMENT ON COLUMN character.user_id IS 'The player the character belongs to';
 COMMENT ON COLUMN character.campaign_id IS 'The campaign the character plays in, when it plays in one';
-COMMENT ON COLUMN character.party_id IS 'The party the character travels with, when it has one';
 COMMENT ON COLUMN character.sheet IS 'The whole character as the rules engine reads it';
-COMMENT ON COLUMN character.metadata IS 'Name, level, class, race, status, tags and version shown in lists';
+COMMENT ON COLUMN character.metadata IS 'Name, level, class, race, status, tags, version and the template flag shown in lists';
 COMMENT ON COLUMN character.sources IS 'The documents the character was imported from';
 COMMENT ON COLUMN character.is_public IS 'Whether anyone signed in may read the sheet';
 COMMENT ON COLUMN character.last_played_at IS 'When the sheet was last opened at the table';

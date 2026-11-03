@@ -8,6 +8,7 @@ COMMENT ON TYPE catalog_kind IS 'The kinds of shared catalog entries';
 CREATE TABLE IF NOT EXISTS catalog_entry (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     kind           catalog_kind NOT NULL,
+    user_id        UUID NOT NULL,
     slug           TEXT NOT NULL,
     name           TEXT NOT NULL DEFAULT '',
     description    TEXT NOT NULL DEFAULT '',
@@ -26,6 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_catalog_entry_digest ON catalog_entry (digest);
 COMMENT ON TABLE catalog_entry IS 'A class or race read from an uploaded source and shared with every signed in player beside the bundled catalog';
 COMMENT ON COLUMN catalog_entry.id IS 'The entry id';
 COMMENT ON COLUMN catalog_entry.kind IS 'classes or races';
+COMMENT ON COLUMN catalog_entry.user_id IS 'The player whose upload the entry was read from';
 COMMENT ON COLUMN catalog_entry.slug IS 'The address name of the entry';
 COMMENT ON COLUMN catalog_entry.name IS 'The display name';
 COMMENT ON COLUMN catalog_entry.description IS 'What the entry is';

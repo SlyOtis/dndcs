@@ -79,6 +79,8 @@ github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsRe
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/nimling/nimbody v1.0.4 h1:zHKH/CtgjVp1Q20fqIml7I4Vj0dS9XsR2s1oJjpj1/A=
 github.com/nimling/nimbody v1.0.4/go.mod h1:P+qiBlOF+jkBGDnXgmnV00jlZ11KPpY11TcRQp9ycFw=
+github.com/nimling/nimbody v1.14.1 h1:B5dxQn2frhtZVzqvaoDDOUbrrU+kmwFx1VWelB7n5Cg=
+github.com/nimling/nimbody v1.14.1/go.mod h1:GaRn1Ju777p1uEJVc/xP7fQfvUlDmbBjgoTMCLyXJus=
 github.com/nimling/nimtel v0.0.4 h1:ikJEURQF3Wqg8RihU/UTzQ5zMkdYt7QY30vcLR2KGlo=
 github.com/nimling/nimtel v0.0.4/go.mod h1:PYkXZN1oB/0jc38WJjxdAzklt6a/zL67HSyzMGKe950=
 github.com/nimling/samna-auth-middleware/v2 v2.0.0-alpha0111 h1:KxRf90iCkRfCrDg3YtV8AYq29HW6TtQvNQB4/mKPAw4=
