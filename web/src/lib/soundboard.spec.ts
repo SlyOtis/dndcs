@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const storage = vi.hoisted(() => ({
-  postFile: vi.fn(() => Promise.resolve('file:users/lars/files/1757-a1.mp3')),
+  postFile: vi.fn(() => Promise.resolve({ id: 'a1', url: '/api/asset/a1/data', name: 'Door Creak.mp3', mimeType: 'audio/mpeg' })),
   getFileUrl: vi.fn(() => Promise.resolve('/media/users/lars/files/1757-a1.mp3'))
 }))
 
@@ -46,7 +46,7 @@ describe('a sound clip', () => {
     const clip = await postSoundClip('', file)
 
     expect(storage.postFile).toHaveBeenCalledWith(file, { kind: 'user' })
-    expect(clip).toMatchObject({ name: 'Door Creak', address: 'file:users/lars/files/1757-a1.mp3', duration: 2.5 })
+    expect(clip).toMatchObject({ name: 'Door Creak', address: '/api/asset/a1/data', duration: 2.5 })
     expect(clip).not.toHaveProperty('audioData')
   })
 

@@ -216,7 +216,7 @@
     input.value = ''
     if (!file) return
 
-    const address = await postFile(file, { kind: 'user' })
+    const { url: address } = await postFile(file, { kind: 'user' })
     info.update((state) => ({...state, imageUrl: address}))
   }
 

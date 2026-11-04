@@ -1,4 +1,5 @@
-import { deleteApi, getApi, getCsrfHeaders, getSession } from './api'
+import { deleteApi, getApi, getCsrfHeaders, getQuery, getSession } from './api'
+import type { MediaAsset, MediaKind } from './blocks'
 
 
 const LOCAL_PREFIX = 'local:'
@@ -6,6 +7,14 @@ const FILE_PREFIX = 'file:'
 const BLOB_PREFIX = 'blob:'
 const ASSET_ROOT = '/api/asset'
 const ASSET_ADDRESS = /^\/api\/asset\/([0-9a-f-]+)\/data$/
+const FOLDER_TYPE = 'inode/directory'
+const MEDIA_TYPES: Record<MediaKind, string> = {
+  image: 'image/*',
+  video: 'video/*',
+  audio: 'audio/*',
+  pdf: 'application/pdf',
+  file: '*/*'
+}
 
 export type UploadScope =
   | { kind: 'user' }
@@ -20,6 +29,9 @@ export interface FileRecord {
   size_bytes: number
   etag: string
   uploaded_by: string
+  parent_id: string
+  slug: string | null
+  tags?: { name: string }[]
 }
 
 export class UploadError extends Error {
@@ -59,6 +71,41 @@ export function getMediaUrl(id: string): string {
   return `${ASSET_ROOT}/${id}/data`
 }
 
+function getMediaAsset(asset: FileRecord): MediaAsset {
+  return { id: asset.id, url: getMediaUrl(asset.id), name: asset.name, mimeType: asset.mime_type }
+}
+
+export function getAssetTab(assetId: string): void {
+  window.open(getMediaUrl(assetId), '_blank', 'noopener')
+}
+
+export async function getAssets(query: string, kind: MediaKind, scope: UploadScope): Promise<MediaAsset[]> {
+  const words = query.split(/\s+/).filter(Boolean)
+  const tags = words.filter((word) => word.startsWith('#') && word.length > 1).map((word) => word.slice(1).toLowerCase())
+  const named = words.filter((word) => !word.startsWith('#')).join(' ')
+
+  const [found, folders] = await Promise.all([
+    getApi<FileRecord[]>(`/asset${getQuery({ q: named, mime_type: MEDIA_TYPES[kind] })}`),
+    getApi<FileRecord[]>(`/asset${getQuery({ mime_type: FOLDER_TYPE })}`)
+  ])
+
+  const home = scope.kind === 'user' ? `user-${getUserId()}` : `campaign-${scope.campaignId}`
+  const held = (found ?? [])
+    .filter((asset) => asset.mime_type !== FOLDER_TYPE)
+    .filter((asset) => tags.every((tag) => (asset.tags ?? []).some((one) => one.name.toLowerCase().includes(tag))))
+    .sort((a, b) => a.name.localeCompare(b.name))
+  const shelves = [...(folders ?? [])].sort((a, b) => Number(b.slug === home) - Number(a.slug === home) || a.name.localeCompare(b.name))
+  const loose = held.filter((asset) => !shelves.some((folder) => folder.id === asset.parent_id))
+
+  return [
+    ...loose.map(getMediaAsset),
+    ...shelves.flatMap((folder) => {
+      const inside = held.filter((asset) => asset.parent_id === folder.id)
+      return inside.length > 0 ? [folder, ...inside].map(getMediaAsset) : []
+    })
+  ]
+}
+
 export async function getFileRecord(address: string): Promise<FileRecord | null> {
   if (!isFileRecord(address)) return null
 
@@ -80,7 +127,7 @@ export async function getFileUrl(address: string): Promise<string> {
   return address
 }
 
-export async function postFile(file: File, scope: UploadScope): Promise<string> {
+export async function postFile(file: File, scope: UploadScope): Promise<MediaAsset> {
   getUserId()
 
   if (scope.kind === 'campaignMap' && !file.type.startsWith('image/')) {
@@ -109,7 +156,7 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
     throw new UploadError(envelope?.error?.message ?? `The file was refused (${answer?.status ?? 'no answer'}).`)
   }
 
-  return getMediaUrl(envelope.data.id)
+  return getMediaAsset(envelope.data)
 }
 
 

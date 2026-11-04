@@ -65,6 +65,14 @@
     | 'potion'
     | 'gem'
     | 'chest'
+
+  export function getMimeGlyph(mimeType: string): GlyphName {
+    if (mimeType.startsWith('image/')) return 'picture'
+    if (mimeType.startsWith('video/')) return 'play'
+    if (mimeType.startsWith('audio/')) return 'sound'
+    if (mimeType === 'application/pdf') return 'scroll'
+    return 'sources'
+  }
 </script>
 
 <svg

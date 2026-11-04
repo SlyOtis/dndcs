@@ -164,7 +164,7 @@
     busy = true
     error = null
     try {
-      const url = await postFile(file, { kind: 'user' })
+      const { url } = await postFile(file, { kind: 'user' })
       await userService.updateProfile({ photo_url: url })
 
       saved = 'Picture updated.'

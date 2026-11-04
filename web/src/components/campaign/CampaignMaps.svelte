@@ -98,7 +98,7 @@
     busy = true
     error = null
     try {
-      const url = await postFile(file, { kind: 'campaignMap', campaignId })
+      const { url } = await postFile(file, { kind: 'campaignMap', campaignId })
       selectedId = await campaignService.postMap(campaignId, {
         title: title.trim() || file.name.replace(/\.[^.]+$/, ''),
         image_url: url
@@ -120,7 +120,7 @@
     busy = true
     error = null
     try {
-      const url = await postFile(file, { kind: 'campaignMap', campaignId })
+      const { url } = await postFile(file, { kind: 'campaignMap', campaignId })
       const previous = selected.layers[selected.layers.length - 1]
       const layer: MapLayer = {
         id: `${Date.now()}`,

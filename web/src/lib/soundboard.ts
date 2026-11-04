@@ -20,7 +20,7 @@ function getDuration(audioFile: File): Promise<number | undefined> {
 }
 
 export async function postSoundClip(name: string, audioFile: File): Promise<SoundClip> {
-  const [address, duration] = await Promise.all([postFile(audioFile, { kind: 'user' }), getDuration(audioFile)]);
+  const [{ url: address }, duration] = await Promise.all([postFile(audioFile, { kind: 'user' }), getDuration(audioFile)]);
 
   return {
     id: `clip_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

@@ -325,7 +325,7 @@
   /** Stores a file the editor made, through the one uploader the app keeps. */
   async function keepFile(file: File) {
     try {
-      return await postFile(file, campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })
+      return (await postFile(file, campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })).url
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
       return undefined
@@ -405,7 +405,7 @@
     busy = true
     error = null
     try {
-      const address = await postFile(file, { kind: 'campaignMap', campaignId })
+      const { url: address } = await postFile(file, { kind: 'campaignMap', campaignId })
       one.images = [...one.images, address]
       if (!one.image) one.image = address
       if (!writing) {

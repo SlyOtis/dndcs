@@ -211,7 +211,7 @@
     error = null;
 
     try {
-      creationData.imageUrl = await postFile(file, { kind: 'user' });
+      creationData.imageUrl = (await postFile(file, { kind: 'user' })).url;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason);
     }
@@ -236,7 +236,7 @@
     error = null;
 
     try {
-      creationData.backgroundUrl = await postFile(file, { kind: 'user' });
+      creationData.backgroundUrl = (await postFile(file, { kind: 'user' })).url;
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason);
     }
