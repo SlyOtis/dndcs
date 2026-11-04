@@ -416,7 +416,7 @@ func PostResourceUpdate(ctx echo.Context) error {
 		return respond.Error(ctx, http.StatusBadRequest, "body required")
 	}
 	rctx := ctx.Request().Context()
-	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_READ); err != nil {
+	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_WRITE); err != nil {
 		if errors.Is(err, sdb.ErrNotFound) {
 			return respond.Error(ctx, http.StatusNotFound, "Not found")
 		}
@@ -445,7 +445,7 @@ func PutResourceUpdates(ctx echo.Context) error {
 		return respond.Error(ctx, http.StatusBadRequest, "body required")
 	}
 	rctx := ctx.Request().Context()
-	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_READ); err != nil {
+	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_WRITE); err != nil {
 		if errors.Is(err, sdb.ErrNotFound) {
 			return respond.Error(ctx, http.StatusNotFound, "Not found")
 		}
@@ -476,7 +476,7 @@ func DeleteResourceUpdates(ctx echo.Context) error {
 		return respond.Error(ctx, http.StatusBadRequest, "Invalid id, expected UUID")
 	}
 	rctx := ctx.Request().Context()
-	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_READ); err != nil {
+	if _, err := sdb.Instance().MutationAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE, sdb.ACCESS_WRITE); err != nil {
 		if errors.Is(err, sdb.ErrNotFound) {
 			return respond.Error(ctx, http.StatusNotFound, "Not found")
 		}

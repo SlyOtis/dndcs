@@ -263,6 +263,52 @@ func TestAPageIsReadByThoseItIsSharedWith(t *testing.T) {
 	}
 }
 
+func TestALiveEditNeedsWriteOnItsPage(t *testing.T) {
+	requireStack(t)
+	ensureProfile(t, player, "pip@dndcs.local")
+	status, made := call(t, dungeonMaster, http.MethodPost, "/api/resource", `{"kind":"entries","title":"Shared draft"}`, nil, handler.PostResource)
+	if status != http.StatusCreated {
+		t.Fatalf("PostResource: %d %+v", status, made.Error)
+	}
+	resourceID := id(t, made)
+	params := map[string]string{"id": resourceID}
+	target := "/api/resource/" + resourceID + "/update"
+	if status, answer := call(t, dungeonMaster, http.MethodPut, "/", `{"share_users":["`+player.String()+`"]}`, params, handler.PutResource); status != http.StatusOK {
+		t.Fatalf("PutResource share: %d %+v", status, answer.Error)
+	}
+
+	status, posted := call(t, dungeonMaster, http.MethodPost, target, `{"body":"AQID"}`, params, handler.PostResourceUpdate)
+	if status != http.StatusCreated {
+		t.Fatalf("the owner was refused a live edit: %d %+v", status, posted.Error)
+	}
+	if status, answer := call(t, player, http.MethodGet, target, "", params, handler.GetResourceUpdates); status != http.StatusOK || !listed(t, answer, id(t, posted)) {
+		t.Fatalf("a reader was refused the page's updates: %d", status)
+	}
+	if status, _ := call(t, player, http.MethodPost, target, `{"body":"BAUG"}`, params, handler.PostResourceUpdate); status != http.StatusForbidden {
+		t.Fatalf("a reader posted a live edit: %d", status)
+	}
+	if status, _ := call(t, player, http.MethodPut, target, `{"body":"BAUG"}`, params, handler.PutResourceUpdates); status != http.StatusForbidden {
+		t.Fatalf("a reader replaced the live edits: %d", status)
+	}
+	if status, _ := call(t, player, http.MethodDelete, target, "", params, handler.DeleteResourceUpdates); status != http.StatusForbidden {
+		t.Fatalf("a reader cleared the live edits: %d", status)
+	}
+
+	if status, answer := call(t, dungeonMaster, http.MethodGet, target, "", params, handler.GetResourceUpdates); status != http.StatusOK || !listed(t, answer, id(t, posted)) {
+		t.Fatalf("the owner was refused the page's updates: %d", status)
+	}
+	status, replaced := call(t, dungeonMaster, http.MethodPut, target, `{"body":"BwgJ"}`, params, handler.PutResourceUpdates)
+	if status != http.StatusOK {
+		t.Fatalf("the owner was refused replacing the live edits: %d %+v", status, replaced.Error)
+	}
+	if status, _ := call(t, dungeonMaster, http.MethodDelete, target, "", params, handler.DeleteResourceUpdates); status != http.StatusOK {
+		t.Fatalf("the owner was refused clearing the live edits: %d", status)
+	}
+	if status, answer := call(t, player, http.MethodGet, target, "", params, handler.GetResourceUpdates); status != http.StatusOK || listed(t, answer, id(t, replaced)) {
+		t.Fatalf("cleared live edits are still read: %d", status)
+	}
+}
+
 func TestAPageSharedWithACampaignReachesItsTable(t *testing.T) {
 	requireStack(t)
 	campaignID := postCampaign(t)
