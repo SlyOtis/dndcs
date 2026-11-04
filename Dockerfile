@@ -1,7 +1,7 @@
 FROM node:22-alpine AS web-builder
 WORKDIR /web
-COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml web/.npmrc ./
-RUN --mount=type=secret,id=node_auth_token corepack enable pnpm && NODE_AUTH_TOKEN="$(cat /run/secrets/node_auth_token)" pnpm install --frozen-lockfile
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 COPY web/ .
 RUN pnpm build
 
