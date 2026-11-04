@@ -9,7 +9,7 @@ paths:
   - "web/src/lib/firestore.types.ts"
   - "web/src/lib/storage.service.ts"
   - "web/src/lib/collab.ts"
-  - "web/src/lib/swarm.ts"
+  - "web/src/lib/ai.ts"
 ---
 
 ## Casing
@@ -22,16 +22,16 @@ The schema and the api are snake_case throughout: `user_id`, `campaign_id`, `par
 
 `database/base/` holds them, one file per concern, migrated by smig through `database/migrate.yml` after the claimius schema of `samna-auth-middleware`. Every table that holds what a player owns carries the claimius columns (`sa_owner_id`, `sa_created_by`, `sa_created_at`, `sa_updated_at`, `sa_deleted_at`) and ends with `SELECT claimius.upsert_table_info('public.<table>')`, so claims can bind it. `sa_owner_id` is always the Knights of the Cauldron organization, `SERVER_OWNER_ID`. A delete is soft: it sets `sa_deleted_at`.
 
-- `profile`: a player's name, picture, preferences and friends, and `details`, the integration keys.
+- `profile`: a player's name, picture, preferences and friends, and `key_claim_id`, the claim their integration keys are bound to.
 - `character` and its sources: the sheet as stored data.
 - `party`: a party stands on its own, with its `character_ids` and its `member_claim_id`.
 - `campaign`: identity, settings, `party_ids`, and the `dm_claim_id` and `player_claim_id` of its table.
-- Under a campaign by `campaign_id`: `campaign_map`, `encounter`, `chat_entry`, `song`, and the runtime `peer` and `signal`.
+- Under a campaign by `campaign_id`: `campaign_map`, `encounter`, `chat_entry` and `song`.
 - `resource`: every kind of lore, by `kind`, with `title`, the rest of the page in `fields`, a `campaign_id` when a campaign keeps it, and sub pages through `sa_parent_id` and `sa_root_id`. `resource_update` holds the Yjs updates of live editing.
-- `file` and `file_piece`: uploads.
+- `file`: an upload's record; its bytes sit in blob storage under `storage_key`.
 - `catalog_entry`: the shared class and race readings.
 
-`public.prune` ages only the runtime rows, `peer` and `signal`. Application data is never aged.
+Every table holds application data, so nothing is aged and there is no `public.prune`.
 
 ## The campaign is the story
 
@@ -59,13 +59,13 @@ There is no rule file and no readers list. Access is a claim bound to the row, g
 - A party makes **Party members**, read, granted to its members.
 - A sheet that joins a campaign is bound DM read and write and Players read, and loses both when it leaves.
 - Sharing is `share_users`, `share_campaigns` and `share_parties` on a resource, an encounter or a song. A shared campaign binds its DM and Players claims read, a shared party its Party members claim, and the named players get the row's own **Readers** claim, `reader_claim_id`. Every change reconciles the bindings and the grants in the same transaction. Sharing binds the DM too: a page the owner did not share is hidden from the DM.
-- Integration keys in `profile.details` are answered only with write on the profile, which only its owner holds.
+- A player's integration keys are Samna Auth secrets bound to their own **Keys** claim, made the first time they save a key and held by them alone. The api answers only which keys are held; the service opens a key only to call that integration for its owner.
 
 A claim, a binding or a grant is made only through the claim helpers in `internal/handler/share.go` and the claim routes, never by SQL against claimius.
 
 ## The api
 
-`cmd/main.go` mounts every route under `/api`, behind the Samna Auth user middleware: `/profile`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song`, `chat`, `peer` and `signal`, `/resource` with its `update`, `/file`, `/catalog`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware.
+`cmd/main.go` mounts every route under `/api`, behind the Samna Auth user middleware: `/profile` with its `details`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song` and `chat`, `/resource` with its `update`, `/file` with its `data`, `/ai`, `/catalog`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware.
 
 On the web, `web/src/lib/api.ts` holds the fetch envelope, the session and `getStream`. The service objects in `firestore.service.ts` (`userService`, `characterService`, `partyService`, `campaignService`) keep their exported names and call the api; a new read or write is a typed method beside the others, never a second helper.
 
@@ -75,27 +75,25 @@ Function names start with `get`, `post`, `put` or `delete`, in Go and in TypeScr
 
 `internal/broker` is the one event path. A write posts an event after it succeeds: the event goes at once to the streams on the same instance and through `NOTIFY` on `dndcs_event` to the others, and every instance skips the events it sent itself. An event carries a topic, a kind, an id and an op, never a row.
 
-The streams are `/api/campaign/:id/stream`, `/api/profile/stream` and `/api/resource/:id/stream`, server-sent events with a heartbeat and a retry. Opening one needs read like the matching REST read, and every event is checked again before it is sent, so a hidden roll never reaches a player's stream and a signal reaches only its own seat.
+The streams are `/api/campaign/:id/stream`, `/api/profile/stream`, `/api/resource/:id/stream`, `/api/character/:id/stream` and `/api/party/:id/stream`, server-sent events with a heartbeat and a retry. Opening one needs read like the matching REST read, and every event is checked again before it is sent, so a hidden roll never reaches a player's stream and a sheet's changes reach only those who read the sheet.
 
-On the web a listener (`postChatListener`, `postMapsListener`, `postEncountersListener`, `postSongsListener`, `subscribeToProfile`, the updates in `collab.ts`, the peers and signals in `swarm.ts`) shares one EventSource per stream and reloads through its REST getter on connect and on every event of its kind, so what it shows always matches the api.
+A broker counts as started only once its own notify has come back through its listener, because a `LISTEN` the driver has written is not yet active on the server; an instance that answers before then would miss what another instance sends.
+
+On the web a listener (`postChatListener`, `postMapsListener`, `postEncountersListener`, `postSongsListener`, `postCharactersListener`, `subscribeToProfile`, `subscribeToCharacter`, `subscribeToParty`, the updates in `collab.ts`) shares one EventSource per stream and reloads through its REST getter on connect and on every event of its kind, so what it shows always matches the api.
 
 ## Uploads
 
-Every upload goes through `postFile` in `web/src/lib/storage.service.ts` with a scope of `user`, `campaignMap` or `campaignAudio`. It checks the signed in player, the content type and the size. Never write a file any other way.
+Every upload goes through `postFile` in `web/src/lib/storage.service.ts` with a scope of `user`, `campaignMap` or `campaignAudio`. It checks the signed in player and the content type, posts the `file` record to `/api/file`, then puts the bytes to `/api/file/data`. Never write a file any other way.
 
-A `file` row names its `path`, a `file:` address, with `name`, `type`, `size`, `etag` and `count`. A campaign file's path sits under that campaign's files, and the row is bound to the campaign's claims like the rest of the campaign. `etag` is the version: it changes when the bytes change.
+A `file` row names its `path`, a `file:` address, with `name`, `type`, `size`, `etag` and `storage_key`. A campaign file's path sits under that campaign's files and a player's own under their own; the row is bound to the campaign's claims like the rest of the campaign. The service sets `size` and `etag`, the SHA-256 of the original, when the bytes are stored, so `etag` is the version: it changes when the bytes change.
 
-`count` is what the table can see without the owner. An image is re-encoded to 1600px WebP at 0.82 and stored as `file_piece` rows of base64, so `count` is the number of pieces. Audio and video have no downscale and carry `count: 0`.
+`/api/file/data` carries the original, stored in blob storage. A put needs write on the file and is refused with 413 past `FILE_MAX_BYTES`. A get or head needs read on the file and answers with the `ETag`, a 304 for a matching `If-None-Match`, and a 206 for a byte range, so audio and video stream. Every player reads the original; there is no downscaled copy.
 
-`blocks` is the original split at `block_size`, each block hashed SHA-256 and held base64, and describes the original, never the floor.
+An address held on a row is a hosted URL, a `file:` address, or a `local:` reference left by an older upload. `getFileUrl` resolves a `file:` address to its `/api/file/data` url and a `local:` one to nothing. Render it with `StoredImage`, never a bare `<img src>`, and remember its scoped CSS needs `:global(img)`.
 
-An address held on a row is a hosted URL, a `file:` address, or a `local:` reference left by an older upload. `getFileUrl` resolves it. Render it with `StoredImage`, never a bare `<img src>`, and remember its scoped CSS needs `:global(img)`.
+## AI
 
-## The swarm
-
-`web/src/lib/swarm.ts` is the mesh that carries originals between players. A player at a campaign takes a seat through `/api/campaign/:id/peer` and beats every 20s, and a seat unseen for 60s is ignored. Offers, answers and candidates pass through `/api/campaign/:id/signal` and are deleted as they are read. The peer with the lower id offers, so a pair connects once. STUN is Google's and there is no TURN, so a pair behind symmetric NAT will not connect and the floor is what they get.
-
-The api carries presence and signals and nothing else. Block availability is asked over the data channel, `have?` answered with `have`, `want` answered with a binary frame whose first four bytes are the request id. Every block is checked against its hash before it is kept, and a block that fails is dropped and asked of the next holder, so a bad peer cannot poison a file.
+`/api/ai/*` is the one way to Replicate. It opens the calling player's Replicate key, passes the call on to `REPLICATE_ENDPOINT` with it, and streams the answer back; without a key it answers 412. `ai.ts`, `chat.ts` and the transcription in `Chat.svelte` call it and never carry a key.
 
 ## Sign in
 
