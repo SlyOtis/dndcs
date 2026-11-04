@@ -1,18 +1,18 @@
 ---
 description: How a component is authored, which primitive owns which job, and where a value comes from
 paths:
-  - "src/components/**"
-  - "src/pages/**"
-  - "src/app.css"
+  - "web/src/components/**"
+  - "web/src/pages/**"
+  - "web/src/app.css"
 ---
 
 ## Choosing
 
-`src/components/ui/` holds the primitives. `Button` is the only button. `Field` wraps every form control and styles the input it holds. `BaseDialog` is the only dialog shell. Reach for the primitive before writing an element.
+`web/src/components/ui/` holds the primitives. `Button` is the only button. `Field` wraps every form control and styles the input it holds. `BaseDialog` is the only dialog shell. Reach for the primitive before writing an element.
 
 A component that looks wrong is fixed with a prop or in the component. Never a wrapper div with flex, padding or width to make it size, and never reach past it.
 
-A component that does not exist is authored in `src/components/ui/` and then consumed. Prove first that it is missing, and second that it cannot be composed from what is there.
+A component that does not exist is authored in `web/src/components/ui/` and then consumed. Prove first that it is missing, and second that it cannot be composed from what is there.
 
 ## Authoring
 
@@ -24,11 +24,11 @@ Never declare `style` or `class` as a prop name.
 
 ## Look
 
-Colour, spacing, radius, type, shadow, border width and the focus ring come from the tokens in `src/app.css`. No literal colour values anywhere.
+Colour, spacing, radius, type, shadow, border width and the focus ring come from the tokens in `web/src/app.css`. No literal colour values anywhere.
 
-`src/app.css` holds five themes: medieval, forest, fire, arcane and ocean. A theme is a token re-declaration under `[data-theme]` and no component knows which one is active.
+`web/src/app.css` holds five themes: medieval, forest, fire, arcane and ocean. A theme is a token re-declaration under `[data-theme]` and no component knows which one is active.
 
-`src/lib/dialogs/theme.ts` owns the theme list and the `dnd_theme` key. `getTheme` and `setTheme` are the only way a theme is read or applied. Never write `data-theme` or the key directly.
+`web/src/lib/dialogs/theme.ts` owns the theme list and the `dnd_theme` key. `getTheme` and `setTheme` are the only way a theme is read or applied. Never write `data-theme` or the key directly.
 
 ## Accessibility
 

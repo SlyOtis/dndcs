@@ -1,8 +1,8 @@
 ---
 description: Which button primitive a control uses, and when a control carries a frame at all
 paths:
-  - "src/components/**"
-  - "src/pages/**"
+  - "web/src/components/**"
+  - "web/src/pages/**"
 ---
 
 ## The four
