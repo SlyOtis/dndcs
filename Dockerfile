@@ -34,7 +34,7 @@ RUN if [ -n "$GH_REPO_TOKEN" ]; then \
     fi
 ENV GOPRIVATE=github.com/nimling/*
 ENV GOSUMDB=off
-RUN go install -ldflags "-X github.com/nimling/samna-migrate/pkg/cli.Version=v1.5.12" github.com/nimling/samna-migrate/cmd@v1.5.12 \
+RUN go install -ldflags "-X github.com/nimling/samna-migrate/pkg/cli.Version=v1.5.13" github.com/nimling/samna-migrate/cmd@v1.5.13 \
     && mv /go/bin/cmd /go/bin/smig
 
 FROM alpine:latest AS migrate
