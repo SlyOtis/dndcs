@@ -9,7 +9,7 @@ import blockEditorSource from '../components/ui/BlockEditor.svelte?raw'
 import blockReaderSource from '../components/ui/BlockReader.svelte?raw'
 import mediaDialogSource from '../components/MediaDialog.svelte?raw'
 
-const wire = vi.hoisted(() => ({ reads: [] as string[], deletes: [] as string[], answers: {} as Record<string, unknown> }))
+const wire = vi.hoisted(() => ({ reads: [] as string[], deletes: [] as string[], posts: [] as { path: string; body: unknown }[], answers: {} as Record<string, unknown> }))
 
 vi.mock('./api', async (original) => ({
   ...(await original<typeof import('./api')>()),
@@ -21,6 +21,10 @@ vi.mock('./api', async (original) => ({
   },
   deleteApi: (path: string) => {
     wire.deletes.push(path)
+    return Promise.resolve(null)
+  },
+  postApi: (path: string, body: unknown) => {
+    wire.posts.push({ path, body })
     return Promise.resolve(null)
   },
   getCsrfHeaders: () => ({ 'SAuth-CSRF-Token': 'tok' })
@@ -37,6 +41,7 @@ import {
   isFileRecord,
   isStoredFile,
   postFile,
+  putAttachments,
   UploadError
 } from './storage.service'
 
@@ -318,5 +323,39 @@ describe('the media the pick tab lists', () => {
     const listed = await getAssets('', 'file', { kind: 'user' })
 
     expect(listed.map((one) => one.id)).toEqual(['i-gift', 'f-own', 'i-keep', 'f-blackwood', 'i-ruin'])
+  })
+})
+
+describe('the media a page attaches', () => {
+  afterEach(() => {
+    wire.reads = []
+    wire.deletes = []
+    wire.posts = []
+    wire.answers = {}
+  })
+
+  const page = 'r1'
+  const content = [
+    '![The keep](/api/asset/0a1/data)',
+    '[video: The ambush](/api/asset/0b2/data)',
+    '```file {"assetId":"0c3","name":"charter.txt","url":"/api/asset/0c3/data","mimeType":"text/plain"}\n\n```',
+    '```columns\n![](/api/asset/0d4/data)\n---\nRight\n```',
+    '![Old](file:users/lars/files/1-a.webp)'
+  ].join('\n\n')
+
+  it('attaches every asset a block names and detaches the ones no block names any more', async () => {
+    wire.answers = { '/asset/object?object_type=resource&object_id=r1': [{ id: 'l1', asset_id: '0a1' }, { id: 'l9', asset_id: '0f9' }] }
+
+    await putAttachments(page, content)
+
+    expect(wire.reads).toEqual(['/asset/object?object_type=resource&object_id=r1'])
+    expect(wire.posts.map((one) => one.path).sort()).toEqual(['/asset/0b2/object', '/asset/0c3/object', '/asset/0d4/object'])
+    expect(wire.posts[0].body).toEqual({ object_type: 'resource', object_id: 'r1' })
+    expect(wire.deletes).toEqual(['/asset/0f9/object/l9'])
+  })
+
+  it('follows the page on every save of the shell', () => {
+    expect(resourceShellSource).toContain('await putAttachments(id, one.content)')
+    expect(resourceShellSource).toContain('await putAttachments(recordId, one.content)')
   })
 })

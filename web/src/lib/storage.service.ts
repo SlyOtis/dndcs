@@ -1,5 +1,5 @@
-import { deleteApi, getApi, getCsrfHeaders, getQuery, getSession } from './api'
-import type { MediaAsset, MediaKind } from './blocks'
+import { deleteApi, getApi, getCsrfHeaders, getQuery, getSession, postApi } from './api'
+import { getColumns, getDocument, type Block, type MediaAsset, type MediaKind } from './blocks'
 
 
 const LOCAL_PREFIX = 'local:'
@@ -164,4 +164,27 @@ export async function deleteFile(address: string): Promise<void> {
   if (!isFileRecord(address)) return
 
   await deleteApi(`/asset/${getAssetId(address)}`)
+}
+
+function getBlockAssets(blocks: Block[]): string[] {
+  return blocks.flatMap((block) => {
+    if (block.kind === 'columns') return getColumns(block.text).flatMap((column) => getBlockAssets(getDocument(column).blocks))
+    const address = block.kind === 'file' ? getMediaUrl(block.options.assetId ?? '') : block.kind === 'map' ? block.text.trim() : (block.options.src ?? '')
+    const id = getAssetId(address)
+    return id ? [id] : []
+  })
+}
+
+export async function putAttachments(resourceId: string, content: string): Promise<void> {
+  const wanted = new Set(getBlockAssets(getDocument(content).blocks))
+  const held = (await getApi<{ id: string; asset_id: string }[]>(`/asset/object${getQuery({ object_type: 'resource', object_id: resourceId })}`)) ?? []
+
+  await Promise.all([
+    ...[...wanted]
+      .filter((assetId) => !held.some((link) => link.asset_id === assetId))
+      .map((assetId) => postApi(`/asset/${assetId}/object`, { object_type: 'resource', object_id: resourceId })),
+    ...held
+      .filter((link) => !wanted.has(link.asset_id))
+      .map((link) => deleteApi(`/asset/${link.asset_id}/object/${link.id}`))
+  ])
 }

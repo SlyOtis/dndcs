@@ -3,7 +3,7 @@
   import { navigate, resolvedRoute } from 'sly-svelte-location-router'
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService } from '$lib/firestore.service'
-  import { getAssets, getAssetTab, postFile, type UploadScope } from '$lib/storage.service'
+  import { getAssets, getAssetTab, postFile, putAttachments, type UploadScope } from '$lib/storage.service'
   import type { Campaign } from '$lib/firestore.types'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
@@ -439,10 +439,12 @@
     try {
       if (fresh) {
         const id = await postOne(owner, kind, one)
+        await putAttachments(id, one.content)
         await reload()
         navigate(`${under}/${id}`)
       } else {
         await putOne(owner, kind, recordId, one)
+        await putAttachments(recordId, one.content)
         await reload()
         editing = false
         past = []
