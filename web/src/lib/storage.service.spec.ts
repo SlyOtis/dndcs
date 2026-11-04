@@ -113,6 +113,17 @@ describe('the media contract', () => {
     expect(blockReaderSource).toContain("onclick={() => openAsset?.(block.options.assetId ?? '')}")
   })
 
+  it('plays a recording, a video and a pdf from what its address resolves to, so an old file: reference reaches no player', () => {
+    for (const source of [blockReaderSource, blockEditorSource]) {
+      expect(source).not.toMatch(/<(audio|video|object)\b[^>]*(src|data)=\{block\.options\.src/)
+    }
+    expect(blockReaderSource).toContain('<audio controls src={url}></audio>')
+    expect(blockReaderSource).toContain('<video controls src={url}></video>')
+    expect(blockReaderSource).toContain('<object data={url} type="application/pdf"')
+    expect(blockEditorSource).toContain('<video controls src={url}></video>')
+    expect(blockReaderSource.match(/\{#await getFileUrl\(block\.options\.src \?\? ''\) then url\}/g)).toHaveLength(3)
+  })
+
   it('feeds the dialog its listing and its upload from the host', () => {
     expect(mediaDialogSource).toContain('getAssets: (query: string, kind: MediaKind) => Promise<MediaAsset[]>')
     expect(mediaDialogSource).toContain('uploadFile: (file: File, kind: MediaKind) => Promise<MediaAsset>')

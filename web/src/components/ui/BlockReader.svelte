@@ -13,6 +13,7 @@
     type MentionSearch,
     type Reference
   } from '$lib/blocks'
+  import { getFileUrl } from '$lib/storage.service'
   import BlockReader from './BlockReader.svelte'
   import Glyph, { getMimeGlyph } from './Glyph.svelte'
   import StoredImage from './StoredImage.svelte'
@@ -279,21 +280,33 @@
         </section>
       {:else if block.kind === 'audio'}
         <figure class="dnd-read-sound">
-          <!-- svelte-ignore a11y_media_has_caption -->
-          <audio controls src={block.options.src ?? ''}></audio>
+          {#await getFileUrl(block.options.src ?? '') then url}
+            {#if url}
+              <!-- svelte-ignore a11y_media_has_caption -->
+              <audio controls src={url}></audio>
+            {/if}
+          {/await}
           {#if block.text}<figcaption>{block.text}</figcaption>{/if}
         </figure>
       {:else if block.kind === 'video'}
         <figure class="dnd-read-sound dnd-read-video">
-          <!-- svelte-ignore a11y_media_has_caption -->
-          <video controls src={block.options.src ?? ''}></video>
+          {#await getFileUrl(block.options.src ?? '') then url}
+            {#if url}
+              <!-- svelte-ignore a11y_media_has_caption -->
+              <video controls src={url}></video>
+            {/if}
+          {/await}
           {#if block.text}<figcaption>{block.text}</figcaption>{/if}
         </figure>
       {:else if block.kind === 'pdf'}
         <figure class="dnd-read-sound dnd-read-pdf">
-          <object data={block.options.src ?? ''} type="application/pdf" title={block.text || 'Document'}>
-            <a class="dnd-read-link" href={block.options.src ?? ''} target="_blank" rel="noreferrer noopener">{block.text || block.options.src}</a>
-          </object>
+          {#await getFileUrl(block.options.src ?? '') then url}
+            {#if url}
+              <object data={url} type="application/pdf" title={block.text || 'Document'}>
+                <a class="dnd-read-link" href={url} target="_blank" rel="noreferrer noopener">{block.text || url}</a>
+              </object>
+            {/if}
+          {/await}
           {#if onasset}
             <button type="button" class="dnd-read-link dnd-read-open" onclick={() => onasset(block.options.src ?? '')}>{block.text || 'Open the document'}</button>
           {:else if block.text}<figcaption>{block.text}</figcaption>{/if}

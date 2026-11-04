@@ -73,6 +73,7 @@
     type MentionSearch
   } from '$lib/blocks'
   import { tick } from 'svelte'
+  import { getFileUrl } from '$lib/storage.service'
   import BlockReader from './BlockReader.svelte'
   import Glyph, { getMimeGlyph } from './Glyph.svelte'
   import IconBtn from './IconBtn.svelte'
@@ -1137,10 +1138,14 @@
           {/if}
 
           {#if block.kind === 'video' && block.options.src}
-            <span class="dnd-write-figure">
-              <!-- svelte-ignore a11y_media_has_caption -->
-              <video controls src={block.options.src}></video>
-            </span>
+            {#await getFileUrl(block.options.src) then url}
+              {#if url}
+                <span class="dnd-write-figure">
+                  <!-- svelte-ignore a11y_media_has_caption -->
+                  <video controls src={url}></video>
+                </span>
+              {/if}
+            {/await}
           {/if}
 
           {#if UPLOADED.includes(block.kind) && !block.options.src && taping !== block.id}
