@@ -28,6 +28,7 @@ var campaignPartTypes = map[string]string{
 	broker.KindMap:       db.OBJECT_TYPE_CAMPAIGN_MAP,
 	broker.KindEncounter: db.OBJECT_TYPE_ENCOUNTER,
 	broker.KindSong:      db.OBJECT_TYPE_SONG,
+	broker.KindCharacter: db.OBJECT_TYPE_CHARACTER,
 }
 
 type streamEvent struct {
@@ -92,6 +93,48 @@ func GetResourceStream(ctx echo.Context) error {
 	}
 	return getStream(ctx, broker.ResourceTopic(resourceID), func(rctx context.Context, _ broker.Event) bool {
 		status, _ := getReadAccess(rctx, actorID, resourceID, db.OBJECT_TYPE_RESOURCE)
+		return status == 0
+	})
+}
+
+func GetCharacterStream(ctx echo.Context) error {
+	actorID, ok := ctx.Get("user_id").(uuid.UUID)
+	if !ok {
+		return ctx.String(http.StatusUnauthorized, "Unauthorized")
+	}
+	characterID, ok := getUUID(ctx.Param("id"))
+	if !ok {
+		return ctx.String(http.StatusBadRequest, "Invalid id, expected UUID")
+	}
+	if status, message := getReadAccess(ctx.Request().Context(), actorID, characterID, db.OBJECT_TYPE_CHARACTER); status != 0 {
+		return ctx.String(status, message)
+	}
+	return getStream(ctx, broker.CharacterTopic(characterID), func(rctx context.Context, ev broker.Event) bool {
+		if ev.Op == broker.OpDelete {
+			return true
+		}
+		status, _ := getReadAccess(rctx, actorID, characterID, db.OBJECT_TYPE_CHARACTER)
+		return status == 0
+	})
+}
+
+func GetPartyStream(ctx echo.Context) error {
+	actorID, ok := ctx.Get("user_id").(uuid.UUID)
+	if !ok {
+		return ctx.String(http.StatusUnauthorized, "Unauthorized")
+	}
+	partyID, ok := getUUID(ctx.Param("id"))
+	if !ok {
+		return ctx.String(http.StatusBadRequest, "Invalid id, expected UUID")
+	}
+	if status, message := getReadAccess(ctx.Request().Context(), actorID, partyID, db.OBJECT_TYPE_PARTY); status != 0 {
+		return ctx.String(status, message)
+	}
+	return getStream(ctx, broker.PartyTopic(partyID), func(rctx context.Context, ev broker.Event) bool {
+		if ev.Op == broker.OpDelete {
+			return true
+		}
+		status, _ := getReadAccess(rctx, actorID, partyID, db.OBJECT_TYPE_PARTY)
 		return status == 0
 	})
 }

@@ -23,6 +23,8 @@ const (
 	KindSong      = "song"
 	KindProfile   = "profile"
 	KindUpdate    = "update"
+	KindCharacter = "character"
+	KindParty     = "party"
 )
 
 const (
@@ -49,6 +51,14 @@ func ProfileTopic(userID uuid.UUID) string {
 
 func ResourceTopic(id uuid.UUID) string {
 	return "resource:" + id.String()
+}
+
+func CharacterTopic(id uuid.UUID) string {
+	return "character:" + id.String()
+}
+
+func PartyTopic(id uuid.UUID) string {
+	return "party:" + id.String()
 }
 
 type Broker struct {

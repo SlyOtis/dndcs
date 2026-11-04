@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -547,6 +548,8 @@ func PostCampaignCharacter(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostCampaignCharacter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CampaignTopic(campaign.ID), broker.KindCharacter, characterID.String(), broker.OpUpdate)
+	broker.Post(rctx, broker.CharacterTopic(characterID), broker.KindCharacter, characterID.String(), broker.OpUpdate)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -586,6 +589,8 @@ func DeleteCampaignCharacter(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteCampaignCharacter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CampaignTopic(campaign.ID), broker.KindCharacter, characterID.String(), broker.OpUpdate)
+	broker.Post(rctx, broker.CharacterTopic(characterID), broker.KindCharacter, characterID.String(), broker.OpUpdate)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 

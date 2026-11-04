@@ -166,6 +166,7 @@
   }
 
   let stopMaps: (() => void) | null = null
+  let stopCharacters: (() => void) | null = null
 
   onMount(async () => {
     setTheme(getTheme())
@@ -192,10 +193,14 @@
     stopMaps = campaignService.postMapsListener(campaignId, (loaded) => {
       maps = loaded.sort((a, b) => a.title.localeCompare(b.title))
     })
+    stopCharacters = campaignService.postCharactersListener(campaignId, (loaded) => {
+      characters = loaded
+    })
   })
 
   onDestroy(() => {
     stopMaps?.()
+    stopCharacters?.()
   })
 
   async function reload() {

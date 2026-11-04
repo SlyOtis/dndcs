@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -241,6 +242,7 @@ func PutParty(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutParty: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.PartyTopic(party.ID), broker.KindParty, party.ID.String(), broker.OpUpdate)
 	parties := []db.Party{party}
 	if err := getPartyView(rctx, parties); err != nil {
 		ctx.Logger().Errorf("PutParty: %v", err)
@@ -282,6 +284,7 @@ func DeleteParty(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteParty: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.PartyTopic(party.ID), broker.KindParty, party.ID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -331,6 +334,7 @@ func putPartyCharacter(ctx echo.Context, joins bool) error {
 		ctx.Logger().Errorf("PutPartyCharacter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.PartyTopic(party.ID), broker.KindParty, party.ID.String(), broker.OpUpdate)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 

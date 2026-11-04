@@ -164,6 +164,10 @@ export const characterService = {
     return document;
   },
 
+  subscribeToCharacter(characterId: string, onChange: (character: CharacterDocument | null) => void): Unsubscribe {
+    return getStream(`/character/${characterId}/stream`, 'character', () => this.getCharacter(characterId), onChange, (error) => console.error('Character did not load:', error));
+  },
+
   async putPlayed(characterId: string): Promise<void> {
     await putApi(`/character/${characterId}/played`);
   },
@@ -236,6 +240,10 @@ export const partyService = {
 
   async getParty(partyId: string): Promise<Party | null> {
     return getApi<Party>(`/party/${partyId}`).catch((error) => getAbsent(error, null));
+  },
+
+  subscribeToParty(partyId: string, onChange: (party: Party | null) => void): Unsubscribe {
+    return getStream(`/party/${partyId}/stream`, 'party', () => this.getParty(partyId), onChange, (error) => console.error('Party did not load:', error));
   },
 
   async getParties(): Promise<Party[]> {
@@ -314,6 +322,10 @@ export const campaignService = {
 
   async getCampaignCharacters(campaignId: string): Promise<CharacterDocument[]> {
     return getApi<CharacterDocument[]>(`/campaign/${campaignId}/character`);
+  },
+
+  postCharactersListener(campaignId: string, onChange: (characters: CharacterDocument[]) => void): Unsubscribe {
+    return getStream(`/campaign/${campaignId}/stream`, 'character', () => this.getCampaignCharacters(campaignId), onChange, (error) => console.error('Campaign characters did not load:', error));
   },
 
   async getMaps(campaignId: string): Promise<CampaignMap[]> {

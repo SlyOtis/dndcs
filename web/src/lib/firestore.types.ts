@@ -28,7 +28,6 @@ export interface Shortcut {
   key: string;
 }
 
-// A song on a campaign's playlist. The bytes live in the swarm at address.
 export interface Song extends Access {
   id: string;
   title: string;

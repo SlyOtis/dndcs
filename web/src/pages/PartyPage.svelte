@@ -67,6 +67,15 @@
     })()
   })
 
+  $effect(() => {
+    if (!partyId) return
+    const live = partyService.subscribeToParty(partyId, (loaded) => {
+      party = loaded
+      if (party) void fill()
+    })
+    return () => live()
+  })
+
   async function fill() {
     if (!party) return
     const [profiles, roll, brought] = await Promise.all([

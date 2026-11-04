@@ -149,11 +149,13 @@ func main() {
 		character.PUT("/:id/played", handler.PutCharacterPlayed)
 		character.GET("/:id/sources", handler.GetCharacterSources)
 		character.PUT("/:id/sources", handler.PutCharacterSources)
+		character.GET("/:id/stream", handler.GetCharacterStream)
 
 		party := api.Group("/party", userAuth)
 		party.GET("", handler.GetParties)
 		party.POST("", handler.PostParty)
 		party.GET("/:id", handler.GetParty)
+		party.GET("/:id/stream", handler.GetPartyStream)
 		party.PUT("/:id", handler.PutParty)
 		party.DELETE("/:id", handler.DeleteParty)
 		party.POST("/:id/character/:character_id", handler.PostPartyCharacter)

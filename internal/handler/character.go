@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -292,6 +293,10 @@ func PutCharacter(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutCharacter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CharacterTopic(character.ID), broker.KindCharacter, character.ID.String(), broker.OpUpdate)
+	if character.CampaignID != nil {
+		broker.Post(rctx, broker.CampaignTopic(*character.CampaignID), broker.KindCharacter, character.ID.String(), broker.OpUpdate)
+	}
 	return respond.JSON(ctx, http.StatusOK, getCharacterDocument(character), 1)
 }
 
@@ -350,6 +355,10 @@ func DeleteCharacter(ctx echo.Context) error {
 	}); err != nil {
 		ctx.Logger().Errorf("DeleteCharacter: %v", err)
 		return respond.ErrorInternal(ctx)
+	}
+	broker.Post(rctx, broker.CharacterTopic(character.ID), broker.KindCharacter, character.ID.String(), broker.OpDelete)
+	if character.CampaignID != nil {
+		broker.Post(rctx, broker.CampaignTopic(*character.CampaignID), broker.KindCharacter, character.ID.String(), broker.OpDelete)
 	}
 	return respond.NoContent(ctx, http.StatusOK)
 }
