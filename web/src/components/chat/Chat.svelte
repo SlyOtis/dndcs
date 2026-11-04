@@ -6,6 +6,7 @@
   import Sigil from "$components/ui/Sigil.svelte";
   import Glyph from "$components/ui/Glyph.svelte";
   import { rollMode, rollHidden, type RollMode } from "$lib/engine";
+  import { getCsrfHeaders } from "$lib/api";
   import { currentCampaignId } from "$lib/stores/campaign.store";
   import { campaignService } from "$lib/firestore.service";
 
@@ -145,7 +146,7 @@
       const response = await fetch('/api/ai/models/thomasmol/whisper-diarization/predictions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          ...getCsrfHeaders(), 'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
       })

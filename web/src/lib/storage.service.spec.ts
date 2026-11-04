@@ -11,6 +11,7 @@ vi.mock('./api', () => ({
   getQuery: (values: Record<string, string>) => `?${new URLSearchParams(values).toString()}`,
   getApi: () => Promise.reject(new Error('absent')),
   deleteApi: () => Promise.resolve(null),
+  getCsrfHeaders: () => ({ 'SAuth-CSRF-Token': 'tok' }),
   postApi: (_path: string, body: unknown) => {
     written.sets.push(body)
     written.commits++
@@ -106,6 +107,7 @@ describe('the service file store', () => {
     expect(calls[0].init.method).toBe('PUT')
     expect(calls[0].init.body).toBe(file)
     expect((calls[0].init.headers as Record<string, string>)['Content-Type']).toBe('audio/mpeg')
+    expect((calls[0].init.headers as Record<string, string>)['SAuth-CSRF-Token']).toBe('tok')
   })
 
   it('carries the service refusal as an UploadError', async () => {

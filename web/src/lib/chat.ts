@@ -6,6 +6,7 @@ import type {Character} from "./character.types";
 import { ChangeActions, undoLastChange, redoLastChange } from "./changelog";
 import { userDetails } from "./stores/auth.store";
 import { currentCampaignId } from "./stores/campaign.store";
+import { getCsrfHeaders } from "./api";
 import { currentCharacterId } from "./stores/character.store";
 import { getExpressionValue } from "./rules/expression";
 import type { ResolvedCharacter } from "./rules/spec.types";
@@ -311,7 +312,7 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
   const req = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      ...getCsrfHeaders(), "Content-Type": "application/json",
     },
     body: JSON.stringify({
       stream: false,
@@ -3002,7 +3003,7 @@ Return only the index number of the best match, or -1 if no good match exists.`;
     const response = await fetch("/api/ai/models/meta/meta-llama-3-8b-instruct/predictions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        ...getCsrfHeaders(), "Content-Type": "application/json",
       },
       body: JSON.stringify({
         stream: false,
@@ -3066,7 +3067,7 @@ async function generateItemImage(item: any): Promise<string> {
     const response = await fetch("/api/ai/models/black-forest-labs/flux-1.1-pro/predictions", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        ...getCsrfHeaders(), "Content-Type": "application/json",
       },
       body: JSON.stringify({
         stream: false,

@@ -1,4 +1,4 @@
-import { ApiError, deleteApi, getApi, getQuery, getSession, postApi } from './api'
+import { ApiError, deleteApi, getApi, getCsrfHeaders, getQuery, getSession, postApi } from './api'
 
 
 const LOCAL_PREFIX = 'local:'
@@ -103,7 +103,7 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
     method: 'PUT',
     body: file,
     credentials: 'same-origin',
-    headers: { 'Content-Type': file.type || 'application/octet-stream' }
+    headers: { ...getCsrfHeaders(), 'Content-Type': file.type || 'application/octet-stream' }
   }).catch(() => null)
 
   if (!answer?.ok) {

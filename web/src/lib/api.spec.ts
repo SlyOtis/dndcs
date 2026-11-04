@@ -93,3 +93,31 @@ describe('a live list over the stream', () => {
     stop()
   })
 })
+
+describe('a write carries the session csrf token', () => {
+  it('sends SAuth-CSRF-Token from the cookie on a write and not on a read', async () => {
+    const sent: Array<{ method: string; headers: Record<string, string> }> = []
+    vi.stubGlobal('document', { cookie: 'other=1; sauth_csrf_token=tok%3Dvalue' })
+    vi.stubGlobal('fetch', async (_url: string, init: { method: string; headers: Record<string, string> }) => {
+      sent.push({ method: init.method, headers: init.headers })
+      return { ok: true, json: async () => ({ data: null }) }
+    })
+    const { getApi, postApi, putApi, deleteApi } = await import('./api')
+    await getApi('/thing')
+    await postApi('/thing', { a: 1 })
+    await putApi('/thing', { a: 2 })
+    await deleteApi('/thing')
+    expect(sent.map((call) => [call.method, call.headers['SAuth-CSRF-Token']])).toEqual([
+      ['GET', undefined],
+      ['POST', 'tok=value'],
+      ['PUT', 'tok=value'],
+      ['DELETE', 'tok=value']
+    ])
+  })
+
+  it('sends no token when the session has no csrf cookie', async () => {
+    vi.stubGlobal('document', { cookie: 'other=1' })
+    const { getCsrfHeaders } = await import('./api')
+    expect(getCsrfHeaders()).toEqual({})
+  })
+})

@@ -32,11 +32,17 @@ export function getSessionId(): string {
   return session.uid
 }
 
+export function getCsrfHeaders(): Record<string, string> {
+  const cookie = document.cookie.split('; ').find((part) => part.startsWith('sauth_csrf_token='))
+  return cookie ? { 'SAuth-CSRF-Token': decodeURIComponent(cookie.slice('sauth_csrf_token='.length)) } : {}
+}
+
 async function getAnswer<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const write = method === 'GET' ? {} : getCsrfHeaders()
   const answer = await fetch(API_ROOT + path, {
     method,
     credentials: 'include',
-    headers: body === undefined ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
+    headers: body === undefined ? { ...write, Accept: 'application/json' } : { ...write, Accept: 'application/json', 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body)
   })
   const envelope = (await answer.json().catch(() => null)) as { data?: T; error?: { message?: string } } | null

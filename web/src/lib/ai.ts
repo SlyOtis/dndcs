@@ -1,6 +1,7 @@
 import { derived, get, type Readable } from "svelte/store";
 import { userDetails } from "./stores/auth.store";
 import { userService } from "./firestore.service";
+import { getCsrfHeaders } from "./api";
 
 export interface AIRequest {
   prompt: string;
@@ -66,7 +67,7 @@ class AIService {
 
     const started = await fetch(`${ENDPOINT}/models/${model}/predictions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...getCsrfHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify({ stream: false, input })
     });
 
