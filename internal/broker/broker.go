@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/uptrace/bun"
@@ -31,6 +32,12 @@ const (
 	OpCreate = "create"
 	OpUpdate = "update"
 	OpDelete = "delete"
+	opReady  = "ready"
+)
+
+const (
+	readyEvery   = 50 * time.Millisecond
+	readyTimeout = 10 * time.Second
 )
 
 type Event struct {
@@ -68,6 +75,8 @@ type Broker struct {
 	mu       sync.Mutex
 	watches  map[string]map[chan Event]struct{}
 	done     chan struct{}
+	ready    chan struct{}
+	readied  sync.Once
 }
 
 var instance *Broker
@@ -78,9 +87,36 @@ func New(ctx context.Context, db *bun.DB) (*Broker, error) {
 		_ = listener.Close()
 		return nil, err
 	}
-	b := &Broker{db: db, origin: uuid.NewString(), listener: listener, watches: map[string]map[chan Event]struct{}{}, done: make(chan struct{})}
+	b := &Broker{db: db, origin: uuid.NewString(), listener: listener, watches: map[string]map[chan Event]struct{}{}, done: make(chan struct{}), ready: make(chan struct{})}
 	go b.receive(listener.Channel())
+	if err := b.getReady(ctx); err != nil {
+		_ = b.Close()
+		return nil, err
+	}
 	return b, nil
+}
+
+func (b *Broker) getReady(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, readyTimeout)
+	defer cancel()
+	raw, err := json.Marshal(Event{Op: opReady, Origin: b.origin})
+	if err != nil {
+		return err
+	}
+	tick := time.NewTicker(readyEvery)
+	defer tick.Stop()
+	for {
+		if err := pgdriver.Notify(ctx, b.db, Channel, string(raw)); err != nil {
+			return err
+		}
+		select {
+		case <-b.ready:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-tick.C:
+		}
+	}
 }
 
 func Init(ctx context.Context, db *bun.DB) error {
@@ -147,6 +183,12 @@ func (b *Broker) receive(notifications <-chan pgdriver.Notification) {
 			continue
 		}
 		if ev.Origin == b.origin {
+			if ev.Op == opReady {
+				b.readied.Do(func() { close(b.ready) })
+			}
+			continue
+		}
+		if ev.Op == opReady {
 			continue
 		}
 		b.put(ev)
