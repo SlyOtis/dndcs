@@ -28,7 +28,8 @@ The schema and the api are snake_case throughout: `user_id`, `campaign_id`, `par
 - `campaign`: identity, settings, `party_ids`, and the `dm_claim_id` and `player_claim_id` of its table.
 - Under a campaign by `campaign_id`: `campaign_map`, `encounter`, `chat_entry` and `song`.
 - `resource`: every kind of lore, by `kind`, with `title`, the rest of the page in `fields`, a `campaign_id` when a campaign keeps it, and sub pages through `sa_parent_id` and `sa_root_id`. `resource_update` holds the Yjs updates of live editing.
-- `file`: an upload's record; its bytes sit in blob storage under `storage_key`.
+- `asset`: a file, a block document or a folder, in nimployer's model. A folder is `inode/directory` with type `folder`; a block document is `application/vnd.mar.document+json` with its body in `document`; a file's bytes sit in blob storage under `blob_url`. Folders nest through `sa_parent_id` and `sa_root_id`; the roots are a campaign's folder, slug `campaign-<campaign id>`, and a player's Personal folder, slug `user-<user id>`.
+- `object_asset`: attaches an asset to any row by `object_type` and `object_id`; its `properties` override the asset's key by key. `tag` and `tag_object` tag any row the same way.
 - `catalog_entry`: the shared class and race readings.
 
 Every table holds application data, so nothing is aged and there is no `public.prune`.
@@ -53,8 +54,9 @@ A map pin holds `record_kind` and `record_id` rather than its own prose. A place
 
 There is no rule file and no readers list. Access is a claim bound to the row, granted to the players who hold it, and checked by claimius on every request: a list goes through `sdb.ObjectWhere`, one row through `MutationAccess`, and a create checks EXECUTE on the owner organization, stamps the creator's grant and binds the creator's claim to the new row. A component never filters on access; what the api answers is what the reader may see.
 
-- The creator holds the row through their own grant. Every new row is also bound to the app's Member claim with entry only, so it exists for the organization but grants no read; a public sheet, a profile, the catalog and a player's own files are bound with read.
-- A campaign makes two claims. **Dungeon master** holds all, granted to the one who runs it. **Players** holds read, granted when the DM seats a player by their email. Maps and campaign files are bound DM all and Players read; only the DM draws maps.
+- The creator holds the row through their own grant. Every new row is also bound to the app's Member claim with entry only, so it exists for the organization but grants no read; a public sheet, a profile, the catalog, a tag and a player's Personal folder are bound with read.
+- A campaign makes two claims. **Dungeon master** holds all, granted to the one who runs it. **Players** holds read, granted when the DM seats a player by their email. Maps and the campaign's folder are bound DM all and Players read; only the DM draws maps.
+- No claim inherits, so a binding never cascades down the asset tree. An asset is bound with a copy of its parent folder's bindings when it is created, and moves only within its own root folder.
 - A chat entry is bound DM read, and Players read unless `is_hidden`, so a hidden roll reaches the DM alone. Only the author edits or deletes an entry, and the DM cannot delete a player's.
 - A party makes **Party members**, read, granted to its members.
 - A sheet that joins a campaign is bound DM read and write and Players read, and loses both when it leaves.
@@ -65,7 +67,7 @@ A claim, a binding or a grant is made only through the claim helpers in `interna
 
 ## The api
 
-`cmd/main.go` mounts every route under `/api`, behind the Samna Auth user middleware: `/profile` with its `details`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song` and `chat`, `/resource` with its `update`, `/file` with its `data`, `/ai`, `/catalog`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware.
+`cmd/main.go` mounts every route under `/api`, behind the Samna Auth user middleware: `/profile` with its `details`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song` and `chat`, `/resource` with its `update`, `/asset` with its `data` and `object`, `/file` with the folder tree and `move`, `/tag` with its `object`, `/ai`, `/catalog`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware.
 
 On the web, `web/src/lib/api.ts` holds the fetch envelope, the session and `getStream`. The service objects in `firestore.service.ts` (`userService`, `characterService`, `partyService`, `campaignService`) keep their exported names and call the api; a new read or write is a typed method beside the others, never a second helper.
 
@@ -83,13 +85,15 @@ On the web a listener (`postChatListener`, `postMapsListener`, `postEncountersLi
 
 ## Uploads
 
-Every upload goes through `postFile` in `web/src/lib/storage.service.ts` with a scope of `user`, `campaignMap` or `campaignAudio`. It checks the signed in player and the content type, posts the `file` record to `/api/file`, then puts the bytes to `/api/file/data`. Never write a file any other way.
+Every upload goes through `postFile` in `web/src/lib/storage.service.ts` with a scope of `user`, `campaignMap`, `campaignAudio` or `campaignFile`. It checks the signed in player and the content type, and posts one multipart form to `/api/asset`: the file, its `name` and `mime_type`, and the `campaign_id` of a campaign scope. Never write a file any other way.
 
-A `file` row names its `path`, a `file:` address, with `name`, `type`, `size`, `etag` and `storage_key`. A campaign file's path sits under that campaign's files and a player's own under their own; the row is bound to the campaign's claims like the rest of the campaign. The service sets `size` and `etag`, the SHA-256 of the original, when the bytes are stored, so `etag` is the version: it changes when the bytes change.
+The service places the asset by what the form names. A `parent_id` needs write on that folder. A `campaign_id` needs read on the campaign, as a seated player's upload always has, and lands in the campaign's folder. Neither lands in the player's Personal folder, made on their first upload. The blob key is the folder chain, slug or name per folder, and the asset id: `campaign-<id>/<asset id>`. The service sets `size_bytes` and `etag`, the SHA-256 of the original or of the stored document, whenever bytes are stored, so `etag` is the version: it changes when the bytes change. `POST /api/asset/:id` replaces the bytes and needs write on the asset.
 
-`/api/file/data` carries the original, stored in blob storage. A put needs write on the file and is refused with 413 past `FILE_MAX_BYTES`. A get or head needs read on the file and answers with the `ETag`, a 304 for a matching `If-None-Match`, and a 206 for a byte range, so audio and video stream. Every player reads the original; there is no downscaled copy.
+`/api/asset/:id/data` carries the original from blob storage, or the document. An upload is refused with 413 past `FILE_MAX_BYTES`, by its length and while its body is read. A get or head needs read on the asset, answers 404 to anyone without it, and answers with the `ETag`, a 304 for a matching `If-None-Match`, a 206 for a single or a suffix byte range and a 416 past the end, so audio and video stream. Every player reads the original; there is no downscaled copy. A delete needs write, is soft, and removes the blob.
 
-An address held on a row is a hosted URL, a `file:` address, or a `local:` reference left by an older upload. `getFileUrl` resolves a `file:` address to its `/api/file/data` url and a `local:` one to nothing. Render it with `StoredImage`, never a bare `<img src>`, and remember its scoped CSS needs `:global(img)`.
+An attachment through `/api/asset/:id/object` needs read on the asset and write on the row it attaches to.
+
+An address held on a row is a hosted URL, an `/api/asset/<id>/data` address, or a `file:` or `local:` reference left by an older upload. `getFileUrl` answers an asset address as it is and resolves the older references to nothing. Render it with `StoredImage`, never a bare `<img src>`, and remember its scoped CSS needs `:global(img)`.
 
 ## AI
 
