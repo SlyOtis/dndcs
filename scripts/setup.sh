@@ -19,6 +19,26 @@ az role assignment create \
     --scope "$acr_id" \
     --output none
 
+echo "storage account $STORAGE_ACCOUNT_NAME"
+if ! az storage account show --resource-group "$RESOURCE_GROUP" --name "$STORAGE_ACCOUNT_NAME" --output none 2>/dev/null; then
+    az storage account create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$STORAGE_ACCOUNT_NAME" \
+        --location "$AZURE_LOCATION" \
+        --sku Standard_LRS \
+        --kind StorageV2 \
+        --min-tls-version TLS1_2 \
+        --allow-blob-public-access false \
+        --output none
+fi
+connection=$(az storage account show-connection-string --resource-group "$RESOURCE_GROUP" --name "$STORAGE_ACCOUNT_NAME" --query connectionString --output tsv)
+echo "container $AZURE_STORAGE_CONTAINER_NAME"
+az storage container create --name "$AZURE_STORAGE_CONTAINER_NAME" --connection-string "$connection" --output none
+if [ "$AZURE_STORAGE_CONNECTION_STRING" != "$connection" ]; then
+    echo "AZURE_STORAGE_CONNECTION_STRING in .env.$env is not the connection string of $STORAGE_ACCOUNT_NAME: write the output of 'az storage account show-connection-string --resource-group $RESOURCE_GROUP --name $STORAGE_ACCOUNT_NAME --query connectionString --output tsv' into it and rerun" >&2
+    exit 1
+fi
+
 echo "environment $ENVIRONMENT_NAME"
 if ! az containerapp env show --resource-group "$RESOURCE_GROUP" --name "$ENVIRONMENT_NAME" --output none 2>/dev/null; then
     az containerapp env create \

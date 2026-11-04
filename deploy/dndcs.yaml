@@ -24,6 +24,8 @@ properties:
         value: ${PGPASSWORD}
       - name: sauth-app-secret
         value: ${SAUTH_APP_SECRET}
+      - name: azure-storage-connection-string
+        value: ${AZURE_STORAGE_CONNECTION_STRING}
   template:
     containers:
       - name: dndcs
@@ -67,6 +69,10 @@ properties:
             value: ${SAUTH_REDIRECT_URI}
           - name: SAUTH_PAGE_REDIRECT
             value: ${SAUTH_PAGE_REDIRECT}
+          - name: AZURE_STORAGE_CONNECTION_STRING
+            secretRef: azure-storage-connection-string
+          - name: AZURE_STORAGE_CONTAINER_NAME
+            value: ${AZURE_STORAGE_CONTAINER_NAME}
           - name: FILE_MAX_BYTES
             value: "${FILE_MAX_BYTES}"
           - name: REPLICATE_ENDPOINT
