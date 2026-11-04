@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
+  getBlock,
+  getBlockMarkdown,
   getBlocksFromMarkdown,
   getColumns,
   getDocument,
@@ -202,6 +204,39 @@ describe('the directive and link kinds', () => {
     expect(back.blocks[0].kind).toBe('video')
     expect(back.blocks[0].options.src).toBe('file:clips/ambush.webm')
     expect(back.blocks[0].options.view).toBe('link')
+  })
+})
+
+describe('the file kind', () => {
+  const attached = { assetId: 'a1', name: 'The charter.pdf', url: '/api/asset/a1/data', mimeType: 'application/pdf' }
+
+  it('writes the four values it was attached with into a file fence, in the order Mar writes them', () => {
+    expect(getBlockMarkdown(getBlock('file', '', attached))).toBe(
+      '```file {"assetId":"a1","name":"The charter.pdf","url":"/api/asset/a1/data","mimeType":"application/pdf"}\n\n```'
+    )
+  })
+
+  it('reads the fence Mar writes back into the same block', () => {
+    const [block] = getBlocksFromMarkdown(
+      '```file {"assetId":"a1","name":"The charter.pdf","url":"/api/asset/a1/data","mimeType":"application/pdf"}\n```'
+    )
+    expect(block.kind).toBe('file')
+    expect(block.text).toBe('')
+    expect(block.options).toEqual(attached)
+  })
+
+  it('round trips through markdown with every value kept', () => {
+    const document = { blocks: [getBlock('paragraph', 'The deed is below.'), getBlock('file', '', attached)] }
+    const back = getDocument(getDocumentMarkdown(document))
+    expect(back.blocks.map((block) => block.kind)).toEqual(['paragraph', 'file'])
+    expect(back.blocks[1].options).toEqual(attached)
+    expect(getDocumentMarkdown(back)).toBe(getDocumentMarkdown(document))
+  })
+
+  it('draws as a link to its file in html', () => {
+    expect(getDocumentHtml({ blocks: [getBlock('file', '', attached)] })).toContain(
+      '<a class="dnd-file" href="/api/asset/a1/data">The charter.pdf</a>'
+    )
   })
 })
 

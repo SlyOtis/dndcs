@@ -24,6 +24,7 @@ export type BlockKind =
   | 'meeting'
   | 'map'
   | 'page'
+  | 'file'
 
 export type BlockAlign = 'start' | 'center' | 'end' | 'justify'
 export type BlockSize = 'sm' | 'md' | 'lg' | 'xl'
@@ -74,12 +75,18 @@ export interface BlockOptions {
   placement?: BlockPlacement
   /** The id of the sub page a page block links to. */
   page?: string
+  /** The asset a file block opens. */
+  assetId?: string
+  /** The name a file block shows. */
+  name?: string
+  /** The type of what a file block holds. */
+  mimeType?: string
 }
 
 /** The options a block keeps in the fence, which markdown has no form for. */
 const KEPT: (keyof BlockOptions)[] = [
   'align', 'size', 'width', 'wrap', 'leading', 'own', 'open', 'level', 'language', 'src', 'alt',
-  'done', 'votes', 'url', 'depth', 'view', 'description', 'image', 'page', 'placement'
+  'done', 'votes', 'assetId', 'name', 'url', 'mimeType', 'depth', 'view', 'description', 'image', 'page', 'placement'
 ]
 
 /** The options a block's plain markdown form already carries. */
@@ -131,10 +138,19 @@ export interface LinkPreview {
   image?: string
 }
 
+export type MediaKind = 'image' | 'video' | 'audio' | 'pdf' | 'file'
+
+export interface MediaAsset {
+  id: string
+  url: string
+  name: string
+  mimeType: string
+}
+
 const KINDS: BlockKind[] = [
   'paragraph', 'heading', 'quote', 'code', 'bullet', 'number', 'divider', 'callout', 'image',
   'todo', 'table', 'toggle', 'poll', 'audio', 'bookmark', 'mermaid', 'html', 'toc', 'columns',
-  'video', 'pdf', 'embed', 'meeting', 'map', 'page'
+  'video', 'pdf', 'embed', 'meeting', 'map', 'page', 'file'
 ]
 
 const LINKED: BlockKind[] = ['video', 'pdf', 'page']
@@ -362,7 +378,7 @@ export function getBlockMarkdown(block: Block): string {
   if (block.kind === 'divider') return '---'
   if (block.kind === 'toc' && plain) return '[toc]'
 
-  const own: BlockKind[] = ['table', 'toggle', 'poll', 'audio', 'bookmark', 'mermaid', 'html', 'columns', 'embed', 'meeting', 'map']
+  const own: BlockKind[] = ['table', 'toggle', 'poll', 'audio', 'bookmark', 'mermaid', 'html', 'columns', 'embed', 'meeting', 'map', 'file']
   if (!plain || own.includes(block.kind)) return getFence(block, getHeld(block))
 
   if (block.kind === 'image') return `![${block.options.alt ?? ''}](${block.options.src ?? ''})`
@@ -626,6 +642,8 @@ function getBlockHtml(block: Block, number: string | undefined, blocks: Block[])
         .join('')}</div>`
     case 'page':
       return `<a class="dnd-page" href="${escape(block.options.page ?? '')}">${escape(block.text)}</a>`
+    case 'file':
+      return `<a class="dnd-file" href="${escape(block.options.url ?? '')}">${escape(block.options.name || 'File')}</a>`
     default:
       return `<p${style}>${text}</p>`
   }
@@ -743,6 +761,11 @@ export function getBlockEmailHtml(block: Block): string {
   if (block.kind === 'embed' || block.kind === 'map') {
     const src = escape(block.text.trim())
     return `<div style="${body}"><a href="${src}" style="color:${MAIL.metal}">${src}</a></div>`
+  }
+
+  if (block.kind === 'file') {
+    const url = escape(block.options.url ?? '')
+    return `<div style="${body}"><a href="${url}" style="color:${MAIL.metal}">${escape(block.options.name || url)}</a></div>`
   }
 
   if (block.kind === 'bookmark') {

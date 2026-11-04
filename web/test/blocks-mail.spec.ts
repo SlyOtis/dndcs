@@ -31,6 +31,12 @@ describe('the mail a document is written out as', () => {
     expect(html).toContain('The bell')
   })
 
+  it('degrades a file to a link that carries its name', () => {
+    const html = getBlockEmailHtml(getBlock('file', '', { assetId: 'a1', name: 'The charter.pdf', url: '/api/asset/a1/data', mimeType: 'application/pdf' }))
+    expect(html).toContain('<a href="/api/asset/a1/data"')
+    expect(html).toContain('The charter.pdf')
+  })
+
   it('degrades a toggle to its own content, so nothing is lost on the way out', () => {
     const html = getBlockEmailHtml(getBlock('toggle', 'What lies beneath\nA stair going down'))
     expect(html).toContain('What lies beneath')
