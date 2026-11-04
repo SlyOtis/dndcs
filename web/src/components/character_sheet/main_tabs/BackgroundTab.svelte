@@ -1,13 +1,16 @@
 <script lang="ts">
   import {getContext} from "svelte";
   import type {CharacterContext} from "$lib/types";
-  import type {Mention} from "$lib/blocks";
+  import type {MediaAsset, MediaKind, Mention} from "$lib/blocks";
+  import {getAssets, getAssetTab, postFile} from "$lib/storage.service";
   import BlockEditor from "$components/ui/BlockEditor.svelte";
   import BlockReader from "$components/ui/BlockReader.svelte";
+  import MediaDialog from "$components/MediaDialog.svelte";
 
   const {background} = getContext<CharacterContext>('character')
 
   let writing = $state(false)
+  let media = $state<{kind: MediaKind, current?: string, resolve: (asset: MediaAsset | null) => void} | null>(null)
 
   const story = $derived($background.description ?? '')
 
@@ -21,6 +24,14 @@
     return ($background.additional ?? [])
       .filter((one) => one.title.toLowerCase().includes(wanted))
       .map((one) => ({id: one.title, label: one.title.replace(/\s+/g, '')}))
+  }
+
+  function getMedia(kind: MediaKind, current?: string): Promise<MediaAsset | null> {
+    return new Promise((resolve) => (media = {kind, current, resolve}))
+  }
+
+  function postMedia(file: File): Promise<MediaAsset> {
+    return postFile(file, {kind: 'user'})
   }
 </script>
 
@@ -48,9 +59,25 @@
                             placeholder="Write their story, or press slash for a block"
                             onchange={write}
                             onsearch={seek}
+                            requestMedia={getMedia}
+                            uploadFile={postMedia}
+                            openAsset={getAssetTab}
                         />
                     {:else}
-                        <BlockReader value={story} onsearch={seek} />
+                        <BlockReader value={story} onsearch={seek} openAsset={getAssetTab} />
+                    {/if}
+
+                    {#if media}
+                        <MediaDialog
+                            kind={media.kind}
+                            current={media.current}
+                            getAssets={(query, wanted) => getAssets(query, wanted, {kind: 'user'})}
+                            uploadFile={postMedia}
+                            onclose={(asset) => {
+                                media?.resolve(asset)
+                                media = null
+                            }}
+                        />
                     {/if}
                 </div>
                 {#if $background?.additional?.length}

@@ -3,7 +3,7 @@
   import { navigate, resolvedRoute } from 'sly-svelte-location-router'
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService } from '$lib/firestore.service'
-  import { postFile } from '$lib/storage.service'
+  import { getAssets, getAssetTab, postFile, type UploadScope } from '$lib/storage.service'
   import type { Campaign } from '$lib/firestore.types'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
@@ -22,11 +22,12 @@
   } from '$lib/resources'
   import type { Owner } from '$lib/firestore.types'
   import { joinDoc, type Session } from '$lib/collab'
-  import { getDocument, getDocumentMarkdown, type Mention, type Reference } from '$lib/blocks'
+  import { getDocument, getDocumentMarkdown, type MediaAsset, type MediaKind, type Mention, type Reference } from '$lib/blocks'
   import ResourceAccess from '$components/campaign/ResourceAccess.svelte'
   import BaseDialog from '$components/BaseDialog.svelte'
   import FrameDialog from '$components/FrameDialog.svelte'
   import GalleryDialog from '$components/GalleryDialog.svelte'
+  import MediaDialog from '$components/MediaDialog.svelte'
   import Portrait from '$components/ui/Portrait.svelte'
   import { SHAPES, type PortraitFrame } from '$components/ui/Portrait.svelte'
   import { unfold } from '$lib/unfold'
@@ -74,6 +75,7 @@
     campaignId ? { at: 'campaigns', id: campaignId } : { at: 'users', id: $user?.uid ?? '' }
   )
   const under = $derived(campaignId ? `/main/campaign/${campaignId}/${kind}` : `/main/${kind}`)
+  const scope = $derived<UploadScope>(campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })
   const recordId = $derived((campaignId ? steps[3] : steps[1]) ?? 'create')
   const fresh = $derived(recordId === 'create')
 
@@ -95,6 +97,7 @@
   let blocksOpen = $state(false)
   let editor = $state<ReturnType<typeof BlockEditor>>()
   let galleryAt = $state(0)
+  let media = $state<{ kind: MediaKind; current?: string; resolve: (asset: MediaAsset | null) => void } | null>(null)
   let frame = $state('')
   let bandHeight = $state(0)
   let tagLine = $state('')
@@ -323,13 +326,18 @@
   }
 
   /** Stores a file the editor made, through the one uploader the app keeps. */
-  async function keepFile(file: File) {
+  async function postMedia(file: File) {
+    error = null
     try {
-      return (await postFile(file, campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })).url
+      return await postFile(file, scope)
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
-      return undefined
+      throw reason
     }
+  }
+
+  function getMedia(kind: MediaKind, current?: string): Promise<MediaAsset | null> {
+    return new Promise((resolve) => (media = { kind, current, resolve }))
   }
 
   /** A poll is answered in place, and the answer is written with the resource. */
@@ -697,7 +705,9 @@
           bind:this={editor}
           bind:value={one.content}
           onchange={share}
-          onfile={keepFile}
+          requestMedia={getMedia}
+          uploadFile={postMedia}
+          openAsset={getAssetTab}
           onsearch={seek}
           onpage={addPage}
           placeholder="Write, or press slash for a block"
@@ -711,7 +721,7 @@
         </Sidebar>
         </div>
       {:else}
-        <BlockReader value={one.content} onopen={follow} onvote={vote} onsearch={seek} mine={$user?.uid ?? ''} />
+        <BlockReader value={one.content} onopen={follow} onvote={vote} onsearch={seek} openAsset={getAssetTab} mine={$user?.uid ?? ''} />
       {/if}
     </section>
 
@@ -738,6 +748,19 @@
 
     {#if frameOpen}
       <FrameDialog bind:isOpen={frameOpen} bind:frame src={one.image} alt={one.title} />
+    {/if}
+
+    {#if media}
+      <MediaDialog
+        kind={media.kind}
+        current={media.current}
+        getAssets={(query, wanted) => getAssets(query, wanted, scope)}
+        uploadFile={postMedia}
+        onclose={(asset) => {
+          media?.resolve(asset)
+          media = null
+        }}
+      />
     {/if}
 
     {#if dropOpen}

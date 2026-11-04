@@ -14,7 +14,7 @@
     type Reference
   } from '$lib/blocks'
   import BlockReader from './BlockReader.svelte'
-  import Glyph from './Glyph.svelte'
+  import Glyph, { getMimeGlyph } from './Glyph.svelte'
   import StoredImage from './StoredImage.svelte'
 
   const {
@@ -23,6 +23,7 @@
     onvote,
     onsearch,
     onasset,
+    openAsset,
     headingNumbering = false,
     mine = ''
   }: {
@@ -36,6 +37,8 @@
     onsearch?: MentionSearch
     /** Runs with the address when a picture or a file is pressed. */
     onasset?: (address: string) => void
+    /** Opens the asset a file block holds. */
+    openAsset?: (assetId: string) => void
     /** Prefixes every heading with its outline number. */
     headingNumbering?: boolean
     /** The reader's own uid, so their own answer is marked. */
@@ -92,7 +95,7 @@
   }
 
   function address(block: Block): string {
-    if (block.kind === 'bookmark') return block.options.url ?? ''
+    if (block.kind === 'bookmark' || block.kind === 'file') return block.options.url ?? ''
     if (block.kind === 'embed' || block.kind === 'map') return block.text.trim()
     if (block.kind === 'page') return block.options.page ?? ''
     return block.options.src ?? ''
@@ -110,7 +113,7 @@
   }
 
   const VIEWED: Block['kind'][] = ['image', 'audio', 'video', 'pdf', 'embed', 'map', 'bookmark', 'page']
-  const EMPTIED: Block['kind'][] = ['image', 'audio', 'video', 'pdf', 'embed', 'map', 'bookmark']
+  const EMPTIED: Block['kind'][] = ['image', 'audio', 'video', 'pdf', 'embed', 'map', 'bookmark', 'file']
 </script>
 
 <div class="dnd-read" class:dnd-read-legended={sides.length > 0} class:dnd-read-legended-left={sides.includes('left')} class:dnd-read-legended-right={sides.includes('right')}>
@@ -187,7 +190,7 @@
         <div class="dnd-read-columns">
           {#each getColumns(block.text) as column, place (place)}
             <div class="dnd-read-column">
-              <BlockReader value={column} {onopen} {onsearch} {onasset} {headingNumbering} {mine} />
+              <BlockReader value={column} {onopen} {onsearch} {onasset} {openAsset} {headingNumbering} {mine} />
             </div>
           {/each}
         </div>
@@ -318,6 +321,18 @@
           <span class="dnd-read-sign dnd-read-sign-page" aria-hidden="true"></span>
           <span class="dnd-read-mark-name">{block.text || 'Untitled page'}</span>
         </button>
+      {:else if block.kind === 'file'}
+        {#if block.options.assetId}
+          <button type="button" class="dnd-read-mark dnd-read-file" onclick={() => openAsset?.(block.options.assetId ?? '')}>
+            <span class="dnd-read-sign" aria-hidden="true"><Glyph name={getMimeGlyph(block.options.mimeType ?? '')} size="sm" /></span>
+            <span class="dnd-read-mark-name">{block.options.name || 'File'}</span>
+          </button>
+        {:else}
+          <a class="dnd-read-mark dnd-read-file" href={block.options.url ?? ''} target="_blank" rel="noreferrer noopener">
+            <span class="dnd-read-sign" aria-hidden="true"><Glyph name={getMimeGlyph(block.options.mimeType ?? '')} size="sm" /></span>
+            <span class="dnd-read-mark-name">{block.options.name || 'File'}</span>
+          </a>
+        {/if}
       {:else if block.kind === 'bookmark'}
         <a class="dnd-read-mark" href={block.options.url ?? ''} target="_blank" rel="noreferrer noopener">
           {#if block.options.image}
@@ -807,7 +822,8 @@
     filter: brightness(1.06);
   }
 
-  .dnd-read-page {
+  .dnd-read-page,
+  .dnd-read-file {
     align-items: center;
   }
 

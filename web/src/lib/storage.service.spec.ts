@@ -3,6 +3,11 @@ import portraitSource from '../components/ui/Portrait.svelte?raw'
 import storedImageSource from '../components/ui/StoredImage.svelte?raw'
 import createPageSource from '../pages/CharacterCreatePage.svelte?raw'
 import resourceShellSource from '../components/campaign/ResourceShell.svelte?raw'
+import resourceRollSource from '../components/campaign/ResourceRoll.svelte?raw'
+import backgroundTabSource from '../components/character_sheet/main_tabs/BackgroundTab.svelte?raw'
+import blockEditorSource from '../components/ui/BlockEditor.svelte?raw'
+import blockReaderSource from '../components/ui/BlockReader.svelte?raw'
+import mediaDialogSource from '../components/MediaDialog.svelte?raw'
 
 const wire = vi.hoisted(() => ({ reads: [] as string[], deletes: [] as string[], answers: {} as Record<string, unknown> }))
 
@@ -73,7 +78,51 @@ describe('the portrait preview on the create page', () => {
 
 describe('a file the editor makes on a page', () => {
   it('goes to the campaign folder on a campaign page and to the player otherwise, whatever its type', () => {
-    expect(resourceShellSource).toContain("return (await postFile(file, campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })).url")
+    expect(resourceShellSource).toContain("const scope = $derived<UploadScope>(campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })")
+    expect(resourceShellSource).toContain('return await postFile(file, scope)')
+    expect(resourceShellSource).toContain('getAssets={(query, wanted) => getAssets(query, wanted, scope)}')
+  })
+})
+
+describe('the media contract', () => {
+  const hosts = { resourceShellSource, resourceRollSource, backgroundTabSource, blockEditorSource, blockReaderSource }
+  const tags = (source: string, name: string) => source.match(new RegExp(`<${name}\\b[\\s\\S]*?/>`, 'g')) ?? []
+
+  it('asks the host for media and stores a recording through it, with the kinds Mar declares', () => {
+    expect(blockEditorSource).toContain('requestMedia?: (kind: MediaKind, current?: string) => Promise<MediaAsset | null>')
+    expect(blockEditorSource).toContain('uploadFile?: (file: File, kind: MediaKind) => Promise<MediaAsset>')
+    expect(blockEditorSource).toContain('openAsset?: (assetId: string) => void')
+    expect(blockEditorSource).toContain("uploadFile(sound, 'audio')")
+  })
+
+  it('keeps no file input and no upload hook of its own in the editor', () => {
+    expect(blockEditorSource).not.toContain('type="file"')
+    expect(blockEditorSource).not.toContain('onfile')
+  })
+
+  it('stores all four values a file block is attached with', () => {
+    expect(blockEditorSource).toContain('{ assetId: asset.id, name: asset.name, url: asset.url, mimeType: asset.mimeType }')
+  })
+
+  it('opens a file block through the host while reading', () => {
+    expect(blockReaderSource).toContain('openAsset?: (assetId: string) => void')
+    expect(blockReaderSource).toContain("onclick={() => openAsset?.(block.options.assetId ?? '')}")
+  })
+
+  it('feeds the dialog its listing and its upload from the host', () => {
+    expect(mediaDialogSource).toContain('getAssets: (query: string, kind: MediaKind) => Promise<MediaAsset[]>')
+    expect(mediaDialogSource).toContain('uploadFile: (file: File, kind: MediaKind) => Promise<MediaAsset>')
+    expect(mediaDialogSource).toContain('onclose: (asset: MediaAsset | null) => void')
+  })
+
+  it.each(Object.entries(hosts))('hands every editor in %s its media hooks and every reader its opener', (_, source) => {
+    expect(tags(source, 'BlockEditor').length + tags(source, 'BlockReader').length).toBeGreaterThan(0)
+    for (const tag of tags(source, 'BlockEditor')) {
+      expect(tag).toContain('requestMedia={')
+      expect(tag).toContain('uploadFile={')
+      expect(tag).toContain('openAsset={')
+    }
+    for (const tag of tags(source, 'BlockReader')) expect(tag).toMatch(/openAsset=\{|\{openAsset\}/)
   })
 })
 

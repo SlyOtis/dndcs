@@ -4,6 +4,7 @@
   import { getTheme, setTheme } from '$lib/dialogs/theme'
   import { campaignService } from '$lib/firestore.service'
   import type { Campaign } from '$lib/firestore.types'
+  import { getAssetTab } from '$lib/storage.service'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
   import { unfold } from '$lib/unfold'
@@ -467,7 +468,7 @@
         {/if}
 
         <div class="roll-peek-body">
-          <BlockReader value={peeked.content} />
+          <BlockReader value={peeked.content} openAsset={getAssetTab} />
         </div>
       </aside>
     {/if}

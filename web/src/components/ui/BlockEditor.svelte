@@ -37,6 +37,7 @@
     { kind: 'video', title: 'Video', group: 'Media', mark: '▶', description: 'Embed a video', keywords: ['video', 'movie'] },
     { kind: 'audio', title: 'Recording', group: 'Media', icon: 'sound', description: 'Record from the microphone', keywords: ['record', 'audio', 'sound'] },
     { kind: 'pdf', title: 'PDF', group: 'Media', mark: 'P', description: 'Embed a PDF', keywords: ['pdf', 'document'] },
+    { kind: 'file', title: 'File', group: 'Media', icon: 'sources', description: 'Attach a file', keywords: ['file', 'attachment', 'upload'] },
     { kind: 'bookmark', title: 'Link', group: 'Media', mark: '↗', description: 'Link preview card', keywords: ['link', 'bookmark', 'url'] },
     { kind: 'embed', title: 'Embed', group: 'Media', mark: '⧉', description: 'Embed an iframe', keywords: ['iframe', 'embed'] },
     { kind: 'map', title: 'Map', group: 'Media', mark: '⌖', description: 'A map from an address, or a stored picture', keywords: ['map', 'location', 'place', 'address'] },
@@ -66,12 +67,14 @@
     type BlockWidth,
     type BlockWrap,
     type LinkPreview,
+    type MediaAsset,
+    type MediaKind,
     type Mention,
     type MentionSearch
   } from '$lib/blocks'
   import { tick } from 'svelte'
   import BlockReader from './BlockReader.svelte'
-  import Glyph from './Glyph.svelte'
+  import Glyph, { getMimeGlyph } from './Glyph.svelte'
   import IconBtn from './IconBtn.svelte'
   import StoredImage from './StoredImage.svelte'
 
@@ -84,7 +87,9 @@
     onsearch,
     onchange,
     onpage,
-    onfile,
+    requestMedia,
+    uploadFile,
+    openAsset,
     onasset,
     onpreview
   }: {
@@ -104,8 +109,12 @@
     onchange?: (value: string) => void
     /** Makes a sub page and hands back its id, so a page block links to it. */
     onpage?: (title: string) => Promise<string | undefined> | string | undefined
-    /** Stores a file the editor made and hands back the address it is read from. */
-    onfile?: (file: File) => Promise<string | undefined>
+    /** Opens the pick or upload dialog for a media block and hands back what was chosen, or null when it closes without one. */
+    requestMedia?: (kind: MediaKind, current?: string) => Promise<MediaAsset | null>
+    /** Stores a recording the editor made and hands back the asset it became. */
+    uploadFile?: (file: File, kind: MediaKind) => Promise<MediaAsset>
+    /** Opens the asset a file block holds. */
+    openAsset?: (assetId: string) => void
     /** Runs with the address when a picture or a file is pressed while reading. */
     onasset?: (address: string) => void
     /** Looks a link up, so a bookmark can fill its card. */
@@ -175,15 +184,15 @@
     pdf: 'PDF',
     bookmark: 'link',
     embed: 'embed',
-    map: 'map'
+    map: 'map',
+    file: 'file'
   }
 
   const MEDIA: BlockKind[] = ['image', 'audio', 'video', 'pdf', 'embed', 'map', 'bookmark', 'page']
-  const BARE: BlockKind[] = ['divider', 'toc']
+  const BARE: BlockKind[] = ['divider', 'toc', 'file']
   const RAW: BlockKind[] = ['code', 'table', 'mermaid', 'html', 'columns']
-  const ACCEPTS: Partial<Record<BlockKind, string>> = { image: 'image/*', video: 'video/*', audio: 'audio/*', pdf: 'application/pdf' }
-  const UPLOADED: BlockKind[] = ['image', 'video', 'audio', 'pdf']
-  const PICKED: BlockKind[] = ['image', 'video', 'pdf']
+  const UPLOADED: BlockKind[] = ['image', 'video', 'audio', 'pdf', 'file']
+  const PICKED: BlockKind[] = ['image', 'video', 'pdf', 'file']
 
   const opened = getDocument(value).blocks
   let blocks = $state<Block[]>(opened)
@@ -195,9 +204,6 @@
   let chosen = $state(0)
   let hosts: Record<string, HTMLTextAreaElement | undefined> = {}
   let root = $state<HTMLElement>()
-  let picker = $state<HTMLInputElement>()
-  let accepting = $state('image/*')
-  let picking: string | null = null
   let sought = 0
 
   const sized = typeof CSS !== 'undefined' && CSS.supports('field-sizing', 'content')
@@ -330,7 +336,7 @@
   }
 
   function address(block: Block): string {
-    if (block.kind === 'bookmark') return block.options.url ?? ''
+    if (block.kind === 'bookmark' || block.kind === 'file') return block.options.url ?? ''
     if (block.kind === 'embed' || block.kind === 'map') return block.text
     return block.options.src ?? ''
   }
@@ -338,7 +344,7 @@
   function readdress(id: string, next: string) {
     const index = at(id)
     const block = blocks[index]
-    if (block.kind === 'bookmark') dress(id, { url: next })
+    if (block.kind === 'bookmark' || block.kind === 'file') dress(id, { url: next })
     else if (block.kind === 'embed' || block.kind === 'map') {
       blocks[index] = { ...block, text: next }
       publish()
@@ -443,11 +449,11 @@
       taper = null
 
       const sound = new File(held, `recording-${Date.now()}.webm`, { type: 'audio/webm' })
-      const src = await onfile?.(sound)
-      if (!src) return
+      const asset = uploadFile ? await uploadFile(sound, 'audio').catch(() => null) : null
+      if (!asset) return
 
       const index = at(id)
-      blocks[index] = { ...blocks[index], options: { ...blocks[index].options, src } }
+      blocks[index] = { ...blocks[index], options: { ...blocks[index].options, src: asset.url } }
       publish()
     }
 
@@ -456,27 +462,25 @@
     tape.start()
   }
 
-  function browse(id: string, kind: BlockKind) {
-    picking = id
-    accepting = ACCEPTS[kind] ?? '*/*'
-    queueMicrotask(() => picker?.click())
+  function getSource(kind: BlockKind, asset: MediaAsset): BlockOptions {
+    return kind === 'file' ? { assetId: asset.id, name: asset.name, url: asset.url, mimeType: asset.mimeType } : { src: asset.url }
   }
 
-  async function frame(event: Event) {
-    const input = event.currentTarget as HTMLInputElement
-    const file = input.files?.[0]
-    const id = picking
-    input.value = ''
-    picking = null
-    if (!file || !id) return
+  async function pick(id: string, kind: BlockKind) {
+    const block = blocks[at(id)]
+    if (!block || !requestMedia) return
 
-    const src = await onfile?.(file)
-    if (!src) return
-
+    const asset = await requestMedia(kind as MediaKind, address(block) || undefined)
     const index = at(id)
-    if (index < 0) return
-    blocks[index] = { ...blocks[index], options: { ...blocks[index].options, src } }
+    if (!asset || index < 0) return
+
+    blocks[index] = { ...blocks[index], options: { ...blocks[index].options, ...getSource(kind, asset) } }
     publish()
+  }
+
+  function reveal(block: Block) {
+    if (block.options.assetId) openAsset?.(block.options.assetId)
+    else if (block.options.url) window.open(block.options.url, '_blank', 'noopener')
   }
 
   function check(id: string) {
@@ -944,14 +948,16 @@
     seat(id, kind === 'meeting' ? 6 : caret)
   }
 
-  function choose(id: string, command: Command) {
+  async function choose(id: string, command: Command) {
     const node = hosts[id]
     const block = blocks[at(id)]
-    let text = block.kind === 'image' ? (block.options.alt ?? '') : block.text
+    const held = block.kind === 'image' ? (block.options.alt ?? '') : block.text
+    let text = held
+    let caret = held.length
 
     if (slashOn?.id === id && node) {
-      const caret = node.selectionStart
-      text = text.slice(0, caret - slashOn.query.length - 1) + text.slice(caret)
+      caret = node.selectionStart - slashOn.query.length - 1
+      text = held.slice(0, caret) + held.slice(node.selectionStart)
     }
 
     if (command.kind === 'page') {
@@ -959,8 +965,24 @@
       return
     }
 
-    turn(id, command.kind, command.options, text)
-    if (PICKED.includes(command.kind) && onfile && !blocks[at(id)].options.src) browse(id, command.kind)
+    if (!PICKED.includes(command.kind) || !requestMedia) {
+      turn(id, command.kind, command.options, text)
+      return
+    }
+
+    slashOn = null
+    openMenu = null
+    const asset = await requestMedia(command.kind as MediaKind)
+    const index = at(id)
+    if (index < 0) return
+
+    if (asset) {
+      turn(id, command.kind, { ...command.options, ...getSource(command.kind, asset) }, text)
+    } else if (text !== held) {
+      blocks[index] = pen(blocks[index], text)
+      publish()
+      seat(id, caret)
+    }
   }
 
   function take(mention: Mention) {
@@ -1042,17 +1064,9 @@
 <svelte:window onpointerdown={shut} />
 
 {#if !editable}
-  <BlockReader {value} {onsearch} {onasset} {headingNumbering} />
+  <BlockReader {value} {onsearch} {onasset} {openAsset} {headingNumbering} />
 {:else}
   <div class="dnd-write" bind:this={root}>
-    <input
-      bind:this={picker}
-      class="dnd-write-file"
-      type="file"
-      accept={accepting}
-      aria-label="Choose the file"
-      onchange={frame}
-    />
     {#each blocks as block, index (block.id)}
       {@const depth = Math.min(Math.max(block.options.depth ?? 0, 0), 5)}
       <div
@@ -1094,6 +1108,27 @@
               <span class="dnd-write-toc-line">No headings yet</span>
             {/each}
           </nav>
+        {:else if block.kind === 'file'}
+          {#if block.options.assetId || block.options.url}
+            <button type="button" class="dnd-write-file" title="Open {block.options.name || 'the file'}" onclick={() => reveal(block)}>
+              <Glyph name={getMimeGlyph(block.options.mimeType ?? '')} size="sm" />
+              <span class="dnd-write-file-name">{block.options.name || 'File'}</span>
+              <Glyph name="export" size="sm" />
+            </button>
+          {:else}
+            <button
+              type="button"
+              class="dnd-write-empty dnd-write-empty-row"
+              disabled={!requestMedia}
+              onclick={() => pick(block.id, 'file')}
+            >
+              <span class="dnd-write-empty-art" aria-hidden="true"><Glyph name="sources" size="md" /></span>
+              <span class="dnd-write-empty-text">
+                <span class="dnd-write-empty-title">Attach a file</span>
+                <span class="dnd-write-empty-hint">{requestMedia ? 'Press to upload or pick a file' : 'Set the file from the block menu'}</span>
+              </span>
+            </button>
+          {/if}
         {:else}
           {#if block.kind === 'image' && block.options.src}
             <span class="dnd-write-figure">
@@ -1113,8 +1148,8 @@
             <button
               type="button"
               class="dnd-write-empty dnd-write-empty-{block.kind}"
-              disabled={!onfile}
-              onclick={() => browse(block.id, block.kind)}
+              disabled={!requestMedia}
+              onclick={() => pick(block.id, block.kind)}
             >
               <span class="dnd-write-empty-art" aria-hidden="true">
                 <Glyph name={block.kind === 'image' ? 'picture' : block.kind === 'video' ? 'play' : block.kind === 'audio' ? 'sound' : 'scroll'} size="lg" />
@@ -1123,9 +1158,9 @@
                 <span class="dnd-write-empty-title">Add {block.kind === 'image' ? 'an' : 'a'} {name}</span>
                 <span class="dnd-write-empty-hint">
                   {#if block.kind === 'audio'}
-                    {onfile ? 'Press to upload one, or record from the microphone' : 'Record from the microphone'}
+                    {requestMedia ? 'Press to upload or pick one, or record from the microphone' : 'Record from the microphone'}
                   {:else}
-                    {onfile ? `Press to upload or pick ${block.kind === 'image' ? 'an' : 'a'} ${name}` : `Set the ${name} from the block menu`}
+                    {requestMedia ? `Press to upload or pick ${block.kind === 'image' ? 'an' : 'a'} ${name}` : `Set the ${name} from the block menu`}
                   {/if}
                 </span>
               </span>
@@ -1179,13 +1214,13 @@
             >{taping === block.id ? '■' : '●'}</button>
           {/if}
 
-          {#if (block.kind === 'image' || block.kind === 'video' || block.kind === 'pdf') && onfile}
+          {#if (block.kind === 'image' || block.kind === 'video' || block.kind === 'pdf') && requestMedia}
             <button
               type="button"
               class="dnd-write-tick"
               aria-label="Choose the file"
               title="Choose the file"
-              onclick={() => browse(block.id, block.kind)}
+              onclick={() => pick(block.id, block.kind)}
             ><Glyph name={block.kind === 'image' ? 'picture' : 'sources'} size="sm" /></button>
           {/if}
 
@@ -1265,15 +1300,15 @@
               </button>
             {/if}
 
-            {#if UPLOADED.includes(block.kind) && onfile}
-              <button type="button" class="dnd-write-pick" onclick={() => browse(block.id, block.kind)}>
+            {#if UPLOADED.includes(block.kind) && requestMedia}
+              <button type="button" class="dnd-write-pick" onclick={() => pick(block.id, block.kind)}>
                 <span class="dnd-write-pick-sign" aria-hidden="true"><Glyph name="upload" size="sm" /></span>
                 <span class="dnd-write-pick-text">
                   <span class="dnd-write-pick-name">Replace {MEDIA_NAMES[block.kind]}</span>
                   <span class="dnd-write-pick-note">{address(block) || `No ${MEDIA_NAMES[block.kind]} set`}</span>
                 </span>
               </button>
-            {:else if MEDIA.includes(block.kind) && block.kind !== 'page'}
+            {:else if (MEDIA.includes(block.kind) || block.kind === 'file') && block.kind !== 'page'}
               <label class="dnd-write-field">
                 <span class="dnd-label">{block.kind === 'map' ? 'Set address' : `Replace ${MEDIA_NAMES[block.kind]}`}</span>
                 <input
@@ -1362,7 +1397,39 @@
   }
 
   .dnd-write-file {
-    display: none;
+    flex: 1 1 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-1) 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--metal);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .dnd-write-file:hover {
+    color: var(--metal-bright);
+  }
+
+  .dnd-write-file:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  .dnd-write-file-name {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    color: var(--ink);
   }
 
   .dnd-write-row {
@@ -1678,7 +1745,8 @@
   .dnd-write-row-pdf,
   .dnd-write-row-embed,
   .dnd-write-row-map,
-  .dnd-write-row-page {
+  .dnd-write-row-page,
+  .dnd-write-row-file {
     padding: var(--space-2) var(--space-3);
     border: var(--border-hair) solid var(--metal-dim);
     border-radius: var(--radius-sm);
@@ -1795,7 +1863,8 @@
   .dnd-write-row-pdf .dnd-write-gutter,
   .dnd-write-row-embed .dnd-write-gutter,
   .dnd-write-row-map .dnd-write-gutter,
-  .dnd-write-row-page .dnd-write-gutter {
+  .dnd-write-row-page .dnd-write-gutter,
+  .dnd-write-row-file .dnd-write-gutter {
     top: var(--space-2);
   }
 
