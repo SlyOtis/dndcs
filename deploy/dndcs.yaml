@@ -1,0 +1,90 @@
+location: ${AZURE_LOCATION}
+name: ${APP_PREFIX}-dndcs
+resourceGroup: ${RESOURCE_GROUP}
+type: Microsoft.App/containerApps
+identity:
+  type: UserAssigned
+  userAssignedIdentities:
+    ${IDENTITY_ID}: {}
+properties:
+  environmentId: ${ENVIRONMENT_ID}
+  workloadProfileName: Consumption
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      external: true
+      targetPort: 4290
+      transport: http
+      allowInsecure: false
+    registries:
+      - server: ${ACR_SERVER}
+        identity: ${IDENTITY_ID}
+    secrets:
+      - name: pgpassword
+        value: ${PGPASSWORD}
+      - name: sauth-app-secret
+        value: ${SAUTH_APP_SECRET}
+  template:
+    containers:
+      - name: dndcs
+        image: "${ACR_SERVER}/${DOCKER_IMAGE}:${SERVER_VERSION}"
+        env:
+          - name: APP_NAME
+            value: ${APP_NAME}
+          - name: SERVER_VERSION
+            value: ${SERVER_VERSION}
+          - name: SERVER_PORT
+            value: "4290"
+          - name: SERVER_HTML_PATH
+            value: /app/web/dist
+          - name: SERVER_ALLOWED_ORIGINS
+            value: ${SERVER_ALLOWED_ORIGINS}
+          - name: SERVER_LOG_LEVEL
+            value: ${SERVER_LOG_LEVEL}
+          - name: SERVER_ENVIRONMENT
+            value: ${SERVER_ENVIRONMENT}
+          - name: SERVER_OWNER_ID
+            value: ${SERVER_OWNER_ID}
+          - name: PGHOST
+            value: ${PGHOST}
+          - name: PGPORT
+            value: "${PGPORT}"
+          - name: PGUSER
+            value: ${PGUSER}
+          - name: PGPASSWORD
+            secretRef: pgpassword
+          - name: PGDATABASE
+            value: ${PGDATABASE}
+          - name: PGSSLMODE
+            value: ${PGSSLMODE}
+          - name: SAUTH_ENDPOINT
+            value: ${SAUTH_ENDPOINT}
+          - name: SAUTH_APP_SLUG
+            value: ${SAUTH_APP_SLUG}
+          - name: SAUTH_APP_SECRET
+            secretRef: sauth-app-secret
+          - name: SAUTH_REDIRECT_URI
+            value: ${SAUTH_REDIRECT_URI}
+          - name: SAUTH_PAGE_REDIRECT
+            value: ${SAUTH_PAGE_REDIRECT}
+          - name: FILE_MAX_BYTES
+            value: "${FILE_MAX_BYTES}"
+          - name: REPLICATE_ENDPOINT
+            value: ${REPLICATE_ENDPOINT}
+          - name: AZURE_CLIENT_ID
+            value: ${IDENTITY_CLIENT_ID}
+          - name: AZURE_TENANT_ID
+            value: ${AZURE_TENANT_ID}
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        probes:
+          - type: Liveness
+            httpGet:
+              path: /api/status/health/liveness
+              port: 4290
+            initialDelaySeconds: 10
+            periodSeconds: 30
+    scale:
+      minReplicas: 1
+      maxReplicas: 1

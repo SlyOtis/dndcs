@@ -1,0 +1,131 @@
+name: Build and Deploy to Azure Container App
+
+on:
+  push:
+    tags:
+      - 'v*-tst'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag like v1.2.3 required for prd deploy'
+        required: true
+      environment:
+        description: 'Target Environment'
+        required: true
+        type: choice
+        default: tst
+        options:
+          - tst
+          - prd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    outputs:
+      image_tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Reject prd tag push
+        if: github.event_name == 'push' && endsWith(github.ref_name, '-prd')
+        run: echo "prd is not deployable via tag push" && exit 1
+
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Resolve image tag
+        id: version
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "tag=${TAG%-tst}" >> $GITHUB_OUTPUT
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
+
+      - name: ACR Login
+        run: az acr login --name $(echo "${{ vars.ACR_REGISTRY }}" | cut -d'.' -f1)
+
+      - name: Build and push image
+        run: |
+          docker build \
+            --build-arg IMAGE_VERSION=${{ steps.version.outputs.tag }} \
+            --build-arg GH_REPO_TOKEN=${{ secrets.DOCKER_PACKAGE_READ }} \
+            -t ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }} .
+          docker tag ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }} ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+
+  migrate:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    steps:
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Acknowledge schema changes
+        env:
+          PGHOST: ${{ vars.PGHOST }}
+          PGPORT: ${{ vars.PGPORT }}
+          PGUSER: ${{ vars.PGUSER }}
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          PGDATABASE: ${{ vars.PGDATABASE }}
+          PGSSLMODE: ${{ vars.PGSSLMODE }}
+          SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
+          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
+        uses: nimling/samna-migrate@latest
+        with:
+          command: upgrade
+          schema: ${{ github.workspace }}/database/migrate.yml
+          db-dir: ${{ github.workspace }}/database
+
+      - name: Run migrations
+        env:
+          PGHOST: ${{ vars.PGHOST }}
+          PGPORT: ${{ vars.PGPORT }}
+          PGUSER: ${{ vars.PGUSER }}
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          PGDATABASE: ${{ vars.PGDATABASE }}
+          PGSSLMODE: ${{ vars.PGSSLMODE }}
+          SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
+          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
+        uses: nimling/samna-migrate@latest
+        with:
+          command: up
+          schema: ${{ github.workspace }}/database/migrate.yml
+          db-dir: ${{ github.workspace }}/database
+
+  deploy:
+    needs: [build, migrate]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    steps:
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
+
+      - name: Update Container App
+        run: |
+          if az containerapp show --name ${{ vars.AZURE_APP_NAME }} --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} &>/dev/null; then
+            az containerapp update \
+              --name ${{ vars.AZURE_APP_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --image ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }} \
+              --revision-suffix $(date +%s)
+          else
+            echo "Container app does not exist, skipping deployment"
+          fi

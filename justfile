@@ -39,7 +39,7 @@ build-db:
     sh scripts/build-db.sh
 
 build-docker:
-    docker build --build-arg GH_REPO_TOKEN="$GH_REPO_TOKEN" --build-arg IMAGE_VERSION="$SERVER_VERSION" --secret id=node_auth_token,env=NODE_AUTH_TOKEN -t "$APP_NAME" .
+    docker build --build-arg GH_REPO_TOKEN="$GH_REPO_TOKEN" --build-arg IMAGE_VERSION="$SERVER_VERSION" -t "$APP_NAME" .
 
 dev: env
     sh scripts/dev.sh
@@ -89,6 +89,15 @@ clean:
 
 deploy env='tst' version='':
     sh scripts/deploy.sh {{env}} {{version}}
+
+setup env:
+    bash scripts/setup.sh {{env}}
+
+apps env:
+    bash scripts/apps.sh {{env}}
+
+domains env:
+    bash scripts/domains.sh {{env}}
 
 reference kind *ARGS:
     bash web/scripts/reference.sh {{kind}} {{ARGS}}
