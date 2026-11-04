@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -52,12 +51,6 @@ func GetCampaignStream(ctx echo.Context) error {
 	return getStream(ctx, broker.CampaignTopic(campaignID), func(rctx context.Context, ev broker.Event) bool {
 		if status, _ := getReadAccess(rctx, actorID, campaignID, db.OBJECT_TYPE_CAMPAIGN); status != 0 {
 			return false
-		}
-		switch ev.Kind {
-		case broker.KindPeer:
-			return true
-		case broker.KindSignal:
-			return strings.HasPrefix(ev.ID, actorID.String()+".")
 		}
 		objectType, known := campaignPartTypes[ev.Kind]
 		if !known {

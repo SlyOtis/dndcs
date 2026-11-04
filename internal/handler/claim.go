@@ -150,7 +150,7 @@ func PostClaimUser(ctx echo.Context) error {
 		return respond.Error(ctx, http.StatusForbidden, "Forbidden")
 	}
 	if err := db.Instance().RunInTx(rctx, nil, func(tctx context.Context, tx bun.Tx) error {
-		if err := postGrant(tctx, tx, w, claimID, body.UserID); err != nil {
+		if _, err := postGrant(tctx, tx, w, claimID, body.UserID); err != nil {
 			return err
 		}
 		return sdb.Write(tctx, tx, "PostClaimUser", "create", sdb.OBJECT_TYPE_USER_CLAIM, claimID, w.OwnerID, w.Access.UserClaimID, "Granted claim to user")

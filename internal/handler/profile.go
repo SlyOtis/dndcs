@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	sdb "github.com/nimling/samna-auth-middleware/v2/disciple/sdb"
 	"github.com/uptrace/bun"
 )
+
+var keyField = regexp.MustCompile(`^[a-z][a-z0-9_]*_api_key$`)
 
 type BodyProfile struct {
 	Email       *string          `json:"email"`
@@ -141,7 +144,6 @@ func PostProfile(ctx echo.Context) error {
 		UserID:      actorID,
 		Preferences: json.RawMessage(defaultPreferences),
 		Friends:     []uuid.UUID{},
-		Details:     json.RawMessage(`{}`),
 		OwnerID:     w.OwnerID,
 		CreatedBy:   w.Access.UserClaimID,
 	}
@@ -336,7 +338,19 @@ func GetProfileDetails(ctx echo.Context) error {
 	if _, err := sdb.Instance().MutationAccess(rctx, actorID, profile.ID, db.OBJECT_TYPE_PROFILE, sdb.ACCESS_WRITE); err != nil {
 		return respond.Error(ctx, http.StatusForbidden, "Forbidden")
 	}
-	return respond.JSON(ctx, http.StatusOK, profile.Details, 1)
+	secrets, err := sdb.Instance().GetSecrets(rctx, actorID, sdb.ACCESS_READ, nil, 0)
+	if err != nil {
+		ctx.Logger().Errorf("GetProfileDetails: %v", err)
+		return respond.ErrorInternal(ctx)
+	}
+	held := map[string]bool{}
+	suffix := ":" + actorID.String()
+	for _, secret := range secrets {
+		if field, found := strings.CutSuffix(secret.Key, suffix); found {
+			held[field] = true
+		}
+	}
+	return respond.JSON(ctx, http.StatusOK, held, len(held))
 }
 
 func PutProfileDetails(ctx echo.Context) error {
@@ -344,9 +358,14 @@ func PutProfileDetails(ctx echo.Context) error {
 	if !ok {
 		return respond.Error(ctx, http.StatusUnauthorized, "Unauthorized")
 	}
-	var details map[string]any
+	var details map[string]string
 	if err := ctx.Bind(&details); err != nil {
 		return respond.Error(ctx, http.StatusBadRequest, "Invalid JSON body")
+	}
+	for field := range details {
+		if !keyField.MatchString(field) {
+			return respond.Error(ctx, http.StatusBadRequest, "A key field is lower case letters and underscores ending in _api_key")
+		}
 	}
 	rctx := ctx.Request().Context()
 	var profile db.Profile
@@ -361,24 +380,92 @@ func PutProfileDetails(ctx echo.Context) error {
 	if err != nil || ac == nil {
 		return respond.Error(ctx, http.StatusForbidden, "Forbidden")
 	}
-	merged := map[string]any{}
-	_ = json.Unmarshal(profile.Details, &merged)
-	for key, value := range details {
-		merged[key] = value
-	}
-	encoded, err := json.Marshal(merged)
+	w, err := postWriter(rctx, actorID)
 	if err != nil {
-		return respond.Error(ctx, http.StatusBadRequest, "Invalid JSON body")
+		if errors.Is(err, errNoOwner) {
+			ctx.Logger().Error(err)
+			return respond.ErrorInternal(ctx)
+		}
+		return respond.Error(ctx, http.StatusForbidden, "Forbidden")
 	}
-	profile.Details = encoded
+	secrets, err := sdb.Instance().GetSecrets(rctx, actorID, sdb.ACCESS_READ, nil, 0)
+	if err != nil {
+		ctx.Logger().Errorf("PutProfileDetails: %v", err)
+		return respond.ErrorInternal(ctx)
+	}
+	stored := map[string]sdb.SamnaSecret{}
+	for _, secret := range secrets {
+		stored[secret.Key] = secret
+	}
+	held := map[string]bool{}
 	if err := db.Instance().RunInTx(rctx, nil, func(tctx context.Context, tx bun.Tx) error {
-		if _, err := tx.NewUpdate().Model(&profile).Column("details").Set("sa_updated_at = NOW()").WherePK().Exec(tctx); err != nil {
-			return err
+		keyAccess := *w.Access
+		if profile.KeyClaimID == nil {
+			claimID, err := postClaim(tctx, tx, w, "Keys", "The integration keys one player holds alone", sdb.ACCESS_READ|sdb.ACCESS_WRITE)
+			if err != nil {
+				return err
+			}
+			grantID, err := postGrant(tctx, tx, w, claimID, actorID)
+			if err != nil {
+				return err
+			}
+			profile.KeyClaimID = &claimID
+			keyAccess.ClaimID = &claimID
+			keyAccess.UserClaimID = &grantID
+			if _, err := tx.NewUpdate().Model(&profile).Column("key_claim_id").Set("sa_updated_at = NOW()").WherePK().Exec(tctx); err != nil {
+				return err
+			}
+		} else {
+			grants, err := sdb.Instance().GetGrants(tctx, sdb.GrantFilters{ClaimIDs: []uuid.UUID{*profile.KeyClaimID}, UserIDs: []uuid.UUID{actorID}, NoClients: true})
+			if err != nil {
+				return err
+			}
+			for _, grant := range grants {
+				if grant.DeletedAt == nil {
+					keyAccess.ClaimID = profile.KeyClaimID
+					keyAccess.UserClaimID = &grant.ID
+				}
+			}
+			if keyAccess.ClaimID == nil || *keyAccess.ClaimID != *profile.KeyClaimID {
+				return sdb.ErrNoAccess
+			}
+		}
+		for field, value := range details {
+			key := field + ":" + actorID.String()
+			secret, found := stored[key]
+			value = strings.TrimSpace(value)
+			switch {
+			case value == "" && found:
+				gone := sdb.SamnaSecret{ID: secret.ID}
+				if err := sdb.Instance().NewDelete().Model(&gone).Access(&keyAccess).Conn(tx).Scan(tctx, &gone); err != nil {
+					return err
+				}
+			case value == "":
+			case found:
+				changed := sdb.SamnaSecret{ID: secret.ID, Key: key, Value: value, OwnerID: w.OwnerID}
+				if err := sdb.Instance().NewUpdate().Model(&changed).Access(&keyAccess).Conn(tx).Scan(tctx, &changed); err != nil {
+					return err
+				}
+				held[field] = true
+			default:
+				created := sdb.SamnaSecret{Key: key, Value: value, OwnerID: w.OwnerID}
+				if err := sdb.Instance().NewInsert().Model(&created).Access(&keyAccess).Conn(tx).Scan(tctx, &created); err != nil {
+					return err
+				}
+				held[field] = true
+			}
 		}
 		return sdb.Write(tctx, tx, "PutProfileDetails", "update", db.OBJECT_TYPE_PROFILE, profile.ID, profile.OwnerID, ac.UserClaimID, "Changed the integration keys")
 	}); err != nil {
 		ctx.Logger().Errorf("PutProfileDetails: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
-	return respond.JSON(ctx, http.StatusOK, profile.Details, 1)
+	for key := range stored {
+		if field, found := strings.CutSuffix(key, ":"+actorID.String()); found {
+			if _, changed := details[field]; !changed {
+				held[field] = true
+			}
+		}
+	}
+	return respond.JSON(ctx, http.StatusOK, held, len(held))
 }

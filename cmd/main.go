@@ -14,6 +14,7 @@ import (
 	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/SlyOtis/dndcs/internal/handler"
+	"github.com/SlyOtis/dndcs/internal/storage"
 	"github.com/SlyOtis/dndcs/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -87,6 +88,9 @@ func main() {
 	}
 	if err := broker.Init(context.Background(), db.Instance().DB); err != nil {
 		e.Logger.Fatalf("init broker: %v", err)
+	}
+	if err := storage.Init(context.Background()); err != nil {
+		e.Logger.Fatalf("init storage: %v", err)
 	}
 
 	e.Use(smw.TelemetryMiddleware())
@@ -183,11 +187,6 @@ func main() {
 		campaign.POST("/:id/chat", handler.PostChatEntry)
 		campaign.PUT("/:id/chat/:entry_id", handler.PutChatEntry)
 		campaign.DELETE("/:id/chat/:entry_id", handler.DeleteChatEntry)
-		campaign.GET("/:id/peer", handler.GetPeers)
-		campaign.PUT("/:id/peer/:peer_id", handler.PutPeer)
-		campaign.DELETE("/:id/peer/:peer_id", handler.DeletePeer)
-		campaign.POST("/:id/signal", handler.PostSignal)
-		campaign.DELETE("/:id/signal/:peer_id", handler.DeleteSignals)
 
 		resource := api.Group("/resource", userAuth)
 		resource.GET("", handler.GetResources)
@@ -205,7 +204,12 @@ func main() {
 		file.GET("", handler.GetFile)
 		file.POST("", handler.PostFile)
 		file.DELETE("", handler.DeleteFile)
-		file.GET("/piece", handler.GetFilePieces)
+		file.GET("/data", handler.GetFileData)
+		file.HEAD("/data", handler.GetFileData)
+		file.PUT("/data", handler.PutFileData)
+
+		ai := api.Group("/ai", userAuth)
+		ai.Match([]string{http.MethodGet, http.MethodPost}, "/*", handler.PostAI)
 
 		catalog := api.Group("/catalog", userAuth)
 		catalog.GET("/:kind", handler.GetCatalogEntries)

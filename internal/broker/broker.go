@@ -21,8 +21,6 @@ const (
 	KindMap       = "map"
 	KindEncounter = "encounter"
 	KindSong      = "song"
-	KindPeer      = "peer"
-	KindSignal    = "signal"
 	KindProfile   = "profile"
 	KindUpdate    = "update"
 )

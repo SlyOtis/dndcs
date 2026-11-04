@@ -313,15 +313,23 @@ func TestIntegrationKeysAreReadByTheirOwnerAlone(t *testing.T) {
 	requireStack(t)
 	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
 	ensureProfile(t, player, "pip@dndcs.local")
-	if status, _ := call(t, dungeonMaster, http.MethodPut, "/", `{"replicate_api_key":"r8_test"}`, nil, handler.PutProfileDetails); status != http.StatusOK {
-		t.Fatalf("PutProfileDetails: %d", status)
+	if status, answer := call(t, dungeonMaster, http.MethodPut, "/", `{"replicate_api_key":"r8_test"}`, nil, handler.PutProfileDetails); status != http.StatusOK {
+		t.Fatalf("PutProfileDetails: %d %+v", status, answer.Error)
 	}
 	_, mine := call(t, dungeonMaster, http.MethodGet, "/", "", nil, handler.GetProfileDetails)
-	if !strings.Contains(string(mine.Data), "r8_test") {
-		t.Fatalf("the owner misses their key")
+	held := map[string]bool{}
+	if err := json.Unmarshal(mine.Data, &held); err != nil || !held["replicate_api_key"] {
+		t.Fatalf("the owner does not see that their key is held: %s", string(mine.Data))
+	}
+	if strings.Contains(string(mine.Data), "r8_test") {
+		t.Fatalf("the key value left the service")
 	}
 	_, theirs := call(t, player, http.MethodGet, "/", "", map[string]string{"user_id": dungeonMaster.String()}, handler.GetProfileUser)
 	if strings.Contains(string(theirs.Data), "r8_test") {
 		t.Fatalf("another player read the key")
+	}
+	_, own := call(t, player, http.MethodGet, "/", "", nil, handler.GetProfileDetails)
+	if strings.Contains(string(own.Data), "replicate_api_key") {
+		t.Fatalf("another player holds the owner's key: %s", string(own.Data))
 	}
 }

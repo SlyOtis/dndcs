@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS profile (
     photo_url      TEXT NOT NULL DEFAULT '',
     preferences    JSONB NOT NULL DEFAULT '{}'::jsonb,
     friends        UUID[] NOT NULL DEFAULT '{}',
-    details        JSONB NOT NULL DEFAULT '{}'::jsonb,
+    key_claim_id   UUID,
     sa_owner_id    UUID NOT NULL,
     sa_created_by  UUID,
     sa_created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -24,7 +24,7 @@ COMMENT ON COLUMN profile.display_name IS 'The name shown at the table';
 COMMENT ON COLUMN profile.photo_url IS 'The stored address of the portrait';
 COMMENT ON COLUMN profile.preferences IS 'Theme, sound, animations, recent characters and shortcuts';
 COMMENT ON COLUMN profile.friends IS 'The user ids the player has added as friends';
-COMMENT ON COLUMN profile.details IS 'The player''s own integration keys, read by the player alone';
+COMMENT ON COLUMN profile.key_claim_id IS 'The claim held by the player alone that their integration keys, stored as Samna Auth secrets, are bound to';
 COMMENT ON COLUMN profile.sa_owner_id IS 'The owning organization';
 COMMENT ON COLUMN profile.sa_created_by IS 'The user_claim of the creator';
 COMMENT ON COLUMN profile.sa_created_at IS 'When the row was created';

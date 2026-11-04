@@ -32,7 +32,7 @@ type Profile struct {
 	PhotoURL    string          `bun:"photo_url" json:"photo_url"`
 	Preferences json.RawMessage `bun:"preferences,type:jsonb" json:"preferences"`
 	Friends     []uuid.UUID     `bun:"friends,array" json:"friends"`
-	Details     json.RawMessage `bun:"details,type:jsonb" json:"-"`
+	KeyClaimID  *uuid.UUID      `bun:"key_claim_id" json:"-"`
 	OwnerID     uuid.UUID       `bun:"sa_owner_id" json:"-"`
 	CreatedBy   *uuid.UUID      `bun:"sa_created_by" json:"-"`
 	CreatedAt   time.Time       `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
@@ -227,23 +227,12 @@ type File struct {
 	Type       string       `bun:"type" json:"type"`
 	Size       int64        `bun:"size" json:"size"`
 	Etag       string       `bun:"etag" json:"etag"`
-	Count      int          `bun:"count" json:"count"`
-	BlockSize  int          `bun:"block_size" json:"block_size"`
-	Blocks     []string     `bun:"blocks,array" json:"blocks"`
 	StorageKey string       `bun:"storage_key" json:"-"`
 	OwnerID    uuid.UUID    `bun:"sa_owner_id" json:"-"`
 	CreatedBy  *uuid.UUID   `bun:"sa_created_by" json:"-"`
 	CreatedAt  time.Time    `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
 	UpdatedAt  time.Time    `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
 	DeletedAt  bun.NullTime `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
-}
-
-type FilePiece struct {
-	bun.BaseModel `bun:"table:file_piece"`
-
-	FileID uuid.UUID `bun:"file_id,pk" json:"-"`
-	Index  int       `bun:"index,pk" json:"index"`
-	Data   string    `bun:"data" json:"data"`
 }
 
 type CatalogEntry struct {
@@ -262,25 +251,4 @@ type CatalogEntry struct {
 	CreatedAt   time.Time       `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
 	UpdatedAt   time.Time       `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
 	DeletedAt   bun.NullTime    `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
-}
-
-type Peer struct {
-	bun.BaseModel `bun:"table:peer"`
-
-	ID         string    `bun:"id,pk" json:"id"`
-	CampaignID uuid.UUID `bun:"campaign_id" json:"campaign_id"`
-	UserID     uuid.UUID `bun:"user_id" json:"uid"`
-	SeenAt     time.Time `bun:"seen_at,nullzero,default:now()" json:"seen_at"`
-}
-
-type Signal struct {
-	bun.BaseModel `bun:"table:signal"`
-
-	ID         uuid.UUID `bun:"id,pk,default:gen_random_uuid()" json:"id"`
-	CampaignID uuid.UUID `bun:"campaign_id" json:"campaign_id"`
-	FromPeer   string    `bun:"from_peer" json:"from"`
-	ToPeer     string    `bun:"to_peer" json:"to"`
-	Kind       string    `bun:"kind" json:"kind"`
-	Payload    string    `bun:"payload" json:"payload"`
-	CreatedAt  time.Time `bun:"created_at,nullzero,default:now()" json:"created_at"`
 }

@@ -181,7 +181,7 @@ func PostCampaign(ctx echo.Context) error {
 		if err := putBindings(tctx, tx, w, db.OBJECT_TYPE_CAMPAIGN, campaign.ID, map[uuid.UUID]sdb.ClaimAccess{dmClaimID: sdb.ACCESS_ALL, playerClaimID: sdb.ACCESS_READ}, nil); err != nil {
 			return err
 		}
-		if err := postGrant(tctx, tx, w, dmClaimID, actorID); err != nil {
+		if _, err := postGrant(tctx, tx, w, dmClaimID, actorID); err != nil {
 			return err
 		}
 		campaign.DmClaimID = &dmClaimID
@@ -382,7 +382,7 @@ func PostCampaignPlayer(ctx echo.Context) error {
 		return respond.Error(ctx, http.StatusForbidden, "Forbidden")
 	}
 	if err := db.Instance().RunInTx(rctx, nil, func(tctx context.Context, tx bun.Tx) error {
-		if err := postGrant(tctx, tx, w, *campaign.PlayerClaimID, found.UserID); err != nil {
+		if _, err := postGrant(tctx, tx, w, *campaign.PlayerClaimID, found.UserID); err != nil {
 			return err
 		}
 		if _, err := tx.NewUpdate().Model(&campaign).Set("sa_updated_at = NOW()").WherePK().Exec(tctx); err != nil {

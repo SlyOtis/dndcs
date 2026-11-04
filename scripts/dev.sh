@@ -5,6 +5,8 @@ DB_NAME="${APP_NAME}-db"
 
 just dev-db &
 DB_PID=$!
+just dev-blob &
+BLOB_PID=$!
 
 WEB_PID=""
 SERVER_PID=""
@@ -15,6 +17,9 @@ cleanup() {
     fi
     if [ -n "$WEB_PID" ]; then
         kill "$WEB_PID" 2>/dev/null || true
+    fi
+    if [ -n "$BLOB_PID" ]; then
+        kill "$BLOB_PID" 2>/dev/null || true
     fi
     if [ -n "$DB_PID" ]; then
         kill "$DB_PID" 2>/dev/null || true

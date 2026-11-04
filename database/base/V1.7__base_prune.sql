@@ -8,10 +8,7 @@ DECLARE
     v_deleted BIGINT := 0;
 BEGIN
     FOR v_rule IN
-        SELECT jsonb_array_elements('[
-            {"table": "peer",   "column": "seen_at",    "kind": "log", "days": 1},
-            {"table": "signal", "column": "created_at", "kind": "log", "days": 1}
-        ]'::jsonb)
+        SELECT jsonb_array_elements('[]'::jsonb)
     LOOP
         v_days := coalesce((p_settings ->> ((v_rule ->> 'table') || '_days'))::INTEGER,
                            (p_settings ->> ((v_rule ->> 'kind') || '_days'))::INTEGER,

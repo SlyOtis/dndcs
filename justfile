@@ -47,6 +47,9 @@ dev: env
 dev-db:
     sh scripts/dev-db.sh
 
+dev-blob:
+    sh scripts/dev-blob.sh
+
 dev-server:
     sh scripts/dev-server.sh
 

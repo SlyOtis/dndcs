@@ -224,41 +224,11 @@ COMMENT ON COLUMN song.sa_created_at IS 'When the row was created';
 COMMENT ON COLUMN song.sa_updated_at IS 'When the row last changed';
 COMMENT ON COLUMN song.sa_deleted_at IS 'When the row was soft deleted';
 
-CREATE TABLE IF NOT EXISTS peer (
-    id           TEXT PRIMARY KEY,
-    campaign_id  UUID NOT NULL REFERENCES campaign(id),
-    user_id      UUID NOT NULL,
-    seen_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
-CREATE INDEX IF NOT EXISTS idx_peer_campaign ON peer (campaign_id, seen_at);
 
-COMMENT ON TABLE peer IS 'A player''s open tab at a campaign, the seat other tabs reach it through for files, read through the campaign''s access';
-COMMENT ON COLUMN peer.id IS 'The seat, the user id and a session suffix';
-COMMENT ON COLUMN peer.campaign_id IS 'The campaign the seat is at';
-COMMENT ON COLUMN peer.user_id IS 'The player in the seat';
-COMMENT ON COLUMN peer.seen_at IS 'When the seat last beat';
 
-CREATE TABLE IF NOT EXISTS signal (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    campaign_id  UUID NOT NULL REFERENCES campaign(id),
-    from_peer    TEXT NOT NULL,
-    to_peer      TEXT NOT NULL,
-    kind         TEXT NOT NULL CHECK (kind IN ('offer', 'answer', 'ice')),
-    payload      TEXT NOT NULL DEFAULT '',
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
-CREATE INDEX IF NOT EXISTS idx_signal_to ON signal (campaign_id, to_peer, created_at);
 
-COMMENT ON TABLE signal IS 'A WebRTC offer, answer or candidate from one seat to another, removed once read';
-COMMENT ON COLUMN signal.id IS 'The signal id';
-COMMENT ON COLUMN signal.campaign_id IS 'The campaign both seats are at';
-COMMENT ON COLUMN signal.from_peer IS 'The seat that sent it';
-COMMENT ON COLUMN signal.to_peer IS 'The seat it is for';
-COMMENT ON COLUMN signal.kind IS 'offer, answer or ice';
-COMMENT ON COLUMN signal.payload IS 'The session description or candidate as json';
-COMMENT ON COLUMN signal.created_at IS 'When it was sent';
 
 SELECT claimius.upsert_table_info('public.campaign');
 SELECT claimius.upsert_table_info('public.party');

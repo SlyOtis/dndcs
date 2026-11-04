@@ -159,9 +159,10 @@ func putGrants(ctx context.Context, tx bun.Tx, w *Writer, claimID uuid.UUID, use
 	return nil
 }
 
-func postGrant(ctx context.Context, tx bun.Tx, w *Writer, claimID, userID uuid.UUID) error {
+func postGrant(ctx context.Context, tx bun.Tx, w *Writer, claimID, userID uuid.UUID) (uuid.UUID, error) {
 	grant := sdb.UserClaim{ClaimID: claimID, UserID: userID}
-	return sdb.Instance().NewInsert().Model(&grant).Access(w.Access).Conn(tx).Scan(ctx, &grant)
+	err := sdb.Instance().NewInsert().Model(&grant).Access(w.Access).Conn(tx).Scan(ctx, &grant)
+	return grant.ID, err
 }
 
 func deleteGrant(ctx context.Context, tx bun.Tx, w *Writer, claimID, userID uuid.UUID) error {
