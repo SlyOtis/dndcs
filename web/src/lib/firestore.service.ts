@@ -1,4 +1,4 @@
-import { ApiError, deleteApi, getApi, getEvery, getQuery, getSessionId, postApi, putApi } from './api';
+import { ApiError, deleteApi, getApi, getQuery, getSessionId, getStream, postApi, putApi } from './api';
 import { deleteFile, isDeadFile, isStoredFile } from './storage.service';
 import type {
   UserProfile,
@@ -68,7 +68,7 @@ export const userService = {
   },
 
   subscribeToProfile(callback: (profile: UserProfile | null) => void): Unsubscribe {
-    return getEvery(() => this.getProfile(), callback, () => callback(null));
+    return getStream('/profile/stream', 'profile', () => this.getProfile(), callback, () => callback(null));
   },
 
   async setUserDetails(_userId: string, details: Record<string, unknown>): Promise<void> {
@@ -218,14 +218,6 @@ export const characterService = {
     return found;
   },
 
-  subscribeToCharacter(characterId: string, callback: (character: CharacterDocument | null) => void): Unsubscribe {
-    return getEvery(() => this.getCharacter(characterId), callback);
-  },
-
-  subscribeToUserCharacters(callback: (characters: CharacterDocument[]) => void, userId?: string): Unsubscribe {
-    return getEvery(() => this.getUserCharacters(userId), callback);
-  },
-
   async setCharacterSources(characterId: string, sources: string[]): Promise<void> {
     await putApi(`/character/${characterId}/sources`, { sources });
   },
@@ -349,11 +341,13 @@ export const campaignService = {
   },
 
   postMapsListener(campaignId: string, onChange: (maps: CampaignMap[]) => void): Unsubscribe {
-    return getEvery(() => this.getMaps(campaignId), onChange, (error) => console.error('Campaign maps did not load:', error));
+    return getStream(`/campaign/${campaignId}/stream`, 'map', () => this.getMaps(campaignId), onChange, (error) => console.error('Campaign maps did not load:', error));
   },
 
   postSongsListener(campaignId: string, onChange: (songs: Song[]) => void): Unsubscribe {
-    return getEvery(
+    return getStream(
+      `/campaign/${campaignId}/stream`,
+      'song',
       () => getApi<Song[]>(`/campaign/${campaignId}/song`),
       onChange,
       (error) => console.error('Campaign songs did not load:', error)
@@ -416,7 +410,9 @@ export const campaignService = {
     campaignId: string,
     onChange: (encounters: CampaignEncounter[]) => void
   ): Unsubscribe {
-    return getEvery(
+    return getStream(
+      `/campaign/${campaignId}/stream`,
+      'encounter',
       () => this.getEncounters(campaignId),
       onChange,
       (error) => console.error('Campaign encounters did not load:', error)
@@ -432,7 +428,9 @@ export const campaignService = {
   },
 
   postChatListener(campaignId: string, onChange: (entries: CampaignChatEntry[]) => void): Unsubscribe {
-    return getEvery(
+    return getStream(
+      `/campaign/${campaignId}/stream`,
+      'chat',
       () => getApi<CampaignChatEntry[]>(`/campaign/${campaignId}/chat`),
       onChange,
       (error) => console.error('Campaign chat did not load:', error)
@@ -441,9 +439,5 @@ export const campaignService = {
 
   async getUserCampaigns(): Promise<Campaign[]> {
     return getApi<Campaign[]>('/campaign');
-  },
-
-  subscribeToUserCampaigns(callback: (campaigns: Campaign[]) => void): Unsubscribe {
-    return getEvery(() => this.getUserCampaigns(), callback);
   }
 };

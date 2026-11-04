@@ -1,5 +1,4 @@
 const API_ROOT = '/api'
-const POLL = 4_000
 
 export interface SessionUser {
   uid: string
@@ -70,12 +69,66 @@ export function getQuery(values: Record<string, string | undefined>): string {
   return text ? `?${text}` : ''
 }
 
-export function getEvery<T>(load: () => Promise<T>, onChange: (value: T) => void, onError?: (error: unknown) => void): () => void {
+interface Watcher {
+  kind: string
+  refresh: () => void
+  fail: (error: unknown) => void
+}
+
+interface Stream {
+  source: EventSource
+  watchers: Set<Watcher>
+  kinds: Set<string>
+}
+
+const streams = new Map<string, Stream>()
+
+function getSource(path: string): Stream {
+  const held = streams.get(path)
+  if (held) return held
+
+  const source = new EventSource(API_ROOT + path, { withCredentials: true })
+  const stream: Stream = { source, watchers: new Set(), kinds: new Set() }
+
+  source.addEventListener('open', () => {
+    for (const watcher of stream.watchers) watcher.refresh()
+  })
+  source.addEventListener('error', () => {
+    if (source.readyState !== EventSource.CLOSED) return
+    for (const watcher of stream.watchers) watcher.fail(new ApiError(0, `${path} closed`))
+  })
+
+  streams.set(path, stream)
+  return stream
+}
+
+function putKind(stream: Stream, kind: string): void {
+  if (stream.kinds.has(kind)) return
+  stream.kinds.add(kind)
+  stream.source.addEventListener(kind, () => {
+    for (const watcher of stream.watchers) if (watcher.kind === kind) watcher.refresh()
+  })
+}
+
+export function getStream<T>(
+  path: string,
+  kind: string,
+  load: () => Promise<T>,
+  onChange: (value: T) => void,
+  onError?: (error: unknown) => void
+): () => void {
   let closed = false
   let last = ''
-  let timer: ReturnType<typeof setTimeout> | null = null
+  let running = false
+  let again = false
 
-  const tick = async () => {
+  const refresh = async () => {
+    if (closed) return
+    if (running) {
+      again = true
+      return
+    }
+    running = true
     try {
       const value = await load()
       const seen = JSON.stringify(value)
@@ -86,12 +139,25 @@ export function getEvery<T>(load: () => Promise<T>, onChange: (value: T) => void
     } catch (error) {
       if (!closed) onError?.(error)
     }
-    if (!closed) timer = setTimeout(tick, POLL)
+    running = false
+    if (again) {
+      again = false
+      void refresh()
+    }
   }
 
-  tick()
+  const watcher: Watcher = { kind, refresh: () => void refresh(), fail: (error) => !closed && onError?.(error) }
+  const stream = getSource(path)
+  putKind(stream, kind)
+  stream.watchers.add(watcher)
+  void refresh()
+
   return () => {
     closed = true
-    if (timer) clearTimeout(timer)
+    stream.watchers.delete(watcher)
+    if (stream.watchers.size === 0) {
+      stream.source.close()
+      streams.delete(path)
+    }
   }
 }

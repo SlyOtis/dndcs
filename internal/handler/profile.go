@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -168,6 +169,7 @@ func PostProfile(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostProfile: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ProfileTopic(actorID), broker.KindProfile, actorID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, profile, 1)
 }
 
@@ -224,6 +226,7 @@ func PutProfile(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutProfile: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ProfileTopic(actorID), broker.KindProfile, actorID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, profile, 1)
 }
 
@@ -274,6 +277,7 @@ func PostProfileFriend(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostProfileFriend: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ProfileTopic(actorID), broker.KindProfile, actorID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusCreated, found, 1)
 }
 
@@ -311,6 +315,7 @@ func DeleteProfileFriend(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteProfileFriend: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ProfileTopic(actorID), broker.KindProfile, actorID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 

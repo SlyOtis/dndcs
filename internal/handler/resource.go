@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -426,6 +427,7 @@ func PostResourceUpdate(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostResourceUpdate: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ResourceTopic(resourceID), broker.KindUpdate, update.ID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, update, 1)
 }
 
@@ -460,6 +462,7 @@ func PutResourceUpdates(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutResourceUpdates: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ResourceTopic(resourceID), broker.KindUpdate, update.ID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, update, 1)
 }
 
@@ -483,5 +486,6 @@ func DeleteResourceUpdates(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteResourceUpdates: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.ResourceTopic(resourceID), broker.KindUpdate, resourceID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }

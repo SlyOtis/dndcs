@@ -1,5 +1,5 @@
 import * as Y from 'yjs'
-import { deleteApi, getApi, getEvery, getSession, postApi, putApi } from './api'
+import { deleteApi, getApi, getSession, getStream, postApi, putApi } from './api'
 import type { Owner } from './firestore.types'
 
 /** How long a run of local edits is gathered before it is written. */
@@ -78,7 +78,9 @@ export function joinDoc(_owner: Owner, _kind: string, id: string, seed: string):
     seen.add(written.id)
   }
 
-  const stop = getEvery(
+  const stop = getStream(
+    `/resource/${id}/stream`,
+    'update',
     () => getApi<{ id: string; body: string }[]>(rows),
     (updates) => {
       const held: Uint8Array[] = []

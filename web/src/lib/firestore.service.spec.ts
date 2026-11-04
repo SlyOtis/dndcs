@@ -6,7 +6,7 @@ const wire = vi.hoisted(() => ({
   answers: new Map<string, unknown>(),
   refusals: new Map<string, number>(),
   deleted: [] as string[],
-  polls: [] as Array<{ stopped: boolean }>
+  polls: [] as Array<{ path: string, kind: string, stopped: boolean }>
 }))
 
 vi.mock('./api', () => {
@@ -36,8 +36,8 @@ vi.mock('./api', () => {
       const text = query.toString()
       return text ? `?${text}` : ''
     },
-    getEvery: (load: () => Promise<unknown>, onChange: (value: unknown) => void) => {
-      const poll = { stopped: false }
+    getStream: (path: string, kind: string, load: () => Promise<unknown>, onChange: (value: unknown) => void) => {
+      const poll = { path, kind, stopped: false }
       wire.polls.push(poll)
       load().then((value) => !poll.stopped && onChange(value))
       return () => (poll.stopped = true)
@@ -100,6 +100,7 @@ describe('the campaign chat the table reads', () => {
 
     expect(wire.calls).toEqual([{ method: 'GET', path: '/campaign/camp-1/chat', body: undefined }])
     expect(seen).toEqual([[{ id: 'one' }]])
+    expect(wire.polls[0]).toMatchObject({ path: '/campaign/camp-1/stream', kind: 'chat' })
   })
 
   it('stops reading once stopped', () => {

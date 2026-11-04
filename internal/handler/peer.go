@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -73,6 +74,7 @@ func PutPeer(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutPeer: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CampaignTopic(campaignID), broker.KindPeer, peer.ID, broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, peer, 1)
 }
 
@@ -100,6 +102,7 @@ func DeletePeer(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeletePeer: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CampaignTopic(campaignID), broker.KindPeer, peerID, broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -134,6 +137,7 @@ func PostSignal(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostSignal: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(rctx, broker.CampaignTopic(campaignID), broker.KindSignal, signal.ToPeer, broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, signal, 1)
 }
 

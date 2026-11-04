@@ -1,4 +1,4 @@
-import { deleteApi, getApi, getEvery, getSession, postApi, putApi } from './api'
+import { deleteApi, getApi, getSession, getStream, postApi, putApi } from './api'
 import { getBlockHash, getBlockRange, getFileRecord, getHeldBlocks, type FileRecord } from './storage.service'
 
 const ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
@@ -176,7 +176,9 @@ export function joinSwarm(campaignId: string): () => void {
   beat()
 
   const watchers: (() => void)[] = [
-    getEvery(
+    getStream(
+      `/campaign/${campaignId}/stream`,
+      'peer',
       () => getApi<{ id: string; seen_at: string }[]>(`/campaign/${campaignId}/peer`),
       (found) => {
         for (const entry of found) {
@@ -190,7 +192,9 @@ export function joinSwarm(campaignId: string): () => void {
       () => (stopped = true)
     ),
 
-    getEvery(
+    getStream(
+      `/campaign/${campaignId}/stream`,
+      'signal',
       () => deleteApi<{ id: string; from: string; kind: string; payload: string }[]>(`/campaign/${campaignId}/signal/${selfId}`),
       (found) => {
         for (const { from, kind, payload } of found) {

@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/SlyOtis/dndcs/internal/handler"
 	"github.com/SlyOtis/dndcs/internal/version"
@@ -84,6 +85,9 @@ func main() {
 	if _, err := sdb.Init(e.Logger); err != nil {
 		e.Logger.Fatalf("samna auth db init: %v", err)
 	}
+	if err := broker.Init(context.Background(), db.Instance().DB); err != nil {
+		e.Logger.Fatalf("init broker: %v", err)
+	}
 
 	e.Use(smw.TelemetryMiddleware())
 	e.Use(em.Logger())
@@ -124,6 +128,7 @@ func main() {
 		profile.GET("", handler.GetProfile)
 		profile.POST("", handler.PostProfile)
 		profile.PUT("", handler.PutProfile)
+		profile.GET("/stream", handler.GetProfileStream)
 		profile.GET("/list", handler.GetProfiles)
 		profile.GET("/details", handler.GetProfileDetails)
 		profile.PUT("/details", handler.PutProfileDetails)
@@ -161,6 +166,7 @@ func main() {
 		campaign.GET("/:id/character", handler.GetCampaignCharacters)
 		campaign.POST("/:id/character/:character_id", handler.PostCampaignCharacter)
 		campaign.DELETE("/:id/character/:character_id", handler.DeleteCampaignCharacter)
+		campaign.GET("/:id/stream", handler.GetCampaignStream)
 		campaign.GET("/:id/map", handler.GetMaps)
 		campaign.POST("/:id/map", handler.PostMap)
 		campaign.PUT("/:id/map/:map_id", handler.PutMap)
@@ -189,6 +195,7 @@ func main() {
 		resource.GET("/:id", handler.GetResource)
 		resource.PUT("/:id", handler.PutResource)
 		resource.DELETE("/:id", handler.DeleteResource)
+		resource.GET("/:id/stream", handler.GetResourceStream)
 		resource.GET("/:id/update", handler.GetResourceUpdates)
 		resource.POST("/:id/update", handler.PostResourceUpdate)
 		resource.PUT("/:id/update", handler.PutResourceUpdates)
@@ -243,6 +250,9 @@ func main() {
 	}
 	cancelRun()
 	<-sam.Done()
+	if err := broker.Instance().Close(); err != nil {
+		slog.Error("close broker", "error", err)
+	}
 	if err := db.Instance().Close(); err != nil {
 		slog.Error("close database", "error", err)
 	}

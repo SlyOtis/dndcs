@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SlyOtis/dndcs/internal/broker"
 	"github.com/SlyOtis/dndcs/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -212,6 +213,7 @@ func PostMap(ctx echo.Context) error {
 		parent := item.ParentID
 		item.ParentMapID = &parent
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindMap, item.ID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, item, 1)
 }
 
@@ -296,6 +298,7 @@ func PutMap(ctx echo.Context) error {
 		parent := item.ParentID
 		item.ParentMapID = &parent
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindMap, item.ID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, item, 1)
 }
 
@@ -342,6 +345,7 @@ func DeleteMap(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteMap: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindMap, item.ID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -446,6 +450,7 @@ func PostEncounter(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostEncounter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindEncounter, item.ID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, item, 1)
 }
 
@@ -537,6 +542,7 @@ func PutEncounter(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutEncounter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindEncounter, item.ID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, item, 1)
 }
 
@@ -583,6 +589,7 @@ func DeleteEncounter(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteEncounter: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindEncounter, item.ID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -667,6 +674,7 @@ func PostSong(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostSong: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindSong, item.ID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, item, 1)
 }
 
@@ -744,6 +752,7 @@ func PutSong(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutSong: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindSong, item.ID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, item, 1)
 }
 
@@ -790,6 +799,7 @@ func DeleteSong(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteSong: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindSong, item.ID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
 
@@ -907,6 +917,7 @@ func PostChatEntry(ctx echo.Context) error {
 		ctx.Logger().Errorf("PostChatEntry: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindChat, entry.ID.String(), broker.OpCreate)
 	return respond.JSON(ctx, http.StatusCreated, entry, 1)
 }
 
@@ -972,6 +983,7 @@ func PutChatEntry(ctx echo.Context) error {
 		ctx.Logger().Errorf("PutChatEntry: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindChat, entry.ID.String(), broker.OpUpdate)
 	return respond.JSON(ctx, http.StatusOK, entry, 1)
 }
 
@@ -1015,5 +1027,6 @@ func DeleteChatEntry(ctx echo.Context) error {
 		ctx.Logger().Errorf("DeleteChatEntry: %v", err)
 		return respond.ErrorInternal(ctx)
 	}
+	broker.Post(ctx.Request().Context(), broker.CampaignTopic(campaign.ID), broker.KindChat, entry.ID.String(), broker.OpDelete)
 	return respond.NoContent(ctx, http.StatusOK)
 }
