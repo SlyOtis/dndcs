@@ -96,6 +96,9 @@ setup env:
 apps env:
     bash scripts/apps.sh {{env}}
 
+sauth-app env *args:
+    sauth app apply --file deploy/sauth/{{env}}.json {{args}}
+
 domains env:
     bash scripts/domains.sh {{env}}
 
