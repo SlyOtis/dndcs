@@ -8,7 +8,6 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import { dirname, extname, resolve, sep } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
-import lcpInspect from '@slyotis/lcp-inspect'
 
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -207,7 +206,7 @@ function mediaStore(root: string): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [svelte(), mediaStore(resolve(here, 'media')), lcpInspect()],
+  plugins: [svelte(), mediaStore(resolve(here, 'media'))],
   envDir: resolve(here, '..'),
   resolve: {
     alias: {

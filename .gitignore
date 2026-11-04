@@ -26,7 +26,6 @@ reference/
 .playwright-cli/
 .playwright-mcp/
 
-.lcp_inspect
 
 /web/media/
 .lcp/cache/
@@ -45,3 +44,8 @@ reference/
 /bin/
 /tmp/
 build-errors.log
+.nimon/*/recordings/
+.nimon/*/shots/
+.nimon/run/
+.nimon/pr/
+.nimon/history/

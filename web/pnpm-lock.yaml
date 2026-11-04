@@ -57,9 +57,6 @@ importers:
         specifier: ^13.6.32
         version: 13.6.32
     devDependencies:
-      '@slyotis/lcp-inspect':
-        specifier: ^0.1.0
-        version: 0.1.0(vite@8.2.2(@types/node@26.4.0))
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.0
         version: 7.3.0(svelte@5.57.0)(vite@8.2.2(@types/node@26.4.0))
@@ -650,13 +647,6 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
-
-  '@slyotis/lcp-inspect@0.1.0':
-    resolution: {integrity: sha512-bF3m3VxqTC9jKzTNAkSSKE/lUkXIjNRpd2PqL/jGj7gs+rPu+SFnbfEZSqG3YyNLPHfafn2w9FuRdOm9SLkgjA==, tarball: https://npm.pkg.github.com/download/@slyotis/lcp-inspect/0.1.0/a3babd9fb67a16cef4984f9720411157d465d9ff}
-    engines: {node: '>=20.19'}
-    hasBin: true
-    peerDependencies:
-      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -2395,10 +2385,6 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
-
-  '@slyotis/lcp-inspect@0.1.0(vite@8.2.2(@types/node@26.4.0))':
-    dependencies:
-      vite: 8.2.2(@types/node@26.4.0)
 
   '@standard-schema/spec@1.1.0': {}
 
