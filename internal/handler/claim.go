@@ -22,7 +22,7 @@ var claimObjectTypes = map[string]string{
 	"encounter": db.OBJECT_TYPE_ENCOUNTER,
 	"song":      db.OBJECT_TYPE_SONG,
 	"map":       db.OBJECT_TYPE_CAMPAIGN_MAP,
-	"file":      db.OBJECT_TYPE_FILE,
+	"asset":     db.OBJECT_TYPE_ASSET,
 }
 
 type BodyClaim struct {

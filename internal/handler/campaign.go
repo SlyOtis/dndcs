@@ -185,6 +185,16 @@ func PostCampaign(ctx echo.Context) error {
 		if _, err := postGrant(tctx, tx, w, dmClaimID, actorID); err != nil {
 			return err
 		}
+		folder, err := postFolder(tctx, tx, w, "PostCampaign", campaign.Name, "campaign-"+campaign.ID.String())
+		if err != nil {
+			return err
+		}
+		if err := postOwnerBinding(tctx, tx, w, db.OBJECT_TYPE_ASSET, folder.ID, sdb.ACCESS_MEMBER); err != nil {
+			return err
+		}
+		if err := putBindings(tctx, tx, w, db.OBJECT_TYPE_ASSET, folder.ID, map[uuid.UUID]sdb.ClaimAccess{dmClaimID: sdb.ACCESS_ALL, playerClaimID: sdb.ACCESS_READ}, nil); err != nil {
+			return err
+		}
 		campaign.DmClaimID = &dmClaimID
 		campaign.PlayerClaimID = &playerClaimID
 		_, err = tx.NewUpdate().Model(&campaign).Column("dm_claim_id", "player_claim_id").WherePK().Exec(tctx)

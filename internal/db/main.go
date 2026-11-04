@@ -44,6 +44,7 @@ func Init(logger echo.Logger) error {
 	sqlDB.SetConnMaxIdleTime(15 * time.Second)
 
 	db = DB{DB: bun.NewDB(sqlDB, pgdialect.New())}
+	db.RegisterModel((*TagObject)(nil))
 	return nil
 }
 

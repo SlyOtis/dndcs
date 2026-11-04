@@ -18,8 +18,16 @@ const (
 	OBJECT_TYPE_SONG          = "public.song"
 	OBJECT_TYPE_CHARACTER     = "public.character"
 	OBJECT_TYPE_RESOURCE      = "public.resource"
-	OBJECT_TYPE_FILE          = "public.file"
+	OBJECT_TYPE_ASSET         = "public.asset"
+	OBJECT_TYPE_OBJECT_ASSET  = "public.object_asset"
+	OBJECT_TYPE_TAG           = "public.tag"
+	OBJECT_TYPE_TAG_OBJECT    = "public.tag_object"
 	OBJECT_TYPE_CATALOG_ENTRY = "public.catalog_entry"
+)
+
+const (
+	MIME_TYPE_FOLDER   = "inode/directory"
+	MIME_TYPE_DOCUMENT = "application/vnd.mar.document+json"
 )
 
 type Profile struct {
@@ -216,18 +224,78 @@ type ResourceUpdate struct {
 	CreatedAt  time.Time `bun:"created_at,nullzero,default:now()" json:"at"`
 }
 
-type File struct {
-	bun.BaseModel `bun:"table:file"`
+type Asset struct {
+	bun.BaseModel `bun:"table:asset"`
+
+	ID               uuid.UUID       `bun:"id,pk,default:gen_random_uuid()" json:"id"`
+	ObjectID         *uuid.UUID      `bun:"object_id,nullzero" json:"object_id"`
+	ObjectType       *string         `bun:"object_type,nullzero" json:"object_type"`
+	Document         json.RawMessage `bun:"document,type:jsonb,nullzero" json:"document"`
+	YjsState         []byte          `bun:"yjs_state,type:bytea,nullzero" json:"-"`
+	Name             string          `bun:"name" json:"name"`
+	Description      *string         `bun:"description,nullzero" json:"description"`
+	MimeType         string          `bun:"mime_type,nullzero" json:"mime_type"`
+	BlobURL          *string         `bun:"blob_url,nullzero" json:"blob_url"`
+	Path             string          `bun:"path,nullzero" json:"path"`
+	ParentID         uuid.UUID       `bun:"sa_parent_id,nullzero" json:"parent_id"`
+	RootID           uuid.UUID       `bun:"sa_root_id,nullzero" json:"root_id"`
+	Index            int             `bun:"index" json:"index"`
+	SizeBytes        *int64          `bun:"size_bytes,nullzero" json:"size_bytes"`
+	Etag             *string         `bun:"etag,nullzero" json:"etag"`
+	Type             *string         `bun:"type,nullzero" json:"type"`
+	UploadedBy       uuid.UUID       `bun:"uploaded_by" json:"uploaded_by"`
+	Reserved         bool            `bun:"reserved" json:"reserved"`
+	Slug             *string         `bun:"slug,nullzero" json:"slug"`
+	BannerID         *uuid.UUID      `bun:"banner_id,nullzero" json:"banner_id"`
+	Icon             *string         `bun:"icon,nullzero" json:"icon"`
+	Properties       json.RawMessage `bun:"properties,type:jsonb,nullzero" json:"properties"`
+	BannerProperties json.RawMessage `bun:"banner_properties,scanonly,nullzero" json:"banner_properties,omitempty"`
+	Tags             []Tag           `bun:"m2m:tag_object,join:Asset=Tag" json:"tags,omitempty"`
+	OwnerID          uuid.UUID       `bun:"sa_owner_id" json:"-"`
+	CreatedBy        *uuid.UUID      `bun:"sa_created_by" json:"-"`
+	CreatedAt        time.Time       `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
+	UpdatedAt        time.Time       `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
+	DeletedAt        bun.NullTime    `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
+}
+
+type ObjectAsset struct {
+	bun.BaseModel `bun:"table:object_asset"`
+
+	ID         uuid.UUID       `bun:"id,pk,default:gen_random_uuid()" json:"id"`
+	ObjectType string          `bun:"object_type" json:"object_type"`
+	ObjectID   uuid.UUID       `bun:"object_id" json:"object_id"`
+	AssetID    uuid.UUID       `bun:"asset_id" json:"asset_id"`
+	Asset      *Asset          `bun:"rel:belongs-to,join:asset_id=id" json:"asset,omitempty"`
+	Properties json.RawMessage `bun:"properties,type:jsonb,nullzero" json:"properties"`
+	OwnerID    uuid.UUID       `bun:"sa_owner_id" json:"-"`
+	CreatedBy  *uuid.UUID      `bun:"sa_created_by" json:"-"`
+	CreatedAt  time.Time       `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
+	UpdatedAt  time.Time       `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
+	DeletedAt  bun.NullTime    `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
+}
+
+type Tag struct {
+	bun.BaseModel `bun:"table:tag"`
+
+	ID        uuid.UUID    `bun:"id,pk,default:gen_random_uuid()" json:"id"`
+	Name      string       `bun:"name" json:"name"`
+	ObjectIDs []uuid.UUID  `bun:"object_ids,array,scanonly" json:"object_ids,omitempty"`
+	OwnerID   uuid.UUID    `bun:"sa_owner_id" json:"-"`
+	CreatedBy *uuid.UUID   `bun:"sa_created_by" json:"-"`
+	CreatedAt time.Time    `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
+	UpdatedAt time.Time    `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
+	DeletedAt bun.NullTime `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
+}
+
+type TagObject struct {
+	bun.BaseModel `bun:"table:tag_object"`
 
 	ID         uuid.UUID    `bun:"id,pk,default:gen_random_uuid()" json:"id"`
-	UserID     uuid.UUID    `bun:"user_id" json:"owner_id"`
-	CampaignID *uuid.UUID   `bun:"campaign_id" json:"campaign_id,omitempty"`
-	Path       string       `bun:"path" json:"path"`
-	Name       string       `bun:"name" json:"name"`
-	Type       string       `bun:"type" json:"type"`
-	Size       int64        `bun:"size" json:"size"`
-	Etag       string       `bun:"etag" json:"etag"`
-	StorageKey string       `bun:"storage_key" json:"-"`
+	TagID      uuid.UUID    `bun:"tag_id" json:"tag_id"`
+	Tag        *Tag         `bun:"rel:belongs-to,join:tag_id=id" json:"tag,omitempty"`
+	ObjectType string       `bun:"object_type" json:"object_type"`
+	ObjectID   uuid.UUID    `bun:"object_id" json:"object_id"`
+	Asset      *Asset       `bun:"rel:belongs-to,join:object_id=id" json:"asset,omitempty"`
 	OwnerID    uuid.UUID    `bun:"sa_owner_id" json:"-"`
 	CreatedBy  *uuid.UUID   `bun:"sa_created_by" json:"-"`
 	CreatedAt  time.Time    `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
