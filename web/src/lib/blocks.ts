@@ -316,7 +316,8 @@ export function getBlocksFromMarkdown(markdown: string): Block[] {
       continue
     }
 
-    const run: string[] = []
+    const run: string[] = [line.trim()]
+    at += 1
     while (
       at < lines.length &&
       lines[at].trim() !== '' &&
@@ -381,7 +382,7 @@ export function getBlockMarkdown(block: Block): string {
   const own: BlockKind[] = ['table', 'toggle', 'poll', 'audio', 'bookmark', 'mermaid', 'html', 'columns', 'embed', 'meeting', 'map', 'file']
   if (!plain || own.includes(block.kind)) return getFence(block, getHeld(block))
 
-  if (block.kind === 'image') return `![${block.options.alt ?? ''}](${block.options.src ?? ''})`
+  if (block.kind === 'image') return `![${(block.options.alt ?? '').replace(/\s*\n\s*/g, ' ')}](${block.options.src ?? ''})`
   if (block.kind === 'code') return `\`\`\`${block.options.language ?? ''}\n${block.text}\n\`\`\``
   if (block.kind === 'todo') return `${getLead(block)}- [${block.options.done ? 'x' : ' '}] ${block.text}`
   if (LINKED.includes(block.kind)) {

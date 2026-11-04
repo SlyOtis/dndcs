@@ -57,6 +57,22 @@ describe('reading markdown into blocks', () => {
   })
 })
 
+describe('a line that only looks like a block', () => {
+  it('reads an unfinished picture as a paragraph and moves on', () => {
+    const blocks = getBlocksFromMarkdown('![the cellar\nstairs](/api/asset/a/data)\n\nAfter.')
+    expect(blocks.map((block) => block.kind)).toEqual(['paragraph', 'paragraph'])
+    expect(blocks[0].text).toBe('![the cellar stairs](/api/asset/a/data)')
+    expect(blocks[1].text).toBe('After.')
+  })
+
+  it('writes a caption that holds a line break on one line', () => {
+    const block = getBlock('image', '', { alt: 'the cellar\nstairs', src: '/api/asset/a/data' })
+    const [read] = getBlocksFromMarkdown(getBlockMarkdown(block))
+    expect(read.kind).toBe('image')
+    expect(read.options.alt).toBe('the cellar stairs')
+  })
+})
+
 describe('writing blocks back out', () => {
   it('round trips every kind through markdown', () => {
     const source = [
