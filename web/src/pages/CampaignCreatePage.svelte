@@ -139,7 +139,6 @@
         throw new Error('User not authenticated');
       }
       
-      // Convert CampaignConcept to Campaign format for Firebase
       const campaignData = {
         name: generatedConcept.name || "Unnamed Campaign",
         description: generatedConcept.description || "An AI-generated campaign",
@@ -156,7 +155,6 @@
         }
       };
       
-      // Save campaign to Firebase
       const campaignId = await campaignService.createCampaign(campaignData);
       
       console.log("Campaign created successfully with ID:", campaignId);

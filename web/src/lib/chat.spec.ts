@@ -276,7 +276,7 @@ describe('the shared roll log inside a campaign', () => {
 })
 
 describe('the roll log outside a campaign', () => {
-  it('writes nothing to firestore, where the rules deny it', () => {
+  it('writes nothing to the api, which takes a roll only at a campaign table', () => {
     const log = getChatLog()
     close = log.unsubscribeChat
 

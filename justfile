@@ -18,11 +18,11 @@ env:
     missing=0
     while read -r key; do
         [ -z "$key" ] && continue
-        if ! grep -qE "^${key}=.+" .env; then
-            echo "missing or empty in .env: $key"
+        if ! grep -qE "^${key}=" .env; then
+            echo "missing in .env: $key"
             missing=1
         fi
-    done < <(grep -oE '^VITE_[A-Z_]+' .env.example)
+    done < <(grep -oE '^[A-Z][A-Z0-9_]*' .env.example)
     if [ "$missing" -ne 0 ]; then exit 1; fi
     echo ".env carries every key .env.example names"
 
@@ -90,14 +90,6 @@ clean:
 deploy env='tst' version='':
     sh scripts/deploy.sh {{env}} {{version}}
 
-rules:
-    firebase deploy --only firestore:rules,firestore:indexes
-
-firebase-deploy: gate rules
-    firebase deploy --only hosting
-
 reference kind *ARGS:
     bash web/scripts/reference.sh {{kind}} {{ARGS}}
 
-storage-rules:
-    firebase deploy --only storage:rules

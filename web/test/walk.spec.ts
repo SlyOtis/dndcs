@@ -37,18 +37,13 @@ describe('the walk keys', () => {
   })
 
   it('carry no VITE_ prefix, so no secret is inlined into the bundle', () => {
-    expect(keys.filter((key) => /^VITE_/.test(key))).toEqual([
-      'VITE_FIREBASE_API_KEY',
-      'VITE_FIREBASE_AUTH_DOMAIN',
-      'VITE_FIREBASE_PROJECT_ID',
-      'VITE_FIREBASE_STORAGE_BUCKET',
-      'VITE_FIREBASE_MESSAGING_SENDER_ID',
-      'VITE_FIREBASE_APP_ID'
-    ])
+    expect(keys.filter((key) => /^VITE_/.test(key))).toEqual([])
   })
 
-  it('are not demanded by just env, so an empty one stops the walk alone', () => {
-    expect(recipe('env').join('\n')).toContain("grep -oE '^VITE_[A-Z_]+' .env.example")
+  it('are only demanded present by just env, so an empty one stops the walk alone', () => {
+    const env = recipe('env').join('\n')
+    expect(env).toContain("grep -qE \"^${key}=\" .env")
+    expect(env).not.toContain('^${key}=.+')
   })
 })
 

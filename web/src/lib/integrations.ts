@@ -14,19 +14,19 @@ export type Integration = {
 
 export const INTEGRATIONS: Integration[] = [
   {
-    id: 'firebase',
-    title: 'Firebase',
-    purpose: 'Sign in, and the database behind every character, campaign and map.',
+    id: 'samna-auth',
+    title: 'Samna Auth',
+    purpose: 'Signs every player in and holds the claims that decide who reads each character, campaign and map.',
     status: 'live',
-    note: 'Configured at build time from .env. Nothing to enter here.',
-    siteUrl: 'https://console.firebase.google.com/'
+    note: 'The service signs in through it. Nothing to enter here.',
+    siteUrl: 'https://developer.samna.io/'
   },
   {
     id: 'replicate',
     title: 'Replicate',
     purpose: 'Runs the language and speech models behind the chat, the character import and the transcription.',
     status: 'live',
-    note: 'Required for reading source material, importing a character and the chat. Your key is written to your own private user record and your browser calls Replicate with it.',
+    note: 'Required for reading source material, importing a character and the chat. Your key is kept as your own secret in Samna Auth and the service calls Replicate with it; it never comes back to the browser.',
     keyField: 'replicate_api_key',
     keyPrefix: 'r8_',
     siteUrl: 'https://replicate.com/',
