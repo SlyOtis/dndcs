@@ -1,22 +1,25 @@
-import { ApiError, deleteApi, getApi, getCsrfHeaders, getQuery, getSession, postApi } from './api'
+import { deleteApi, getApi, getCsrfHeaders, getSession } from './api'
 
 
 const LOCAL_PREFIX = 'local:'
 const FILE_PREFIX = 'file:'
 const BLOB_PREFIX = 'blob:'
-const DATA_ROOT = '/api/file/data'
+const ASSET_ROOT = '/api/asset'
+const ASSET_ADDRESS = /^\/api\/asset\/([0-9a-f-]+)\/data$/
 
 export type UploadScope =
   | { kind: 'user' }
   | { kind: 'campaignMap'; campaignId: string }
   | { kind: 'campaignAudio'; campaignId: string }
+  | { kind: 'campaignFile'; campaignId: string }
 
 export interface FileRecord {
+  id: string
   name: string
-  type: string
-  size: number
+  mime_type: string
+  size_bytes: number
   etag: string
-  owner_id: string
+  uploaded_by: string
 }
 
 export class UploadError extends Error {
@@ -32,13 +35,8 @@ function getUserId(): string {
   return user.uid
 }
 
-
-function getRecordPath(scope: UploadScope, name: string): string {
-  const tail = /\.[A-Za-z0-9]{1,8}$/.exec(name)?.[0]?.toLowerCase() ?? ''
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${tail}`
-
-  if (scope.kind === 'user') return `users/${getUserId()}/files/${id}`
-  return `campaigns/${scope.campaignId}/files/${id}`
+function getAssetId(address: string): string {
+  return ASSET_ADDRESS.exec(address)?.[1] ?? ''
 }
 
 export function isLocalFile(address: string): boolean {
@@ -46,7 +44,7 @@ export function isLocalFile(address: string): boolean {
 }
 
 export function isFileRecord(address: string): boolean {
-  return address.startsWith(FILE_PREFIX)
+  return ASSET_ADDRESS.test(address)
 }
 
 export function isDeadFile(address: string): boolean {
@@ -54,15 +52,17 @@ export function isDeadFile(address: string): boolean {
 }
 
 export function isStoredFile(address: string): boolean {
-  return isLocalFile(address) || isFileRecord(address)
+  return isLocalFile(address) || isFileRecord(address) || address.startsWith(FILE_PREFIX)
 }
 
-export function getMediaUrl(address: string): string {
-  return DATA_ROOT + getQuery({ path: address.slice(FILE_PREFIX.length) })
+export function getMediaUrl(id: string): string {
+  return `${ASSET_ROOT}/${id}/data`
 }
 
 export async function getFileRecord(address: string): Promise<FileRecord | null> {
-  return getApi<FileRecord>(`/file${getQuery({ path: address.slice(FILE_PREFIX.length) })}`).catch(() => null)
+  if (!isFileRecord(address)) return null
+
+  return getApi<FileRecord>(`/asset/${getAssetId(address)}`).catch(() => null)
 }
 
 export async function getBlockHash(bytes: ArrayBuffer): Promise<string> {
@@ -75,10 +75,9 @@ export async function getBlockHash(bytes: ArrayBuffer): Promise<string> {
 }
 
 export async function getFileUrl(address: string): Promise<string> {
-  if (isDeadFile(address) || isLocalFile(address)) return ''
-  if (!isFileRecord(address)) return address
+  if (isDeadFile(address) || isLocalFile(address) || address.startsWith(FILE_PREFIX)) return ''
 
-  return getMediaUrl(address)
+  return address
 }
 
 export async function postFile(file: File, scope: UploadScope): Promise<string> {
@@ -92,31 +91,30 @@ export async function postFile(file: File, scope: UploadScope): Promise<string> 
     throw new UploadError('A sound needs an audio file.')
   }
 
-  const path = getRecordPath(scope, file.name)
-  const campaignId = /^campaigns\/([^/]+)\/files\//.exec(path)?.[1]
+  const form = new FormData()
+  form.set('name', file.name)
+  form.set('mime_type', file.type || 'application/octet-stream')
+  if (scope.kind !== 'user') form.set('campaign_id', scope.campaignId)
+  form.set('file', file)
 
-  await postApi('/file', { path, name: file.name, type: file.type, campaign_id: campaignId }).catch((error) => {
-    throw new UploadError(error instanceof ApiError ? error.message : 'The file record was refused.')
-  })
-
-  const answer = await fetch(getMediaUrl(FILE_PREFIX + path), {
-    method: 'PUT',
-    body: file,
+  const answer = await fetch(ASSET_ROOT, {
+    method: 'POST',
+    body: form,
     credentials: 'same-origin',
-    headers: { ...getCsrfHeaders(), 'Content-Type': file.type || 'application/octet-stream' }
+    headers: getCsrfHeaders()
   }).catch(() => null)
+  const envelope = await answer?.json().catch(() => null)
 
-  if (!answer?.ok) {
-    const envelope = await answer?.json().catch(() => null)
+  if (!answer?.ok || !envelope?.data?.id) {
     throw new UploadError(envelope?.error?.message ?? `The file was refused (${answer?.status ?? 'no answer'}).`)
   }
 
-  return FILE_PREFIX + path
+  return getMediaUrl(envelope.data.id)
 }
 
 
 export async function deleteFile(address: string): Promise<void> {
   if (!isFileRecord(address)) return
 
-  await deleteApi(`/file${getQuery({ path: address.slice(FILE_PREFIX.length) })}`)
+  await deleteApi(`/asset/${getAssetId(address)}`)
 }

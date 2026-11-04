@@ -325,7 +325,7 @@
   /** Stores a file the editor made, through the one uploader the app keeps. */
   async function keepFile(file: File) {
     try {
-      return await postFile(file, { kind: 'campaignAudio', campaignId })
+      return await postFile(file, campaignId ? { kind: 'campaignFile', campaignId } : { kind: 'user' })
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
       return undefined
