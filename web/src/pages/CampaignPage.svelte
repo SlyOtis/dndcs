@@ -8,7 +8,6 @@
   import { getAll, isResourceKind, type Character, type Place, type Quest, type Session } from '$lib/resources'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
-  import { joinSwarm } from '$lib/swarm'
   import Button from '$components/ui/Button.svelte'
   import Card from '$components/ui/Card.svelte'
   import Fold from '$components/ui/Fold.svelte'
@@ -166,7 +165,6 @@
     return visibleMaps.filter((entry) => entry.parent_map_id === parentId)
   }
 
-  let leaveSwarm: (() => void) | null = null
   let stopMaps: (() => void) | null = null
 
   onMount(async () => {
@@ -194,16 +192,9 @@
     stopMaps = campaignService.postMapsListener(campaignId, (loaded) => {
       maps = loaded.sort((a, b) => a.title.localeCompare(b.title))
     })
-
-    try {
-      leaveSwarm = joinSwarm(campaignId)
-    } catch {
-      leaveSwarm = null
-    }
   })
 
   onDestroy(() => {
-    leaveSwarm?.()
     stopMaps?.()
   })
 

@@ -2,7 +2,6 @@ import { get, writable } from 'svelte/store'
 import type { Song } from './firestore.types'
 import { campaignService } from './firestore.service'
 import { getFileUrl, postFile } from './storage.service'
-import { joinSwarm } from './swarm'
 
 const RESTART_AFTER = 3
 
@@ -19,7 +18,6 @@ let audio: HTMLAudioElement | null = null
 let played: Song[] = []
 let held = ''
 let stop: (() => void) | null = null
-let leave: (() => void) | null = null
 
 function getAudio(): HTMLAudioElement {
   if (audio) return audio
@@ -71,9 +69,7 @@ export function openLibrary(campaignId: string): void {
   held = campaignId
 
   stop?.()
-  leave?.()
   stop = null
-  leave = null
   library.set([])
   musicScope.set(campaignId)
 
@@ -82,12 +78,6 @@ export function openLibrary(campaignId: string): void {
   stop = campaignService.postSongsListener(campaignId, (songs) =>
     library.set([...songs].sort((a, b) => a.title.localeCompare(b.title)))
   )
-
-  try {
-    leave = joinSwarm(campaignId)
-  } catch {
-    leave = null
-  }
 }
 
 export async function playSong(song: Song): Promise<void> {

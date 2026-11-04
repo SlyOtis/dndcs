@@ -18,20 +18,13 @@ vi.mock('./api', () => ({
   }
 }))
 
-vi.mock('./swarm', () => ({
-  getSwarmFile: () => Promise.resolve(null)
-}))
-
 import {
-  getBlockRange,
   getFileUrl,
-  getHeldBlocks,
   getMediaUrl,
   isDeadFile,
   isStoredFile,
   postFile,
-  UploadError,
-  type FileRecord
+  UploadError
 } from './storage.service'
 
 const dead = 'blob:http://localhost:5174/5d0c2b1e-4f1a-4b7e-9d1c-0b6e7f3a2c11'
@@ -68,8 +61,6 @@ describe('the portrait preview on the create page', () => {
   })
 })
 
-const store = { 'X-Media-Store': '1' }
-
 function getStore(answer: (url: string, init: RequestInit) => Response) {
   const calls: { url: string; init: RequestInit }[] = []
   vi.stubGlobal('fetch', (url: string, init: RequestInit = {}) => {
@@ -79,86 +70,57 @@ function getStore(answer: (url: string, init: RequestInit) => Response) {
   return calls
 }
 
-const record: FileRecord = {
-  name: 'theme.mp3',
-  type: 'audio/mpeg',
-  size: 200_000,
-  etag: '"tag-a"',
-  count: 0,
-  block_size: 65_536,
-  blocks: [],
-  owner_id: 'lars'
-}
-
-describe('the media store', () => {
+describe('the service file store', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     written.sets = []
     written.commits = 0
   })
 
-  it('addresses a file: record and a local: reference under /media/', () => {
-    expect(getMediaUrl('file:campaigns/c1/files/1757-a1.mp3')).toBe('/media/campaigns/c1/files/1757-a1.mp3')
-    expect(getMediaUrl('local:users/lars/old portrait.png')).toBe('/media/users/lars/old%20portrait.png')
+  it('addresses a file: record on the service data route', () => {
+    expect(getMediaUrl('file:campaigns/c1/files/1-a.mp3')).toBe('/api/file/data?path=campaigns%2Fc1%2Ffiles%2F1-a.mp3')
   })
 
-  it('resolves a held original to its /media/ URL, so audio streams by range', async () => {
-    const calls = getStore(() => new Response(null, { status: 200, headers: { ...store, ETag: '"tag-a"', 'Content-Length': '200000' } }))
-
-    expect(await getFileUrl('local:users/lars/1757000000000-portrait.png')).toBe('/media/users/lars/1757000000000-portrait.png')
-    expect(await getFileUrl('file:campaigns/c1/files/1757-a1.mp3')).toBe('/media/campaigns/c1/files/1757-a1.mp3')
-    expect(calls.every((call) => call.init.method === 'HEAD')).toBe(true)
+  it('resolves a file: record to its data route, so audio and video stream by range', async () => {
+    expect(await getFileUrl('file:users/lars/files/1-a.webp')).toBe('/api/file/data?path=users%2Flars%2Ffiles%2F1-a.webp')
   })
 
-  it('probes with a HEAD the store answers 204 when it lacks the file', async () => {
-    const calls = getStore(() => new Response(null, { status: 204, headers: store }))
-
+  it('resolves a legacy local: reference to nothing, since no local store remains', async () => {
     expect(await getFileUrl('local:users/lars/1757000000000-portrait.png')).toBe('')
-    expect(new Headers(calls[0].init.headers).get('X-Media-Probe')).toBe('1')
   })
 
-  it('says the local client is needed when no media store answers', async () => {
-    getStore(() => new Response('<!doctype html>', { status: 200, headers: { 'Content-Type': 'text/html' } }))
-
-    await expect(getFileUrl('local:users/lars/1757000000000-portrait.png')).rejects.toThrow('Full size media needs the local client')
+  it('leaves a hosted address as it is', async () => {
+    expect(await getFileUrl('https://example.test/portrait.webp')).toBe('https://example.test/portrait.webp')
   })
 
-  it('PUTs the original to the store and keeps the ETag the store answered', async () => {
-    const calls = getStore(() => new Response(null, { status: 201, headers: { ...store, ETag: '"server-tag"' } }))
-    const file = new File([new Uint8Array(70_000)], 'Theme.MP3', { type: 'audio/mpeg' })
+  it('writes the record, then PUTs the original bytes to the service', async () => {
+    const calls = getStore(() => new Response(JSON.stringify({ data: { etag: 'tag-a' } }), { status: 200 }))
+    const file = new File([new Uint8Array([1, 2, 3])], 'theme.mp3', { type: 'audio/mpeg' })
 
     const address = await postFile(file, { kind: 'campaignAudio', campaignId: 'c1' })
 
     expect(address).toMatch(/^file:campaigns\/c1\/files\/\d+-[a-z0-9]+\.mp3$/)
+    expect(written.sets).toEqual([{ path: address.slice('file:'.length), name: 'theme.mp3', type: 'audio/mpeg', campaign_id: 'c1' }])
     expect(calls).toHaveLength(1)
-    expect(calls[0].init.method).toBe('PUT')
     expect(calls[0].url).toBe(getMediaUrl(address))
-    expect(written.sets[0]).toMatchObject({ name: 'Theme.MP3', size: 70_000, etag: '"server-tag"', campaign_id: 'c1', pieces: [] })
-    expect((written.sets[0] as FileRecord).blocks).toHaveLength(2)
+    expect(calls[0].init.method).toBe('PUT')
+    expect(calls[0].init.body).toBe(file)
+    expect((calls[0].init.headers as Record<string, string>)['Content-Type']).toBe('audio/mpeg')
   })
 
-  it('writes no record when the store is not there', async () => {
-    getStore(() => new Response(null, { status: 404 }))
-    const file = new File([new Uint8Array(10)], 'theme.mp3', { type: 'audio/mpeg' })
+  it('carries the service refusal as an UploadError', async () => {
+    getStore(() => new Response(JSON.stringify({ error: { message: 'The file is larger than 256 MB' } }), { status: 413 }))
+    const file = new File([new Uint8Array([1])], 'huge.mp3', { type: 'audio/mpeg' })
 
-    await expect(postFile(file, { kind: 'campaignAudio', campaignId: 'c1' })).rejects.toBeInstanceOf(UploadError)
+    await expect(postFile(file, { kind: 'user' })).rejects.toThrow(new UploadError('The file is larger than 256 MB'))
+  })
+
+  it('refuses a map that is not an image before anything is written', async () => {
+    const calls = getStore(() => new Response(null, { status: 200 }))
+    const file = new File([new Uint8Array([1])], 'notes.txt', { type: 'text/plain' })
+
+    await expect(postFile(file, { kind: 'campaignMap', campaignId: 'c1' })).rejects.toThrow('A map needs an image file.')
     expect(written.commits).toBe(0)
-  })
-
-  it('reads one swarm block as a byte range of the original', async () => {
-    const calls = getStore(() => new Response(new Uint8Array(3), { status: 206, headers: store }))
-
-    const bytes = await getBlockRange('file:campaigns/c1/files/1757-a1.mp3', record, 1)
-
-    expect(bytes?.byteLength).toBe(3)
-    expect(new Headers(calls[0].init.headers).get('Range')).toBe('bytes=65536-131071')
-  })
-
-  it('holds every block only when the stored ETag is the record ETag', async () => {
-    getStore(() => new Response(null, { status: 200, headers: { ...store, ETag: '"tag-a"', 'Content-Length': '200000' } }))
-    expect(await getHeldBlocks('file:campaigns/c1/files/1757-a1.mp3', record)).toBe('all')
-
-    getStore(() => new Response(null, { status: 200, headers: { ...store, ETag: '"tag-b"', 'Content-Length': '200000' } }))
-    expect(await getHeldBlocks('file:campaigns/c1/files/1757-a1.mp3', record)).toEqual([])
+    expect(calls).toHaveLength(0)
   })
 })

@@ -34,29 +34,26 @@ export interface ClassOption {
 }
 
 const MODEL = "anthropic/claude-4-sonnet";
-const ENDPOINT = "/replicate";
+const ENDPOINT = "/api/ai";
 const POLL_ATTEMPTS = 40;
 const POLL_DELAY = 1500;
 
 export const hasReplicateKey: Readable<boolean> = derived(
   userDetails,
-  ($details) => Boolean($details?.replicate_api_key?.trim())
+  ($details) => Boolean($details?.replicate_api_key)
 );
 
 class AIService {
-  async getApiKey(): Promise<string> {
+  async getKeyHeld(): Promise<void> {
     const details = get(userDetails) ?? (await userService.getUserDetails());
-    const apiKey = details?.replicate_api_key?.trim();
 
-    if (!apiKey) {
+    if (!details?.replicate_api_key) {
       throw new Error("No Replicate key is on your account. Add one on your profile page.");
     }
-
-    return apiKey;
   }
 
   async postPrediction(request: AIRequest): Promise<AIResponse> {
-    const apiKey = await this.getApiKey();
+    await this.getKeyHeld();
     const model = request.model || MODEL;
 
     const input: Record<string, unknown> = {
@@ -69,10 +66,7 @@ class AIService {
 
     const started = await fetch(`${ENDPOINT}/models/${model}/predictions`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ stream: false, input })
     });
 
@@ -90,19 +84,16 @@ class AIService {
       throw new Error("Replicate returned no polling address.");
     }
 
-    return { text: await this.pollPrediction(apiKey, pollUrl) };
+    return { text: await this.pollPrediction(pollUrl) };
   }
 
-  private async pollPrediction(apiKey: string, pollUrl: string): Promise<string> {
+  private async pollPrediction(pollUrl: string): Promise<string> {
     for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, POLL_DELAY));
 
       const answer = await fetch(pollUrl, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`
-        }
+        headers: { "Content-Type": "application/json" }
       });
 
       if (!answer.ok) continue;

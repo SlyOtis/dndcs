@@ -142,11 +142,10 @@
       }
       
       
-      const response = await fetch('/replicate/models/thomasmol/whisper-diarization/predictions', {
+      const response = await fetch('/api/ai/models/thomasmol/whisper-diarization/predictions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
       })
@@ -165,14 +164,14 @@
       }
 
       const resp = await response.json()
-      let getUrl: string | undefined = resp?.urls?.get
+      let getUrl: string | undefined = resp?.urls?.get?.replace("https://api.replicate.com/v1", "/api/ai")
       
       if (!getUrl) {
         throw new Error(`Invalid response - no polling URL provided`)
       }
       
       // Use the same polling pattern as the main chat system
-      const result = await pollWhisperResult(getUrl, apiKey)
+      const result = await pollWhisperResult(getUrl)
       
       // Handle the transcription result
       if (result && typeof result === 'string' && result.trim()) {
@@ -196,7 +195,7 @@
     }
   }
 
-  const pollWhisperResult = (getUrl: string, apiKey: string): Promise<string> => new Promise((resolve, reject) => {
+  const pollWhisperResult = (getUrl: string): Promise<string> => new Promise((resolve, reject) => {
     let retries = 1;
     const maxRetries = 15;
     
@@ -214,8 +213,7 @@
           const res = await fetch(getUrl, {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + apiKey
+              "Content-Type": "application/json"
             },
           })
 

@@ -38,13 +38,33 @@
     volume = $userProfile?.preferences?.sound_volume ?? 0.7
     animationsOn = $userProfile?.preferences?.animations_enabled === false ? 'off' : 'on'
     for (const entry of INTEGRATIONS) {
-      if (entry.keyField) keys[entry.keyField] = ($userDetails as Record<string, any>)?.[entry.keyField] ?? ''
+      if (entry.keyField) keys[entry.keyField] = ''
     }
   })
 
+  function keyHeld(field: string): boolean {
+    return Boolean(($userDetails as Record<string, boolean> | null)?.[field])
+  }
+
+  async function deleteKey(field: string) {
+    busy = true
+    error = null
+    saved = null
+    try {
+      await userService.putUserSecrets({ [field]: '' })
+      userDetails.update((details) => ({ ...(details ?? {}), [field]: false }))
+      keys[field] = ''
+      saved = 'Key removed.'
+    } catch (reason) {
+      error = reason instanceof Error ? reason.message : String(reason)
+    } finally {
+      busy = false
+    }
+  }
+
   function statusState(entry: Integration): 'live' | 'planned' | 'blocked' | 'waiting' {
     if (entry.status !== 'live') return entry.status
-    if (entry.keyField && !(keys[entry.keyField] ?? '').trim()) return 'waiting'
+    if (entry.keyField && !keyHeld(entry.keyField) && !(keys[entry.keyField] ?? '').trim()) return 'waiting'
     return 'live'
   }
 
@@ -79,7 +99,8 @@
     for (const entry of INTEGRATIONS) {
       if (!entry.keyField || entry.status !== 'live') continue
       const value = (keys[entry.keyField] ?? '').trim()
-      if (entry.keyPrefix && value && !value.startsWith(entry.keyPrefix)) {
+      if (!value) continue
+      if (entry.keyPrefix && !value.startsWith(entry.keyPrefix)) {
         error = `${entry.title} keys start with ${entry.keyPrefix}.`
         busy = false
         return
@@ -92,8 +113,11 @@
       await userService.updatePreferences({ ...$userProfile?.preferences, theme })
       userProfile.update((profile) => (profile ? { ...profile, preferences: { ...profile.preferences, theme } } : profile))
       setTheme(theme)
-      await userService.putUserSecrets(secrets)
-      userDetails.update((details) => ({ ...(details ?? {}), ...secrets }))
+      if (Object.keys(secrets).length) {
+        await userService.putUserSecrets(secrets)
+        userDetails.update((details) => ({ ...(details ?? {}), ...Object.fromEntries(Object.keys(secrets).map((field) => [field, true])) }))
+        for (const field of Object.keys(secrets)) keys[field] = ''
+      }
       saved = 'Saved.'
     } catch (reason) {
       error = reason instanceof Error ? reason.message : String(reason)
@@ -288,9 +312,12 @@
           <p class="user-note">{entry.note}</p>
 
           {#if entry.keyField && entry.status === 'live'}
-            <Field label="{entry.title} key" id="key-{entry.id}" help={entry.keyPrefix ? `Starts with ${entry.keyPrefix}` : undefined}>
-              <input id="key-{entry.id}" type="password" bind:value={keys[entry.keyField]} />
+            <Field label="{entry.title} key" id="key-{entry.id}" help={keyHeld(entry.keyField) ? 'A key is held. Type a new one to replace it.' : entry.keyPrefix ? `Starts with ${entry.keyPrefix}` : undefined}>
+              <input id="key-{entry.id}" type="password" autocomplete="off" bind:value={keys[entry.keyField]} />
             </Field>
+            {#if keyHeld(entry.keyField)}
+              <Button size="sm" variant="ghost" onclick={() => entry.keyField && deleteKey(entry.keyField)} loading={busy}>Remove key</Button>
+            {/if}
           {/if}
 
           <div class="user-links">

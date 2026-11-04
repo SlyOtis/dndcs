@@ -305,14 +305,13 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
     throw new Error("Replicate api key is missing")
   }
 
-  const url = "/replicate/models/" + model + "/predictions";
+  const url = "/api/ai/models/" + model + "/predictions";
   console.log('Making Replicate API call to:', url);
   
   const req = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + apiKey
     },
     body: JSON.stringify({
       stream: false,
@@ -333,7 +332,7 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
   const resp = await req.json()
   let getUrl: string | undefined = resp?.urls?.get
   // https://api.replicate.com/v1/predictions/zc4xabca4hrj00cmsd9s1ps9xw
-  getUrl = getUrl?.replace('https://api.replicate.com/v1', '/replicate')
+  getUrl = getUrl?.replace('https://api.replicate.com/v1', '/api/ai')
 
   if (!getUrl) {
     throw new Error(`Invalid response`)
@@ -357,7 +356,6 @@ async function callReplicate(input: ReplicateInput, modelId?: string) {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + apiKey
           },
         })
 
@@ -2939,7 +2937,7 @@ async function aiShowSpecificItem(action: AiAction) {
     }
 
     // Use AI to find the best match
-    const matchedItem = await findItemWithAI(inventory, itemQuery, apiKey);
+    const matchedItem = await findItemWithAI(inventory, itemQuery);
     if (matchedItem) {
       await showItemCard(matchedItem, itemQuery);
     } else {
@@ -2989,7 +2987,7 @@ function findItemBySimpleMatch(inventory: any[], query: string): any | null {
   return match || null;
 }
 
-async function findItemWithAI(inventory: any[], query: string, apiKey: string): Promise<any | null> {
+async function findItemWithAI(inventory: any[], query: string): Promise<any | null> {
   try {
     const itemsList = inventory.map((item, index) => 
       `${index}: ${item.title} (${item.type}) - ${item.description || 'No description'}`
@@ -3001,11 +2999,10 @@ ${itemsList}
 
 Return only the index number of the best match, or -1 if no good match exists.`;
 
-    const response = await fetch("/replicate/models/meta/meta-llama-3-8b-instruct/predictions", {
+    const response = await fetch("/api/ai/models/meta/meta-llama-3-8b-instruct/predictions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + apiKey
       },
       body: JSON.stringify({
         stream: false,
@@ -3022,7 +3019,7 @@ Return only the index number of the best match, or -1 if no good match exists.`;
     }
 
     const result = await response.json();
-    let getUrl = result?.urls?.get?.replace('https://api.replicate.com/v1', '/replicate');
+    let getUrl = result?.urls?.get?.replace('https://api.replicate.com/v1', '/api/ai');
     
     if (!getUrl) {
       throw new Error('Invalid AI response');
@@ -3033,7 +3030,7 @@ Return only the index number of the best match, or -1 if no good match exists.`;
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const res = await fetch(getUrl, {
-        headers: { "Authorization": "Bearer " + apiKey }
+        headers: {}
       });
 
       if (res.ok) {
@@ -3066,11 +3063,10 @@ async function generateItemImage(item: any): Promise<string> {
   try {
     const prompt = `A detailed fantasy ${item.type} called "${item.title}". ${item.description || ''}. High quality digital art, fantasy style, isolated on white background, D&D item illustration`;
 
-    const response = await fetch("/replicate/models/black-forest-labs/flux-1.1-pro/predictions", {
+    const response = await fetch("/api/ai/models/black-forest-labs/flux-1.1-pro/predictions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + apiKey
       },
       body: JSON.stringify({
         stream: false,
@@ -3091,7 +3087,7 @@ async function generateItemImage(item: any): Promise<string> {
     }
 
     const result = await response.json();
-    let getUrl = result?.urls?.get?.replace('https://api.replicate.com/v1', '/replicate');
+    let getUrl = result?.urls?.get?.replace('https://api.replicate.com/v1', '/api/ai');
     
     if (!getUrl) {
       throw new Error('Invalid image generation response');
@@ -3102,7 +3098,7 @@ async function generateItemImage(item: any): Promise<string> {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const res = await fetch(getUrl, {
-        headers: { "Authorization": "Bearer " + apiKey }
+        headers: {}
       });
 
       if (res.ok) {
