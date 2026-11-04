@@ -259,8 +259,8 @@ func TestAFileIsPostedOnlyWhereTheWriterMayWrite(t *testing.T) {
 	if status != http.StatusCreated {
 		t.Fatalf("PostAsset: %d", status)
 	}
-	if rec := getData(t, player, http.MethodGet, own.ID, nil); rec.Code != http.StatusOK {
-		t.Fatalf("a member cannot read a player's own file: %d", rec.Code)
+	if rec := getData(t, player, http.MethodGet, own.ID, nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("a member read another player's own file: %d", rec.Code)
 	}
 	if status, _ := postStoredFile(t, player, map[string]string{"name": "x.png", "mime_type": "image/png", "parent_id": own.ParentID}, "x"); status != http.StatusForbidden {
 		t.Fatalf("a player wrote into another player's folder: %d", status)
@@ -400,5 +400,138 @@ func TestAFileOverTheLimitIsRefused(t *testing.T) {
 	body, contentType := getForm(t, map[string]string{"name": "huge.ogg", "mime_type": "audio/ogg"}, bytes.Repeat([]byte("a"), 2<<20))
 	if rec := raw(t, dungeonMaster, http.MethodPost, "/api/asset", io.MultiReader(body), map[string]string{"Content-Type": contentType}, nil, handler.PostAsset); rec.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("a body of unknown length past the limit was read whole: %d", rec.Code)
+	}
+}
+
+func attach(t *testing.T, actor uuid.UUID, assetID, resourceID string) string {
+	t.Helper()
+	body := `{"object_type":"resource","object_id":"` + resourceID + `"}`
+	status, answer := call(t, actor, http.MethodPost, "/api/asset/"+assetID+"/object", body, map[string]string{"id": assetID}, handler.PostObjectAsset)
+	if status != http.StatusCreated {
+		t.Fatalf("PostObjectAsset: %d %+v", status, answer.Error)
+	}
+	return id(t, answer)
+}
+
+func TestAPersonalUploadIsNeitherListedNorReadByAnotherMember(t *testing.T) {
+	requireBlob(t)
+	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, player, "pip@dndcs.local")
+	status, own := postStoredFile(t, player, map[string]string{"name": "diary.png", "mime_type": "image/png"}, "secret")
+	if status != http.StatusCreated {
+		t.Fatalf("PostAsset: %d", status)
+	}
+	if rec := getData(t, player, http.MethodGet, own.ID, nil); rec.Code != http.StatusOK {
+		t.Fatalf("a player cannot read their own upload: %d", rec.Code)
+	}
+	if rec := getData(t, dungeonMaster, http.MethodGet, own.ID, nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("another member read a personal upload: %d", rec.Code)
+	}
+	if status, _ := call(t, dungeonMaster, http.MethodGet, "/api/asset/"+own.ParentID, "", map[string]string{"id": own.ParentID}, handler.GetAsset); status != http.StatusNotFound {
+		t.Fatalf("another member read a personal folder: %d", status)
+	}
+	if _, answer := call(t, dungeonMaster, http.MethodGet, "/api/asset", "", nil, handler.GetAssets); listed(t, answer, own.ID) || listed(t, answer, own.ParentID) {
+		t.Fatalf("another member listed a personal upload or its folder")
+	}
+}
+
+func TestAPageSharedWithACampaignSharesTheImageItHolds(t *testing.T) {
+	requireBlob(t)
+	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	campaignID := postCampaign(t)
+	seatPlayer(t, campaignID)
+
+	for _, side := range []struct{ owner, reader uuid.UUID }{{dungeonMaster, player}, {player, dungeonMaster}} {
+		status, image := postStoredFile(t, side.owner, map[string]string{"name": "vale.png", "mime_type": "image/png"}, "vale")
+		if status != http.StatusCreated {
+			t.Fatalf("PostAsset: %d", status)
+		}
+		status, made := call(t, side.owner, http.MethodPost, "/api/resource", `{"kind":"locations","title":"The vale"}`, nil, handler.PostResource)
+		if status != http.StatusCreated {
+			t.Fatalf("PostResource: %d %+v", status, made.Error)
+		}
+		resourceID := id(t, made)
+		params := map[string]string{"id": resourceID}
+		attach(t, side.owner, image.ID, resourceID)
+
+		if rec := getData(t, side.reader, http.MethodGet, image.ID, nil); rec.Code != http.StatusNotFound {
+			t.Fatalf("the image of an unshared page was read: %d", rec.Code)
+		}
+		if status, _ := call(t, side.owner, http.MethodPut, "/", `{"share_campaigns":["`+campaignID+`"]}`, params, handler.PutResource); status != http.StatusOK {
+			t.Fatalf("PutResource share: %d", status)
+		}
+		if rec := getData(t, side.reader, http.MethodGet, image.ID, nil); rec.Code != http.StatusOK || rec.Body.String() != "vale" {
+			t.Fatalf("the table was refused the image of a page shared with it: %d", rec.Code)
+		}
+		if status, _ := call(t, side.owner, http.MethodPut, "/", `{"share_campaigns":[]}`, params, handler.PutResource); status != http.StatusOK {
+			t.Fatalf("PutResource unshare: %d", status)
+		}
+		if rec := getData(t, side.reader, http.MethodGet, image.ID, nil); rec.Code != http.StatusNotFound {
+			t.Fatalf("the image was still read once its page was unshared: %d", rec.Code)
+		}
+		if rec := getData(t, side.owner, http.MethodGet, image.ID, nil); rec.Code != http.StatusOK {
+			t.Fatalf("the owner lost their own image: %d", rec.Code)
+		}
+	}
+}
+
+func TestAnAssetSharedThroughAClaimIsReadByItsHolders(t *testing.T) {
+	requireBlob(t)
+	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, player, "pip@dndcs.local")
+	status, own := postStoredFile(t, player, map[string]string{"name": "sketch.png", "mime_type": "image/png"}, "sketch")
+	if status != http.StatusCreated {
+		t.Fatalf("PostAsset: %d", status)
+	}
+	status, claim := call(t, player, http.MethodPost, "/api/claim", `{"name":"Sketch readers","access":4}`, nil, handler.PostClaim)
+	if status != http.StatusCreated {
+		t.Fatalf("PostClaim: %d %+v", status, claim.Error)
+	}
+	claimID := id(t, claim)
+	params := map[string]string{"id": claimID}
+	if status, answer := call(t, player, http.MethodPost, "/api/claim/"+claimID+"/object", `{"object_type":"asset","object_id":"`+own.ID+`"}`, params, handler.PostClaimObject); status != http.StatusCreated {
+		t.Fatalf("PostClaimObject: %d %+v", status, answer.Error)
+	}
+	if rec := getData(t, dungeonMaster, http.MethodGet, own.ID, nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("a member who holds no claim read the shared asset: %d", rec.Code)
+	}
+	if status, answer := call(t, player, http.MethodPost, "/api/claim/"+claimID+"/user", `{"user_id":"`+dungeonMaster.String()+`"}`, params, handler.PostClaimUser); status != http.StatusCreated {
+		t.Fatalf("PostClaimUser: %d %+v", status, answer.Error)
+	}
+	if rec := getData(t, dungeonMaster, http.MethodGet, own.ID, nil); rec.Code != http.StatusOK || rec.Body.String() != "sketch" {
+		t.Fatalf("the claim's holder was refused the asset: %d", rec.Code)
+	}
+}
+
+func TestAnImageTakenOffAPageIsNoLongerSharedWithIt(t *testing.T) {
+	requireBlob(t)
+	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	campaignID := postCampaign(t)
+	seatPlayer(t, campaignID)
+	status, image := postStoredFile(t, dungeonMaster, map[string]string{"name": "keep.png", "mime_type": "image/png"}, "keep")
+	if status != http.StatusCreated {
+		t.Fatalf("PostAsset: %d", status)
+	}
+	status, made := call(t, dungeonMaster, http.MethodPost, "/api/resource", `{"kind":"locations","title":"The keep"}`, nil, handler.PostResource)
+	if status != http.StatusCreated {
+		t.Fatalf("PostResource: %d %+v", status, made.Error)
+	}
+	resourceID := id(t, made)
+	if status, _ := call(t, dungeonMaster, http.MethodPut, "/", `{"share_campaigns":["`+campaignID+`"]}`, map[string]string{"id": resourceID}, handler.PutResource); status != http.StatusOK {
+		t.Fatalf("PutResource share: %d", status)
+	}
+	linkID := attach(t, dungeonMaster, image.ID, resourceID)
+	if rec := getData(t, player, http.MethodGet, image.ID, nil); rec.Code != http.StatusOK {
+		t.Fatalf("an image attached to a shared page was refused to its table: %d", rec.Code)
+	}
+	unlink := map[string]string{"id": image.ID, "object_id": linkID}
+	if status, _ := call(t, dungeonMaster, http.MethodDelete, "/api/asset/"+image.ID+"/object/"+linkID, "", unlink, handler.DeleteObjectAsset); status != http.StatusOK {
+		t.Fatalf("DeleteObjectAsset: %d", status)
+	}
+	if status, answer := call(t, dungeonMaster, http.MethodGet, "/api/asset/object?object_type=resource&object_id="+resourceID, "", nil, handler.GetObjectAssets); status != http.StatusOK || listed(t, answer, linkID) {
+		t.Fatalf("the detached image is still listed on the page: %d", status)
+	}
+	if rec := getData(t, player, http.MethodGet, image.ID, nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("an image taken off a shared page was still read by its table: %d", rec.Code)
 	}
 }

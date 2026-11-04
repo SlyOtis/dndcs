@@ -264,7 +264,29 @@ func putShare(ctx context.Context, tx bun.Tx, w *Writer, objectType string, obje
 			}
 		}
 	}
-	return putBindings(ctx, tx, w, objectType, objectID, want, managed)
+	page := map[uuid.UUID]sdb.ClaimAccess{}
+	for claimID, access := range want {
+		page[claimID] = access
+	}
+	if err := putBindings(ctx, tx, w, objectType, objectID, want, managed); err != nil {
+		return err
+	}
+	if objectType != db.OBJECT_TYPE_RESOURCE {
+		return nil
+	}
+	attached := make([]uuid.UUID, 0)
+	if err := tx.NewSelect().Model((*db.ObjectAsset)(nil)).Column("asset_id").
+		Where("object_id = ?", objectID).
+		Where("object_type IN (?)", bun.In([]string{"resource", db.OBJECT_TYPE_RESOURCE})).
+		Scan(ctx, &attached); err != nil {
+		return err
+	}
+	for _, assetID := range attached {
+		if err := putAssetShare(ctx, tx, w, assetID, objectID, page, managed); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func objectTypeTable(objectType string) string {
@@ -277,4 +299,63 @@ func objectTypeTable(objectType string) string {
 		return "encounter"
 	}
 	return ""
+}
+
+func getPageShare(ctx context.Context, pageIDs []uuid.UUID) (map[uuid.UUID]sdb.ClaimAccess, error) {
+	shared := map[uuid.UUID]sdb.ClaimAccess{}
+	if len(pageIDs) == 0 {
+		return shared, nil
+	}
+	bindings, err := sdb.Instance().GetBindings(ctx, sdb.BindingFilters{ObjectType: db.OBJECT_TYPE_RESOURCE, ObjectIDs: pageIDs})
+	if err != nil {
+		return nil, err
+	}
+	for _, binding := range bindings {
+		if binding.DeletedAt == nil && binding.Access != nil && *binding.Access&sdb.ACCESS_READ != 0 {
+			shared[binding.ClaimID] = shared[binding.ClaimID] | sdb.ACCESS_READ
+		}
+	}
+	return shared, nil
+}
+
+func putAssetShare(ctx context.Context, tx bun.Tx, w *Writer, assetID, pageID uuid.UUID, page map[uuid.UUID]sdb.ClaimAccess, managed []uuid.UUID) error {
+	asset := db.Asset{ID: assetID}
+	if err := tx.NewSelect().Model(&asset).Column("id", "sa_parent_id", "uploaded_by").WherePK().Scan(ctx); err != nil {
+		return err
+	}
+	if asset.UploadedBy != w.ActorID || asset.ParentID == uuid.Nil || asset.ParentID == asset.ID {
+		return nil
+	}
+	folder, err := sdb.Instance().GetBindings(ctx, sdb.BindingFilters{ObjectType: db.OBJECT_TYPE_ASSET, ObjectIDs: []uuid.UUID{asset.ParentID}})
+	if err != nil {
+		return err
+	}
+	want := map[uuid.UUID]sdb.ClaimAccess{}
+	for _, binding := range folder {
+		if binding.DeletedAt == nil && binding.Access != nil {
+			want[binding.ClaimID] = *binding.Access
+		}
+	}
+	others := make([]uuid.UUID, 0)
+	if err := tx.NewSelect().Model((*db.ObjectAsset)(nil)).Column("object_id").
+		Where("asset_id = ?", assetID).
+		Where("object_id <> ?", pageID).
+		Where("object_type IN (?)", bun.In([]string{"resource", db.OBJECT_TYPE_RESOURCE})).
+		Scan(ctx, &others); err != nil {
+		return err
+	}
+	elsewhere, err := getPageShare(ctx, others)
+	if err != nil {
+		return err
+	}
+	for _, shared := range []map[uuid.UUID]sdb.ClaimAccess{page, elsewhere} {
+		for claimID, access := range shared {
+			want[claimID] = want[claimID] | access
+		}
+	}
+	reach := append([]uuid.UUID{}, managed...)
+	for claimID := range want {
+		reach = append(reach, claimID)
+	}
+	return putBindings(ctx, tx, w, db.OBJECT_TYPE_ASSET, assetID, want, reach)
 }
