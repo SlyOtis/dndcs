@@ -413,7 +413,7 @@
     busy = true
     error = null
     try {
-      const { url: address } = await postFile(file, { kind: 'campaignMap', campaignId })
+      const { url: address } = await postFile(file, campaignId ? { kind: 'campaignMap', campaignId } : { kind: 'user' })
       one.images = [...one.images, address]
       if (!one.image) one.image = address
       if (!writing) {

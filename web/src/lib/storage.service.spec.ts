@@ -82,6 +82,10 @@ describe('a file the editor makes on a page', () => {
     expect(resourceShellSource).toContain('return await postFile(file, scope)')
     expect(resourceShellSource).toContain('getAssets={(query, wanted) => getAssets(query, wanted, scope)}')
   })
+
+  it('sends a page picture to the campaign only on a campaign page, so a player\'s own page posts no empty campaign', () => {
+    expect(resourceShellSource).toContain("postFile(file, campaignId ? { kind: 'campaignMap', campaignId } : { kind: 'user' })")
+  })
 })
 
 describe('the media contract', () => {
