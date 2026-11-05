@@ -93,6 +93,40 @@ jobs:
       - name: Run migrations in the environment
         run: bash scripts/migrate.sh tst
 
+  page:
+    needs: build
+    if: ${{ (github.event.inputs.environment || 'tst') == 'tst' }}
+    runs-on: ubuntu-latest
+    environment: tst
+    env:
+      SAUTH_ENDPOINT: ${{ vars.SAUTH_ENDPOINT }}
+      SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
+      SAUTH_CLIENT_ID: ${{ secrets.SAUTH_CLIENT_ID }}
+      SAUTH_CLIENT_SECRET: ${{ secrets.SAUTH_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Install sauth
+        env:
+          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
+          GOPRIVATE: github.com/nimling/*
+        run: |
+          git config --global url."https://${GH_REPO_TOKEN}@github.com/".insteadOf "https://github.com/"
+          go install github.com/nimling/samna-auth/cmd/sauth@v1.0.0-alpha0320
+
+      - name: Upload the login page
+        run: sauth app page replace login --app dndcs --data "$(jq -n --rawfile t deploy/sauth/pages/login.html '{kind:"login",template:$t}')" --yes
+
+      - name: Upload the redirect page
+        run: sauth app page replace redirect --app dndcs --data "$(jq -n --rawfile t deploy/sauth/pages/redirect.html '{kind:"redirect",template:$t}')" --yes
+
   deploy:
     needs: [build, migrate]
     runs-on: ubuntu-latest
