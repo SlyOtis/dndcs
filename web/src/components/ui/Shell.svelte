@@ -8,7 +8,6 @@
   import Button from './Button.svelte'
   import Flame from './Flame.svelte'
   import Glass from './Glass.svelte'
-  import Ornament from './Ornament.svelte'
   import Sigil from './Sigil.svelte'
   import Sidebar from './Sidebar.svelte'
   import Glyph from './Glyph.svelte'
@@ -106,7 +105,7 @@
         </Sigil>
       </span>
     {:else}
-      <span class="dnd-shell-crest"><Ornament name="rosette" size="sm" tone="metal" /></span>
+      <span class="dnd-shell-crest"><img class="dnd-shell-crest-mark" src="/favicon.svg" alt="" /></span>
     {/if}
 
     {#if back}
@@ -400,6 +399,12 @@
   .dnd-shell-handle {
     display: flex;
     flex: none;
+  }
+
+  .dnd-shell-crest-mark {
+    block-size: 2.25rem;
+    aspect-ratio: 1;
+    filter: drop-shadow(0 0.0625rem 0 var(--ground-deep));
   }
 
   .dnd-shell-mark {

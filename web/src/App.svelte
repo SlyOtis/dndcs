@@ -8,7 +8,6 @@
   import EffectDefs from "$components/ui/EffectDefs.svelte";
   import Aura from "$components/ui/Aura.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
-  import Flame from "$components/ui/Flame.svelte";
   import Search from "$components/search/Search.svelte";
   import Dialogs from "$dialogs/Dialogs.svelte";
   import SoundManager from "$components/SoundManager.svelte";
@@ -199,9 +198,7 @@
     <Aura variant="runes" tone="verdigris" />
 
     <div class="loading-content">
-      <span class="loading-flame">
-        <Flame size="lg" intensity="steady" />
-      </span>
+      <img class="loading-mark" src="/favicon.svg" alt="" />
       <h2 class="dnd-heading dnd-heading-hero">Quillborne</h2>
       <span class="loading-rule">
         <Ornament name="divider" tone="metal" />
@@ -216,7 +213,7 @@
         <Aura variant="motes" tone="ember" density="thick" />
 
         <div class="loading-content">
-          <span class="loading-flame"><Flame size="lg" intensity="steady" /></span>
+          <img class="loading-mark" src="/favicon.svg" alt="" />
           <span class="loading-rule"><Ornament name="divider" tone="metal" /></span>
           <p class="dnd-label loading-note">Turning the page</p>
         </div>
@@ -260,9 +257,12 @@
     padding: var(--space-7);
   }
 
-  .loading-flame {
+  .loading-mark {
     display: block;
+    inline-size: clamp(4rem, 12vw, 7rem);
+    aspect-ratio: 1;
     margin-bottom: var(--space-2);
+    filter: drop-shadow(0 0 1.5rem var(--ember-glow));
   }
 
   .loading-rule {
