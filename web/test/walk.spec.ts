@@ -101,14 +101,14 @@ describe("the walk's sign in waits for the hearth", () => {
   })
 
   it('waits for rendered hearth content, never for the /main pathname', () => {
-    expect(signIn).toContain(`wait_for "($hearth) || document.querySelector('.gate-error') !== null"`)
+    expect(signIn).toContain(`wait_for "($hearth) || document.querySelector('.alert') !== null"`)
     expect(signIn).not.toContain(`location.pathname === '/main'`)
     expect(signIn).not.toContain(`= "/main"`)
   })
 
   it('rules on the landing by reading the hearth, and names the gate error when it is not there', () => {
     expect(signIn).toContain(`[ "$(js "$hearth")" = "true" ]`)
-    expect(signIn).toContain(`document.querySelector('.gate-error')?.textContent.trim() ?? ''`)
+    expect(signIn).toContain(`document.querySelector('.alert')?.textContent.trim() ?? ''`)
   })
 
   it('takes the root and the hearth as one landing, since both render the hearth', () => {
@@ -116,15 +116,14 @@ describe("the walk's sign in waits for the hearth", () => {
     expect(signIn).toContain('/|/main) ;;')
   })
 
-  it('waits on nothing a pathname can hold, because both gates navigate to the root', () => {
-    expect(read('src/pages/LoginPage.svelte')).toContain('navigate("/")')
-    expect(read('src/pages/SignupPage.svelte')).toContain('navigate("/")')
+  it('sends a signed out visitor to Samna Auth and lands on the hearth', () => {
+    expect(read('src/App.svelte')).toContain('authService.signIn()')
     expect(read('src/App.svelte')).toMatch(/"\/":\s*\{[^}]*guard: async \(\) => "\/main"/)
   })
 
   it('names selectors the hearth and the refused sign in still render', () => {
     expect(read('src/pages/MainPage.svelte')).toContain('hall-hero-name')
-    expect(read('src/pages/LoginPage.svelte')).toContain('class="gate-error"')
+    expect(read('../deploy/sauth/pages/login.html')).toContain('class="alert"')
   })
 
   it('bounds every wait, so a sign in that never lands reports rather than hangs', () => {

@@ -11,8 +11,8 @@ const page = () => async () => ({ default: {} })
 const routes: any = {
   '/': '/main',
   '/main': { name: 'main', component: page() },
-  '/login': { name: 'login', component: page() },
-  '/signup': { name: 'signup', component: page() },
+  '/login': '/main',
+  '/signup': '/main',
   '/main/create/character': { name: 'character-create', component: page() },
   '/main/create/character/class': { name: 'character-class', component: page() },
   '/main/create/character/race': { name: 'character-race', component: page() },
@@ -26,8 +26,8 @@ const routes: any = {
 describe('every route the app can reach resolves to its own page', () => {
   for (const [path, want] of [
     ['/main', 'main'],
-    ['/login', 'login'],
-    ['/signup', 'signup'],
+    ['/login', 'main'],
+    ['/signup', 'main'],
     ['/user', 'user'],
     ['/character/GBrry3iBrlac8Pdb1n6e', 'character-view'],
     ['/campaign/abc123', 'campaign-view'],

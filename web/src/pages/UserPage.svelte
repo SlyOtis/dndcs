@@ -78,7 +78,6 @@
 
   async function signOut() {
     await authService.signOut()
-    navigate('/login')
   }
 
   async function unpin(action: string) {

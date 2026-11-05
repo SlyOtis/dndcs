@@ -10,8 +10,8 @@ import { resolveRoute } from '../node_modules/sly-svelte-location-router/dist/ro
 const routes: any = {
   '/': '/main',
   '/main': { name: 'main', component: async () => ({}) },
-  '/login': { name: 'login', component: async () => ({}) },
-  '/signup': { name: 'signup', component: async () => ({}) },
+  '/login': '/main',
+  '/signup': '/main',
   '/main/create/character': { name: 'character-create', component: async () => ({}) },
   '/main/create/character/class': { name: 'character-class', component: async () => ({}) },
   '/main/create/character/race': { name: 'character-race', component: async () => ({}) },

@@ -86,20 +86,19 @@ visit() {
 first_href() { js "document.querySelector('$1')?.getAttribute('href') ?? ''"; }
 
 trap 'pw close >/dev/null' EXIT
-pw open "$base/login" >/dev/null
-
-visit /login "document.querySelector('#login-email') !== null" "the sign in form" && check_page out
-visit /signup "document.querySelector('#signup-email') !== null" "the sign up form" && check_page out
+pw open "$base/main" >/dev/null
 
 hearth="document.querySelector('.hall-hero-name') !== null && document.querySelector('.dnd-loading') === null"
 page="sign in"
-pw goto "$base/login" >/dev/null
-wait_for "document.querySelector('#login-email') !== null" "the sign in form"
-pw fill "#login-email" "$email" >/dev/null
-pw fill "#login-password" "$password" >/dev/null
-pw click "getByRole('button', { name: 'Sign In' })" >/dev/null
-wait_for "($hearth) || document.querySelector('.gate-error') !== null" "the hearth after sign in"
-[ "$(js "$hearth")" = "true" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.gate-error')?.textContent.trim() ?? ''")"; exit 1; }
+pw goto "$base/main" >/dev/null
+wait_for "location.pathname.startsWith('/login/')" "the Samna Auth sign in page"
+pw goto "$(js "(() => { const u = new URL(location.href); u.searchParams.set('panel', 'email-login'); return u.href })()")" >/dev/null
+wait_for "document.querySelector('input[name=email]') !== null" "the email sign in form"
+pw fill "input[name=email]" "$email" >/dev/null
+pw fill "input[name=password]" "$password" >/dev/null
+pw click "getByRole('button', { name: 'Enter the table' })" >/dev/null
+wait_for "($hearth) || document.querySelector('.alert') !== null" "the hearth after sign in"
+[ "$(js "$hearth")" = "true" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.alert')?.textContent.trim() ?? ''")"; exit 1; }
 landed="$(js "location.pathname")"
 case "$landed" in
   /|/main) ;;

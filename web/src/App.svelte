@@ -3,6 +3,7 @@
   import {onMount, onDestroy} from "svelte";
   import { get } from "svelte/store";
   import { initializeAuth } from "$lib/auth.init";
+  import { authService } from "$lib/auth.service";
   import { isAuthenticated, isLoading } from "$lib/stores/auth.store";
   import EffectDefs from "$components/ui/EffectDefs.svelte";
   import Aura from "$components/ui/Aura.svelte";
@@ -14,7 +15,7 @@
   import { handleGlobalKeydown } from "$lib/globalEvents";
 
   const requireSignIn: RouteGuard = async () =>
-    get(isAuthenticated) ? null : { path: "/login", state: { from: window.location.pathname } };
+    get(isAuthenticated) ? null : authService.signIn();
 
   function page(name: string, load: () => Promise<unknown>) {
     return async () => {
@@ -41,14 +42,8 @@
       component: page("MainPage", () => import("./pages/MainPage.svelte")),
       guard: requireSignIn
     },
-    "/login": {
-      name: "login",
-      component: page("LoginPage", () => import("./pages/LoginPage.svelte")),
-    },
-    "/signup": {
-      name: "signup",
-      component: page("SignupPage", () => import("./pages/SignupPage.svelte")),
-    },
+    "/login": "/main",
+    "/signup": "/main",
     "/main/create": "/main",
     "/main/create/character": {
       name: "character-create",

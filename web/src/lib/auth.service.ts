@@ -14,7 +14,7 @@ const listeners = new Set<(user: SessionUser | null) => void>();
 
 function getSignInAddress(): string {
   const back = window.location.pathname + window.location.search;
-  return `/api/auth/login?next=${encodeURIComponent(back === '/login' || back === '/signup' ? '/' : back)}`;
+  return `/api/auth/login?next=${encodeURIComponent(back)}`;
 }
 
 function getSessionUser(me: SamnaMe): SessionUser {
@@ -23,20 +23,9 @@ function getSessionUser(me: SamnaMe): SessionUser {
 }
 
 export const authService = {
-  async signUp(_email: string, _password: string, _displayName: string, replicateApiKey = ''): Promise<SessionUser> {
-    if (replicateApiKey) sessionStorage.setItem('dndcs.replicate_api_key', replicateApiKey);
+  signIn(): Promise<never> {
     window.location.assign(getSignInAddress());
-    return new Promise<SessionUser>(() => undefined);
-  },
-
-  async signIn(_email: string, _password: string): Promise<SessionUser> {
-    window.location.assign(getSignInAddress());
-    return new Promise<SessionUser>(() => undefined);
-  },
-
-  async signInWithGoogle(): Promise<SessionUser> {
-    window.location.assign(getSignInAddress());
-    return new Promise<SessionUser>(() => undefined);
+    return new Promise<never>(() => undefined);
   },
 
   async signOut(): Promise<void> {
@@ -57,11 +46,6 @@ export const authService = {
       const profile = await userService.getProfile();
       if (!profile) {
         await userService.createProfile({ email: found.email, display_name: found.display_name, photo_url: found.photo_url });
-      }
-      const pendingKey = sessionStorage.getItem('dndcs.replicate_api_key');
-      if (pendingKey) {
-        await userService.putUserSecrets({ replicate_api_key: pendingKey });
-        sessionStorage.removeItem('dndcs.replicate_api_key');
       }
     }
 
