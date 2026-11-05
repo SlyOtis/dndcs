@@ -1,20 +1,20 @@
 ---
 description: How a character is defined, layered and calculated, and how a component reaches the result
 paths:
-  - "src/lib/rules/**"
-  - "public/sources/systems/**"
-  - "src/components/character_sheet/**"
+  - "web/src/lib/rules/**"
+  - "web/public/sources/systems/**"
+  - "web/src/components/character_sheet/**"
 ---
 
 ## The spec
 
-A rule system is a JSON document under `public/sources/systems/`. It declares `attributes`, `proficiencyTiers`, `skills`, `saves`, `senses`, `pools`, `derived`, `progression` and `panels`. `src/lib/rules/spec.types.ts` is the shape.
+A rule system is a JSON document under `web/public/sources/systems/`. It declares `attributes`, `proficiencyTiers`, `skills`, `saves`, `senses`, `pools`, `derived`, `progression` and `panels`. `web/src/lib/rules/spec.types.ts` is the shape.
 
 Nothing about 5e is hard coded in a component. A character is data plus the systems it declares.
 
 ## The formula language
 
-Every number is an expression evaluated by `src/lib/rules/expression.ts` against a flat scope of numbers. Arithmetic, comparisons, ternaries, and `floor`, `ceil`, `round`, `abs`, `sign`, `min`, `max`, `clamp`, `pow`. No `eval`, no code in a system file.
+Every number is an expression evaluated by `web/src/lib/rules/expression.ts` against a flat scope of numbers. Arithmetic, comparisons, ternaries, and `floor`, `ceil`, `round`, `abs`, `sign`, `min`, `max`, `clamp`, `pow`. No `eval`, no code in a system file.
 
 Scope names are `level`, `prof`, `attr.<id>`, `mod.<id>`, `skill.<id>`, `save.<id>`, `sense.<id>`, `pool.<id>.max`, `derived.<id>`, `bonus.<id>` and `step.<key>`. A missing `bonus.` or `step.` name is zero, so an optional input never breaks a system.
 
@@ -32,7 +32,7 @@ A character can therefore add an attribute, a skill or a point pool nobody else 
 
 ## The bridge
 
-`src/lib/rules/sheet.ts` maps the stored `Character` onto the engine input. `getAttributeId` and `getSkillId` turn display titles into system ids, so a display name never reaches a formula. It resolves once to learn the modifiers, then recovers the armour, hit point, initiative and speed bonuses from the stored totals, so nothing double counts.
+`web/src/lib/rules/sheet.ts` maps the stored `Character` onto the engine input. `getAttributeId` and `getSkillId` turn display titles into system ids, so a display name never reaches a formula. It resolves once to learn the modifiers, then recovers the armour, hit point, initiative and speed bonuses from the stored totals, so nothing double counts.
 
 ## Reaching it from a component
 
@@ -42,4 +42,4 @@ A character can therefore add an attribute, a skill or a point pool nobody else 
 
 ## Adding a system
 
-A JSON file plus a case in `src/lib/rules/derive.spec.ts`. Never a branch in a component.
+A JSON file plus a case in `web/src/lib/rules/derive.spec.ts`. Never a branch in a component.

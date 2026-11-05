@@ -1,8 +1,0 @@
-{
-  "gate": "just gate",
-  "max_agents": 3,
-  "serve": {
-    "url": "http://localhost:5173",
-    "command": "just dev"
-  }
-}

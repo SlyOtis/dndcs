@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a0806">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="{{if .App.Image}}{{.App.Image}}{{else}}/images/favicon.svg{{end}}">
+<meta http-equiv="refresh" content="0;url={{.RedirectURL}}">
+<title>Entering {{.App.Name}}</title>
+<style>
+:root {
+  --font-display: "Cinzel", "Trajan Pro", Georgia, serif;
+  --font-body: "Alegreya", "Spectral", Georgia, serif;
+  --ground-deep: #0a0806;
+  --ground: #15110c;
+  --metal: #d4a445;
+  --metal-bright: #ffe39a;
+  --metal-dim: #6e5120;
+  --ember: #ff9f2e;
+  --ember-glow: rgba(255, 159, 46, 0.42);
+  --ink: #f3e7cb;
+  --ink-dim: #bba888;
+  --glow-text: 0 0 0.375rem var(--ember-glow), 0 0 0.875rem var(--ember-glow), 0 0.0625rem 0.0625rem #000;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; }
+body {
+  margin: 0;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.25em, 5vw, 4em) clamp(1em, 4vw, 2em);
+  background:
+    radial-gradient(45% 40% at 50% 45%, color-mix(in oklab, var(--ember), transparent 70%), transparent 70%),
+    radial-gradient(90% 60% at 50% 120%, rgba(0, 0, 0, 0.85), transparent 70%),
+    linear-gradient(180deg, #1b150e 0%, var(--ground) 40%, var(--ground-deep) 100%);
+  background-color: var(--ground-deep);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 0.94rem + 0.22vw, 1.125rem);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+main {
+  display: grid;
+  justify-items: center;
+  gap: 1em;
+  width: min(100%, 26em);
+  text-align: center;
+  animation: rise 0.4s ease-out 0.15s both;
+}
+.door { width: min(45%, 8em); height: auto; color: var(--metal); overflow: visible; filter: drop-shadow(0 0.0625rem 0 #000) drop-shadow(0 0 0.7rem var(--ember-glow)); }
+.door .die { color: var(--ember); animation: flicker 2.4s ease-in-out infinite; transform-origin: 60px 96px; }
+.name { margin: 0; font-family: var(--font-display); font-size: clamp(1.4rem, 1rem + 2vw, 2.2rem); font-weight: 700; letter-spacing: 0.06em; color: var(--metal-bright); text-shadow: var(--glow-text); }
+.lead { margin: 0; color: var(--ink-dim); font-style: italic; }
+.lead a { color: var(--metal); }
+@keyframes rise { from { opacity: 0; transform: translateY(0.5em); } to { opacity: 1; transform: none; } }
+@keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.75; } }
+@media (prefers-reduced-motion: reduce) {
+  main, .door .die { animation: none; }
+}
+</style>
+</head>
+<body>
+<main aria-live="polite">
+  <svg class="door" viewBox="0 0 120 168" fill="none" aria-hidden="true">
+    <path d="M6 166V60C6 30 28 6 60 6s54 24 54 54v106" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M14 166V62C14 36 34 15 60 15s46 21 46 47v104" stroke="currentColor" stroke-width="1.1" opacity="0.5"/>
+    <path d="M60 22c9 10 9 22 0 32-9-10-9-22 0-32Z" fill="#ffe39a" opacity="0.9"/>
+    <path d="M6 166h108" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <g class="die" transform="translate(36 72)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round">
+      <path d="M24 3 43 14v20L24 45 5 34V14Z"/>
+      <path d="M24 3 13 20h22Z M13 20 5 34M35 20l8 14M13 20l11 25 11-25M5 14l8 6M43 14l-8 6M24 45V34" opacity="0.8"/>
+    </g>
+  </svg>
+  <p class="name">{{.App.Name}}</p>
+  <p class="lead">{{if .User.FirstName}}Welcome back, {{.User.FirstName}}. {{end}}<a href="{{.RedirectURL}}">The doors open to {{.App.Name}}</a></p>
+</main>
+<script>location.replace({{.RedirectURL}});</script>
+</body>
+</html>

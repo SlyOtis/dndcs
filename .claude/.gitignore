@@ -1,4 +1,8 @@
 settings.local.json
 session/
+sessions/
 board.jsonl
 memory/
+tasks/
+questions/
+lcp.json

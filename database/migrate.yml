@@ -1,0 +1,45 @@
+name: dndcs
+description: Database migrations for dndcs, the characters, campaigns and lore of the table
+version: "1.0"
+
+steps:
+  - name: Claimius Schema
+    type: base
+    slug: claimius
+    schemas: [claimius]
+    include:
+      - git: https://github.com/nimling/samna-auth-middleware.git
+        ref: v2.0.0-alpha0118
+        token: $GH_REPO_TOKEN
+        path: disciple/database
+
+  - name: Application Tables
+    type: base
+    slug: base
+    schemas: [public]
+    pre: |
+      CREATE EXTENSION IF NOT EXISTS pgcrypto;
+    include:
+      - path: base/
+        fallback: /database/base/
+
+  - name: System
+    type: base
+    slug: system
+    schemas: [public]
+    vars:
+      app_slug: $SAUTH_APP_SLUG
+    include:
+      - path: system/
+        fallback: /database/system/
+
+  - name: Debug
+    type: seed
+    slug: debug
+    schemas: [public, claimius]
+    if: '[ -n "$SAUTH_DEBUG_USER_ID" ]'
+    vars:
+      debug_user_id: $SAUTH_DEBUG_USER_ID
+    include:
+      - path: debug/
+        fallback: /database/debug/

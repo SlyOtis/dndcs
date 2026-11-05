@@ -1,0 +1,153 @@
+name: Build and Deploy to Azure Container App
+
+on:
+  push:
+    tags:
+      - 'v*-tst'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag like v1.2.3 required for prd deploy'
+        required: true
+      environment:
+        description: 'Target Environment'
+        required: true
+        type: choice
+        default: tst
+        options:
+          - tst
+          - prd
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    outputs:
+      image_tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Reject prd tag push
+        if: github.event_name == 'push' && endsWith(github.ref_name, '-prd')
+        run: echo "prd is not deployable via tag push" && exit 1
+
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Resolve image tag
+        id: version
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          echo "tag=${TAG%-tst}" >> $GITHUB_OUTPUT
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
+
+      - name: ACR Login
+        run: az acr login --name $(echo "${{ vars.ACR_REGISTRY }}" | cut -d'.' -f1)
+
+      - name: Build and push image
+        run: |
+          docker build \
+            --build-arg IMAGE_VERSION=${{ steps.version.outputs.tag }} \
+            --build-arg GH_REPO_TOKEN=${{ secrets.DOCKER_PACKAGE_READ }} \
+            -t ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }} .
+          docker tag ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }} ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+          docker build \
+            --build-arg GH_REPO_TOKEN=${{ secrets.DOCKER_PACKAGE_READ }} \
+            --target migrate \
+            -t ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}-migrate:${{ steps.version.outputs.tag }} .
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}-migrate:${{ steps.version.outputs.tag }}
+
+  migrate:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    steps:
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
+
+      - name: Write env file
+        env:
+          DOTENV: ${{ secrets.DOTENV }}
+        run: |
+          printf '%s\n' "$DOTENV" > .env.tst
+          echo "SERVER_VERSION=${{ needs.build.outputs.image_tag }}" >> .env.tst
+
+      - name: Run migrations in the environment
+        run: bash scripts/migrate.sh tst
+
+  page:
+    needs: build
+    if: ${{ (github.event.inputs.environment || 'tst') == 'tst' }}
+    runs-on: ubuntu-latest
+    environment: tst
+    env:
+      SAUTH_ENDPOINT: ${{ vars.SAUTH_ENDPOINT }}
+      SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
+      SAUTH_CLIENT_ID: ${{ secrets.SAUTH_CLIENT_ID }}
+      SAUTH_CLIENT_SECRET: ${{ secrets.SAUTH_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Install sauth
+        env:
+          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
+          GOPRIVATE: github.com/nimling/*
+        run: |
+          git config --global url."https://${GH_REPO_TOKEN}@github.com/".insteadOf "https://github.com/"
+          go install github.com/nimling/samna-auth/cmd/sauth@v1.0.0-alpha0320
+
+      - name: Upload the login page
+        run: sauth app page replace login --app dndcs --data "$(jq -n --rawfile t deploy/sauth/pages/login.html '{kind:"login",template:$t}')" --yes
+
+      - name: Upload the redirect page
+        run: sauth app page replace redirect --app dndcs --data "$(jq -n --rawfile t deploy/sauth/pages/redirect.html '{kind:"redirect",template:$t}')" --yes
+
+  deploy:
+    needs: [build, migrate]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'tst' }}
+    steps:
+      - name: Show target environment
+        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
+
+      - name: Update Container App
+        run: |
+          if az containerapp show --name ${{ vars.AZURE_APP_NAME }} --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} &>/dev/null; then
+            az containerapp update \
+              --name ${{ vars.AZURE_APP_NAME }} \
+              --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+              --image ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ needs.build.outputs.image_tag }} \
+              --revision-suffix $(date +%s)
+          else
+            echo "Container app does not exist, skipping deployment"
+          fi
