@@ -329,13 +329,8 @@
     align-items: center;
     gap: var(--space-3);
     min-width: 0;
-    padding: 0.5em 0.75em 0.5em 1.25em;
-    border: var(--border-hair) solid color-mix(in srgb, var(--metal) 40%, transparent);
-    border-radius: var(--radius-xl);
-    background:
-      radial-gradient(ellipse 50% 160% at 0% 50%, color-mix(in srgb, var(--ember) 10%, transparent) 0%, transparent 70%),
-      color-mix(in srgb, var(--ground-deep) 72%, transparent);
-    box-shadow: inset 0 var(--border-hair) 0 var(--sheen-soft), var(--shadow-sm);
+    padding-block: 0.5em;
+    border-bottom: var(--border-hair) solid color-mix(in srgb, var(--metal) 55%, transparent);
   }
 
   .hall-divide-name {

@@ -7,7 +7,6 @@
   import { getAssetTab } from '$lib/storage.service'
   import { user } from '$lib/stores/auth.store'
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
-  import { unfold } from '$lib/unfold'
   import {
     deleteOne,
     getAll,
@@ -393,7 +392,7 @@
             ></button>
           </header>
 
-          <div class="roll-group-body" use:unfold={open}>
+          <div class="roll-group-body" class:roll-group-body-open={open} inert={!open}>
             <div class="roll-list">
               {#each shownLeads as one (one.id)}
                 <div class="roll-leaf" role="listitem">
@@ -423,7 +422,7 @@
             ></button>
           </header>
 
-          <div class="roll-group-body" use:unfold={own}>
+          <div class="roll-group-body" class:roll-group-body-open={own} inert={!own}>
             <div class="roll-tree" class:roll-tree-arranging={arranging}>
               {#if shown.length === 0 && limbs.length === 0}
                 <p class="roll-note">Nothing here yet.</p>
@@ -522,7 +521,7 @@
               ></button>
             </header>
 
-            <div class="roll-group-body" use:unfold={open}>
+            <div class="roll-group-body" class:roll-group-body-open={open} inert={!open}>
               <div class="roll-list">
                 {#each limb.kids as one (one.id)}
                   {@render leaf(one)}
@@ -768,7 +767,19 @@
   }
 
   .roll-group-body {
+    display: grid;
+    grid-template-rows: 0fr;
     padding-inline-start: var(--space-4);
+    transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .roll-group-body-open {
+    grid-template-rows: 1fr;
+  }
+
+  .roll-group-body > * {
+    min-height: 0;
+    overflow: hidden;
   }
 
   .roll-group-name {

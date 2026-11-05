@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
-  import { unfold } from '$lib/unfold'
 
   const {
     title,
@@ -34,7 +33,9 @@
     {/if}
   </button>
 
-  <div class="dnd-fold-body" use:unfold={open}>{@render children?.()}</div>
+  <div class="dnd-fold-body" inert={!open}>
+    <div class="dnd-fold-inner">{@render children?.()}</div>
+  </div>
 </section>
 
 <style>
@@ -61,7 +62,14 @@
       var(--ground-raised);
     border: none;
     box-shadow: var(--bevel-up), inset 0 0 0 1px var(--metal-dim), inset 0 -1px 0 1px var(--keyline);
-    border-radius: var(--radius-md);
+    clip-path: polygon(
+      var(--fold-cusp) 0,
+      calc(100% - var(--fold-cusp)) 0,
+      100% 50%,
+      calc(100% - var(--fold-cusp)) 100%,
+      var(--fold-cusp) 100%,
+      0 50%
+    );
     color: var(--metal-bright);
     font-family: var(--font-display);
     font-size: var(--text-xs);
@@ -128,43 +136,53 @@
 
   .dnd-fold-body {
     display: grid;
+    grid-template-rows: 0fr;
+    min-width: 0;
+    transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dnd-fold-open .dnd-fold-body {
+    grid-template-rows: 1fr;
+  }
+
+  .dnd-fold-inner {
+    display: grid;
     gap: var(--space-2);
     min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dnd-fold-open .dnd-fold-inner {
     padding-block: var(--space-1);
   }
 
   .dnd-fold-row {
     gap: 0;
     border-bottom: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 80%, transparent);
-    box-shadow: 0 1px 0 var(--keyline);
   }
 
   .dnd-fold-row .dnd-fold-head {
     padding: 0 var(--space-4);
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 10%, transparent) 0%, color-mix(in srgb, #000 60%, transparent) 70%, color-mix(in srgb, #000 75%, transparent) 100%),
-      var(--texture-noise),
-      var(--ground);
-    box-shadow: inset 0 1px 0 var(--sheen-soft);
+    background: none;
+    box-shadow: none;
+    clip-path: none;
   }
 
   .dnd-fold-row .dnd-fold-head:hover {
-    filter: brightness(1.15);
+    filter: none;
+    text-shadow: var(--glow-text);
   }
 
   .dnd-fold-row.dnd-fold-open .dnd-fold-head {
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-noise),
-      var(--ground-raised);
-    box-shadow: var(--bevel-up), inset 0 -1px 0 var(--metal-dim);
+    box-shadow: none;
   }
 
-  .dnd-fold-row .dnd-fold-body {
-    padding: 0 var(--space-4);
+  .dnd-fold-row .dnd-fold-inner {
+    padding-inline: var(--space-4);
   }
 
-  .dnd-fold-row.dnd-fold-open .dnd-fold-body {
-    padding-block: var(--space-2) var(--space-3);
+  .dnd-fold-row.dnd-fold-open .dnd-fold-inner {
+    padding-block: 0 var(--space-3);
   }
 </style>

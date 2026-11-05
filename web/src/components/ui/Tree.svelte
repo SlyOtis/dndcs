@@ -8,7 +8,6 @@
 </script>
 
 <script lang="ts">
-  import { unfold } from '$lib/unfold'
   const {
     rows,
     on = '',
@@ -53,11 +52,13 @@
       {/if}
     </div>
 
-    <ul class="dnd-tree-nest" use:unfold={open}>
+    <div class="dnd-tree-fold" class:dnd-tree-fold-open={open} inert={!open}>
+      <ul class="dnd-tree-nest">
         {#each kids as kid (kid.id)}
           {@render limb(kid)}
         {/each}
       </ul>
+    </div>
   </li>
 {/snippet}
 
@@ -179,8 +180,20 @@
     color: var(--ink-faint);
   }
 
+  .dnd-tree-fold {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dnd-tree-fold-open {
+    grid-template-rows: 1fr;
+  }
+
   .dnd-tree-nest {
     display: grid;
+    min-height: 0;
+    overflow: hidden;
     margin: 0;
     padding: 0;
     padding-inline-start: var(--tree-indent);
