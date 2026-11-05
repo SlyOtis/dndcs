@@ -137,15 +137,15 @@
   .dnd-sigil-rim {
     fill: none;
     stroke: var(--metal);
-    stroke-width: var(--border-heavy);
+    stroke-width: var(--border-hair);
     vector-effect: non-scaling-stroke;
     stroke-linejoin: round;
   }
 
   .dnd-sigil-key {
     fill: none;
-    stroke: var(--metal-dim);
-    stroke-width: var(--border-width);
+    stroke: color-mix(in srgb, var(--metal-dim) 55%, transparent);
+    stroke-width: var(--border-hair);
     vector-effect: non-scaling-stroke;
     transform: scale(0.82);
     transform-origin: center;

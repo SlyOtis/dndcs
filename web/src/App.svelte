@@ -202,7 +202,7 @@
       <span class="loading-flame">
         <Flame size="lg" intensity="steady" />
       </span>
-      <h2 class="dnd-heading dnd-heading-hero">D&amp;D Character Sheet</h2>
+      <h2 class="dnd-heading dnd-heading-hero">Quillborne</h2>
       <span class="loading-rule">
         <Ornament name="divider" tone="metal" />
       </span>

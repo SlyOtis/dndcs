@@ -671,7 +671,7 @@ a:hover {
   background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
   border: var(--border-hair) solid color-mix(in srgb, var(--metal) 55%, var(--metal-dim));
   border-radius: var(--radius-md);
-  box-shadow: var(--bevel-down), inset 0 0 0 calc(var(--border-hair) * 2) var(--ground-deep), inset 0 0 0 calc(var(--border-hair) * 3) color-mix(in srgb, var(--metal-dim) 70%, transparent);
+  box-shadow: var(--bevel-down);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-xs);

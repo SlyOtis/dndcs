@@ -73,7 +73,7 @@
       meta: {
         exportDate: new Date().toISOString(),
         exportVersion: "1.0.0",
-        exportedBy: "D&D Character Sheet",
+        exportedBy: "Quillborne",
         computed: {
           totalLevel: info.level,
           totalHP: info.hp.max,
