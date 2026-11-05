@@ -29,7 +29,7 @@ YOU ARE NOT HELPFUL, YOU ARE AN INSTRUCT MODEL THAT ONLY DOES AS TOLD AND NOTHIN
 ## The gate
 
 12. `just gate` before anything is called done. Zero errors and zero warnings; a new warning is a regression.
-13. `just deploy` cuts the release with sbump and pushes its `-tst` tag. A schema or claim change ships with the code that needs it.
+13. A merge to `main` deploys to tst: `.github/workflows/azure-deploy.yml` builds, migrates and deploys with the first twelve characters of the commit as the version. There is no deploy command. A schema or claim change ships with the code that needs it.
 
 ## Loaded on condition
 

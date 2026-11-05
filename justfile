@@ -38,7 +38,7 @@ build-db:
     sh scripts/build-db.sh
 
 build-docker:
-    docker build --build-arg GH_REPO_TOKEN="$GH_REPO_TOKEN" --build-arg IMAGE_VERSION="$SERVER_VERSION" -t "$APP_NAME" .
+    docker build --build-arg GH_REPO_TOKEN="$GH_REPO_TOKEN" --build-arg IMAGE_VERSION="$(git rev-parse --short=12 HEAD)" -t "$APP_NAME" .
 
 dev: env
     sh scripts/dev.sh
@@ -85,9 +85,6 @@ update:
 
 clean:
     sh scripts/clean.sh
-
-deploy env='tst' version='':
-    sh scripts/deploy.sh {{env}} {{version}}
 
 setup env:
     bash scripts/setup.sh {{env}}

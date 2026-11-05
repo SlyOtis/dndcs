@@ -2,46 +2,24 @@ name: Build and Deploy to Azure Container App
 
 on:
   push:
-    tags:
-      - 'v*-tst'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Version tag like v1.2.3 required for prd deploy'
-        required: true
-      environment:
-        description: 'Target Environment'
-        required: true
-        type: choice
-        default: tst
-        options:
-          - tst
-          - prd
+    branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'tst' }}
+    environment: tst
     outputs:
       image_tag: ${{ steps.version.outputs.tag }}
     steps:
-      - name: Reject prd tag push
-        if: github.event_name == 'push' && endsWith(github.ref_name, '-prd')
-        run: echo "prd is not deployable via tag push" && exit 1
-
-      - name: Show target environment
-        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
-
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Resolve image tag
         id: version
         run: |
-          TAG="${{ inputs.tag || github.ref_name }}"
-          echo "tag=${TAG%-tst}" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_SHA::12}" >> $GITHUB_OUTPUT
 
       - name: Azure Login
         uses: azure/login@v1
@@ -69,14 +47,11 @@ jobs:
   migrate:
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'tst' }}
+    environment: tst
     steps:
-      - name: Show target environment
-        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
-
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ github.sha }}
 
       - name: Azure Login
         uses: azure/login@v1
@@ -95,7 +70,6 @@ jobs:
 
   page:
     needs: build
-    if: ${{ (github.event.inputs.environment || 'tst') == 'tst' }}
     runs-on: ubuntu-latest
     environment: tst
     env:
@@ -106,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ github.sha }}
 
       - uses: actions/setup-go@v5
         with:
@@ -130,11 +104,8 @@ jobs:
   deploy:
     needs: [build, migrate]
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'tst' }}
+    environment: tst
     steps:
-      - name: Show target environment
-        run: echo "Target environment ${{ github.event.inputs.environment || 'tst' }}"
-
       - name: Azure Login
         uses: azure/login@v1
         with:

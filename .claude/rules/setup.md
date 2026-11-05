@@ -36,12 +36,12 @@ A per player key, such as the Replicate key, is a Samna Auth secret bound to tha
 
 ## Commands
 
-- `just install` checks every tool the recipes and scripts call for presence and version, go against the `go` line of `go.mod`, node, pnpm, jq, docker, az, playwright-cli, air, smig at the Dockerfile's pin, sbump, and sauth at the deploy workflow's pin, installs each one that is missing or older than its pin, then installs the web and Go dependencies. sbump and sauth are private nimling modules and install only with read access to them.
+- `just install` checks every tool the recipes and scripts call for presence and version, go against the `go` line of `go.mod`, node, pnpm, jq, docker, az, playwright-cli, air, smig at the Dockerfile's pin and sauth at the deploy workflow's pin, installs each one that is missing or older than its pin, then installs the web and Go dependencies. sauth is a private nimling module and installs only with read access to it.
 - `just env` fails when `.env` is missing any key `.env.example` names. `just dev`, `just build` and `just build-web` depend on it.
 - `just dev-db` builds and runs the local Postgres and migrates it, and `just dev-blob` runs Azurite. `just dev` runs both together with the service and the web, and stops them with it; `just dev-server` and `just dev-web` run one each.
 - `just migrate <args>` runs smig against `database/migrate.yml` on the local database only. No recipe reaches a deployed database; the image's migrate target is what a deploy runs.
 - `just gate` runs check, test, build and vet: svelte-check, vitest, `go test ./...`, the web and server builds, and `go vet`. Zero errors and zero warnings; a new warning is a regression.
-- `just deploy` cuts the next patch with sbump and pushes its `-tst` tag for the deploy workflow. No deploy workflow exists yet, so nothing answers that tag. `just deploy prd <tag>` releases a tag to prd through `sbump release`, only on the user's word for that tag.
+- There is no deploy recipe. A merge to `main` runs `.github/workflows/azure-deploy.yml`: the image, the migrate job, the login and redirect pages, and the container app, all tagged with the first twelve characters of the commit, which is also the version the service reports. Every build, local ones included, stamps that same commit.
 - `just build-docker` builds the image: the web, the server and the migrate target.
 
 Never hand roll a step the justfile owns.

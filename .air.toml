@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "bin"
 
 [build]
-  cmd = "go build -ldflags '-X github.com/SlyOtis/quillborne/internal/version.Version=${SERVER_VERSION:-dev}' -o ./bin/debug ./cmd"
+  cmd = "go build -ldflags \"-X github.com/SlyOtis/quillborne/internal/version.Version=$(git rev-parse --short=12 HEAD)\" -o ./bin/debug ./cmd"
   bin = "./bin/debug"
   include_ext = ["go"]
   exclude_dir = ["bin", "tmp", "database", "web", "node_modules", ".git", ".claude", ".idea", "media", "reference"]

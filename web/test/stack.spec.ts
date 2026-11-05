@@ -26,8 +26,11 @@ describe('the service owns the data, not a hosted database', () => {
     expect(read('.env.example')).not.toMatch(/^VITE_FIREBASE_/m)
   })
 
-  it('releases through the deploy script, not a hosting push', () => {
-    expect(recipe('deploy')).toEqual(['sh scripts/deploy.sh {{env}} {{version}}'])
+  it('deploys only on a merge to main, versioned by the commit, with no deploy recipe', () => {
+    expect(recipe('deploy')).toEqual([])
+    const workflow = read('.github/workflows/azure-deploy.yml')
+    expect(workflow).toMatch(/^on:\n  push:\n    branches: \[main\]\n\njobs:/m)
+    expect(workflow).toContain('echo "tag=${GITHUB_SHA::12}" >> $GITHUB_OUTPUT')
   })
 
   it('reaches the api through the dev proxy and nothing else', () => {
