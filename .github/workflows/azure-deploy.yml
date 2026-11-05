@@ -60,6 +60,11 @@ jobs:
           docker tag ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }} ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
           docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:${{ steps.version.outputs.tag }}
           docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}:latest
+          docker build \
+            --build-arg GH_REPO_TOKEN=${{ secrets.DOCKER_PACKAGE_READ }} \
+            --target migrate \
+            -t ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}-migrate:${{ steps.version.outputs.tag }} .
+          docker push ${{ vars.ACR_REGISTRY }}/${{ vars.IMAGE_NAME }}-migrate:${{ steps.version.outputs.tag }}
 
   migrate:
     needs: build
@@ -73,37 +78,20 @@ jobs:
         with:
           ref: ${{ inputs.tag || github.ref }}
 
-      - name: Acknowledge schema changes
-        env:
-          PGHOST: ${{ vars.PGHOST }}
-          PGPORT: ${{ vars.PGPORT }}
-          PGUSER: ${{ vars.PGUSER }}
-          PGPASSWORD: ${{ secrets.PGPASSWORD }}
-          PGDATABASE: ${{ vars.PGDATABASE }}
-          PGSSLMODE: ${{ vars.PGSSLMODE }}
-          SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
-          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
-        uses: nimling/samna-migrate@latest
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          command: upgrade
-          schema: ${{ github.workspace }}/database/migrate.yml
-          db-dir: ${{ github.workspace }}/database
+          creds: ${{ secrets.AZURE_CREDENTIALS_INTERNAL }}
 
-      - name: Run migrations
+      - name: Write env file
         env:
-          PGHOST: ${{ vars.PGHOST }}
-          PGPORT: ${{ vars.PGPORT }}
-          PGUSER: ${{ vars.PGUSER }}
-          PGPASSWORD: ${{ secrets.PGPASSWORD }}
-          PGDATABASE: ${{ vars.PGDATABASE }}
-          PGSSLMODE: ${{ vars.PGSSLMODE }}
-          SAUTH_APP_SLUG: ${{ vars.SAUTH_APP_SLUG }}
-          GH_REPO_TOKEN: ${{ secrets.DOCKER_PACKAGE_READ }}
-        uses: nimling/samna-migrate@latest
-        with:
-          command: up
-          schema: ${{ github.workspace }}/database/migrate.yml
-          db-dir: ${{ github.workspace }}/database
+          DOTENV: ${{ secrets.DOTENV }}
+        run: |
+          printf '%s\n' "$DOTENV" > .env.tst
+          echo "SERVER_VERSION=${{ needs.build.outputs.image_tag }}" >> .env.tst
+
+      - name: Run migrations in the environment
+        run: bash scripts/migrate.sh tst
 
   deploy:
     needs: [build, migrate]

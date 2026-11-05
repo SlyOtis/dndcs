@@ -48,3 +48,4 @@ build-errors.log
 .nimon/run/
 .nimon/pr/
 .nimon/history/
+tmp/

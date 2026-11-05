@@ -1,0 +1,50 @@
+location: ${AZURE_LOCATION}
+name: ${APP_PREFIX}-dndcs-migrate
+resourceGroup: ${RESOURCE_GROUP}
+type: Microsoft.App/jobs
+identity:
+  type: UserAssigned
+  userAssignedIdentities:
+    ${IDENTITY_ID}: {}
+properties:
+  environmentId: ${ENVIRONMENT_ID}
+  workloadProfileName: Consumption
+  configuration:
+    triggerType: Manual
+    replicaTimeout: 1800
+    replicaRetryLimit: 0
+    manualTriggerConfig:
+      parallelism: 1
+      replicaCompletionCount: 1
+    registries:
+      - server: ${ACR_SERVER}
+        identity: ${IDENTITY_ID}
+    secrets:
+      - name: pgpassword
+        value: ${PGPASSWORD}
+      - name: gh-repo-token
+        value: ${GH_REPO_TOKEN}
+  template:
+    containers:
+      - name: migrate
+        image: "${ACR_SERVER}/${DOCKER_IMAGE}-migrate:${SERVER_VERSION}"
+        env:
+          - name: PGHOST
+            value: ${PGHOST}
+          - name: PGPORT
+            value: "${PGPORT}"
+          - name: PGUSER
+            value: ${PGUSER}
+          - name: PGPASSWORD
+            secretRef: pgpassword
+          - name: PGDATABASE
+            value: ${PGDATABASE}
+          - name: PGSSLMODE
+            value: ${PGSSLMODE}
+          - name: GH_REPO_TOKEN
+            secretRef: gh-repo-token
+          - name: SAUTH_APP_SLUG
+            value: ${SAUTH_APP_SLUG}
+        resources:
+          cpu: 0.5
+          memory: 1Gi
