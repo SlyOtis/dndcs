@@ -5,8 +5,7 @@ default:
     @just --list
 
 install:
-    cd web && pnpm install
-    go mod download
+    sh scripts/install.sh
 
 env:
     #!/usr/bin/env bash
