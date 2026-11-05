@@ -1,6 +1,6 @@
 {
-  "what": "The keyword index of everything under .claude/. Query it with ~/.claude/skills/repo-index/scripts/find.sh, never read it whole.",
-  "invoke": "~/.claude/skills/repo-index/scripts/find.sh <keyword or path>",
+  "what": "The keyword index of the rules and the files that own each concern. Query it with jq, never read it whole.",
+  "invoke": "jq -r --arg k <keyword> '.entries[] | select((.keywords | index($k)) or (.path | contains($k))) | \"\\(.path): \\(.answers)\"' .claude/index.json",
   "entry_points": [
     "src/App.svelte",
     "src/lib/rules/derive.ts",
@@ -243,35 +243,6 @@
       ]
     },
     {
-      "path": "firestore.rules",
-      "kind": "rule",
-      "answers": "Who may read and write each collection. Users own their profile and their data subtree, a character is reachable by its owner, its viewers and editors, the DM of its campaign or anyone when public, a campaign by its DM and players, a chat session by its user. Everything else is denied.",
-      "keywords": [
-        "firestore",
-        "rules",
-        "security",
-        "permission",
-        "owner",
-        "campaign",
-        "dm",
-        "deny"
-      ]
-    },
-    {
-      "path": "storage.rules",
-      "kind": "rule",
-      "answers": "Who may upload and read files. A signed in user writes under their own prefix, campaign maps take images under 20MB and campaign audio takes audio under 20MB. Everything else is denied.",
-      "keywords": [
-        "storage",
-        "rules",
-        "upload",
-        "image",
-        "audio",
-        "size",
-        "deny"
-      ]
-    },
-    {
       "path": "src/components/campaign/CampaignMaps.svelte",
       "kind": "component",
       "answers": "The campaign map board. Lists maps, shows the selected one with its markers, and gives the DM adding, renaming, revealing and deleting. Markers are stored as relative coordinates so a map scales.",
@@ -396,48 +367,6 @@
       ]
     },
     {
-      "path": "src/components/campaign/CampaignStory.svelte",
-      "kind": "component",
-      "answers": "Quests and the session log. The DM writes titles, summaries, quest state, who gave it and who was present; players read only what has been revealed.",
-      "keywords": [
-        "story",
-        "quest",
-        "session",
-        "log",
-        "summary",
-        "present",
-        "reveal"
-      ]
-    },
-    {
-      "path": "src/components/campaign/CampaignCast.svelte",
-      "kind": "component",
-      "answers": "Everyone the campaign has recorded, with role, disposition, where they are found and a portrait. Players see only the ones they have met.",
-      "keywords": [
-        "cast",
-        "npc",
-        "person",
-        "portrait",
-        "disposition",
-        "met",
-        "reveal"
-      ]
-    },
-    {
-      "path": "src/components/campaign/CampaignPlaces.svelte",
-      "kind": "component",
-      "answers": "Every place the campaign has charted, its kind, which map it sits on and who is found there. Players see only the ones they have found.",
-      "keywords": [
-        "place",
-        "location",
-        "map",
-        "found",
-        "chart",
-        "reveal",
-        "npc"
-      ]
-    },
-    {
       "path": "src/lib/engine.ts",
       "kind": "source",
       "answers": "Dice rolling, the roll log, currency, the per character store keyed by id and persisted to localStorage, and the character construction primitives.",
@@ -532,60 +461,6 @@
         "dialog",
         "store"
       ]
-    },
-    {
-      "path": ".claude/memory/index.jsonl",
-      "kind": "memory",
-      "answers": "The question and answer store for this repo, written by record.sh and read by search.sh.",
-      "keywords": [
-        "index",
-        "memory",
-        "record",
-        "search"
-      ],
-      "invoke": "~/.claude/skills/gogo-memory/scripts/search.sh <query>",
-      "read_with": "gogo-memory"
-    },
-    {
-      "path": ".claude/memory/found.jsonl",
-      "kind": "memory",
-      "answers": "The hit log for this repo's memory store, written when a search resolves.",
-      "keywords": [
-        "found",
-        "memory",
-        "hits",
-        "search"
-      ],
-      "invoke": "~/.claude/skills/gogo-memory/scripts/search.sh <query>",
-      "read_with": "gogo-memory"
-    },
-    {
-      "path": ".claude/memory/touch.jsonl",
-      "kind": "memory",
-      "answers": "Which session touched which file, written by the write hook.",
-      "keywords": [
-        "touch",
-        "memory",
-        "session",
-        "files"
-      ],
-      "invoke": "~/.claude/skills/gogo-tree/scripts/relate.sh <path>",
-      "read_with": "gogo-tree"
-    },
-    {
-      "path": ".claude/memory/tree.jsonl",
-      "kind": "memory",
-      "answers": "The import graph of this repo: what a file imports, who imports it, and what a change reaches.",
-      "keywords": [
-        "tree",
-        "graph",
-        "imports",
-        "blast",
-        "radius",
-        "relate"
-      ],
-      "invoke": "~/.claude/skills/gogo-tree/scripts/relate.sh <path>",
-      "read_with": "gogo-tree"
     }
   ]
 }

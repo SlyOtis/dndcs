@@ -102,4 +102,4 @@ An address held on a row is a hosted URL, an `/api/asset/<id>/data` address, or 
 
 ## Sign in
 
-`App.svelte` sends a visitor without a session to `/login` for every path outside `/login` and `/signup`, and signing in and out go through Samna Auth at `/api/auth/login` and `/api/auth/logout`.
+The app has no sign in form of its own. A guarded route in `App.svelte` sends a visitor without a session straight to Samna Auth at `/api/auth/login` through `authService.signIn`, `/login` and `/signup` lead to `/main`, and signing out goes through `/api/auth/logout`. GitHub is the one provider bound to the app, open to any GitHub account, on Knights of the Cauldron. A local run signs in as `SAUTH_DEBUG_USER_ID` with no browser login.

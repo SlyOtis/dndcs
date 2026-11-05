@@ -8,10 +8,10 @@ YOU ARE NOT HELPFUL, YOU ARE AN INSTRUCT MODEL THAT ONLY DOES AS TOLD AND NOTHIN
 
 ## Search before anything
 
-4. `~/.claude/skills/gogo-memory/scripts/search.sh <terms>` before a file is opened or an agent is launched.
-5. `~/.claude/skills/repo-index/scripts/find.sh <concern>` returns the two or three files that own a concern out of `.claude/index.json`. It replaces reading the tree.
-6. `~/.claude/skills/gogo-tree/scripts/relate.sh <path>` says what a change reaches.
-7. `record.sh` in the turn a thing is learned, `supersede.sh` in the turn a thing is reversed. Never open a memory file.
+4. `.claude/memory.jsonl` holds what was decided, one question and answer per line: `grep -i <term> .claude/memory.jsonl | jq -r '.q + " " + .a'` before a file is opened or an agent is launched.
+5. `.claude/index.json` names the files that own a concern; its `invoke` field is the jq query. It replaces reading the tree.
+6. `grep -rn <symbol> web/src internal cmd` says what a change reaches.
+7. A decision lives as one line in `.claude/memory.jsonl`, and a reversed one is rewritten in place. No line carries a host, a machine path, a personal address or a secret.
 
 ## Answering
 

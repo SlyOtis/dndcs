@@ -30,7 +30,7 @@ Every key lives in `.env`, which is ignored. `.env.example` names every key the 
 - `REPLICATE_ENDPOINT`: the Replicate API the AI routes pass calls on to.
 - `GH_REPO_TOKEN`: reads the private `samna-auth-middleware` module and its claimius migrations in the build and in smig. Never named `GITHUB_TOKEN` or `GH_TOKEN`.
 
-The secrets are `SAUTH_APP_SECRET`, `SAUTH_DEBUG_PRIVATE_SEED`, `PGPASSWORD`, `AZURE_STORAGE_CONNECTION_STRING`, and `GH_REPO_TOKEN`; `PGPASSWORD` is a secret everywhere but the local database, whose password is its name. A secret is never committed and never gets a `VITE_` prefix, because a `VITE_` value is inlined into the bundle.
+The secrets are `SAUTH_APP_SECRET`, `SAUTH_DEBUG_PRIVATE_SEED`, `PGPASSWORD`, `AZURE_STORAGE_CONNECTION_STRING`, and `GH_REPO_TOKEN`; `PGPASSWORD` and `AZURE_STORAGE_CONNECTION_STRING` are secrets everywhere but locally, where the database password is its name and the blob string is Azurite's published development account, both in `.env.example`. A secret is never committed and never gets a `VITE_` prefix, because a `VITE_` value is inlined into the bundle.
 
 A per player key, such as the Replicate key, is a Samna Auth secret bound to that player's own **Keys** claim, which no one else holds, and the profile records only which claim it is. It is set and removed on `/user`; the API answers only whether a key is held, never its value, and only the service opens it, to call the integration for that player. `web/src/lib/integrations.ts` is the one list of services, what each is for and which key it uses. Add a service there before writing code that calls it.
 
