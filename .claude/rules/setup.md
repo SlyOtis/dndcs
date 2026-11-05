@@ -37,7 +37,7 @@ A per player key, such as the Replicate key, is a Samna Auth secret bound to tha
 
 ## Commands
 
-- `just install` checks every tool the recipes and scripts call, go, pnpm, jq, smig at the Dockerfile's pin, air, playwright-cli, docker, az, sbump and sauth at the deploy workflow's pin, installs each one that is missing, then installs the web and Go dependencies. sbump and sauth are private nimling modules and install only with read access to them.
+- `just install` checks every tool the recipes and scripts call for presence and version, go against the `go` line of `go.mod`, node, pnpm, jq, docker, az, playwright-cli, air, smig at the Dockerfile's pin, sbump, and sauth at the deploy workflow's pin, installs each one that is missing or older than its pin, then installs the web and Go dependencies. sbump and sauth are private nimling modules and install only with read access to them.
 - `just env` fails when `.env` is missing any key `.env.example` names. `just dev`, `just build` and `just build-web` depend on it.
 - `just dev-db` builds and runs the local Postgres and migrates it, and `just dev-blob` runs Azurite. `just dev` runs both together with the service and the web, and stops them with it; `just dev-server` and `just dev-web` run one each.
 - `just migrate <args>` runs smig against `database/migrate.yml` on the local database only. No recipe reaches a deployed database; the image's migrate target is what a deploy runs.
