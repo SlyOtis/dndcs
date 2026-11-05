@@ -211,15 +211,15 @@
       <span class="dnd-shell-ground" aria-hidden="true">{@render backdrop()}</span>
     {/if}
 
-    <span class="dnd-shell-veil" aria-hidden="true">
-      <span class="dnd-shell-window"><Glass size="xl" /></span>
-      <span class="dnd-shell-lantern dnd-shell-lantern-start"><Flame size="sm" intensity="steady" sconce hung /></span>
-      <span class="dnd-shell-lantern dnd-shell-lantern-end"><Flame size="sm" intensity="calm" sconce hung /></span>
-      <Aura variant="veil" tone="ember" />
-      <Aura variant="motes" tone="ember" density="normal" />
-    </span>
-
     <div class="dnd-scroll dnd-shell-scroll" class:dnd-shell-scroll-flush={flush}>
+      <span class="dnd-shell-veil" aria-hidden="true">
+        <span class="dnd-shell-window"><Glass size="xl" /></span>
+        <span class="dnd-shell-lantern dnd-shell-lantern-start"><Flame size="sm" intensity="steady" sconce hung /></span>
+        <span class="dnd-shell-lantern dnd-shell-lantern-end"><Flame size="sm" intensity="calm" sconce hung /></span>
+        <Aura variant="veil" tone="ember" />
+        <Aura variant="motes" tone="ember" density="normal" />
+      </span>
+
       {#if crown}
         <div class="dnd-shell-crown">{@render crown()}</div>
       {/if}
@@ -520,11 +520,6 @@
     overflow: hidden;
     container: shell / inline-size;
     background:
-      var(--texture-motes),
-      radial-gradient(ellipse 22% 38% at 6% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
-      radial-gradient(ellipse 22% 38% at 94% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
-      radial-gradient(ellipse 45% 55% at 50% 45%, color-mix(in srgb, var(--ember-glow) 30%, transparent) 0%, transparent 75%),
-      radial-gradient(ellipse 90% 70% at 50% 50%, transparent 55%, color-mix(in srgb, var(--ground-deep) 85%, transparent) 100%),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
   }
@@ -539,10 +534,20 @@
 
   .dnd-shell-veil {
     position: absolute;
-    inset: 0;
-    z-index: 1;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 100%;
+    z-index: -1;
     overflow: hidden;
     pointer-events: none;
+    -webkit-mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+    mask-image: linear-gradient(180deg, black 60%, transparent 100%);
+    background:
+      var(--texture-motes),
+      radial-gradient(ellipse 22% 38% at 6% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 22% 38% at 94% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 55% at 50% 45%, color-mix(in srgb, var(--ember-glow) 30%, transparent) 0%, transparent 75%),
+      radial-gradient(ellipse 90% 70% at 50% 50%, transparent 55%, color-mix(in srgb, var(--ground-deep) 85%, transparent) 100%);
   }
 
   .dnd-shell-window {
