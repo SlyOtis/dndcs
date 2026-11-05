@@ -144,7 +144,8 @@
 
   .dnd-sigil-key {
     fill: none;
-    stroke: color-mix(in srgb, var(--metal-dim) 55%, transparent);
+    stroke: var(--metal-dim);
+    stroke-opacity: 0.55;
     stroke-width: var(--border-hair);
     vector-effect: non-scaling-stroke;
     transform: scale(0.82);
