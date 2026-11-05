@@ -10,7 +10,7 @@ if [ "$ENV" = "prd" ]; then
 fi
 
 if [ -z "$VERSION" ]; then
-    sbump patch --env SERVER_VERSION --env .env.example@SERVER_VERSION --push-version --auto
+    sbump patch --env SERVER_VERSION --push-version --auto
     VERSION=$(git tag --points-at HEAD --list 'v[0-9]*' | grep -v -- "-$ENV\$" | head -1)
 fi
 
