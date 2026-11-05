@@ -1,5 +1,5 @@
 ---
-description: How work reaches dndcs when more than one person or session works on it
+description: How work reaches Quillborne when more than one person or session works on it
 ---
 
 # Way of working

@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/SlyOtis/dndcs/internal/broker"
-	"github.com/SlyOtis/dndcs/internal/db"
+	"github.com/SlyOtis/quillborne/internal/broker"
+	"github.com/SlyOtis/quillborne/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	sdb "github.com/nimling/samna-auth-middleware/v2/disciple/sdb"

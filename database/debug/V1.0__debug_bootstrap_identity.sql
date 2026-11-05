@@ -1,8 +1,8 @@
-SELECT set_config('dndcs.debug_user_id', :'debug_user_id', true);
+SELECT set_config('quillborne.debug_user_id', :'debug_user_id', true);
 
 DO $$
 DECLARE
-    debug_user_id uuid := current_setting('dndcs.debug_user_id')::uuid;
+    debug_user_id uuid := current_setting('quillborne.debug_user_id')::uuid;
     player_id uuid := '1d0c0000-0000-4000-8000-000000000002'::uuid;
     org_id uuid := 'aba6e96e-8ee9-4410-958b-60bcc235de5e'::uuid;
     member_claim_id uuid;
@@ -20,7 +20,7 @@ BEGIN
         p_first_name  => 'Testy',
         p_last_name   => 'McTestface',
         p_user_name   => 'testy',
-        p_email       => 'testy@dndcs.local',
+        p_email       => 'testy@quillborne.local',
         p_phone       => NULL,
         p_external_id => NULL
     );
@@ -30,7 +30,7 @@ BEGIN
         p_first_name  => 'Pip',
         p_last_name   => 'Player',
         p_user_name   => 'pip',
-        p_email       => 'pip@dndcs.local',
+        p_email       => 'pip@quillborne.local',
         p_phone       => NULL,
         p_external_id => NULL
     );

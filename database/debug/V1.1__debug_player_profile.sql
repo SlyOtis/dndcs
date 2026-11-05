@@ -17,7 +17,7 @@ BEGIN
      LIMIT 1;
 
     INSERT INTO public.profile (id, user_id, email, display_name, sa_owner_id, sa_created_by)
-    VALUES (profile_id, player_id, 'pip@dndcs.local', 'Pip', org_id, player_grant_id)
+    VALUES (profile_id, player_id, 'pip@quillborne.local', 'Pip', org_id, player_grant_id)
     ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email, display_name = EXCLUDED.display_name;
 
     IF NOT EXISTS (

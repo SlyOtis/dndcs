@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/SlyOtis/dndcs/internal/broker"
-	"github.com/SlyOtis/dndcs/internal/db"
-	"github.com/SlyOtis/dndcs/internal/handler"
-	"github.com/SlyOtis/dndcs/internal/storage"
-	"github.com/SlyOtis/dndcs/internal/version"
+	"github.com/SlyOtis/quillborne/internal/broker"
+	"github.com/SlyOtis/quillborne/internal/db"
+	"github.com/SlyOtis/quillborne/internal/handler"
+	"github.com/SlyOtis/quillborne/internal/storage"
+	"github.com/SlyOtis/quillborne/internal/version"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	em "github.com/labstack/echo/v4/middleware"
@@ -260,7 +260,7 @@ func main() {
 	}
 
 	server := &http.Server{Addr: ":" + serverPort, Handler: e, ReadHeaderTimeout: 30 * time.Second}
-	e.Logger.Infof("dndcs %s on port %s", version.Version, serverPort)
+	e.Logger.Infof("quillborne %s on port %s", version.Version, serverPort)
 	go func() {
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("server stopped", "error", err)

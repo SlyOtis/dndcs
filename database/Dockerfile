@@ -9,7 +9,7 @@ RUN go install -ldflags "-X github.com/nimling/samna-migrate/pkg/cli.Version=v1.
 
 FROM postgres:17-alpine
 
-ARG APP_NAME=dndcs
+ARG APP_NAME=quillborne
 ARG PGPORT=5432
 
 ENV POSTGRES_DB=${APP_NAME}

@@ -23,7 +23,7 @@
         return (await load()) as any;
       } catch (reason) {
         console.error(
-          `[dndcs] "${name}" did not load. A stale dev server is the usual cause: stop it and run just dev.`,
+          `[quillborne] "${name}" did not load. A stale dev server is the usual cause: stop it and run just dev.`,
           reason
         );
         throw reason;

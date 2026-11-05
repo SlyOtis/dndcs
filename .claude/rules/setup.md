@@ -6,7 +6,7 @@ paths:
 
 ## Stack
 
-dndcs is a hosted Samna service. A Go service in `cmd/` and `internal/` (Echo, Bun, `samna-auth-middleware` as a disciple) owns the data and the access, and serves the Svelte app from `web/dist` on the same port. Players sign in through Samna Auth, the table's data lives in Postgres migrated by smig, claims decide who reads and writes every row, and live changes reach the table as server-sent events over Postgres `LISTEN` and `NOTIFY`.
+Quillborne is a hosted service that signs players in through Samna Auth. A Go service in `cmd/` and `internal/` (Echo, Bun, `samna-auth-middleware` as a disciple) owns the data and the access, and serves the Svelte app from `web/dist` on the same port. Players sign in through Samna Auth, the table's data lives in Postgres migrated by smig, claims decide who reads and writes every row, and live changes reach the table as server-sent events over Postgres `LISTEN` and `NOTIFY`.
 
 The web lives in `web/`: `web/src` is the app, `web/public` the static sources and art, `web/test` the walk and its specs. `just dev` starts the database, the local blob store, the service on `SERVER_PORT` and the Vite dev server, and Vite proxies `/api` to the service and nothing else.
 
@@ -18,20 +18,19 @@ pnpm only. Never npm, never yarn.
 
 ## Keys
 
-Every key lives in `.env`, which is ignored. `.env.example` names every key the code reads and carries no values.
+Every key lives in `.env`, which is ignored. `.env.example` names every key the code reads and carries the working local value of each one that is not a secret; a secret stays empty there.
 
 - `APP_NAME`, `SERVER_*`: the service's name, version, port, html path, allowed origins, log level, environment, and `SERVER_OWNER_ID`, the Knights of the Cauldron organization in Samna Auth that owns every row.
 - `PG*`: the Postgres connection the service and smig use.
-- `SAUTH_ENDPOINT`, `SAUTH_APP_SLUG`, `SAUTH_APP_SECRET`, `SAUTH_REDIRECT_URI`, `SAUTH_PAGE_REDIRECT`: the Samna Auth prophet and the app this service signs in as. Locally that is the `dndcs-dev` app on tst.
+- `SAUTH_ENDPOINT`, `SAUTH_APP_SLUG`, `SAUTH_APP_SECRET`, `SAUTH_REDIRECT_URI`, `SAUTH_PAGE_REDIRECT`: the Samna Auth prophet and the app this service signs in as. A local run uses the same app and signs in as `SAUTH_DEBUG_USER_ID`.
 - `SAUTH_DEBUG_USER_ID`: set, the service signs every request in as that user and the `debug` migration step seeds the identity, so a local run needs no browser login. Empty on tst.
 - `SAUTH_DEBUG_PRIVATE_SEED`: the app seed a debug run opens its Samna Auth secrets with; a deployed service fetches its seed from the prophet at start and holds it in memory only.
 - `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_CONTAINER_NAME`: the blob store for file originals, Azurite locally. The service creates the container on start.
 - `FILE_MAX_BYTES`: the largest upload the service accepts; a bigger one answers 413.
 - `REPLICATE_ENDPOINT`: the Replicate API the AI routes pass calls on to.
 - `GH_REPO_TOKEN`: reads the private `samna-auth-middleware` module and its claimius migrations in the build and in smig. Never named `GITHUB_TOKEN` or `GH_TOKEN`.
-- `WALK_EMAIL`, `WALK_PASSWORD`: the browser walk's account.
 
-The secrets are `SAUTH_APP_SECRET`, `SAUTH_DEBUG_PRIVATE_SEED`, `PGPASSWORD`, `AZURE_STORAGE_CONNECTION_STRING`, `GH_REPO_TOKEN` and `WALK_PASSWORD`. A secret is never committed and never gets a `VITE_` prefix, because a `VITE_` value is inlined into the bundle.
+The secrets are `SAUTH_APP_SECRET`, `SAUTH_DEBUG_PRIVATE_SEED`, `PGPASSWORD`, `AZURE_STORAGE_CONNECTION_STRING`, and `GH_REPO_TOKEN`; `PGPASSWORD` is a secret everywhere but the local database, whose password is its name. A secret is never committed and never gets a `VITE_` prefix, because a `VITE_` value is inlined into the bundle.
 
 A per player key, such as the Replicate key, is a Samna Auth secret bound to that player's own **Keys** claim, which no one else holds, and the profile records only which claim it is. It is set and removed on `/user`; the API answers only whether a key is held, never its value, and only the service opens it, to call the integration for that player. `web/src/lib/integrations.ts` is the one list of services, what each is for and which key it uses. Add a service there before writing code that calls it.
 

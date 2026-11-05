@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SlyOtis/dndcs/internal/broker"
-	"github.com/SlyOtis/dndcs/internal/db"
-	"github.com/SlyOtis/dndcs/internal/handler"
+	"github.com/SlyOtis/quillborne/internal/broker"
+	"github.com/SlyOtis/quillborne/internal/db"
+	"github.com/SlyOtis/quillborne/internal/handler"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

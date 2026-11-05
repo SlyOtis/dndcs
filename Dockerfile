@@ -23,7 +23,7 @@ RUN go mod download
 COPY cmd/ cmd/
 COPY internal/ internal/
 RUN CGO_ENABLED=0 GOOS=linux go build \
-    -ldflags "-X github.com/SlyOtis/dndcs/internal/version.Version=${IMAGE_VERSION}" \
+    -ldflags "-X github.com/SlyOtis/quillborne/internal/version.Version=${IMAGE_VERSION}" \
     -o main ./cmd
 
 FROM golang:1.26-alpine AS smig-builder

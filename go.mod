@@ -1,4 +1,4 @@
-module github.com/SlyOtis/dndcs
+module github.com/SlyOtis/quillborne
 
 go 1.25.0
 

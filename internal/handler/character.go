@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SlyOtis/dndcs/internal/broker"
-	"github.com/SlyOtis/dndcs/internal/db"
+	"github.com/SlyOtis/quillborne/internal/broker"
+	"github.com/SlyOtis/quillborne/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/nimling/nimbody/respond"

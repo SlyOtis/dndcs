@@ -3,9 +3,7 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 base="${WALK_BASE:-http://localhost:5173}"
-email="$(sed -n 's/^WALK_EMAIL=//p' ../.env)"
-password="$(sed -n 's/^WALK_PASSWORD=//p' ../.env)"
-[ -n "$email" ] && [ -n "$password" ] || { echo "WALK_EMAIL and WALK_PASSWORD are empty in .env"; exit 1; }
+[ -n "$(sed -n 's/^SAUTH_DEBUG_USER_ID=//p' ../.env)" ] || { echo "SAUTH_DEBUG_USER_ID is empty in .env: the walk signs in as the debug user"; exit 1; }
 curl -sf -o /dev/null "$base/" || { echo "nothing answers at $base: run just dev first"; exit 1; }
 
 failures=()
@@ -91,14 +89,8 @@ pw open "$base/main" >/dev/null
 hearth="document.querySelector('.hall-hero-name') !== null && document.querySelector('.dnd-loading') === null"
 page="sign in"
 pw goto "$base/main" >/dev/null
-wait_for "location.pathname.startsWith('/login/')" "the Samna Auth sign in page"
-pw goto "$(js "(() => { const u = new URL(location.href); u.searchParams.set('panel', 'email-login'); return u.href })()")" >/dev/null
-wait_for "document.querySelector('input[name=email]') !== null" "the email sign in form"
-pw fill "input[name=email]" "$email" >/dev/null
-pw fill "input[name=password]" "$password" >/dev/null
-pw click "getByRole('button', { name: 'Enter the table' })" >/dev/null
-wait_for "($hearth) || document.querySelector('.alert') !== null" "the hearth after sign in"
-[ "$(js "$hearth")" = "true" ] || { echo "sign in did not reach the hearth: $(js "document.querySelector('.alert')?.textContent.trim() ?? ''")"; exit 1; }
+wait_for "$hearth" "the hearth as the debug user"
+[ "$(js "$hearth")" = "true" ] || { echo "the debug user did not reach the hearth at $(js "location.href")"; exit 1; }
 landed="$(js "location.pathname")"
 case "$landed" in
   /|/main) ;;

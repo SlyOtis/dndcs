@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS profile (
 
 CREATE INDEX IF NOT EXISTS idx_profile_email ON profile (lower(email));
 
-COMMENT ON TABLE profile IS 'A player''s own dndcs settings beside the Samna Auth user: name shown at the table, portrait, preferences and friends';
+COMMENT ON TABLE profile IS 'A player''s own Quillborne settings beside the Samna Auth user: name shown at the table, portrait, preferences and friends';
 COMMENT ON COLUMN profile.id IS 'The profile id';
 COMMENT ON COLUMN profile.user_id IS 'The human the profile belongs to, samna_user.user_id';
 COMMENT ON COLUMN profile.email IS 'The address the player signs in with, the one a dungeon master invites by';

@@ -1,5 +1,5 @@
 ---
-name: dndcs
+name: Quillborne
 description: The table's character sheet and campaign book, dressed as a WarCraft III game menu.
 colors:
   ground-deep: "#0a0806"
@@ -126,7 +126,7 @@ components:
     rounded: "{rounded.xl}"
 ---
 
-# Design System: dndcs
+# Design System: Quillborne
 
 ## Overview
 

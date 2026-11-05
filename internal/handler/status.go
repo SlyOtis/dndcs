@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"github.com/SlyOtis/dndcs/internal/db"
-	"github.com/SlyOtis/dndcs/internal/version"
+	"github.com/SlyOtis/quillborne/internal/db"
+	"github.com/SlyOtis/quillborne/internal/version"
 	"github.com/labstack/echo/v4"
 )
 

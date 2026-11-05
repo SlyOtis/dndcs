@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SlyOtis/dndcs/internal/handler"
+	"github.com/SlyOtis/quillborne/internal/handler"
 	"github.com/labstack/echo/v4"
 )
 
 func TestTheAIProxyCarriesTheCallersOwnKey(t *testing.T) {
 	requireStack(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	var seen *http.Request
 	var sent string
 	stub := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

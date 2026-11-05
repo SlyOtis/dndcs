@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SlyOtis/dndcs/internal/db"
-	"github.com/SlyOtis/dndcs/internal/handler"
+	"github.com/SlyOtis/quillborne/internal/db"
+	"github.com/SlyOtis/quillborne/internal/handler"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	sdb "github.com/nimling/samna-auth-middleware/v2/disciple/sdb"
@@ -105,8 +105,8 @@ func postCampaign(t *testing.T) string {
 
 func seatPlayer(t *testing.T, campaignID string) {
 	t.Helper()
-	ensureProfile(t, player, "pip@dndcs.local")
-	status, answer := call(t, dungeonMaster, http.MethodPost, "/api/campaign/"+campaignID+"/player", `{"email":"pip@dndcs.local"}`, map[string]string{"id": campaignID}, handler.PostCampaignPlayer)
+	ensureProfile(t, player, "pip@quillborne.local")
+	status, answer := call(t, dungeonMaster, http.MethodPost, "/api/campaign/"+campaignID+"/player", `{"email":"pip@quillborne.local"}`, map[string]string{"id": campaignID}, handler.PostCampaignPlayer)
 	if status != http.StatusCreated {
 		t.Fatalf("PostCampaignPlayer: %d %+v", status, answer.Error)
 	}
@@ -235,7 +235,7 @@ func TestASheetIsReadByTheTableOnlyOnceItJoins(t *testing.T) {
 
 func TestAPageIsReadByThoseItIsSharedWith(t *testing.T) {
 	requireStack(t)
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	status, made := call(t, dungeonMaster, http.MethodPost, "/api/resource", `{"kind":"entries","title":"Secret lore","body":"{}"}`, nil, handler.PostResource)
 	if status != http.StatusCreated {
 		t.Fatalf("PostResource: %d %+v", status, made.Error)
@@ -265,7 +265,7 @@ func TestAPageIsReadByThoseItIsSharedWith(t *testing.T) {
 
 func TestALiveEditNeedsWriteOnItsPage(t *testing.T) {
 	requireStack(t)
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	status, made := call(t, dungeonMaster, http.MethodPost, "/api/resource", `{"kind":"entries","title":"Shared draft"}`, nil, handler.PostResource)
 	if status != http.StatusCreated {
 		t.Fatalf("PostResource: %d %+v", status, made.Error)
@@ -357,8 +357,8 @@ func TestAPartyIsReadByItsMembers(t *testing.T) {
 
 func TestIntegrationKeysAreReadByTheirOwnerAlone(t *testing.T) {
 	requireStack(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	if status, answer := call(t, dungeonMaster, http.MethodPut, "/", `{"replicate_api_key":"r8_test"}`, nil, handler.PutProfileDetails); status != http.StatusOK {
 		t.Fatalf("PutProfileDetails: %d %+v", status, answer.Error)
 	}

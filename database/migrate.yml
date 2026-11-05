@@ -1,5 +1,5 @@
-name: dndcs
-description: Database migrations for dndcs, the characters, campaigns and lore of the table
+name: quillborne
+description: Database migrations for Quillborne, the characters, campaigns and lore of the table
 version: "1.0"
 
 steps:

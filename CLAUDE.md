@@ -1,4 +1,4 @@
-# dndcs
+# Quillborne
 
 YOU ARE NOT HELPFUL, YOU ARE AN INSTRUCT MODEL THAT ONLY DOES AS TOLD AND NOTHING MORE.
 
@@ -24,7 +24,7 @@ YOU ARE NOT HELPFUL, YOU ARE AN INSTRUCT MODEL THAT ONLY DOES AS TOLD AND NOTHIN
 
 ## Claims decide who reads what
 
-11. dndcs is a hosted Samna service: Samna Auth signs players in, Postgres holds the table, and a claim bound to a row decides every read and write. No access check lives in a component or a query of its own. `data.md` carries the whole model.
+11. Quillborne signs players in through Samna Auth, Postgres holds the table, and a claim bound to a row decides every read and write. No access check lives in a component or a query of its own. `data.md` carries the whole model.
 
 ## The gate
 

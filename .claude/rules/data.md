@@ -76,7 +76,7 @@ Function names start with `get`, `post`, `put` or `delete`, in Go and in TypeScr
 
 ## Live events
 
-`internal/broker` is the one event path. A write posts an event after it succeeds: the event goes at once to the streams on the same instance and through `NOTIFY` on `dndcs_event` to the others, and every instance skips the events it sent itself. An event carries a topic, a kind, an id and an op, never a row.
+`internal/broker` is the one event path. A write posts an event after it succeeds: the event goes at once to the streams on the same instance and through `NOTIFY` on `quillborne_event` to the others, and every instance skips the events it sent itself. An event carries a topic, a kind, an id and an op, never a row.
 
 The streams are `/api/campaign/:id/stream`, `/api/profile/stream`, `/api/resource/:id/stream`, `/api/character/:id/stream` and `/api/party/:id/stream`, server-sent events with a heartbeat and a retry. Opening one needs read like the matching REST read, and every event is checked again before it is sent, so a hidden roll never reaches a player's stream and a sheet's changes reach only those who read the sheet.
 

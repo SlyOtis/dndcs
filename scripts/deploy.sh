@@ -6,7 +6,7 @@ VERSION="${2:-}"
 
 if [ "$ENV" = "prd" ]; then
     [ -n "$VERSION" ] || { echo "Usage: just deploy prd <tag>"; exit 1; }
-    exec sbump release dndcs --env prd --tag "$VERSION"
+    exec sbump release quillborne --env prd --tag "$VERSION"
 fi
 
 if [ -z "$VERSION" ]; then

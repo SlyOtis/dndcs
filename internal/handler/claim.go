@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/SlyOtis/dndcs/internal/db"
+	"github.com/SlyOtis/quillborne/internal/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/nimling/nimbody/respond"

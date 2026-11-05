@@ -31,9 +31,9 @@ describe('the walk recipe', () => {
 })
 
 describe('the walk keys', () => {
-  it('are named in .env.example', () => {
-    expect(keys).toContain('WALK_EMAIL')
-    expect(keys).toContain('WALK_PASSWORD')
+  it('need no account of their own, since the walk runs as the debug user', () => {
+    expect(keys).toContain('SAUTH_DEBUG_USER_ID')
+    expect(keys.filter((key) => /^WALK_(EMAIL|PASSWORD)$/.test(key))).toEqual([])
   })
 
   it('carry no VITE_ prefix, so no secret is inlined into the bundle', () => {
@@ -101,14 +101,13 @@ describe("the walk's sign in waits for the hearth", () => {
   })
 
   it('waits for rendered hearth content, never for the /main pathname', () => {
-    expect(signIn).toContain(`wait_for "($hearth) || document.querySelector('.alert') !== null"`)
+    expect(signIn).toContain(`wait_for "$hearth" "the hearth as the debug user"`)
     expect(signIn).not.toContain(`location.pathname === '/main'`)
     expect(signIn).not.toContain(`= "/main"`)
   })
 
-  it('rules on the landing by reading the hearth, and names the gate error when it is not there', () => {
+  it('rules on the landing by reading the hearth', () => {
     expect(signIn).toContain(`[ "$(js "$hearth")" = "true" ]`)
-    expect(signIn).toContain(`document.querySelector('.alert')?.textContent.trim() ?? ''`)
   })
 
   it('takes the root and the hearth as one landing, since both render the hearth', () => {
@@ -121,9 +120,8 @@ describe("the walk's sign in waits for the hearth", () => {
     expect(read('src/App.svelte')).toMatch(/"\/":\s*\{[^}]*guard: async \(\) => "\/main"/)
   })
 
-  it('names selectors the hearth and the refused sign in still render', () => {
+  it('names a selector the hearth still renders', () => {
     expect(read('src/pages/MainPage.svelte')).toContain('hall-hero-name')
-    expect(read('../deploy/sauth/pages/login.html')).toContain('class="alert"')
   })
 
   it('bounds every wait, so a sign in that never lands reports rather than hangs', () => {

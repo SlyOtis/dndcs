@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	Channel   = "dndcs_event"
+	Channel   = "quillborne_event"
 	queueSize = 64
 )
 

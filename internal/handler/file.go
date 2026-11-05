@@ -16,8 +16,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/SlyOtis/dndcs/internal/db"
-	"github.com/SlyOtis/dndcs/internal/storage"
+	"github.com/SlyOtis/quillborne/internal/db"
+	"github.com/SlyOtis/quillborne/internal/storage"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/nimling/nimbody"

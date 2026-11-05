@@ -2,7 +2,7 @@
   "git": {
     "remote": {
       "name": "origin",
-      "url": "git@github.com:SlyOtis/dndcs.git",
+      "url": "git@github.com:SlyOtis/quillborne.git",
       "gh": true
     },
     "default_branch": "main",

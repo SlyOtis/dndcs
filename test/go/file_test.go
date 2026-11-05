@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SlyOtis/dndcs/internal/handler"
-	"github.com/SlyOtis/dndcs/internal/storage"
+	"github.com/SlyOtis/quillborne/internal/handler"
+	"github.com/SlyOtis/quillborne/internal/storage"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -112,7 +112,7 @@ func getData(t *testing.T, actor uuid.UUID, method, assetID string, headers map[
 
 func TestAFileIsStoredAndStreamedWithItsEtagAndRanges(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	content := "0123456789abcdef"
 	status, stored := postStoredFile(t, dungeonMaster, map[string]string{"name": "theme.ogg", "mime_type": "audio/ogg"}, content)
 	if status != http.StatusCreated {
@@ -164,8 +164,8 @@ func TestAFileIsStoredAndStreamedWithItsEtagAndRanges(t *testing.T) {
 
 func TestAFileIsReadOnlyByThoseItsClaimsReach(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	campaignID := postCampaign(t)
 	status, stored := postStoredFile(t, dungeonMaster, map[string]string{"name": "map.png", "mime_type": "image/png", "campaign_id": campaignID}, "map bytes")
 	if status != http.StatusCreated {
@@ -228,8 +228,8 @@ func TestAFileIsReadOnlyByThoseItsClaimsReach(t *testing.T) {
 
 func TestAFileIsPostedOnlyWhereTheWriterMayWrite(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	campaignID := postCampaign(t)
 	status, first := postStoredFile(t, dungeonMaster, map[string]string{"name": "map.png", "mime_type": "image/png", "campaign_id": campaignID}, "map")
 	if status != http.StatusCreated {
@@ -269,8 +269,8 @@ func TestAFileIsPostedOnlyWhereTheWriterMayWrite(t *testing.T) {
 
 func TestAnAttachmentNeedsReadOnTheAssetAndWriteOnTheRow(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	campaignID := postCampaign(t)
 	status, stored := postStoredFile(t, dungeonMaster, map[string]string{"name": "map.png", "mime_type": "image/png", "campaign_id": campaignID}, "map")
 	if status != http.StatusCreated {
@@ -319,7 +319,7 @@ func TestAnAttachmentNeedsReadOnTheAssetAndWriteOnTheRow(t *testing.T) {
 
 func TestAnAssetMovesOnlyWithinItsOwnTree(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	status, answer := call(t, dungeonMaster, http.MethodPost, "/api/asset", `{"name":"Maps","mime_type":"inode/directory","type":"folder"}`, nil, handler.PostAsset)
 	if status != http.StatusCreated {
 		t.Fatalf("PostAsset folder: %d %+v", status, answer.Error)
@@ -356,7 +356,7 @@ func TestAnAssetMovesOnlyWithinItsOwnTree(t *testing.T) {
 
 func TestABlockDocumentIsServedAsItsAssetData(t *testing.T) {
 	requireStack(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	status, answer := call(t, dungeonMaster, http.MethodPost, "/api/asset", `{"name":"Notes","mime_type":"application/vnd.mar.document+json","document":{"blocks":[{"kind":"text","text":"Hail"}]}}`, nil, handler.PostAsset)
 	if status != http.StatusCreated {
 		t.Fatalf("PostAsset document: %d %+v", status, answer.Error)
@@ -392,7 +392,7 @@ func TestABlockDocumentIsServedAsItsAssetData(t *testing.T) {
 
 func TestAFileOverTheLimitIsRefused(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	t.Setenv("FILE_MAX_BYTES", "8")
 	if status, _ := postStoredFile(t, dungeonMaster, map[string]string{"name": "long.ogg", "mime_type": "audio/ogg"}, "far more than eight bytes"); status != http.StatusRequestEntityTooLarge {
 		t.Fatalf("an oversized file was stored: %d", status)
@@ -415,8 +415,8 @@ func attach(t *testing.T, actor uuid.UUID, assetID, resourceID string) string {
 
 func TestAPersonalUploadIsNeitherListedNorReadByAnotherMember(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	status, own := postStoredFile(t, player, map[string]string{"name": "diary.png", "mime_type": "image/png"}, "secret")
 	if status != http.StatusCreated {
 		t.Fatalf("PostAsset: %d", status)
@@ -437,7 +437,7 @@ func TestAPersonalUploadIsNeitherListedNorReadByAnotherMember(t *testing.T) {
 
 func TestAPageSharedWithACampaignSharesTheImageItHolds(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	campaignID := postCampaign(t)
 	seatPlayer(t, campaignID)
 
@@ -477,8 +477,8 @@ func TestAPageSharedWithACampaignSharesTheImageItHolds(t *testing.T) {
 
 func TestAnAssetSharedThroughAClaimIsReadByItsHolders(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
-	ensureProfile(t, player, "pip@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
+	ensureProfile(t, player, "pip@quillborne.local")
 	status, own := postStoredFile(t, player, map[string]string{"name": "sketch.png", "mime_type": "image/png"}, "sketch")
 	if status != http.StatusCreated {
 		t.Fatalf("PostAsset: %d", status)
@@ -505,7 +505,7 @@ func TestAnAssetSharedThroughAClaimIsReadByItsHolders(t *testing.T) {
 
 func TestAnImageTakenOffAPageIsNoLongerSharedWithIt(t *testing.T) {
 	requireBlob(t)
-	ensureProfile(t, dungeonMaster, "testy@dndcs.local")
+	ensureProfile(t, dungeonMaster, "testy@quillborne.local")
 	campaignID := postCampaign(t)
 	seatPlayer(t, campaignID)
 	status, image := postStoredFile(t, dungeonMaster, map[string]string{"name": "keep.png", "mime_type": "image/png"}, "keep")

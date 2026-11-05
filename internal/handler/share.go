@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/SlyOtis/dndcs/internal/db"
+	"github.com/SlyOtis/quillborne/internal/db"
 	"github.com/google/uuid"
 	sdb "github.com/nimling/samna-auth-middleware/v2/disciple/sdb"
 	"github.com/uptrace/bun"
