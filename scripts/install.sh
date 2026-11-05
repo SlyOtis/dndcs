@@ -3,6 +3,7 @@ set -e
 
 BIN="$(go env GOPATH)/bin"
 SMIG_VERSION=$(sed -n 's/.*samna-migrate\/cmd@\(v[0-9.]*\).*/\1/p' Dockerfile | head -1)
+SAUTH_VERSION=$(sed -n 's/.*samna-auth\/cmd\/sauth@\(v[0-9A-Za-z.-]*\).*/\1/p' .github/workflows/azure-deploy.yml | head -1)
 
 has() {
     command -v "$1" > /dev/null 2>&1
@@ -16,7 +17,7 @@ brew_install() {
     brew install "$@"
 }
 
-for tool in go pnpm; do
+for tool in go pnpm jq; do
     if has "$tool"; then
         echo "$tool: found"
     else
@@ -52,6 +53,28 @@ if has docker; then
 else
     echo "docker: installing"
     brew_install --cask orbstack
+fi
+
+if has az; then
+    echo "az: found"
+else
+    echo "az: installing"
+    brew_install azure-cli
+fi
+
+if has sbump; then
+    echo "sbump: found"
+else
+    echo "sbump: installing"
+    GOPRIVATE=github.com/nimling/* go install github.com/nimling/sbump/cmd@latest
+    mv "$BIN/cmd" "$BIN/sbump"
+fi
+
+if has sauth; then
+    echo "sauth: found"
+else
+    echo "sauth: installing $SAUTH_VERSION"
+    GOPRIVATE=github.com/nimling/* go install github.com/nimling/samna-auth/cmd/sauth@$SAUTH_VERSION
 fi
 
 case ":$PATH:" in
