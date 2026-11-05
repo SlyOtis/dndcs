@@ -29,6 +29,7 @@
   <div class="pool-pips">
     {#each Array.from({ length: $special.max }, (_, i) => i) as index (index)}
       <Sigil
+        frame="ring"
         size="sm"
         tone="ember"
         active={index < $special.current}

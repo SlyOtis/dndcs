@@ -225,6 +225,7 @@
                 {#each group.entries as spell (spell.id)}
                     <li class="spell">
                         <Sigil
+                            frame="ring"
                             size="sm"
                             tone="arcane"
                             active={spell.prepared}

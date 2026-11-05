@@ -151,7 +151,7 @@ describe('no bar call site decides the sigil design', () => {
 
     expect(drawn.length).toBe(11)
     expect([...new Set(drawn.map((one) => JSON.stringify(one)))]).toEqual([
-      JSON.stringify({ frame: 'ring', tone: 'metal', size: 'sm' })
+      JSON.stringify({ frame: 'quatrefoil', tone: 'metal', size: 'sm' })
     ])
   })
 
@@ -166,8 +166,8 @@ describe('no bar call site decides the sigil design', () => {
 })
 
 describe('the sigil is the forged HUD button', () => {
-  it('defaults to the ring in metal, so the design is decided in the component', () => {
-    expect(fallback('frame')).toBe('ring')
+  it('defaults to the quatrefoil in metal, so the design is decided in the component', () => {
+    expect(fallback('frame')).toBe('quatrefoil')
     expect(fallback('tone')).toBe('metal')
     expect(sigil).toContain('frame?: SigilFrame')
     expect(tones).toContain('metal')
@@ -182,8 +182,15 @@ describe('the sigil is the forged HUD button', () => {
     expect(ring.endsWith('Z')).toBe(true)
   })
 
+  it('traces the quatrefoil as four 22 radius lobes, each tipped by a point on the cardinal axis', () => {
+    const quatrefoil = /quatrefoil:\s*'(M[^']+)'/.exec(traces)?.[1] ?? ''
+    expect(quatrefoil.match(/22 22 0 0 1/g)).toHaveLength(8)
+    for (const tip of ['L50 1', 'L99 50', 'L50 99', 'L1 50']) expect(quatrefoil).toContain(tip)
+    expect(quatrefoil.endsWith('Z')).toBe(true)
+  })
+
   it('keeps a trace for every frame the type names', () => {
-    expect(frames).toEqual(['ring', 'cusped', 'lobed', 'star', 'plate'])
+    expect(frames).toEqual(['quatrefoil', 'ring', 'cusped', 'lobed', 'star', 'plate'])
     for (const frame of frames) {
       expect(new RegExp(`${frame}:\\s*'M[^']+'`).test(traces), `${frame} has no trace`).toBe(true)
     }

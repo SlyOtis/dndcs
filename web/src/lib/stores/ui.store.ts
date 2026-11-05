@@ -29,11 +29,14 @@ function createUIStore() {
     closeSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: false, searchSeed: '' })),
     toggleSearchDialog: () => update(state => ({ ...state, isSearchDialogOpen: !state.isSearchDialogOpen, searchSeed: '' })),
     
-    toggleMenu: () => update(state => ({ ...state, menuOpen: !state.menuOpen })),
-    openSoundboard: () => update(state => ({ ...state, menuOpen: true, menuView: 'soundboard' })),
-    openMusic: () => update(state => ({ ...state, menuOpen: !(state.menuOpen && state.menuView === 'music'), menuView: 'music' })),
-    openMenu: () => update(state => ({ ...state, menuOpen: true, menuView: 'menu' })),
-    toggleChat: () => update(state => ({ ...state, chatOpen: !state.chatOpen })),
+    toggleMenu: () => update(state => ({ ...state, menuOpen: !state.menuOpen, chatOpen: state.menuOpen && state.chatOpen })),
+    openSoundboard: () => update(state => ({ ...state, menuOpen: true, menuView: 'soundboard', chatOpen: false })),
+    openMusic: () => update(state => {
+      const menuOpen = !(state.menuOpen && state.menuView === 'music');
+      return { ...state, menuOpen, menuView: 'music', chatOpen: !menuOpen && state.chatOpen };
+    }),
+    openMenu: () => update(state => ({ ...state, menuOpen: true, menuView: 'menu', chatOpen: false })),
+    toggleChat: () => update(state => ({ ...state, chatOpen: !state.chatOpen, menuOpen: state.chatOpen && state.menuOpen })),
 
     // General dialog state management
     setDialogState: (isOpen: boolean) => update(state => ({ ...state, anyDialogOpen: isOpen })),

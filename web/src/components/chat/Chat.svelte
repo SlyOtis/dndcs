@@ -2,13 +2,16 @@
   import {onDestroy, getContext} from "svelte";
   import {type ChatLog, detectAction, getChatLog} from "$lib/chat";
   import ChatItem from "./ChatItem.svelte";
-  import { user, userDetails } from "$lib/stores/auth.store";
+  import { user, userDetails, userProfile } from "$lib/stores/auth.store";
   import Sigil from "$components/ui/Sigil.svelte";
   import Glyph from "$components/ui/Glyph.svelte";
+  import Fold from "$components/ui/Fold.svelte";
+  import FriendsPanel from "$pages/main/FriendsPanel.svelte";
   import { rollMode, rollHidden, type RollMode } from "$lib/engine";
   import { getCsrfHeaders } from "$lib/api";
   import { currentCampaignId } from "$lib/stores/campaign.store";
-  import { campaignService } from "$lib/firestore.service";
+  import { campaignService, userService } from "$lib/firestore.service";
+  import type { UserProfile } from "$lib/firestore.types";
 
   const {unsubscribeChat, chatStore} = getChatLog()
 
@@ -42,6 +45,18 @@
     campaignService.getCampaign(campaignId).then((campaign) => {
       if ($currentCampaignId === campaignId) dmOf = campaign?.dm_id ?? null
     })
+  })
+
+  let friends = $state<UserProfile[]>([])
+  let friendsLoading = $state(true)
+  let friendsOpen = $state(false)
+
+  $effect(() => {
+    const ids = $userProfile?.friends ?? []
+    friendsLoading = true
+    userService.getProfiles(ids)
+      .then((known) => friends = known)
+      .finally(() => friendsLoading = false)
   })
 
   const isDm = $derived(Boolean($user?.uid) && dmOf === $user?.uid)
@@ -281,6 +296,9 @@
 
 <div class="root" class:disabled={isDialogOpen}>
     <div class="inner">
+        <Fold title="Friends" count={friends.length} variant="row" open={friendsOpen} ontoggle={() => friendsOpen = !friendsOpen}>
+            <FriendsPanel loading={friendsLoading} bind:friends />
+        </Fold>
         <div class="scroll" bind:this={scroller}>
             <ul>
                 {#each chatLog as logItem}
@@ -321,6 +339,7 @@
                 <Sigil
                     title={showHidden ? 'Hide hidden entries' : 'Show hidden entries'}
                     size="sm"
+                    frame="ring"
                     active={showHidden}
                     onclick={() => showHidden = !showHidden}
                 >
@@ -329,6 +348,7 @@
 
                 <Sigil
                     title={isRecording ? 'Stop recording' : 'Start voice recording'}
+                    frame="ring"
                     tone={isRecording ? 'bane' : 'ember'}
                     size="sm"
                     active={isRecording}
@@ -367,7 +387,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        align-items: center;
+        align-items: stretch;
     }
 
     .scroll {

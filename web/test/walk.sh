@@ -101,19 +101,18 @@ visit /main "$hearth" "the hearth" && check_page bar
 page="/main at 1280 and 1600"
 for w in 1280 1600; do
   pw resize "$w" 900 >/dev/null
-  wait_for "document.querySelectorAll('.hall-grid .hall-plot').length === 5 && document.querySelector('.hall-grid .dnd-loading') === null" "the five hearth regions at $w" || continue
+  wait_for "document.querySelectorAll('.hall-grid .hall-plot').length === 4 && document.querySelector('.hall-grid .dnd-loading') === null" "the four hearth regions at $w" || continue
   [ "$(js "document.querySelector('.hall-grid .hall-hero .hall-hero-name') !== null")" = "true" ] || fail "no hero over the regions at $w"
   regions="$(js "[...document.querySelectorAll('.hall-grid .hall-plot')].map((e) => e.getAttribute('aria-label')).join(',')")"
-  [ "$regions" = "Campaigns,Parties,Characters,Lore,Friends" ] || fail "the hearth regions are $regions at $w"
+  [ "$regions" = "Campaigns,Parties,Characters,Lore" ] || fail "the hearth regions are $regions at $w"
   plates="$(js "document.querySelectorAll('.hall-grid .dnd-panelbox-head, .hall-grid .dnd-rail-head, .hall-grid .dnd-rail-step').length")"
   [ "$plates" = "0" ] || fail "$plates header plates, rail heads or step arrows stand on the hearth at $w"
   gone="$(js "[...document.querySelectorAll('.hall-grid [aria-label]')].map((e) => e.getAttribute('aria-label')).filter((n) => /^(Party|Cast|Catalog)$/.test(n)).join(',')")"
   [ -z "$gone" ] || fail "the hearth still carries $gone at $w"
-  laid="$(js "(() => { const g = document.querySelector('.hall-grid').getBoundingClientRect(); const f = document.querySelector('.hall-plot-friends').getBoundingClientRect(); const c = document.querySelector('.hall-plot-camps').getBoundingClientRect(); const b = document.querySelector('.hall-plot-bands').getBoundingClientRect(); const r = document.querySelector('.hall-plot-roll').getBoundingClientRect(); const l = document.querySelector('.hall-plot-lore').getBoundingClientRect(); const side = f.left >= r.right && f.left >= c.right && f.left >= b.right && f.left >= l.right && Math.abs(f.right - g.right) < 1; const tall = Math.round(g.height - f.height); const under = c.bottom <= b.top && b.bottom <= r.top && r.bottom <= l.top; return (side ? 'side' : 'strayed') + ':' + tall + ':' + (under ? 'stacked' : 'shuffled') })()")"
-  [ "${laid%%:*}" = "side" ] || fail "the friends list is not a column along the right edge at $w"
-  tall="${laid#*:}"; tall="${tall%%:*}"
-  [ "$tall" = "0" ] || fail "the friends column stops ${tall}px short of the page's height at $w"
+  laid="$(js "(() => { const g = document.querySelector('.hall-grid').getBoundingClientRect(); const c = document.querySelector('.hall-plot-camps').getBoundingClientRect(); const b = document.querySelector('.hall-plot-bands').getBoundingClientRect(); const r = document.querySelector('.hall-plot-roll').getBoundingClientRect(); const l = document.querySelector('.hall-plot-lore').getBoundingClientRect(); const wide = [c, b, r, l].every((e) => Math.abs(e.left - g.left) < 1 && Math.abs(e.right - g.right) < 1); const under = c.bottom <= b.top && b.bottom <= r.top && r.bottom <= l.top; return (wide ? 'wide' : 'narrow') + ':' + (under ? 'stacked' : 'shuffled') })()")"
+  [ "${laid%%:*}" = "wide" ] || fail "campaigns, parties, characters and lore do not span the hearth's width at $w"
   [ "${laid##*:}" = "stacked" ] || fail "campaigns, parties, characters and lore do not stack in that order at $w"
+  [ "$(js "document.querySelector('.hall-grid .hall-plot-friends') === null")" = "true" ] || fail "the hearth still carries a friends column at $w"
   over="$(js "Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth")"
   [ "$over" -le 0 ] || fail "the hearth is ${over}px wider than the viewport at $w"
   wide="$(js "[...document.querySelector('.hall-grid').querySelectorAll('*')].filter((e) => { const s = getComputedStyle(e); return (s.overflowX === 'auto' || s.overflowX === 'scroll') && e.scrollWidth > e.clientWidth }).length")"
@@ -128,13 +127,29 @@ for w in 1280 1600; do
   [ "$headed" = "true" ] || fail "a Lore kind does not open with the divider naming it at $w"
   stray="$(js "[...document.querySelectorAll('.hall-plot-lore .dnd-card')].filter((e) => !e.closest('.lore-kind')).length")"
   [ "$stray" = "0" ] || fail "$stray Lore rows stand under no divider at $w"
-  [ "$(js "document.querySelector('.hall-plot-friends .dnd-card') !== null || document.querySelector('.hall-plot-friends .dnd-empty') !== null")" = "true" ] || fail "the friends list shows neither a friend nor its empty state at $w"
   tall="$(js "(() => { const scroll = document.querySelector('.dnd-shell-scroll'); return String(Math.ceil(scroll.scrollHeight + scroll.getBoundingClientRect().top)) })()")"
   pw resize "$w" "$tall" >/dev/null
   pw screenshot ".hall-grid" --filename=".playwright-cli/hearth-$w.png" >/dev/null
   pw resize "$w" 900 >/dev/null
 done
 pw resize 1600 900 >/dev/null
+
+page="friends in the chat"
+pw click "getByTitle('Toggle the chat')" >/dev/null
+if wait_for "document.querySelector('.dnd-shell-chat-open .dnd-sidebar-end .dnd-fold') !== null" "the chat panel with its friends fold"; then
+  friends_head=".dnd-sidebar-end .dnd-fold .dnd-fold-head"
+  [ "$(js "document.querySelector('$friends_head .dnd-fold-title').textContent.trim()")" = "Friends" ] || fail "the chat panel's fold is not Friends"
+  js "document.querySelector('$friends_head').click() ?? null" >/dev/null
+  wait_for "document.querySelector('.dnd-sidebar-end .dnd-fold-open') !== null && document.querySelector('.dnd-sidebar-end .dnd-fold .dnd-loading') === null" "the friends fold to open"
+  [ "$(js "document.querySelector('.dnd-sidebar-end .dnd-fold .dnd-card') !== null || document.querySelector('.dnd-sidebar-end .dnd-fold .dnd-empty') !== null")" = "true" ] || fail "the friends list shows neither a friend nor its empty state"
+  [ "$(js "document.querySelector('.dnd-sidebar-end .dnd-fold #friend-address') !== null && [...document.querySelectorAll('.dnd-sidebar-end .dnd-fold .dnd-button')].some((e) => e.textContent.trim() === 'Add')")" = "true" ] || fail "the friends fold carries no add-a-friend field with its Add button"
+  pw click "getByTitle('Toggle the menu')" >/dev/null
+  wait_for "document.querySelector('.dnd-shell-menu-open') !== null && document.querySelector('.dnd-shell-chat-open') === null" "the menu to open and the chat to close"
+  pw click "getByTitle('Toggle the chat')" >/dev/null
+  wait_for "document.querySelector('.dnd-shell-chat-open') !== null && document.querySelector('.dnd-shell-menu-open') === null" "the chat to open and the menu to close"
+  pw click "getByTitle('Toggle the chat')" >/dev/null
+  wait_for "document.querySelector('.dnd-shell-chat-open') === null" "the chat drawer to close"
+fi
 
 page="encounter tracker"
 campaign_id="$(js "(async () => { const { userCampaigns } = await import('/src/lib/stores/campaign.store.ts'); let held = []; userCampaigns.subscribe((entries) => (held = entries))(); return held[0]?.id ?? '' })()")"

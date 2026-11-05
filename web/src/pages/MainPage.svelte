@@ -3,21 +3,19 @@
   import { onMount, setContext, onDestroy } from "svelte";
   import { getCharacterStore } from "$lib/engine";
   import type { CharacterContext } from "$lib/types";
-  import type { UserProfile } from "$lib/firestore.types";
   import MenuPanel from "$components/MenuPanel.svelte";
   import Chat from "$chat/Chat.svelte";
   import { sidebarStore } from "$lib/navigation";
   import { uiStore, anyDialogOpen } from "$lib/stores/ui.store";
   import { userCharacters } from "$lib/stores/character.store";
   import { userCampaigns } from "$lib/stores/campaign.store";
-  import { characterService, campaignService, userService } from "$lib/firestore.service";
+  import { characterService, campaignService } from "$lib/firestore.service";
   import { userProfile, userDetails } from "$lib/stores/auth.store";
   import { navigate } from "sly-svelte-location-router";
   import CharactersPanel from "./main/CharactersPanel.svelte";
   import CampaignsPanel from "./main/CampaignsPanel.svelte";
   import PartiesPanel from "./main/PartiesPanel.svelte";
   import LorePanel from "./main/LorePanel.svelte";
-  import FriendsPanel from "./main/FriendsPanel.svelte";
   import Button from "$components/ui/Button.svelte";
   import Ornament from "$components/ui/Ornament.svelte";
   import Shell from "$components/ui/Shell.svelte";
@@ -39,7 +37,6 @@
 
   let loading = $state(true);
   let error = $state<string | null>(null);
-  let friends = $state<UserProfile[]>([]);
   let campaignSearch = $state('');
   let characterSearch = $state('');
   let partySearch = $state('');
@@ -50,14 +47,12 @@
     setTheme(getTheme());
 
     try {
-      const [characters, campaigns, known] = await Promise.all([
+      const [characters, campaigns] = await Promise.all([
         characterService.getUserCharacters(),
-        campaignService.getUserCampaigns(),
-        userService.getProfiles($userProfile?.friends ?? [])
+        campaignService.getUserCampaigns()
       ]);
       userCharacters.set(characters);
       userCampaigns.set(campaigns);
-      friends = known;
     } catch (err) {
       error = err instanceof Error ? err.message : 'The archive did not answer';
     } finally {
@@ -184,15 +179,6 @@
       </header>
       <LorePanel />
     </section>
-
-    <aside class="hall-plot hall-plot-friends" aria-label="Friends">
-      <header class="hall-divide">
-        <h2 class="dnd-label hall-divide-name">Friends</h2>
-        <span class="hall-divide-note">{friends.length} known</span>
-        <span class="hall-divide-run"></span>
-      </header>
-      <FriendsPanel {loading} bind:friends />
-    </aside>
   </div>
 </Shell>
 
@@ -275,18 +261,16 @@
   }
 
   .hall-grid {
-    --hall-side: calc(var(--space-8) * 3);
-    --hall-side-share: 22%;
     --hall-search: calc(var(--space-8) * 3);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(min(var(--hall-side), 100%), var(--hall-side-share));
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto auto minmax(0, 1fr);
     grid-template-areas:
-      'hero friends'
-      'camps friends'
-      'bands friends'
-      'roll friends'
-      'lore friends';
+      'hero'
+      'camps'
+      'bands'
+      'roll'
+      'lore';
     column-gap: var(--space-6);
     row-gap: var(--space-6);
     min-width: 0;
@@ -313,14 +297,6 @@
 
   .hall-plot-lore {
     grid-area: lore;
-  }
-
-  .hall-plot-friends {
-    grid-area: friends;
-    align-self: stretch;
-    padding-inline-start: var(--space-5);
-    border-inline-start: none;
-    box-shadow: calc(var(--border-hair) * -1) 0 0 color-mix(in srgb, var(--metal) 35%, transparent);
   }
 
   .hall-divide {
@@ -358,25 +334,5 @@
     flex: 0 1 var(--hall-search);
     width: auto;
     min-width: 0;
-  }
-
-  @media (max-width: 1100px) {
-    .hall-grid {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: none;
-      grid-template-areas:
-        'hero'
-        'camps'
-        'bands'
-        'roll'
-        'lore'
-        'friends';
-    }
-
-    .hall-plot-friends {
-      padding-inline-start: 0;
-      padding-top: var(--space-5);
-      box-shadow: 0 calc(var(--border-hair) * -1) 0 color-mix(in srgb, var(--metal) 35%, transparent);
-    }
   }
 </style>

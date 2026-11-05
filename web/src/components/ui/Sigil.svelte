@@ -4,7 +4,7 @@
   const {
     tone = 'metal',
     size = 'md',
-    frame = 'ring',
+    frame = 'quatrefoil',
     count,
     active = false,
     disabled = false,
@@ -34,9 +34,11 @@
 </script>
 
 <script lang="ts" module>
-  export type SigilFrame = 'ring' | 'cusped' | 'lobed' | 'star' | 'plate'
+  export type SigilFrame = 'quatrefoil' | 'ring' | 'cusped' | 'lobed' | 'star' | 'plate'
 
   const TRACES: Record<SigilFrame, string> = {
+    quatrefoil:
+      'M28 28A22 22 0 0 1 46.18 6.33L50 1l3.82 5.33A22 22 0 0 1 72 28 22 22 0 0 1 93.67 46.18L99 50l-5.33 3.82A22 22 0 0 1 72 72 22 22 0 0 1 53.82 93.67L50 99l-3.82-5.33A22 22 0 0 1 28 72 22 22 0 0 1 6.33 53.82L1 50l5.33-3.82A22 22 0 0 1 28 28Z',
     ring: 'M50 0 58 6.7A44 44 0 0 1 58 93.3L50 100 42 93.3A44 44 0 0 1 42 6.7L50 0Z',
     cusped:
       'M50 2 68 18h14v14l16 18-16 18v14H68L50 98 32 82H18V68L2 50l16-18V18h14L50 2Z',

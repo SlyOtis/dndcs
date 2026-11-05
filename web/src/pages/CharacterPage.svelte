@@ -364,7 +364,7 @@
         </span>
 
         <span class="sheet-gear">
-          <Sigil title="Choose the portrait frame" size="sm" onclick={() => postUIAction('openFrameDialog')}>
+          <Sigil title="Choose the portrait frame" frame="ring" size="sm" onclick={() => postUIAction('openFrameDialog')}>
             <Glyph name="gear" size="sm" />
           </Sigil>
           <IconBtn title="Copy this character" disabled={working} onclick={postCopy}>

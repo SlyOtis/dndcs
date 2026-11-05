@@ -214,6 +214,7 @@
                     <div class="equippable center">
                         {#if item.type === 'consumable' && !isAmmunition(item)}
                             <Sigil
+                                frame="ring"
                                 size="sm"
                                 tone="verdigris"
                                 title="Consume {item.title}"
@@ -223,6 +224,7 @@
                             </Sigil>
                         {:else}
                             <Sigil
+                                frame="ring"
                                 size="sm"
                                 tone="ember"
                                 active={isItemEquipped(item.id)}

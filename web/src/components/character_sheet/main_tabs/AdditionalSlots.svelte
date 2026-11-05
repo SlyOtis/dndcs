@@ -29,6 +29,7 @@
         <span class="dnd-slots-pips">
             {#each Array.from({length: max}, (_, i) => i) as index (index)}
                 <Sigil
+                    frame="ring"
                     size="sm"
                     tone="arcane"
                     active={index < left}

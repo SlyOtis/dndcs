@@ -104,8 +104,6 @@
           <Glyph name="menu" size="sm" />
         </Sigil>
       </span>
-    {:else}
-      <span class="dnd-shell-crest"><img class="dnd-shell-crest-mark" src="/favicon.svg" alt="" /></span>
     {/if}
 
     {#if back}
@@ -119,6 +117,35 @@
     {/if}
 
     <span class="dnd-shell-run" aria-hidden="true"></span>
+
+    <svg class="dnd-shell-crest" viewBox="0 0 240 112" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="dnd-shell-gild" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="dnd-shell-gild-bright" />
+          <stop offset="0.55" class="dnd-shell-gild-metal" />
+          <stop offset="1" class="dnd-shell-gild-dim" />
+        </linearGradient>
+        <linearGradient id="dnd-shell-field" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" class="dnd-shell-field-top" />
+          <stop offset="1" class="dnd-shell-field-foot" />
+        </linearGradient>
+        <radialGradient id="dnd-shell-glow">
+          <stop offset="0" class="dnd-shell-glow-core" />
+          <stop offset="1" class="dnd-shell-glow-edge" />
+        </radialGradient>
+        <clipPath id="dnd-shell-shield">
+          <path d="M95 17C106 12 114 15 120 19 126 15 134 12 145 17V50C145 68 130 79 120 89 110 79 95 68 95 50Z" />
+        </clipPath>
+      </defs>
+      <ellipse class="dnd-shell-crest-glow" cx="120" cy="52" rx="64" ry="40" />
+      <path class="dnd-shell-crest-swag" d="M4 61.5Q23 75 42 61.5 61 75 80 61.5ZM160 61.5Q179 75 198 61.5 217 75 236 61.5Z" />
+      <path class="dnd-shell-crest-line" d="M0 61.5H4Q23 75 42 61.5 61 75 80 61.5H90M240 61.5H236Q217 75 198 61.5 179 75 160 61.5H150" />
+      <path class="dnd-shell-crest-bead" d="M23 67.6l2.2 3.6-2.2 3.6-2.2-3.6zM61 67.6l2.2 3.6-2.2 3.6-2.2-3.6zM179 67.6l2.2 3.6-2.2 3.6-2.2-3.6zM217 67.6l2.2 3.6-2.2 3.6-2.2-3.6zM40.4 61.5a1.6 1.6 0 1 0 3.2 0 1.6 1.6 0 1 0-3.2 0zM196.4 61.5a1.6 1.6 0 1 0 3.2 0 1.6 1.6 0 1 0-3.2 0zM120 4l3 8h-6z" />
+      <path class="dnd-shell-crest-shield" d="M90 12C90 12 106 6 120 14 134 6 150 12 150 12V50C150 72 132 84 120 96 108 84 90 72 90 50Z" />
+      <image class="dnd-shell-crest-mark" href="/favicon.svg" x="78" y="9" width="84" height="84" clip-path="url(#dnd-shell-shield)" />
+      <path class="dnd-shell-crest-keyline" d="M95 17C106 12 114 15 120 19 126 15 134 12 145 17V50C145 68 130 79 120 89 110 79 95 68 95 50Z" />
+      <path class="dnd-shell-crest-point" d="M120 96V103M116 99.5l4 8 4-8" />
+    </svg>
 
     {#if tools}
       <span class="dnd-shell-tools">{@render tools()}</span>
@@ -138,8 +165,6 @@
       </span>
     {/if}
 
-    <span class="dnd-shell-split" aria-hidden="true"></span>
-
     <button type="button" class="dnd-shell-chip" onclick={openProfile} title="Your profile">
       <span class="dnd-shell-chip-face">
         {#if $userProfile?.photo_url}
@@ -153,7 +178,6 @@
         <span class="dnd-shell-chip-mail">{$user?.email ?? ''}</span>
       </span>
     </button>
-
 
     {#if chat}
       <span class="dnd-shell-handle">
@@ -256,6 +280,7 @@
     --shell-chat: 0px;
     --size-menu-max: 400px;
     --size-chat-max: 400px;
+    --crest-inline: calc(var(--size-bar) * 240 / 62);
   }
 
   .dnd-shell-menu-open {
@@ -274,54 +299,124 @@
     gap: var(--space-3);
     height: var(--size-bar);
     padding: 0 var(--space-5);
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 22%, transparent) 0%, color-mix(in srgb, #000 40%, transparent) 55%, color-mix(in srgb, #000 70%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
-    border-bottom: none;
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-    box-shadow: var(--shadow-bar), inset 0 1px 0 var(--sheen);
+    background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 70%, var(--ground-raised) 100%);
     z-index: 20;
   }
 
-  .dnd-shell-bar::before {
-    content: '';
-    position: absolute;
-    inset: auto var(--radius-lg) 0 var(--radius-lg);
-    height: var(--border-hair);
-    background: linear-gradient(90deg, transparent, var(--metal) 12%, var(--metal-bright) 50%, var(--metal) 88%, transparent);
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
+  .dnd-shell-bar::before,
   .dnd-shell-bar::after {
     content: '';
     position: absolute;
-    inset: auto var(--radius-lg) calc(var(--arcade) * -1) var(--radius-lg);
-    height: var(--arcade);
-    background: radial-gradient(circle at 50% 35%, var(--metal-bright) 0%, var(--metal) 35%, var(--metal-dim) 70%, transparent 75%);
-    background-size: var(--arcade-step) var(--arcade);
-    background-repeat: repeat-x;
-    opacity: 0.6;
+    inset-block-end: 0;
+    block-size: calc(var(--size-bar) * 0.09);
     pointer-events: none;
+  }
+
+  .dnd-shell-bar::before {
+    inset-inline: 0 calc(50% + var(--crest-inline) / 2);
+    background:
+      linear-gradient(90deg, transparent 4%, var(--metal-dim) 4% 92%, transparent 92%) 0 0 / 100% var(--border-hair) no-repeat,
+      linear-gradient(90deg, var(--metal-dim), var(--metal) 10%) 0 100% / 100% var(--border-hair) no-repeat;
+  }
+
+  .dnd-shell-bar::after {
+    inset-inline: calc(50% + var(--crest-inline) / 2) 0;
+    background:
+      linear-gradient(270deg, transparent 4%, var(--metal-dim) 4% 92%, transparent 92%) 0 0 / 100% var(--border-hair) no-repeat,
+      linear-gradient(270deg, var(--metal-dim), var(--metal) 10%) 0 100% / 100% var(--border-hair) no-repeat;
+  }
+
+  .dnd-shell-crest {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: calc(50% - var(--crest-inline) / 2);
+    z-index: -1;
+    inline-size: var(--crest-inline);
+    block-size: calc(var(--crest-inline) * 112 / 240);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .dnd-shell-gild-bright {
+    stop-color: var(--metal-bright);
+  }
+
+  .dnd-shell-gild-metal {
+    stop-color: var(--metal);
+  }
+
+  .dnd-shell-gild-dim {
+    stop-color: var(--metal-dim);
+  }
+
+  .dnd-shell-field-top {
+    stop-color: var(--ground-lift);
+  }
+
+  .dnd-shell-field-foot {
+    stop-color: var(--ground-deep);
+  }
+
+  .dnd-shell-glow-core {
+    stop-color: var(--ember);
+    stop-opacity: 0.2;
+  }
+
+  .dnd-shell-glow-edge {
+    stop-color: var(--ember);
+    stop-opacity: 0;
+  }
+
+  .dnd-shell-crest-glow {
+    fill: url(#dnd-shell-glow);
+  }
+
+  .dnd-shell-crest-swag {
+    fill: var(--ground-raised);
+  }
+
+  .dnd-shell-crest-line,
+  .dnd-shell-crest-keyline,
+  .dnd-shell-crest-point {
+    fill: none;
+    stroke-width: var(--border-hair);
+    vector-effect: non-scaling-stroke;
+  }
+
+  .dnd-shell-crest-line,
+  .dnd-shell-crest-point {
+    stroke: var(--metal);
+  }
+
+  .dnd-shell-crest-keyline {
+    stroke: var(--metal-dim);
+  }
+
+  .dnd-shell-crest-bead {
+    fill: var(--metal);
+  }
+
+  .dnd-shell-crest-shield {
+    fill: url(#dnd-shell-field);
+    stroke: url(#dnd-shell-gild);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 0.15rem 0.3rem var(--shade));
   }
 
   .dnd-shell-player {
     --player-seek: calc(var(--space-8) * 2);
     --player-name: calc(var(--space-8) * 2.5);
     grid-area: topbar;
-    justify-self: center;
+    justify-self: end;
     align-self: center;
     z-index: 21;
     display: flex;
     align-items: center;
     gap: var(--space-3);
     height: calc(var(--size-bar) - var(--space-4));
+    margin-inline-end: calc(50% + var(--size-bar) * 0.75);
     padding: 0 var(--space-3);
-    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-    border: none;
-    border-radius: var(--radius-pill);
-    box-shadow: var(--rim-thin), var(--bevel-down);
+    background: none;
   }
 
   .dnd-shell-player-acts {
@@ -388,23 +483,9 @@
     display: none;
   }
 
-  .dnd-shell-split {
-    flex: none;
-    width: var(--border-hair);
-    height: var(--size-split);
-    background: var(--metal-dim);
-  }
-
-  .dnd-shell-crest,
   .dnd-shell-handle {
     display: flex;
     flex: none;
-  }
-
-  .dnd-shell-crest-mark {
-    block-size: 2.25rem;
-    aspect-ratio: 1;
-    filter: drop-shadow(0 0.0625rem 0 var(--ground-deep));
   }
 
   .dnd-shell-mark {
@@ -415,11 +496,14 @@
     white-space: nowrap;
     font-family: var(--font-display);
     font-size: var(--text-md);
-    font-weight: 700;
-    letter-spacing: var(--tracking-caps);
+    font-weight: 600;
+    letter-spacing: calc(var(--tracking-caps) * 2);
     text-transform: uppercase;
-    color: var(--metal-bright);
-    text-shadow: 0 1px 0 #000, 0 0 12px var(--ember-glow);
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 55%, var(--metal-dim) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 var(--shade-hard));
   }
 
   .dnd-shell-nav {
@@ -430,7 +514,7 @@
     align-items: center;
     gap: var(--space-2);
     padding-inline-start: var(--space-4);
-    border-inline-start: var(--border-hair) solid var(--metal-dim);
+    background: linear-gradient(180deg, transparent 25%, var(--metal-dim) 50%, transparent 75%) 0 0 / var(--border-hair) 100% no-repeat;
   }
 
   .dnd-shell-run {
@@ -438,69 +522,111 @@
     min-width: var(--space-4);
   }
 
-
   .dnd-shell-chip {
+    --chip-tail: 0.9em;
+    --chip-quatrefoil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M28 28A22 22 0 0 1 46.18 6.33L50 1l3.82 5.33A22 22 0 0 1 72 28 22 22 0 0 1 93.67 46.18L99 50l-5.33 3.82A22 22 0 0 1 72 72 22 22 0 0 1 53.82 93.67L50 99l-3.82-5.33A22 22 0 0 1 28 72 22 22 0 0 1 6.33 53.82L1 50l5.33-3.82A22 22 0 0 1 28 28Z'/%3E%3C/svg%3E");
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex: none;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
     max-width: var(--size-chip-max);
-    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
-    background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
+    padding: var(--space-1) calc(var(--chip-tail) + var(--space-3)) var(--space-1) 0;
+    background: none;
     border: none;
-    border-radius: var(--radius-pill);
-    box-shadow: var(--rim-thin), var(--bevel-down);
     cursor: pointer;
     text-align: start;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: filter 0.15s ease;
+  }
+
+  .dnd-shell-chip::before,
+  .dnd-shell-chip::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--chip-tail)) 50%, 100% 100%, 0 100%);
+    pointer-events: none;
+  }
+
+  .dnd-shell-chip::before {
+    inset: 0 0 0 calc(var(--size-face) / 2);
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 55%, var(--metal-dim) 100%);
+  }
+
+  .dnd-shell-chip::after {
+    inset: var(--border-hair) var(--border-hair) var(--border-hair) calc(var(--size-face) / 2 + var(--border-hair));
+    background:
+      linear-gradient(var(--metal-dim), var(--metal-dim)) 0 0.22em / calc(100% - var(--chip-tail)) var(--border-hair) no-repeat,
+      linear-gradient(var(--metal-dim), var(--metal-dim)) 0 calc(100% - 0.22em) / calc(100% - var(--chip-tail)) var(--border-hair) no-repeat,
+      linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
   }
 
   .dnd-shell-chip:hover {
-    box-shadow: var(--rim-thin), var(--bevel-down), var(--glow-metal);
+    filter: drop-shadow(0 0 0.35rem var(--ember-glow));
   }
 
   .dnd-shell-chip:focus-visible {
     outline: none;
+    border-radius: var(--radius-sm);
     box-shadow: var(--focus-ring);
   }
 
   .dnd-shell-chip-face {
+    position: relative;
     display: flex;
     flex: none;
     align-items: center;
     justify-content: center;
     width: var(--size-face);
     height: var(--size-face);
-    overflow: hidden;
-    border-radius: var(--radius-pill);
-    background: radial-gradient(circle at 38% 26%, var(--ground-lift) 0%, var(--ground-deep) 84%);
-    box-shadow: inset 0 0 0 1px var(--keyline), inset 0 0 0 2px var(--metal), inset 0 2px 4px var(--shade-hard);
+    background: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 55%, var(--metal-dim) 100%);
+    -webkit-mask: var(--chip-quatrefoil) center / 100% 100% no-repeat;
+    mask: var(--chip-quatrefoil) center / 100% 100% no-repeat;
+  }
+
+  .dnd-shell-chip-face::before,
+  .dnd-shell-chip-face :global(img) {
+    -webkit-mask: var(--chip-quatrefoil) center / calc(100% - 2 * var(--border-hair)) calc(100% - 2 * var(--border-hair)) no-repeat;
+    mask: var(--chip-quatrefoil) center / calc(100% - 2 * var(--border-hair)) calc(100% - 2 * var(--border-hair)) no-repeat;
+  }
+
+  .dnd-shell-chip-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, var(--ground-lift) 0%, var(--ground-deep) 80%);
   }
 
   .dnd-shell-chip-face :global(img) {
+    position: relative;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
   .dnd-shell-chip-initial {
+    position: relative;
     font-family: var(--font-display);
     font-size: var(--text-md);
     font-weight: 700;
-    color: var(--metal);
+    line-height: 1;
+    color: var(--metal-bright);
   }
 
   .dnd-shell-chip-lines {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    line-height: 1.15;
   }
 
   .dnd-shell-chip-name {
     font-family: var(--font-display);
     font-size: var(--text-sm);
     font-weight: 600;
-    color: var(--metal-bright);
+    letter-spacing: var(--tracking-wide);
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -509,6 +635,7 @@
   .dnd-shell-chip-mail {
     font-family: var(--font-body);
     font-size: var(--text-xs);
+    font-style: italic;
     color: var(--ink-faint);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -648,13 +775,25 @@
     bottom: auto;
   }
 
+  @media (max-width: 1439px) {
+    .dnd-shell-bar:has(.dnd-shell-tools > :global(:nth-child(3))) {
+      --crest-inline: 0rem;
+    }
+
+    .dnd-shell-bar:has(.dnd-shell-tools > :global(:nth-child(3))) .dnd-shell-crest {
+      display: none;
+    }
+  }
+
   @media (max-width: 1100px) {
-    .dnd-shell-chip-lines {
+    .dnd-shell-chip-lines,
+    .dnd-shell-chip::before,
+    .dnd-shell-chip::after {
       display: none;
     }
 
     .dnd-shell-chip {
-      padding: var(--space-1);
+      padding: 0;
     }
   }
 
@@ -665,14 +804,24 @@
   }
 
   @media (max-width: 860px) {
+    .dnd-shell {
+      --crest-inline: 0rem;
+    }
+
     .dnd-shell-mark,
-    .dnd-shell-player-lines {
+    .dnd-shell-player-lines,
+    .dnd-shell-crest {
       display: none;
+    }
+
+    .dnd-shell-player {
+      justify-self: center;
+      margin-inline-end: 0;
     }
 
     .dnd-shell-nav {
       padding-inline-start: 0;
-      border-inline-start: none;
+      background: none;
     }
 
     .dnd-shell-scroll {
@@ -686,8 +835,7 @@
       padding: 0 var(--space-3);
     }
 
-    .dnd-shell-run,
-    .dnd-shell-split {
+    .dnd-shell-run {
       display: none;
     }
   }
