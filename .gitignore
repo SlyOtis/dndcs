@@ -49,3 +49,5 @@ build-errors.log
 .nimon/pr/
 .nimon/history/
 tmp/
+.lcp_inspect/
+.vite/
