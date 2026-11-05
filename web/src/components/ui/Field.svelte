@@ -8,7 +8,8 @@
     valid = false,
     required = false,
     id,
-    children
+    children,
+    action
   }: {
     /** Text shown above the control. */
     label: string
@@ -24,6 +25,8 @@
     id: string
     /** The control itself. */
     children?: Snippet
+    /** A button set beside the control, on its row. */
+    action?: Snippet
   } = $props()
 </script>
 
@@ -37,9 +40,14 @@
     {#if required}<span class="dnd-field-required" aria-hidden="true">*</span>{/if}
   </label>
 
-  <div class="dnd-field-well">
-    {@render children?.()}
-    <span class="dnd-field-mark" aria-hidden="true"></span>
+  <div class="dnd-field-row">
+    <div class="dnd-field-well">
+      {@render children?.()}
+      <span class="dnd-field-mark" aria-hidden="true"></span>
+    </div>
+    {#if action}
+      {@render action()}
+    {/if}
   </div>
 
   {#if error}
@@ -90,9 +98,18 @@
     margin-inline-start: var(--space-1);
   }
 
+  .dnd-field-row {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
   .dnd-field-well {
     position: relative;
     display: flex;
+    flex: 1;
+    min-width: 0;
   }
 
   .dnd-field-well::before,

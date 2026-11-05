@@ -84,8 +84,10 @@
         disabled={busy}
         onkeydown={(event) => event.key === 'Enter' && add()}
       />
+      {#snippet action()}
+        <Button variant="secondary" size="sm" disabled={busy || !address.trim()} onclick={add}>Add</Button>
+      {/snippet}
     </Field>
-    <Button variant="secondary" size="sm" disabled={busy || !address.trim()} onclick={add}>Add</Button>
   </div>
 {/if}
 
@@ -95,10 +97,7 @@
   }
 
   .friends-add {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: var(--space-3);
+    display: grid;
     min-width: 0;
   }
 </style>
