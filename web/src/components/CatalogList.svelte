@@ -311,7 +311,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 12%, transparent) 0%, color-mix(in srgb, #000 55%, transparent) 40%, color-mix(in srgb, #000 72%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
     text-shadow: 0 1px 0 #000;
@@ -394,11 +394,11 @@
     z-index: 1;
     padding: var(--space-2) var(--space-5);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background:
       linear-gradient(color-mix(in srgb, var(--ember) 16%, transparent), color-mix(in srgb, var(--ember) 16%, transparent)),
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim), var(--bevel-up), var(--shadow-sm);
     font-family: var(--font-display);

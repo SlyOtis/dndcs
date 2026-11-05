@@ -44,7 +44,7 @@
       'M79 38a13 13 0 0 1 0 24 13 13 0 0 1-17 17 13 13 0 0 1-24 0 13 13 0 0 1-17-17 13 13 0 0 1 0-24 13 13 0 0 1 17-17 13 13 0 0 1 24 0 13 13 0 0 1 17 17Z',
     star:
       'M50 2 61 22l22-8-8 22 20 11-20 11 8 22-22-8-11 20-11-20-22 8 8-22L5 47l20-11-8-22 22 8L50 2Z',
-    plate: 'M18 6h64l16 16v56L82 94H18L2 78V22L18 6Z'
+    plate: 'M20 6h60a18 18 0 0 1 18 18v52a18 18 0 0 1-18 18H20A18 18 0 0 1 2 76V24A18 18 0 0 1 20 6Z'
   }
 </script>
 
@@ -84,7 +84,6 @@
     --sigil-light: var(--metal);
     width: var(--sigil-d);
     height: var(--sigil-d);
-    transition: transform 0.15s ease, filter 0.15s ease;
   }
 
   .dnd-sigil-sm {
@@ -128,6 +127,7 @@
     overflow: visible;
     pointer-events: none;
     filter: drop-shadow(0 -1px 0 var(--metal-edge)) drop-shadow(0 2px 3px var(--shade));
+    transition: transform 0.15s ease, filter 0.15s ease;
   }
 
   .dnd-sigil-fill {
@@ -174,7 +174,7 @@
     line-height: 1;
     color: var(--sigil-light);
     text-shadow: 0 1px 0 #000, 0 0 8px color-mix(in srgb, var(--sigil-light) 60%, transparent);
-    transition: color 0.18s ease, text-shadow 0.18s ease;
+    transition: color 0.18s ease, text-shadow 0.18s ease, transform 0.15s ease;
   }
 
   .dnd-sigil-count {
@@ -194,8 +194,8 @@
     color: var(--metal-bright);
   }
 
-  .dnd-sigil:hover:not(:disabled) {
-    filter: drop-shadow(0 0 8px var(--ember-glow));
+  .dnd-sigil:hover:not(:disabled) .dnd-sigil-trace {
+    filter: drop-shadow(0 -1px 0 var(--metal-edge)) drop-shadow(0 2px 3px var(--shade)) drop-shadow(0 0 8px var(--ember-glow));
   }
 
   .dnd-sigil:hover:not(:disabled) .dnd-sigil-glyph {
@@ -203,13 +203,19 @@
     text-shadow: var(--glow-text);
   }
 
-  .dnd-sigil:active:not(:disabled) {
+  .dnd-sigil:active:not(:disabled) .dnd-sigil-trace,
+  .dnd-sigil:active:not(:disabled) .dnd-sigil-glyph {
     transform: scale(0.94);
     filter: brightness(0.85);
   }
 
   .dnd-sigil:disabled {
     cursor: not-allowed;
+  }
+
+  .dnd-sigil:disabled .dnd-sigil-trace,
+  .dnd-sigil:disabled .dnd-sigil-glyph,
+  .dnd-sigil:disabled .dnd-sigil-count {
     opacity: 0.4;
     filter: grayscale(0.7);
   }

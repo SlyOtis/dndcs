@@ -286,7 +286,7 @@
     margin: var(--space-8) auto;
     padding: var(--space-6);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background:
       radial-gradient(ellipse 80% 60% at 50% 0%, color-mix(in srgb, var(--state-bad) 16%, transparent) 0%, transparent 70%),
       var(--texture-noise),
@@ -314,7 +314,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
     font-family: var(--font-display);

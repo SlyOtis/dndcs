@@ -826,7 +826,7 @@
     padding: 0;
     overflow: hidden;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised), var(--ground-deep));
     box-shadow: var(--rim), inset 0 0 16px 2px var(--shade-hard), var(--shadow-sm);
     cursor: zoom-in;
@@ -1117,7 +1117,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent), color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent)),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--bevel-up), inset 0 0 0 1px var(--metal-dim);
     text-shadow: 0 1px 0 #000;

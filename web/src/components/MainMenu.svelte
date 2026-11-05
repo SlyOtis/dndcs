@@ -396,7 +396,7 @@
     --menu-radius: var(--radius-sm);
     --menu-stone:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
 
     display: grid;

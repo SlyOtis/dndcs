@@ -563,7 +563,7 @@
     grid-area: feed;
     align-self: stretch;
     padding: var(--space-4) var(--space-4) var(--space-5);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background:
       radial-gradient(ellipse 90% 30% at 50% 0%, color-mix(in srgb, var(--ember) 7%, transparent) 0%, transparent 70%),
       var(--texture-noise),
@@ -587,7 +587,7 @@
     padding: var(--space-3) var(--space-4);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent), color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent)),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up), 0 0.1875rem 0.375rem var(--shade);
   }

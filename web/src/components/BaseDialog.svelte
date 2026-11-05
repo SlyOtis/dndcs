@@ -151,7 +151,7 @@
   }
 
   .dialog {
-    --dialog-radius: var(--radius-sm);
+    --dialog-radius: var(--radius-xl);
     --dialog-rim-w: 0.375rem;
     position: fixed;
     top: 50%;
@@ -181,7 +181,7 @@
     inset: calc(var(--dialog-rim-w) + var(--space-1));
     z-index: 4;
     border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 55%, transparent);
-    border-radius: 0;
+    border-radius: var(--radius-lg);
     pointer-events: none;
   }
 
@@ -196,7 +196,7 @@
     border-radius: var(--radius-pill);
     background:
       radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--stone-light) 40%, transparent) 0%, transparent 60%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone-dark);
     box-shadow: var(--rim-thin), var(--bevel-up);
     pointer-events: none;
@@ -240,10 +240,10 @@
     padding: var(--space-3) var(--space-5);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 22%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
+      var(--texture-noise),
+      var(--ground-raised);
     border-bottom: none;
-    border-radius: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow:
       var(--bevel-up),
       inset 0 -1px 0 var(--keyline),
@@ -281,7 +281,7 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    border-radius: 0;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   }
 
   @keyframes dialog-veil {

@@ -100,7 +100,7 @@
         border-bottom: none;
         background:
             linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 12%, transparent) 0%, color-mix(in srgb, #000 55%, transparent) 55%, color-mix(in srgb, #000 70%, transparent) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone-dark);
         box-shadow: var(--rim-thin), var(--bevel-up), inset 0 0 14px 2px var(--shade-hard);
     }
@@ -271,7 +271,7 @@
         margin: var(--space-2) 0;
         padding: var(--space-4);
         background: var(--rivets), var(--texture-leather), var(--texture-parchment);
-        border-radius: var(--radius-sm);
+        border-radius: var(--radius-lg);
         box-shadow: var(--rim), inset 0 0 24px 4px color-mix(in srgb, #5a3a12 45%, transparent), var(--shadow-md);
         --ink: var(--ink-parchment);
         --ink-dim: color-mix(in srgb, var(--ink-parchment) 75%, #d7c091);

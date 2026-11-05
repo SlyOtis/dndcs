@@ -353,10 +353,10 @@
     min-width: 0;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     box-shadow: var(--rim), var(--bevel-up), inset 0 0 1rem 0.125rem var(--shade-hard), var(--shadow-md);
   }
 

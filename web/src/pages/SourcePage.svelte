@@ -151,7 +151,7 @@
     z-index: -1;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up);
   }

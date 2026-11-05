@@ -156,7 +156,7 @@
         background:
             radial-gradient(ellipse 80% 90% at 50% 110%, var(--ember-glow) 0%, transparent 70%),
             linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 26%, transparent) 0%, color-mix(in srgb, #000 30%, transparent) 55%, var(--ground-raised) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone);
         box-shadow:
             inset 0 1px 0 var(--keyline),

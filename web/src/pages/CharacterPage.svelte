@@ -478,10 +478,10 @@
     background:
       radial-gradient(ellipse 45% 90% at 0% 50%, color-mix(in srgb, var(--ember) 16%, transparent) 0%, transparent 70%),
       linear-gradient(180deg, color-mix(in srgb, var(--ground-raised) 78%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 90%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone-dark);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     box-shadow: var(--rim), inset 0 0 28px 6px var(--shade-hard), var(--shadow-md);
   }
 

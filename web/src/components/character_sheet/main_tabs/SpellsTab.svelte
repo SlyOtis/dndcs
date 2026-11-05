@@ -348,7 +348,7 @@
         padding: var(--space-1) var(--space-3);
         background:
             linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone);
         border-radius: var(--radius-sm);
         box-shadow: var(--bevel-up), inset 0 0 0 1px var(--metal-dim), inset 0 -1px 0 1px var(--keyline), 0 2px 4px var(--shade);

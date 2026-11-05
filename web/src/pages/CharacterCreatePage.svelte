@@ -507,10 +507,10 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim), var(--bevel-up), 0 0.5rem 1.2rem var(--shade);
   }
@@ -744,10 +744,10 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3);
+    padding: var(--space-4) var(--space-3) var(--space-3);
     min-width: 0;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: 50% 50% var(--radius-lg) var(--radius-lg) / var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg);
     background:
       radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--ember) 8%, transparent) 0%, transparent 70%),
       var(--texture-noise),
@@ -794,7 +794,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--bevel-up), inset 0 0 0 0.0625rem var(--ground-deep);
     font-family: var(--font-display);

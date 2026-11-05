@@ -929,7 +929,7 @@ Answer with JSON and nothing else: className, hitDie, primaryAbility, savingThro
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     box-shadow: var(--rim), inset 0 0 22px 4px var(--shade-hard);
   }
 

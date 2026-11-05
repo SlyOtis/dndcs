@@ -385,7 +385,7 @@
     min-height: 20rem;
     overflow: hidden;
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised), var(--ground-deep));
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     box-shadow: var(--rim), inset 0 0 28px 6px var(--shade-hard);
     cursor: grab;
     touch-action: none;
@@ -540,7 +540,7 @@
     padding: var(--space-3);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent), color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent)),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     border: none;
     border-radius: var(--radius-sm);

@@ -235,7 +235,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 50%, transparent) 60%, color-mix(in srgb, #000 68%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--bevel-up), 0 0 0 1px var(--keyline);
     font-size: var(--text-xs);

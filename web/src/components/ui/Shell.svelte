@@ -6,6 +6,8 @@
   import { getClock, playNext, playPrev, playing, progress, seekSong, toggleSong, track } from '$lib/music'
   import Aura from './Aura.svelte'
   import Button from './Button.svelte'
+  import Flame from './Flame.svelte'
+  import Glass from './Glass.svelte'
   import Ornament from './Ornament.svelte'
   import Sigil from './Sigil.svelte'
   import Sidebar from './Sidebar.svelte'
@@ -210,8 +212,11 @@
     {/if}
 
     <span class="dnd-shell-veil" aria-hidden="true">
+      <span class="dnd-shell-window"><Glass size="xl" /></span>
+      <span class="dnd-shell-lantern dnd-shell-lantern-start"><Flame size="sm" intensity="steady" sconce hung /></span>
+      <span class="dnd-shell-lantern dnd-shell-lantern-end"><Flame size="sm" intensity="calm" sconce hung /></span>
       <Aura variant="veil" tone="ember" />
-      <Aura variant="motes" tone="ember" density="sparse" />
+      <Aura variant="motes" tone="ember" density="normal" />
     </span>
 
     <div class="dnd-scroll dnd-shell-scroll" class:dnd-shell-scroll-flush={flush}>
@@ -275,6 +280,7 @@
       var(--texture-stone),
       var(--stone);
     border-bottom: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     box-shadow: var(--shadow-bar), inset 0 1px 0 var(--sheen);
     z-index: 20;
   }
@@ -282,7 +288,7 @@
   .dnd-shell-bar::before {
     content: '';
     position: absolute;
-    inset: auto 0 0 0;
+    inset: auto var(--radius-lg) 0 var(--radius-lg);
     height: var(--border-hair);
     background: linear-gradient(90deg, transparent, var(--metal) 12%, var(--metal-bright) 50%, var(--metal) 88%, transparent);
     opacity: 0.5;
@@ -292,7 +298,7 @@
   .dnd-shell-bar::after {
     content: '';
     position: absolute;
-    inset: auto 0 calc(var(--arcade) * -1) 0;
+    inset: auto var(--radius-lg) calc(var(--arcade) * -1) var(--radius-lg);
     height: var(--arcade);
     background: radial-gradient(circle at 50% 35%, var(--metal-bright) 0%, var(--metal) 35%, var(--metal-dim) 70%, transparent 75%);
     background-size: var(--arcade-step) var(--arcade);
@@ -315,7 +321,7 @@
     padding: 0 var(--space-3);
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
     box-shadow: var(--rim-thin), var(--bevel-down);
   }
 
@@ -425,8 +431,6 @@
   .dnd-shell-run {
     flex: 1 1 0;
     min-width: var(--space-4);
-    height: var(--border-hair);
-    background: linear-gradient(90deg, transparent, var(--metal-dim) 50%, transparent);
   }
 
 
@@ -439,7 +443,7 @@
     padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
     box-shadow: var(--rim-thin), var(--bevel-down);
     cursor: pointer;
     text-align: start;
@@ -463,7 +467,7 @@
     width: var(--size-face);
     height: var(--size-face);
     overflow: hidden;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-pill);
     background: radial-gradient(circle at 38% 26%, var(--ground-lift) 0%, var(--ground-deep) 84%);
     box-shadow: inset 0 0 0 1px var(--keyline), inset 0 0 0 2px var(--metal), inset 0 2px 4px var(--shade-hard);
   }
@@ -514,10 +518,13 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+    container: shell / inline-size;
     background:
       var(--texture-motes),
-      radial-gradient(ellipse 55% 40% at 0% 0%, color-mix(in srgb, var(--ember) 16%, transparent) 0%, transparent 70%),
-      radial-gradient(ellipse 55% 40% at 100% 0%, color-mix(in srgb, var(--ember) 12%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 22% 38% at 6% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 22% 38% at 94% 22%, color-mix(in srgb, var(--ember) 24%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 45% 55% at 50% 45%, color-mix(in srgb, var(--ember-glow) 30%, transparent) 0%, transparent 75%),
+      radial-gradient(ellipse 90% 70% at 50% 50%, transparent 55%, color-mix(in srgb, var(--ground-deep) 85%, transparent) 100%),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
   }
@@ -536,6 +543,29 @@
     z-index: 1;
     overflow: hidden;
     pointer-events: none;
+  }
+
+  .dnd-shell-window {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0.12;
+    filter: sepia(0.6) saturate(0.7);
+  }
+
+  .dnd-shell-lantern {
+    position: absolute;
+    top: 14%;
+    opacity: 0.4;
+  }
+
+  .dnd-shell-lantern-start {
+    left: clamp(var(--space-1), 1.5cqi, var(--space-5));
+  }
+
+  .dnd-shell-lantern-end {
+    right: clamp(var(--space-1), 1.5cqi, var(--space-5));
   }
 
   .dnd-shell-crown {
@@ -566,7 +596,7 @@
     flex-direction: column;
     gap: var(--space-5);
     min-width: 0;
-    padding: var(--space-6) var(--space-6) var(--space-8);
+    padding: clamp(var(--space-4), 3cqi, var(--space-6)) clamp(var(--space-3), 3cqi, var(--space-6)) var(--space-8);
     max-width: min(100%, var(--size-page-max));
     margin: 0 auto;
   }
@@ -615,6 +645,12 @@
 
     .dnd-shell-chip {
       padding: var(--space-1);
+    }
+  }
+
+  @container shell (max-width: 47.5rem) {
+    .dnd-shell-lantern {
+      display: none;
     }
   }
 

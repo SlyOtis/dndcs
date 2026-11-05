@@ -83,7 +83,7 @@
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     box-shadow: var(--rim-thin), inset 0 0 18px 2px var(--shade-hard), var(--shadow-sm);
     transition: box-shadow 0.18s ease, filter 0.18s ease;
   }
@@ -273,15 +273,7 @@
     z-index: 2;
     padding: 1px var(--space-2);
     border: var(--border-hair) solid var(--metal-dim);
-    border-radius: 0;
-    clip-path: polygon(
-      var(--space-1) 0,
-      100% 0,
-      100% calc(100% - var(--space-1)),
-      calc(100% - var(--space-1)) 100%,
-      0 100%,
-      0 var(--space-1)
-    );
+    border-radius: var(--radius-pill);
     background: var(--ground-deep);
     font-family: var(--font-display);
     font-size: var(--text-xs);

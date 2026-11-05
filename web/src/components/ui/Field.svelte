@@ -111,7 +111,7 @@
     left: 0;
     border-right: none;
     border-bottom: none;
-    border-top-left-radius: var(--radius-sm);
+    border-top-left-radius: var(--radius-md);
   }
 
   .dnd-field-well::after {
@@ -119,7 +119,7 @@
     bottom: 0;
     border-left: none;
     border-top: none;
-    border-bottom-right-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-md);
   }
 
   .dnd-field-well:focus-within::before,
@@ -172,7 +172,7 @@
     padding: var(--space-3) var(--space-4);
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     border: var(--border-hair) solid var(--field-rim);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     box-shadow:
       var(--bevel-down),
       inset 0 0 0 var(--border-hair) var(--keyline),

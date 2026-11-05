@@ -207,7 +207,7 @@
     min-width: 0;
     padding-bottom: var(--space-4);
     border-bottom: none;
-    box-shadow: 0 0.0625rem 0 var(--ground-deep), 0 0.125rem 0 var(--metal-dim), 0 0.1875rem 0 color-mix(in srgb, var(--metal) 60%, transparent), 0 0.25rem 0 var(--ground-deep);
+    box-shadow: 0 var(--border-hair) 0 color-mix(in srgb, var(--metal) 45%, transparent);
   }
 
   .hall-hero-word {
@@ -320,7 +320,7 @@
     align-self: stretch;
     padding-inline-start: var(--space-5);
     border-inline-start: none;
-    box-shadow: -0.0625rem 0 0 var(--ground-deep), -0.125rem 0 0 var(--metal-dim), -0.1875rem 0 0 color-mix(in srgb, var(--metal) 50%, transparent), -0.25rem 0 0 var(--ground-deep);
+    box-shadow: calc(var(--border-hair) * -1) 0 0 color-mix(in srgb, var(--metal) 35%, transparent);
   }
 
   .hall-divide {
@@ -329,13 +329,13 @@
     align-items: center;
     gap: var(--space-3);
     min-width: 0;
-    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
-    border-radius: var(--radius-sm);
+    padding: 0.5em 0.75em 0.5em 1.25em;
+    border: var(--border-hair) solid color-mix(in srgb, var(--metal) 40%, transparent);
+    border-radius: var(--radius-xl);
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
-    box-shadow: var(--bevel-up), inset 0 0 0 0.0625rem var(--ground-deep), 0 0.0625rem 0 var(--metal-dim), 0 0.125rem 0 var(--metal), 0 0.1875rem 0 var(--ground-deep), 0 0.3125rem 0.5rem var(--shade);
+      radial-gradient(ellipse 50% 160% at 0% 50%, color-mix(in srgb, var(--ember) 10%, transparent) 0%, transparent 70%),
+      color-mix(in srgb, var(--ground-deep) 72%, transparent);
+    box-shadow: inset 0 var(--border-hair) 0 var(--sheen-soft), var(--shadow-sm);
   }
 
   .hall-divide-name {
@@ -350,16 +350,13 @@
     font-family: var(--font-body);
     font-size: var(--text-xs);
     font-style: italic;
-    color: var(--ink-dim);
+    color: var(--ink);
     text-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .hall-divide-run {
     flex: 1;
     min-width: 0;
-    height: var(--border-hair);
-    background: linear-gradient(90deg, var(--metal), var(--metal-dim) 40%, transparent);
-    box-shadow: 0 0.0625rem 0 var(--ground-deep);
   }
 
   .hall-divide-search {
@@ -384,7 +381,7 @@
     .hall-plot-friends {
       padding-inline-start: 0;
       padding-top: var(--space-5);
-      box-shadow: 0 -0.0625rem 0 var(--ground-deep), 0 -0.125rem 0 var(--metal-dim), 0 -0.1875rem 0 color-mix(in srgb, var(--metal) 50%, transparent), 0 -0.25rem 0 var(--ground-deep);
+      box-shadow: 0 calc(var(--border-hair) * -1) 0 color-mix(in srgb, var(--metal) 35%, transparent);
     }
   }
 </style>

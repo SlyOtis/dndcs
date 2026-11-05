@@ -38,6 +38,12 @@
     <span class="dnd-panelbox-corner dnd-panelbox-corner-end">
       <Ornament name="cusp" size="xs" tone="metal" flip />
     </span>
+    <span class="dnd-panelbox-corner dnd-panelbox-corner-start dnd-panelbox-corner-low">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={-90} />
+    </span>
+    <span class="dnd-panelbox-corner dnd-panelbox-corner-end dnd-panelbox-corner-low">
+      <Ornament name="cusp" size="xs" tone="metal" rotate={180} />
+    </span>
   {/if}
 
   <header class="dnd-panelbox-head">
@@ -69,7 +75,7 @@
     min-height: 0;
     overflow: hidden;
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-inset);
     filter: var(--drop-panel);
   }
@@ -80,6 +86,7 @@
     z-index: -1;
     border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 60%, transparent);
     box-shadow: var(--shadow-hearth-soft);
+    border-radius: var(--radius-lg);
     pointer-events: none;
   }
 
@@ -99,6 +106,11 @@
     right: var(--panel-keyline);
   }
 
+  .dnd-panelbox-corner-low {
+    top: auto;
+    bottom: var(--panel-keyline);
+  }
+
   .dnd-panelbox-head {
     position: relative;
     isolation: isolate;
@@ -107,14 +119,13 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--space-2) var(--space-3);
-    margin: 0.375rem 0.375rem 0;
-    padding: var(--space-3) var(--space-4);
+    margin: var(--panel-keyline) var(--panel-keyline) 0;
+    padding: var(--space-2) var(--space-4) var(--space-3);
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 22%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
+      radial-gradient(ellipse 60% 140% at 50% 0%, color-mix(in srgb, var(--ember) 8%, transparent) 0%, transparent 70%);
     border-bottom: none;
-    box-shadow: var(--bevel-up), inset 0 -1px 0 var(--keyline), 0 1px 0 var(--metal-dim), 0 2px 0 var(--metal), 0 3px 0 var(--keyline), 0 5px 8px var(--shade);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--metal) 45%, transparent);
   }
 
 

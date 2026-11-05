@@ -196,7 +196,7 @@
     background:
       radial-gradient(ellipse 60% 140% at 0% 50%, var(--ember-glow) 0%, transparent 70%),
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 14%, transparent) 0%, color-mix(in srgb, #000 55%, transparent) 60%, color-mix(in srgb, #000 70%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone-dark);
     box-shadow: var(--rim-thin), var(--bevel-up);
     color: var(--metal-bright);
@@ -238,7 +238,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up);
     color: var(--metal);
@@ -274,7 +274,7 @@
     border-radius: var(--radius-sm);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 55%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone-dark);
     box-shadow: var(--bevel-up);
     font-family: var(--font-mono);

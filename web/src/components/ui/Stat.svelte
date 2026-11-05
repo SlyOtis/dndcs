@@ -65,25 +65,14 @@
     --stat-light: var(--metal);
     --stat-brace: var(--metal);
     --stat-rim: var(--metal);
-    --stat-cut: 9px;
-    --stat-cusp: 10px;
-    --stat-shape: polygon(
-      var(--stat-cut) 0,
-      calc(100% - var(--stat-cut)) 0,
-      100% var(--stat-cut),
-      100% calc(100% - var(--stat-cut)),
-      calc(100% - var(--stat-cut)) 100%,
-      var(--stat-cut) 100%,
-      0 calc(100% - var(--stat-cut)),
-      0 var(--stat-cut)
-    );
+    --stat-cusp: 0.6rem;
+    --stat-shape: inset(0 round 50% 50% var(--radius-md) var(--radius-md) / var(--radius-xl) var(--radius-xl) var(--radius-md) var(--radius-md));
     background:
-      var(--rivets),
       radial-gradient(ellipse 90% 55% at 50% 0%, color-mix(in srgb, var(--ember) 8%, transparent) 0%, transparent 70%),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: 50% 50% var(--radius-lg) var(--radius-lg) / var(--radius-xl) var(--radius-xl) var(--radius-lg) var(--radius-lg);
     box-shadow: var(--rim-thin), inset 0 0 16px 2px var(--shade-hard), var(--shadow-sm);
   }
 
@@ -100,11 +89,11 @@
   }
 
   .dnd-stat::before {
-    top: -1px;
+    bottom: -1px;
     left: -1px;
     border-right: none;
-    border-bottom: none;
-    border-top-left-radius: var(--radius-md);
+    border-top: none;
+    border-bottom-left-radius: var(--radius-lg);
   }
 
   .dnd-stat::after {
@@ -112,7 +101,7 @@
     bottom: -1px;
     border-left: none;
     border-top: none;
-    border-bottom-right-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-lg);
   }
 
   .dnd-stat-ember {
@@ -150,21 +139,6 @@
 
   }
 
-  .dnd-stat-label::before,
-  .dnd-stat-label::after {
-    content: '';
-    flex: 0 1 var(--space-4);
-    height: var(--border-hair);
-  }
-
-  .dnd-stat-label::before {
-    background: linear-gradient(90deg, transparent, var(--metal-dim));
-  }
-
-  .dnd-stat-label::after {
-    background: linear-gradient(90deg, var(--metal-dim), transparent);
-  }
-
   .dnd-stat-face {
     position: relative;
     display: flex;
@@ -188,8 +162,8 @@
     z-index: 0;
     background:
       linear-gradient(180deg, color-mix(in srgb, #000 35%, transparent) 0%, color-mix(in srgb, #000 70%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
+      var(--texture-noise),
+      var(--ground-raised);
     clip-path: var(--stat-shape);
     box-shadow: inset 0 2px 4px var(--shade-hard), inset 0 0 0 1px var(--keyline);
     pointer-events: none;

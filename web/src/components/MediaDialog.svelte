@@ -319,7 +319,7 @@
   .dnd-media-tab-on {
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 22%, transparent) 0%, transparent 70%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim-thin), var(--bevel-up);
     color: var(--metal-bright);

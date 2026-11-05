@@ -340,7 +340,7 @@
     background:
       radial-gradient(ellipse 60% 140% at 0% 50%, color-mix(in srgb, var(--ember-glow) 60%, transparent) 0%, transparent 70%),
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 16%, transparent) 0%, color-mix(in srgb, #000 50%, transparent) 60%, color-mix(in srgb, #000 70%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone-dark);
     box-shadow: var(--rim-thin), var(--bevel-up);
   }
@@ -429,7 +429,7 @@
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-caps);
     text-transform: uppercase;
-    color: var(--metal-dim);
+    color: var(--ink-faint);
   }
 
   .rite-lit .rite-kind,

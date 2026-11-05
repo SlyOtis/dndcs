@@ -57,18 +57,11 @@
     padding: 0 var(--space-3);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
+      var(--texture-noise),
+      var(--ground-raised);
     border: none;
     box-shadow: var(--bevel-up), inset 0 0 0 1px var(--metal-dim), inset 0 -1px 0 1px var(--keyline);
-    clip-path: polygon(
-      var(--fold-cusp) 0,
-      calc(100% - var(--fold-cusp)) 0,
-      100% 50%,
-      calc(100% - var(--fold-cusp)) 100%,
-      var(--fold-cusp) 100%,
-      0 50%
-    );
+    border-radius: var(--radius-md);
     color: var(--metal-bright);
     font-family: var(--font-display);
     font-size: var(--text-xs);
@@ -150,10 +143,9 @@
     padding: 0 var(--space-4);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 10%, transparent) 0%, color-mix(in srgb, #000 60%, transparent) 70%, color-mix(in srgb, #000 75%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone-dark);
+      var(--texture-noise),
+      var(--ground);
     box-shadow: inset 0 1px 0 var(--sheen-soft);
-    clip-path: none;
   }
 
   .dnd-fold-row .dnd-fold-head:hover {
@@ -163,8 +155,8 @@
   .dnd-fold-row.dnd-fold-open .dnd-fold-head {
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
-      var(--stone);
+      var(--texture-noise),
+      var(--ground-raised);
     box-shadow: var(--bevel-up), inset 0 -1px 0 var(--metal-dim);
   }
 

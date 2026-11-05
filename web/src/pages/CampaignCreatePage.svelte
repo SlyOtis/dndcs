@@ -339,10 +339,10 @@
     position: absolute;
     inset: 0;
     z-index: -1;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent), color-mix(in srgb, var(--ground-deep) 45%, transparent) 60%, color-mix(in srgb, var(--ground-deep) 65%, transparent)),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim), var(--bevel-up), 0 0 1.125rem var(--ember-glow);
   }

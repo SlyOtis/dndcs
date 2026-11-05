@@ -395,7 +395,7 @@
         overflow: hidden;
         background:
             linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 18%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone);
         box-shadow:
             var(--bevel-up),
@@ -488,7 +488,7 @@
         border-radius: 0;
         background:
             linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 16%, transparent) 0%, color-mix(in srgb, #000 50%, transparent) 60%, color-mix(in srgb, #000 70%, transparent) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone-dark);
         box-shadow: var(--bevel-up), inset 0 0 0 1px var(--keyline);
         color: var(--ink-dim);
@@ -531,7 +531,7 @@
         background:
             radial-gradient(ellipse 90% 130% at 50% 110%, color-mix(in srgb, var(--ember) 55%, transparent) 0%, transparent 70%),
             linear-gradient(180deg, color-mix(in srgb, #000 55%, transparent) 0%, color-mix(in srgb, #000 30%, transparent) 100%),
-            var(--texture-stone),
+            var(--texture-noise),
             var(--stone);
         box-shadow: var(--bevel-down), inset 0 0 0 1px var(--metal-bright), inset 0 0 12px var(--ember-glow), 0 0 10px var(--ember-glow);
         z-index: 1;

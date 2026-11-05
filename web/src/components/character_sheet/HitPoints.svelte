@@ -148,7 +148,7 @@
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     box-shadow: var(--rim), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
   }
 

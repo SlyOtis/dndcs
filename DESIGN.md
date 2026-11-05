@@ -22,8 +22,8 @@ colors:
   verdigris: "#4b82d8"
   verdigris-dim: "#1f3663"
   ink: "#f3e7cb"
-  ink-dim: "#bba888"
-  ink-faint: "#85745a"
+  ink-dim: "#d1c1a3"
+  ink-faint: "#b7a88d"
   ink-parchment: "#2a1b0c"
   state-good: "#3fd65a"
   state-warn: "#ffcc00"
@@ -58,9 +58,10 @@ typography:
   mono:
     fontFamily: "IBM Plex Mono, SFMono-Regular, Menlo, monospace"
 rounded:
-  sm: "3px"
-  md: "6px"
-  xl: "18px"
+  sm: "0.5rem"
+  md: "0.75rem"
+  lg: "1.125rem"
+  xl: "1.625rem"
   pill: "9999px"
 spacing:
   "0": "2px"
@@ -111,7 +112,7 @@ components:
   field-input:
     backgroundColor: "{colors.ground-deep}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.sm}"
+    rounded: "{rounded.md}"
     padding: "12px 16px"
   field-label:
     textColor: "{colors.metal}"
@@ -119,7 +120,7 @@ components:
   stat-plate:
     backgroundColor: "{colors.ground-raised}"
     textColor: "{colors.metal}"
-    rounded: "{rounded.sm}"
+    rounded: "{rounded.lg}"
     padding: "12px 0.85rem 16px"
   frame:
     backgroundColor: "{colors.ground}"
@@ -132,7 +133,7 @@ components:
 
 **Creative North Star: "The Frozen Throne Menu"**
 
-Every surface is a WarCraft III game menu rebuilt in CSS. Chrome is carved granite and dark oak; every container is ringed in gilt with a black keyline on both sides; every button is a beveled stone slab with gold capital lettering that lights like a torch on hover and sinks when pressed. The ground is near-black and torchlit from the two upper corners. Nothing is flat: a control has weight, a well is sunk, a plate stands proud.
+Every surface is a WarCraft III game menu rebuilt in CSS. Chrome is carved granite and dark oak; every container is ringed in gilt with a black keyline on both sides; every button is a beveled stone slab with gold capital lettering that lights like a torch on hover and sinks when pressed. The ground is the sign-in gate's hall, painted once in the Shell: near-black under a warm vignette, the arched `Glass` window faint at its centre, two hung `Flame` lanterns at the edges (hidden below a 47.5rem shell), and `Aura` veil and ember motes over it. Nothing is flat: a control has weight, a well is sunk, a plate stands proud.
 
 The ornament is a frame for data, never a competitor to it. The character sheet is dense (stat plates in rows, a crown slab with the portrait in a gilded arch, a hit point block, tabbed actions), and it stays readable at a glance: gold labels in small tracked capitals above large Cinzel figures on dark ground. All material is procedural. Stone, grain, leather and noise are inline SVG `feTurbulence` filters in `src/app.css`, and no raster frame or texture ships (there is no raster provenance to record).
 
@@ -165,7 +166,7 @@ A torchlit near-black palette: warm grounds, three-step gilt metal, one ember li
 
 ### Neutral
 - **Abyss / Ground / Raised / Lift** (`ground-deep`, `ground`, `ground-raised`, `ground-lift`): the four-step dark ladder. Panels grade from raised at the top to ground or abyss at the bottom.
-- **Granite** (`stone`, `stone-light`, `stone-dark`): the body of the top bar, button faces, icon buttons, frame gaps, band headers and the dice.
+- **Granite** (`stone`, `stone-light`, `stone-dark`): the stone texture lives on the top bar, button faces and frame gaps only; every other surface takes grain on the ground ladder. The flat stone colour also tints icon buttons and the dice.
 - **Oak** (`wood`, `wood-dark`): the leather-and-oak panel variant.
 - **Keyline** (`keyline`): the near-black line that bounds every gilt ring on both sides.
 - **Vellum Ink** (`ink`, `ink-dim`, `ink-faint`): body text, secondary text, placeholders.
@@ -232,7 +233,7 @@ Hybrid and heavy. Depth is carved rather than floated: stacked inset rings, beve
 
 ## Shapes
 
-Corners are cut or tightly rounded, never soft. Buttons, stat plates and chamfer plates are octagons from `clip-path` (0.45rem cut on a md button, 9px on a stat plate, 12px `--chamfer`). Panels, wells and icon buttons take a 3px radius, the overwhelming default. Frames cut their top corners into cusped notches (`--cusp` 30px, `--dip` 18px) on an 18px radius. Round is reserved for bosses: sigils, orbs and spinners.
+No surface has a hard square corner. The radius scale is stored in rem: `--radius-sm` 0.5rem, `--radius-md` 0.75rem, `--radius-lg` 1.125rem, `--radius-xl` 1.625rem, `--chamfer` 0.75rem. Buttons clip to `inset(0 round …)` on the scale (sm, md, lg by button size). Stat plates and their faces are arched: an elliptical top (50% across, `--radius-xl` down) over `--radius-lg` lower corners, the gate window's arch. Wells, inputs and value boxes take `--radius-md` with a carved inner keyline; cards `--radius-md`; panels `--radius-xl` with a `--radius-lg` keyline and a cusp flourish in all four corners; dialogs `--radius-xl`; anything ringed by the heavy `--rim` takes at least `--radius-lg`. The top bar rounds its lower corners by `--radius-lg`. Frames still cut their top corners into cusped notches (`--cusp` 30px, `--dip` 18px) on the xl radius. Round is for bosses, chips and badges: sigils, orbs, spinners, the profile chip and card badges.
 
 Sigils trace one of five SVG surrounds (ring, cusped, lobed, star, plate). Portraits mask to lancet, ogee, trefoil, shield or round arches. Stat plates and field wells carry L-shaped gilt corner braces on the top-left and bottom-right. Dividers are gilt hairlines that fade at both ends with a centred lozenge and diamond.
 
@@ -259,7 +260,7 @@ Beveled stone slabs with gold lettering.
 - **Band:** a granite header strip with a three-line gilt ledge on its bottom edge, bled to the panel edge.
 
 ### Inputs / Fields
-- **Style:** a sunken abyss well with noise, a tarnished hairline border, bevel down plus a keyline and edge ring, 3px radius. Gilt corner braces top-left and bottom-right.
+- **Style:** a sunken abyss well with noise, a tarnished hairline border, bevel down plus a keyline and edge ring, `--radius-md`. Gilt corner braces top-left and bottom-right.
 - **Focus:** border and inner ring go to `metal-bright`/gilt with the gilt glow; braces light.
 - **Valid / Invalid:** the rim, braces and a small diamond mark take `state-good` or `state-bad`.
 - **Label:** gold tracked capitals led by a small gilt diamond.

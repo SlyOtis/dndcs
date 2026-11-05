@@ -792,7 +792,7 @@
     min-width: 0;
     padding: var(--space-5);
     border: none;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-lg);
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-raised), var(--ground-deep));
     box-shadow: var(--rim), inset 0 0 16px 2px var(--shade-hard), var(--shadow-md);
   }

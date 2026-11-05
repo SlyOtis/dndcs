@@ -69,22 +69,13 @@
     --button-pad: var(--space-5);
     --button-text: var(--text-sm);
     --button-light: var(--ember-glow);
-    --button-cut: 0.45rem;
+    --button-cut: var(--radius-md);
     --button-edge: 0.16rem;
     --button-rim: linear-gradient(180deg, var(--metal-bright) 0%, var(--metal) 38%, var(--metal-dim) 70%, var(--metal) 100%);
     --button-stone: var(--stone);
     --button-tint: transparent;
     --button-ink: var(--metal);
-    --button-shape: polygon(
-      var(--button-cut) 0,
-      calc(100% - var(--button-cut)) 0,
-      100% var(--button-cut),
-      100% calc(100% - var(--button-cut)),
-      calc(100% - var(--button-cut)) 100%,
-      var(--button-cut) 100%,
-      0 calc(100% - var(--button-cut)),
-      0 var(--button-cut)
-    );
+    --button-shape: inset(0 round var(--button-cut));
     min-height: var(--button-h);
     filter: drop-shadow(0 2px 3px var(--shade-hard));
     transition: filter 0.18s ease;
@@ -94,7 +85,7 @@
     --button-h: 1.8rem;
     --button-pad: var(--space-4);
     --button-text: var(--text-xs);
-    --button-cut: 0.32rem;
+    --button-cut: var(--radius-sm);
     --button-edge: 0.12rem;
   }
 
@@ -102,7 +93,7 @@
     --button-h: 2.4rem;
     --button-pad: var(--space-5);
     --button-text: var(--text-sm);
-    --button-cut: 0.45rem;
+    --button-cut: var(--radius-md);
     --button-edge: 0.16rem;
   }
 
@@ -110,7 +101,7 @@
     --button-h: 3.2rem;
     --button-pad: var(--space-6);
     --button-text: var(--text-md);
-    --button-cut: 0.6rem;
+    --button-cut: var(--radius-lg);
     --button-edge: 0.18rem;
   }
 

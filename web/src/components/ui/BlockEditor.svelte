@@ -1634,7 +1634,7 @@
     border-bottom: none;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--bevel-up), 0 1px 0 var(--metal-dim), 0 2px 0 var(--keyline);
     color: var(--metal);
@@ -1932,7 +1932,7 @@
   .dnd-write-host-quote {
     padding-inline-start: var(--space-3);
     border: var(--border-hair) solid var(--metal);
-    border-radius: 0;
+    border-radius: var(--radius-md);
     font-style: italic;
     color: var(--ink-dim);
   }
@@ -1963,7 +1963,7 @@
     flex: 1 0 100%;
     margin-inline: 0;
     padding: var(--space-3);
-    border-radius: 0;
+    border-radius: var(--radius-md);
     font-family: var(--font-mono);
     font-size: var(--text-xs);
   }

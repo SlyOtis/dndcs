@@ -91,7 +91,7 @@
   }
 
   .pool-slash {
-    color: var(--metal-dim);
+    color: var(--ink-faint);
     padding: 0 var(--space-0);
   }
 

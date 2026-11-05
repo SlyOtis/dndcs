@@ -111,7 +111,7 @@
     position: absolute;
     inset: var(--space-2);
     border: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 50%, transparent);
-    border-radius: 0;
+    border-radius: var(--radius-md);
     pointer-events: none;
   }
 

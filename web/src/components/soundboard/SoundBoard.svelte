@@ -216,7 +216,7 @@
   .medieval-button.add-button {
     background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
     box-shadow: var(--rim-thin), var(--bevel-down);
-    color: var(--metal-dim);
+    color: var(--ink-faint);
     font-size: var(--text-xl);
   }
 
@@ -232,7 +232,7 @@
     background:
       radial-gradient(ellipse 80% 80% at 50% 60%, var(--ember-glow) 0%, transparent 75%),
       linear-gradient(180deg, color-mix(in srgb, #000 55%, transparent) 0%, color-mix(in srgb, #000 30%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     box-shadow: var(--rim), var(--bevel-down), inset 0 0 14px var(--ember-glow);
     color: var(--metal-bright);
@@ -277,7 +277,7 @@
     cursor: pointer;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 20%, transparent) 0%, color-mix(in srgb, #000 45%, transparent) 60%, color-mix(in srgb, #000 65%, transparent) 100%),
-      var(--texture-stone),
+      var(--texture-noise),
       var(--stone);
     border: none;
     border-radius: var(--radius-sm);

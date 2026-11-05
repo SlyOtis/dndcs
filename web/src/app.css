@@ -25,13 +25,13 @@
   --space-7: 48px;
   --space-8: 72px;
 
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 18px;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.125rem;
+  --radius-xl: 1.625rem;
   --radius-pill: 9999px;
 
-  --chamfer: 12px;
+  --chamfer: 0.75rem;
   --border-hair: 1px;
   --border-width: 2px;
   --border-heavy: 3px;
@@ -101,8 +101,8 @@
   --ember-core: #ffe2b0;
 
   --ink: #f3e7cb;
-  --ink-dim: #bba888;
-  --ink-faint: #85745a;
+  --ink-dim: #d1c1a3;
+  --ink-faint: #b7a88d;
 
   --state-good: #3fd65a;
   --state-warn: #ffcc00;
@@ -206,8 +206,8 @@
   --ember-glow: rgba(255, 159, 46, 0.42);
   --ember-core: #ffe2b0;
   --ink: #f3e7cb;
-  --ink-dim: #bba888;
-  --ink-faint: #85745a;
+  --ink-dim: #d1c1a3;
+  --ink-faint: #b7a88d;
   --backdrop:
     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(255, 150, 40, 0.18) 0%, transparent 70%),
     radial-gradient(ellipse 60% 45% at 100% 0%, rgba(255, 150, 40, 0.18) 0%, transparent 70%),
@@ -238,8 +238,8 @@
   --ember-glow: rgba(127, 230, 212, 0.4);
   --ember-core: #dbfff8;
   --ink: #ece6f7;
-  --ink-dim: #a79cbd;
-  --ink-faint: #6f6687;
+  --ink-dim: #c3bad4;
+  --ink-faint: #a7a0b9;
   --backdrop:
     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(127, 230, 212, 0.14) 0%, transparent 70%),
     radial-gradient(ellipse 60% 45% at 100% 0%, rgba(127, 230, 212, 0.14) 0%, transparent 70%),
@@ -270,8 +270,8 @@
   --ember-glow: rgba(255, 74, 28, 0.5);
   --ember-core: #ffd9b0;
   --ink: #f4e0cf;
-  --ink-dim: #b6927a;
-  --ink-faint: #7c5f4c;
+  --ink-dim: #cfb19c;
+  --ink-faint: #b29987;
   --backdrop:
     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(255, 74, 28, 0.22) 0%, transparent 70%),
     radial-gradient(ellipse 60% 45% at 100% 0%, rgba(255, 74, 28, 0.22) 0%, transparent 70%),
@@ -302,8 +302,8 @@
   --ember-glow: rgba(143, 224, 74, 0.42);
   --ember-core: #e2ffc4;
   --ink: #e8ecdd;
-  --ink-dim: #9ea58e;
-  --ink-faint: #666d58;
+  --ink-dim: #bcc1ae;
+  --ink-faint: #a1a694;
   --backdrop:
     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(143, 224, 74, 0.14) 0%, transparent 70%),
     radial-gradient(ellipse 60% 45% at 100% 0%, rgba(143, 224, 74, 0.14) 0%, transparent 70%),
@@ -334,8 +334,8 @@
   --ember-glow: rgba(111, 220, 255, 0.42);
   --ember-core: #dcf7ff;
   --ink: #e4f0f6;
-  --ink-dim: #93a9b6;
-  --ink-faint: #5d7280;
+  --ink-dim: #b3c5d0;
+  --ink-faint: #9aabb5;
   --backdrop:
     radial-gradient(ellipse 60% 45% at 0% 0%, rgba(111, 220, 255, 0.16) 0%, transparent 70%),
     radial-gradient(ellipse 60% 45% at 100% 0%, rgba(111, 220, 255, 0.16) 0%, transparent 70%),
@@ -414,7 +414,7 @@ a:hover {
   position: relative;
   background: var(--rivets), var(--texture-noise), linear-gradient(180deg, var(--ground-raised) 0%, var(--ground) 100%);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md), var(--shadow-inset);
   color: var(--ink);
 }
@@ -427,8 +427,8 @@ a:hover {
   background:
   var(--rivets),
   linear-gradient(180deg, color-mix(in srgb, var(--ground-raised) 80%, transparent) 0%, color-mix(in srgb, var(--ground-deep) 88%, transparent) 100%),
-  var(--texture-stone),
-  var(--stone);
+  var(--texture-noise),
+  var(--ground);
   background-blend-mode: normal;
 }
 
@@ -453,35 +453,26 @@ a:hover {
   position: relative;
   background:
   linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 30%, transparent) 0%, color-mix(in srgb, var(--stone-dark) 70%, transparent) 100%),
-  var(--texture-stone),
+  var(--texture-noise),
   var(--stone);
   border: none;
+  border-radius: var(--radius-md);
   color: var(--ink);
   box-shadow: var(--rim-thin), var(--bevel-up), var(--shadow-sm);
 }
 
 .dnd-plate-chamfer {
   border: none;
-  border-radius: 0;
-  clip-path: polygon(
-    var(--chamfer) 0,
-    calc(100% - var(--chamfer)) 0,
-    100% var(--chamfer),
-    100% calc(100% - var(--chamfer)),
-    calc(100% - var(--chamfer)) 100%,
-    var(--chamfer) 100%,
-    0 calc(100% - var(--chamfer)),
-    0 var(--chamfer)
-  );
+  border-radius: var(--chamfer);
   outline: var(--border-hair) solid var(--metal-dim);
   outline-offset: -1px;
 }
 
 .dnd-inset {
   background: linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-  border: var(--border-hair) solid var(--metal-dim);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--bevel-down);
+  border: var(--border-hair) solid color-mix(in srgb, var(--metal) 55%, var(--metal-dim));
+  border-radius: var(--radius-md);
+  box-shadow: var(--bevel-down), inset 0 0 0 calc(var(--border-hair) * 2) var(--ground-deep), inset 0 0 0 calc(var(--border-hair) * 3) color-mix(in srgb, var(--metal-dim) 70%, transparent);
   color: var(--ink);
 }
 
@@ -640,9 +631,9 @@ a:hover {
   min-width: 0;
   padding: var(--space-2);
   background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-  border: var(--border-hair) solid var(--metal-dim);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--bevel-down);
+  border: var(--border-hair) solid color-mix(in srgb, var(--metal) 55%, var(--metal-dim));
+  border-radius: var(--radius-md);
+  box-shadow: var(--bevel-down), inset 0 0 0 calc(var(--border-hair) * 2) var(--ground-deep), inset 0 0 0 calc(var(--border-hair) * 3) color-mix(in srgb, var(--metal-dim) 70%, transparent);
   color: var(--ink);
   font-family: var(--font-figures);
   font-size: var(--text-md);
@@ -678,9 +669,9 @@ a:hover {
   width: clamp(7rem, 12vw, 11rem);
   padding: var(--space-2) var(--space-3);
   background: var(--texture-noise), linear-gradient(180deg, var(--ground-deep) 0%, var(--ground) 100%);
-  border: var(--border-hair) solid var(--metal-dim);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--bevel-down);
+  border: var(--border-hair) solid color-mix(in srgb, var(--metal) 55%, var(--metal-dim));
+  border-radius: var(--radius-md);
+  box-shadow: var(--bevel-down), inset 0 0 0 calc(var(--border-hair) * 2) var(--ground-deep), inset 0 0 0 calc(var(--border-hair) * 3) color-mix(in srgb, var(--metal-dim) 70%, transparent);
   color: var(--ink);
   font-family: var(--font-body);
   font-size: var(--text-xs);
@@ -728,7 +719,7 @@ a:hover {
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--stone-light) 25%, transparent), color-mix(in srgb, var(--ground-deep) 80%, transparent)), var(--texture-stone), var(--stone);
+  background: radial-gradient(ellipse 80% 70% at 50% 0%, color-mix(in srgb, var(--ember) 14%, transparent) 0%, transparent 75%), var(--texture-noise), linear-gradient(180deg, var(--ground-lift) 0%, var(--ground-deep) 100%);
 }
 
 .dnd-spinner {
@@ -909,7 +900,7 @@ a:hover {
   width: max-content;
   padding: var(--space-1) var(--space-3);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: color-mix(in srgb, #000 86%, transparent);
   box-shadow: var(--rim-thin), var(--shadow-lg);
   font-family: var(--font-display);
@@ -964,11 +955,11 @@ a:hover {
   margin-inline: calc(var(--space-6) * -1);
   margin-block-start: calc(var(--space-6) * -1);
   border-bottom: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   background:
     radial-gradient(ellipse 60% 120% at 50% 0%, color-mix(in srgb, var(--ember) 7%, transparent) 0%, transparent 70%),
     linear-gradient(180deg, color-mix(in srgb, #000 58%, transparent) 0%, color-mix(in srgb, #000 72%, transparent) 55%, color-mix(in srgb, #000 82%, transparent) 100%),
-    var(--texture-stone),
-    var(--stone-dark);
+    linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
   box-shadow: inset 0 1px 0 var(--sheen-soft), 0 1px 0 var(--metal-dim), 0 2px 0 var(--metal), 0 3px 0 var(--keyline), 0 5px 8px var(--shade);
 }
 
