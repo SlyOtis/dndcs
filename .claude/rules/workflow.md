@@ -13,4 +13,4 @@ description: How work reaches Quillborne when more than one person or session wo
 7. A commit message is one line, at most 72 characters, `#<number>: <what the change does>`. The body of a pull request is `Closes #<number>` or `Refs #<number>`, one short paragraph on what the change does, and a numbered list of the files it changes with one line each.
 8. A deploy happens only by a merge to `main`, which only the owner approves. A Samna Auth app change and a deployed database are the owner's too: a contributor never runs `sauth` writes or smig against a deployed environment.
 9. No secret, credential, personal address, host or machine path is committed, in code, in a rule or in `.claude/memory.jsonl`. `.env` holds the values and stays local.
-10. `.claude/rules/`, `.claude/index.json` and `.claude/memory.jsonl` are shared. Tasks, questions, sessions, settings and the memory working files under `.claude/` stay on each machine and are ignored.
+10. `.claude/rules/`, `.claude/skills/`, `.claude/index.json` and `.claude/memory.jsonl` are shared. Tasks, questions, sessions, settings and the memory working files under `.claude/` stay on each machine and are ignored.
