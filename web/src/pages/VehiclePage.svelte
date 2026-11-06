@@ -11,7 +11,6 @@
     getLayout,
     getMergedVehicleSystem,
     getMissing,
-    getPerkSummary,
     getTopSpeed,
     getFacing,
     getVehicleStats,
@@ -31,6 +30,7 @@
   import MenuPanel from '$components/MenuPanel.svelte'
   import Chat from '$chat/Chat.svelte'
   import ComponentPanel from '$components/vehicle/ComponentPanel.svelte'
+  import DeckSheet from '$components/vehicle/DeckSheet.svelte'
   import VehicleCrew from '$components/vehicle/VehicleCrew.svelte'
   import VehicleDesign from '$components/vehicle/VehicleDesign.svelte'
   import VehicleHistory from '$components/vehicle/VehicleHistory.svelte'
@@ -329,11 +329,8 @@
         </section>
 
         <div class="ves-deck">
-          <div class="ves-map">
-            <VehicleMap {ctx} {selected} {overlays} onselect={(id) => (selected = id)} {movement} />
-          </div>
-          <aside class="ves-side dnd-inset" aria-label="The chosen component">
-            <div class="ves-aboard">
+          <aside class="ves-sheet dnd-inset" aria-label="Aboard">
+            <div class="ves-who">
               <Field
                 id="ves-aboard"
                 label="Aboard as"
@@ -348,6 +345,14 @@
                   {/each}
                 </select>
               </Field>
+            </div>
+            <DeckSheet {ctx} {crewman} {selected} onselect={(id) => (selected = id)} onperks={() => open('crew')} />
+          </aside>
+          <div class="ves-map">
+            <VehicleMap {ctx} {selected} {overlays} onselect={(id) => (selected = id)} {movement} />
+          </div>
+          <aside class="ves-side dnd-inset" aria-label="The chosen component">
+            <div class="ves-aboard">
               <Fold title="Overlays" count={Object.values(overlays).filter(Boolean).length || undefined} variant="row" open={overlaysOpen} ontoggle={() => (overlaysOpen = !overlaysOpen)}>
                 <div class="ves-overlays">
                   {#each system.overlays as key (key)}
@@ -372,19 +377,6 @@
                 <p class="dnd-heading">Choose a component</p>
                 <p>Press one on the deck to read its statistics, change its hit points and condition, and see where a weapon reaches.</p>
               </div>
-              {#if crewman}
-                <section class="ves-perks" aria-label="{system.crew.perks} of {crewman.name}">
-                  <h3 class="dnd-label ves-perks-head">{system.crew.perks} · {crewman.name}</h3>
-                  {#each crewman.perks as entry (entry.id)}
-                    {@const perk = system.perks.find((candidate) => candidate.id === entry.id)}
-                    {#if perk}
-                      <p class="ves-perk"><strong>{perk.name}{entry.count > 1 ? ` ×${entry.count}` : ''}.</strong> {getPerkSummary(perk, entry.count, crewman)}</p>
-                    {/if}
-                  {:else}
-                    <p class="ves-quiet">No perks taken. Take them on the Crew tab.</p>
-                  {/each}
-                </section>
-              {/if}
             {/if}
           </aside>
         </div>
@@ -478,13 +470,6 @@
     border-block-end: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 50%, transparent);
   }
 
-  .ves-quiet {
-    margin: 0;
-    font-size: var(--text-sm);
-    font-style: italic;
-    color: var(--ink-faint);
-  }
-
   .ves-overlays {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -504,7 +489,7 @@
 
   .ves-deck {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr) minmax(0, 1.1fr);
     gap: var(--space-4);
     min-width: 0;
   }
@@ -512,6 +497,20 @@
   .ves-map {
     block-size: max(22rem, calc(100dvh - var(--size-bar) - 17rem));
     min-width: 0;
+  }
+
+  .ves-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-block-size: max(22rem, calc(100dvh - var(--size-bar) - 17rem));
+    padding: var(--space-3);
+    overflow-y: auto;
+  }
+
+  .ves-who {
+    display: grid;
+    gap: var(--space-2);
   }
 
   .ves-side {
@@ -523,32 +522,28 @@
     overflow-y: auto;
   }
 
-  .ves-perks {
-    display: grid;
-    gap: var(--space-2);
-  }
-
-  .ves-perks-head {
-    margin: 0;
-    color: var(--metal-bright);
-  }
-
-  .ves-perk {
-    margin: 0;
-    font-size: var(--text-sm);
-    color: var(--ink-dim);
-  }
-
   @container page (max-width: 1200px) {
+    .ves-deck {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    }
+
+    .ves-side {
+      grid-column: 1 / -1;
+      max-block-size: none;
+    }
+  }
+
+  @container page (max-width: 760px) {
     .ves-deck {
       grid-template-columns: minmax(0, 1fr);
     }
 
     .ves-map {
+      order: -1;
       block-size: clamp(20rem, 60vh, 40rem);
     }
 
-    .ves-side {
+    .ves-sheet {
       max-block-size: none;
     }
   }
