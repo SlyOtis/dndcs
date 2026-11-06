@@ -36,6 +36,8 @@ until docker logs "$DB_NAME" 2>&1 | tail -5 | grep -q "database system is ready 
 done
 echo "Database ready."
 
+just seed
+
 just dev-web &
 WEB_PID=$!
 

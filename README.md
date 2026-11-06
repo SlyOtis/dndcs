@@ -12,7 +12,8 @@ Tell your agent:
 
 The agent follows `.claude/skills/start-local-dev/SKILL.md`. It checks your tools, creates `.env` with a seed of
 your own, builds the database image and starts everything with `just dev`. It asks before it installs or stops
-anything. A local run needs Docker and nobody else's secrets, and signs you in as a debug user.
+anything. A local run needs Docker and nobody else's secrets, and signs you in as a debug user who already has
+characters and two campaigns to look at, the local test data in `test/seed/`.
 
 Everything else an agent needs is in `CLAUDE.md` and `.claude/rules/`: the tests, the gate, and how work reaches
 `main`.

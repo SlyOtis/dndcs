@@ -480,6 +480,25 @@
         "readme",
         "skill"
       ]
+    },
+    {
+      "path": "test/seed/",
+      "kind": "data",
+      "answers": "The local test data every just dev starts with: users.json names the debug players, every other numbered file is a list of api steps run as a player through handler.PutRoutes, and main_test.go proves each step reaches a mounted route. A feature a player sees adds or updates its steps here.",
+      "keywords": [
+        "seed",
+        "fixture",
+        "local",
+        "test",
+        "data",
+        "testdata",
+        "debug",
+        "testy",
+        "pip",
+        "campaign",
+        "character",
+        "dev"
+      ]
     }
   ]
 }

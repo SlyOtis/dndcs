@@ -39,12 +39,28 @@ A per player key, such as the Replicate key, is a Samna Auth secret bound to tha
 - `just install` checks every tool the recipes and scripts call for presence and version, go against the `go` line of `go.mod`, node, pnpm, jq, docker, az, playwright-cli, air, smig at the Dockerfile's pin and sauth at the deploy workflow's pin, installs each one that is missing or older than its pin, then installs the web and Go dependencies. sauth is a private nimling module and installs only with read access to it.
 - `just env` fails when `.env` is missing any key `.env.example` names. `just dev`, `just build` and `just build-web` depend on it.
 - `just dev-db` builds and runs the local Postgres and migrates it, and `just dev-blob` runs Azurite. `just dev` runs both together with the service and the web, and stops them with it; `just dev-server` and `just dev-web` run one each.
+- `just seed` runs the local test data of `test/seed/` into the local database. `just dev` runs it once the database is migrated and before the service starts, so every local run starts with it.
 - `just migrate <args>` runs smig against `database/migrate.yml` on the local database only. No recipe reaches a deployed database; the image's migrate target is what a deploy runs.
 - `just gate` runs check, test, build and vet: svelte-check, vitest, `go test ./...`, the web and server builds, and `go vet`. Zero errors and zero warnings; a new warning is a regression.
 - There is no deploy recipe. A merge to `main` runs `.github/workflows/azure-deploy.yml`: the image, the migrate job, the login and redirect pages, and the container app, all tagged with the first twelve characters of the commit, which is also the version the service reports. Every build, local ones included, stamps that same commit.
 - `just build-docker` builds the image: the web, the server and the migrate target.
 
 Never hand roll a step the justfile owns.
+
+## Local test data
+
+`test/seed/` is the table a local run starts with. `users.json` names the debug players: `testy`, the `SAUTH_DEBUG_USER_ID` every local request signs in as, and `pip`, the second player. The `debug` migration step seeds both identities and Pip's profile. Every other `*.json` there is a list of steps, run in file name order:
+
+- `as` names the player who makes the call.
+- `call` is a method and an `/api` path, the way `handler.PutRoutes` mounts it.
+- `body` is the JSON it sends.
+- `save` keeps the id the call answers with under a name, which a later `call` or `body` writes as `${name}`. A player's name works the same way: `${pip}`.
+
+The steps run in process through `handler.PutRoutes` as the player they name, so every row and every claim is made by the handlers, the way it is on tst. Nothing writes the tables or claimius directly. The seed refuses to run without `SAUTH_DEBUG_USER_ID`, which is empty on tst, and nothing under `test/` reaches the image. The first step that fails stops `just dev` with its file, its number and the answer.
+
+A change that adds or alters something a player sees adds or updates its steps in the same branch. A new kind of row gets one or two examples, in the campaign it belongs to or in a new numbered file for a new concern, and a changed body changes the steps that send it. When the DM and a player see it differently, the steps show both sides, the way the Ember Road keeps one page from its players and makes one roll hidden. Keep it small: enough to show each feature once. Bytes a step cannot send as JSON, such as a map image or a song, wait for a step that can.
+
+`test/seed/main_test.go`, run by `just test`, proves every step names a player, uses only names that earlier steps saved, sends JSON and reaches a mounted route. `just dev` is what proves the handlers accept it.
 
 ## Tests
 
