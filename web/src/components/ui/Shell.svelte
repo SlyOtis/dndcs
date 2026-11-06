@@ -226,7 +226,8 @@
   {/if}
 
   {#if menu}
-    <Sidebar side="start" open={$menuOpen} run="var(--size-menu-max)">{@render menu()}</Sidebar>
+    <Sidebar side="start" open={$menuOpen} run="var(--size-menu-max)" edge="none">{@render menu()}</Sidebar>
+    <span class="dnd-shell-stud dnd-shell-stud-start" aria-hidden="true"></span>
   {/if}
 
   <div class="dnd-shell-content">
@@ -258,7 +259,8 @@
   </div>
 
   {#if chat}
-    <Sidebar side="end" open={$chatOpen} run="var(--size-chat-max)">{@render chat()}</Sidebar>
+    <Sidebar side="end" open={$chatOpen} run="var(--size-chat-max)" edge="none">{@render chat()}</Sidebar>
+    <span class="dnd-shell-stud dnd-shell-stud-end" aria-hidden="true"></span>
   {/if}
 </main>
 
@@ -275,8 +277,12 @@
       'menu content chat';
     overflow: hidden;
     transition: grid-template-columns 250ms ease-in-out;
-    background: var(--backdrop);
+    background:
+      var(--texture-stars),
+      var(--texture-noise),
+      linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
     --shell-menu: 0px;
+    --shell-bend: calc(var(--radius-xl) * 1.5);
     --shell-chat: 0px;
     --size-menu-max: 400px;
     --size-chat-max: 400px;
@@ -650,10 +656,103 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
+    z-index: 11;
     container: shell / inline-size;
+    --bend-start: 0px;
+    --bend-end: 0px;
+    border-start-start-radius: var(--bend-start);
+    border-end-start-radius: var(--bend-start);
+    border-start-end-radius: var(--bend-end);
+    border-end-end-radius: var(--bend-end);
     background:
       var(--texture-noise),
-      linear-gradient(180deg, var(--ground) 0%, var(--ground-deep) 100%);
+      var(--backdrop);
+    transition:
+      border-radius 250ms ease-in-out,
+      box-shadow 250ms ease-in-out;
+  }
+
+  .dnd-shell-content::before,
+  .dnd-shell-content::after {
+    content: '';
+    position: absolute;
+    z-index: 5;
+    border: var(--border-hair) solid transparent;
+    pointer-events: none;
+    transition: border-color 250ms ease-in-out;
+  }
+
+  .dnd-shell-content::after {
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .dnd-shell-content::before {
+    inset: var(--space-1);
+    border-start-start-radius: max(0px, calc(var(--bend-start) - var(--space-1)));
+    border-end-start-radius: max(0px, calc(var(--bend-start) - var(--space-1)));
+    border-start-end-radius: max(0px, calc(var(--bend-end) - var(--space-1)));
+    border-end-end-radius: max(0px, calc(var(--bend-end) - var(--space-1)));
+  }
+
+  .dnd-shell-menu-open > .dnd-shell-content {
+    --bend-start: var(--shell-bend);
+  }
+
+  .dnd-shell-chat-open > .dnd-shell-content {
+    --bend-end: var(--shell-bend);
+  }
+
+  .dnd-shell-menu-open > .dnd-shell-content,
+  .dnd-shell-chat-open > .dnd-shell-content {
+    box-shadow: 0 0 var(--space-6) var(--shade-hard);
+  }
+
+  .dnd-shell-menu-open > .dnd-shell-content::after {
+    border-inline-start-color: var(--metal);
+  }
+
+  .dnd-shell-menu-open > .dnd-shell-content::before {
+    border-inline-start-color: var(--metal-dim);
+  }
+
+  .dnd-shell-chat-open > .dnd-shell-content::after {
+    border-inline-end-color: var(--metal);
+  }
+
+  .dnd-shell-chat-open > .dnd-shell-content::before {
+    border-inline-end-color: var(--metal-dim);
+  }
+
+  .dnd-shell-stud {
+    grid-area: content;
+    align-self: center;
+    z-index: 12;
+    inline-size: var(--space-3);
+    block-size: var(--space-3);
+    background:
+      linear-gradient(135deg, var(--metal-bright), var(--metal) 50%, var(--metal-dim)) center / 45% 45% no-repeat,
+      var(--ground-deep);
+    border: var(--border-hair) solid var(--metal);
+    box-shadow: var(--glow-metal);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease-in-out;
+  }
+
+  .dnd-shell-stud-start {
+    justify-self: start;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .dnd-shell-stud-end {
+    justify-self: end;
+    transform: translateX(50%) rotate(45deg);
+  }
+
+  .dnd-shell-menu-open > .dnd-shell-stud-start,
+  .dnd-shell-chat-open > .dnd-shell-stud-end {
+    opacity: 1;
   }
 
   .dnd-shell-ground {

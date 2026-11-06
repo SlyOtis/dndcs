@@ -5,6 +5,7 @@
     side = 'start',
     open = false,
     run = '400px',
+    edge = 'rule',
     children
   }: {
     /** Which edge the drawer slides in from. */
@@ -13,13 +14,15 @@
     open?: boolean
     /** The width the content is laid out at, whatever the drawer is squeezed to. */
     run?: string
+    /** Whether the drawer draws its own gilded rule on the inner edge, or leaves it to what it sits beside. */
+    edge?: 'rule' | 'none'
     /** What the drawer holds. */
     children?: Snippet
   } = $props()
 </script>
 
 <aside
-  class="dnd-sidebar dnd-sidebar-{side}"
+  class="dnd-sidebar dnd-sidebar-{side} dnd-sidebar-edge-{edge}"
   class:dnd-sidebar-open={open}
   style:--sidebar-run={run}
   aria-hidden={!open}
@@ -29,18 +32,46 @@
 
 <style>
   .dnd-sidebar {
-    --sidebar-edge: 0.75rem;
+    --sidebar-edge: 0px;
     position: relative;
     overflow: hidden;
     z-index: 10;
     background:
-      var(--seam) var(--seam-at) top / var(--sidebar-edge) 100% no-repeat border-box,
+      radial-gradient(ellipse 140% 45% at var(--glow-at) 0%, color-mix(in srgb, var(--verdigris) 18%, transparent) 0%, transparent 70%),
+      radial-gradient(ellipse 140% 40% at var(--glow-at) 100%, color-mix(in srgb, var(--verdigris) 12%, transparent) 0%, transparent 70%),
+      var(--texture-stars),
       var(--texture-noise),
       linear-gradient(180deg, var(--ground-raised) 0%, var(--ground-deep) 100%);
-    background-clip: border-box;
-    box-shadow: 0 0 24px var(--shade-hard);
     transform: translateX(var(--translate-x, 0));
     transition: transform 250ms ease-in-out;
+  }
+
+  .dnd-sidebar-edge-rule {
+    --sidebar-edge: var(--space-2);
+  }
+
+  .dnd-sidebar-edge-rule::before,
+  .dnd-sidebar-edge-rule::after {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    pointer-events: none;
+  }
+
+  .dnd-sidebar-edge-rule::before {
+    inline-size: var(--sidebar-edge);
+    background:
+      linear-gradient(180deg, transparent, var(--metal) 12% 88%, transparent) var(--rule-at) 0 / var(--border-hair) 100% no-repeat,
+      linear-gradient(180deg, transparent, var(--metal-dim) 20% 80%, transparent) var(--rule-in) 0 / var(--border-hair) 100% no-repeat;
+  }
+
+  .dnd-sidebar-edge-rule::after {
+    inset-block: calc(50% - var(--space-1) * 0.75);
+    inline-size: calc(var(--space-1) * 1.5);
+    block-size: calc(var(--space-1) * 1.5);
+    background: linear-gradient(135deg, var(--metal-bright), var(--metal) 50%, var(--metal-dim));
+    box-shadow: var(--glow-metal);
+    transform: rotate(45deg);
   }
 
   .dnd-sidebar-inner {
@@ -50,25 +81,41 @@
   }
 
   .dnd-sidebar-start {
-    --seam-at: right;
-    --seam: linear-gradient(90deg, var(--keyline) 0%, color-mix(in srgb, var(--wood) 70%, var(--ember-core) 12%) 10%, var(--wood) 26%, var(--wood-dark) 34%, var(--wood) 44%, var(--wood-dark) 56%, var(--keyline) 62%, var(--metal-dim) 68%, var(--metal-bright) 76%, var(--metal) 84%, var(--metal-dim) 90%, var(--keyline) 100%);
-    border-right: var(--sidebar-edge) solid transparent;
+    --glow-at: 0%;
+    --rule-at: 100%;
+    --rule-in: 0%;
     --translate-x: calc(-100% - 2px);
   }
 
-  .dnd-sidebar-start > .dnd-sidebar-inner {
+  .dnd-sidebar-start::before {
     inset-inline-end: 0;
   }
 
+  .dnd-sidebar-start::after {
+    inset-inline-end: calc(var(--sidebar-edge) / 2 - var(--space-1) * 0.75);
+  }
+
+  .dnd-sidebar-start > .dnd-sidebar-inner {
+    inset-inline-end: var(--sidebar-edge);
+  }
+
   .dnd-sidebar-end {
-    --seam-at: left;
-    --seam: linear-gradient(270deg, var(--keyline) 0%, color-mix(in srgb, var(--wood) 70%, var(--ember-core) 12%) 10%, var(--wood) 26%, var(--wood-dark) 34%, var(--wood) 44%, var(--wood-dark) 56%, var(--keyline) 62%, var(--metal-dim) 68%, var(--metal-bright) 76%, var(--metal) 84%, var(--metal-dim) 90%, var(--keyline) 100%);
-    border-left: var(--sidebar-edge) solid transparent;
+    --glow-at: 100%;
+    --rule-at: 0%;
+    --rule-in: 100%;
     --translate-x: calc(100% + 2px);
   }
 
-  .dnd-sidebar-end > .dnd-sidebar-inner {
+  .dnd-sidebar-end::before {
     inset-inline-start: 0;
+  }
+
+  .dnd-sidebar-end::after {
+    inset-inline-start: calc(var(--sidebar-edge) / 2 - var(--space-1) * 0.75);
+  }
+
+  .dnd-sidebar-end > .dnd-sidebar-inner {
+    inset-inline-start: var(--sidebar-edge);
   }
 
   .dnd-sidebar-open {
