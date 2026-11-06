@@ -461,6 +461,25 @@
         "dialog",
         "store"
       ]
+    },
+    {
+      "path": ".claude/skills/start-local-dev/SKILL.md",
+      "kind": "rule",
+      "answers": "How an agent starts the local stack: the tools, .env and its local seed, the database image, the ports, just dev, what to ask the user and what to tell them.",
+      "keywords": [
+        "local",
+        "dev",
+        "start",
+        "run",
+        "setup",
+        "env",
+        "seed",
+        "docker",
+        "air",
+        "ports",
+        "readme",
+        "skill"
+      ]
     }
   ]
 }

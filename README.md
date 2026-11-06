@@ -1,6 +1,18 @@
-# DNDCS
+# Quillborne
 
-DND Character sheet viwer that can import existing characters from D&D-Beyond or similar, and then you can use it with
-AI and tweak it in any form you'd like :)
+The table's character sheet and campaign book. Players build and play characters from rule systems written as
+JSON. The table shares campaigns: the roll log and chat, maps, lore, parties, encounters and music. A Go service
+owns the data in Postgres and serves the Svelte app in `web/`.
 
-Uses https://replicate.com for everything AI so you will need a token from there.
+## Run it locally
+
+Tell your agent:
+
+> start local dev
+
+The agent follows `.claude/skills/start-local-dev/SKILL.md`. It checks your tools, creates `.env` with a seed of
+your own, builds the database image and starts everything with `just dev`. It asks before it installs or stops
+anything. A local run needs Docker and nobody else's secrets, and signs you in as a debug user.
+
+Everything else an agent needs is in `CLAUDE.md` and `.claude/rules/`: the tests, the gate, and how work reaches
+`main`.
