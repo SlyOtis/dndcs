@@ -2,7 +2,7 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-base="${WALK_BASE:-http://localhost:5173}"
+base="${WALK_BASE:-http://localhost:$((5173 + ${SERVER_PORT:-4290} - 4290))}"
 [ -n "$(sed -n 's/^SAUTH_DEBUG_USER_ID=//p' ../.env)" ] || { echo "SAUTH_DEBUG_USER_ID is empty in .env: the walk signs in as the debug user"; exit 1; }
 curl -sf -o /dev/null "$base/" || { echo "nothing answers at $base: run just dev first"; exit 1; }
 

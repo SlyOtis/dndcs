@@ -10,7 +10,7 @@ Quillborne is a hosted service that signs players in through Samna Auth. A Go se
 
 The web lives in `web/`: `web/src` is the app, `web/public` the static sources and art, `web/test` the walk and its specs. `just dev` starts the database, the local blob store, the service on `SERVER_PORT` and the Vite dev server, and Vite proxies `/api` to the service and nothing else.
 
-File originals live in blob storage behind the service: Azure Blob Storage when deployed, Azurite on port 10000 locally. The service streams them with `ETag`, `If-None-Match` and byte ranges, so audio and video play from any point.
+File originals live in blob storage behind the service: Azure Blob Storage when deployed, Azurite locally on the port the `BlobEndpoint` of `AZURE_STORAGE_CONNECTION_STRING` names, 10000 in `.env.example`. The service streams them with `ETag`, `If-None-Match` and byte ranges, so audio and video play from any point.
 
 AI goes through the service. `/api/ai/*` passes a call on to `REPLICATE_ENDPOINT` with the calling player's own key and streams the answer back; the browser never holds a key and never calls Replicate itself.
 
@@ -46,6 +46,15 @@ A per player key, such as the Replicate key, is a Samna Auth secret bound to tha
 - `just build-docker` builds the image: the web, the server and the migrate target.
 
 Never hand roll a step the justfile owns.
+
+## Several checkouts at once
+
+Every worktree runs a local stack of its own, side by side with the others, so each one can open and test its own changes. A checkout's slot `n` sets its ports: the service on `4290 + n`, Postgres on `5490 + n`, Azurite on `10000 + n`, and Vite on `5173 + n`. The main checkout is slot 0, the values of `.env.example`.
+
+- The ports live in the checkout's own `.env`: `SERVER_PORT`, `PGPORT` and the port of the `BlobEndpoint`. The service reads `.env` itself and over the environment, so a port is changed there and nowhere else. Vite takes `5173 + SERVER_PORT - 4290` and holds it strictly, failing rather than moving to a port that belongs to another checkout.
+- The containers, the volume and the database image are named after the checkout's folder: `<folder>-db`, `<folder>-db-data` and `<folder>-blob`. `just build-db` builds the image with this checkout's migrations and its `PGPORT`, and `just dev` and `just clean` touch only this checkout's.
+- A new worktree takes its slot when step 2 of `start-local-dev` writes its `.env`: the lowest from 1 that no other worktree's `.env` holds and on which nothing listens. It keeps that `.env` until the worktree is removed.
+- Stop a run by the `just dev` whose working directory is this checkout, never by the first one found.
 
 ## Local test data
 
