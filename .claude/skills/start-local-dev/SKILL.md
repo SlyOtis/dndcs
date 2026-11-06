@@ -19,7 +19,7 @@ The commands are for macOS. On Linux, install with the package manager, and use 
 Run the checks first, then ask in one message only the questions they raised. The answer in brackets is the
 default when the user says to just do it.
 
-1. A tool is missing. Install it? [yes, with the commands in step 1]
+1. A tool is missing. Install it? [yes, with the command for it in step 1]
 2. `air` is in Go's bin folder but not on `PATH`. Add `export PATH="$PATH:$(go env GOPATH)/bin"` to their shell
    profile? [yes]
 3. Docker is installed but not running. Start it? [yes, `open -a Docker` or `open -a OrbStack`]
@@ -31,11 +31,13 @@ default when the user says to just do it.
 
 ## 1. Tools
 
-Docker, which must be running (`docker info`), Go at the `go` line of `go.mod`, node, pnpm, just and air. Look for
-air in `$(go env GOPATH)/bin` as well as on `PATH`, and export that folder in your own shell either way.
+Docker, which must be running (`docker info`), Go at or above the `go` line of `go.mod`, node, pnpm, just and air.
+Look for air in `$(go env GOPATH)/bin` as well as on `PATH`, and export that folder in your own shell either way.
+Install only what is missing:
 
 ```sh
-brew install just
+brew install --cask orbstack
+brew install go node pnpm just
 go install github.com/air-verse/air@latest
 ```
 
@@ -55,11 +57,15 @@ it is empty, saving a key answers 500. `SAUTH_APP_SECRET`, `GH_REPO_TOKEN` and `
 `SAUTH_DEBUG_USER_ID` signs every request in as Testy McTestface and skips Samna Auth, and the nimling modules the
 build and the migrations pull are public.
 
-## 3. Web dependencies
+## 3. Web
 
 ```sh
 [ -d web/node_modules ] || (cd web && pnpm install)
+[ -f web/dist/index.html ] || just build-web
 ```
+
+The service serves `web/dist`, and `just dev` builds it when it is missing. That build removes
+`web/node_modules/.vite` while Vite is starting, so build it here first.
 
 ## 4. Database image
 
@@ -80,17 +86,31 @@ when 5173 is held, so read its address from its output rather than assuming one.
 
 ## 6. Start
 
-Run `just dev` in the background with Go's bin folder on `PATH`. It starts Postgres and migrates it, Azurite, the
-service under air and Vite. Ctrl-C, a SIGINT to its process group, stops all four and removes the containers and
-the database volume.
+Run `just dev` with Go's bin folder on `PATH`, in a new session of its own, so that stopping it never signals your
+shell. A plain `&`, `set -m` in a non-interactive zsh, and `bash -mc` all leave it in your process group.
 
-Wait for Vite's `Local:` line and for the service port to answer, then measure through Vite's address:
+```sh
+perl -MPOSIX -e 'setsid or die "setsid: $!"; exec @ARGV' just dev > /tmp/quillborne-dev.log 2>&1 &
+```
+
+It starts Postgres and migrates it, Azurite, the service under air and Vite. Wait for Vite's `Local:` line in the
+log and for the service port to answer, then measure through Vite's address:
 
 ```sh
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:<vite port>/api/auth/me
 ```
 
 200 means the web, the proxy, the service, the database and the debug sign in all work.
+
+To stop it, send what Ctrl-C sends, a SIGINT to its process group:
+
+```sh
+kill -INT -"$(ps -o pgid= -p "$(pgrep -fx 'just dev')" | tr -d ' ')"
+```
+
+The scripts' cleanup traps then stop all four and remove the containers and the database volume. When `just dev`
+runs in a terminal, `just` reports the recipe as failed with exit code 1 or 129. That is the interrupt, not an
+error.
 
 ## 7. Hand over
 
@@ -100,7 +120,7 @@ Tell the user:
 - that the database starts empty on every `just dev` and is removed when it stops
 - that Go changes rebuild and web changes hot reload
 - that the AI features need their own Replicate key, saved on `/user`, and that everything else works without one
-- when it runs in your session, that it stops when the session ends
+- that it runs in the background, with its log in `/tmp/quillborne-dev.log`, until they ask you to stop it
 
 ## When it does not come up
 
@@ -110,5 +130,6 @@ Tell the user:
 - The dev server answers 504 Outdated Optimize Dep after `just gate` or `just build`: both remove
   `web/node_modules/.vite`, so restart `just dev`.
 - Saving a key answers 500: the seed is empty. Go back to step 2, then restart `just dev`.
-- `pnpm dev` opens Brave on 5173 when Brave is installed and not running, even after Vite moved to another port.
-  Ignore it and use Vite's address.
+- `pnpm dev` tries to open Brave on 5173. Without Brave it prints `Unable to find application named 'Brave
+  Browser'`, which is harmless. With Brave it opens 5173 even after Vite moved to another port. Use Vite's address
+  either way.
