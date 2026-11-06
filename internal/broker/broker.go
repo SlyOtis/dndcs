@@ -26,6 +26,7 @@ const (
 	KindUpdate    = "update"
 	KindCharacter = "character"
 	KindParty     = "party"
+	KindVehicle   = "vehicle"
 )
 
 const (
@@ -66,6 +67,10 @@ func CharacterTopic(id uuid.UUID) string {
 
 func PartyTopic(id uuid.UUID) string {
 	return "party:" + id.String()
+}
+
+func VehicleTopic(id uuid.UUID) string {
+	return "vehicle:" + id.String()
 }
 
 type Broker struct {

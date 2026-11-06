@@ -31,6 +31,7 @@ The schema and the api are snake_case throughout: `user_id`, `campaign_id`, `par
 - `asset`: a file, a block document or a folder, in nimployer's model. A folder is `inode/directory` with type `folder`; a block document is `application/vnd.mar.document+json` with its body in `document`; a file's bytes sit in blob storage under `blob_url`. Folders nest through `sa_parent_id` and `sa_root_id`; the roots are a campaign's folder, slug `campaign-<campaign id>`, and a player's Personal folder, slug `user-<user id>`.
 - `object_asset`: attaches an asset to any row by `object_type` and `object_id`; its `properties` override the asset's key by key. `tag` and `tag_object` tag any row the same way.
 - `catalog_entry`: the shared class and race readings.
+- `vehicle`: a vessel the table sails, with a `campaign_id` when a campaign sails it: its vehicle `system`, `template` and `layout` keys, the installed `components`, the `states` of each, `stats`, `rulings`, the homebrew `overlay`, `customisation`, the `crew`, the `revision` and its `history`, the crew's `requests`, and its `crew_claim_id`.
 
 Every table holds application data, so nothing is aged and there is no `public.prune`.
 
@@ -59,6 +60,7 @@ There is no rule file and no readers list. Access is a claim bound to the row, g
 - No claim inherits, so a binding never cascades down the asset tree. An asset is bound with a copy of its parent folder's bindings when it is created, and moves only within its own root folder.
 - A chat entry is bound DM read, and Players read unless `is_hidden`, so a hidden roll reaches the DM alone. Only the author edits or deletes an entry, and the DM cannot delete a player's.
 - A party makes **Party members**, read, granted to its members.
+- A vehicle makes **Crew**, read and write, granted to the players whose characters are on its `crew`, the user ids read from the character rows and never from the body. A campaign's vehicle is bound DM all and Players read. A steward, who passes the owner check as the builder or the campaign DM, changes every field; the crew changes `states` and `requests`, and `components` and `stats` only while `customisation` is `approved` or `full`. A `components` change carries the `revision` it was drafted on, answers 409 when it is stale, and appends a snapshot to `history`.
 - A sheet that joins a campaign is bound DM read and write and Players read, and loses both when it leaves.
 - Sharing is `share_users`, `share_campaigns` and `share_parties` on a resource, an encounter or a song. A shared campaign binds its DM and Players claims read, a shared party its Party members claim, and the named players get the row's own **Readers** claim, `reader_claim_id`. Every change reconciles the bindings and the grants in the same transaction. Sharing binds the DM too: a page the owner did not share is hidden from the DM.
 - An asset or a folder is shared directly through the claim routes with type `asset`. A page's sharing reaches the assets attached to it: every change to `share_users`, `share_campaigns` or `share_parties` reconciles, in the same transaction, the bindings of each asset the page's owner attached through `object_asset`, and attaching or detaching does the same. A page attaches the media its blocks name when it is saved.
@@ -68,9 +70,9 @@ A claim, a binding or a grant is made only through the claim helpers in `interna
 
 ## The api
 
-`handler.PutRoutes` in `internal/handler/routes.go` mounts every route under `/api`, behind the Samna Auth user middleware `cmd/main.go` hands it: `/profile` with its `details`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song` and `chat`, `/resource` with its `update`, `/asset` with its `data` and `object`, `/file` with the folder tree and `move`, `/tag` with its `object`, `/ai`, `/catalog`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware and stay in `cmd/main.go`. The local test data in `test/seed/` runs through the same `PutRoutes` with a middleware of its own that signs each step in as the player it names.
+`handler.PutRoutes` in `internal/handler/routes.go` mounts every route under `/api`, behind the Samna Auth user middleware `cmd/main.go` hands it: `/profile` with its `details`, `/character`, `/party`, `/campaign` with its `map`, `encounter`, `song` and `chat`, `/resource` with its `update`, `/asset` with its `data` and `object`, `/file` with the folder tree and `move`, `/tag` with its `object`, `/ai`, `/catalog`, `/vehicle`, and `/claim` with `/:type/:id/claim`. Sign in, the callback, sign out and `/api/auth/me` come from the middleware and stay in `cmd/main.go`. The local test data in `test/seed/` runs through the same `PutRoutes` with a middleware of its own that signs each step in as the player it names.
 
-On the web, `web/src/lib/api.ts` holds the fetch envelope, the session and `getStream`. The service objects in `firestore.service.ts` (`userService`, `characterService`, `partyService`, `campaignService`) keep their exported names and call the api; a new read or write is a typed method beside the others, never a second helper.
+On the web, `web/src/lib/api.ts` holds the fetch envelope, the session and `getStream`. The service objects in `firestore.service.ts` (`userService`, `characterService`, `partyService`, `campaignService`, `vehicleService`) keep their exported names and call the api; a new read or write is a typed method beside the others, never a second helper.
 
 Function names start with `get`, `post`, `put` or `delete`, in Go and in TypeScript.
 
@@ -78,11 +80,11 @@ Function names start with `get`, `post`, `put` or `delete`, in Go and in TypeScr
 
 `internal/broker` is the one event path. A write posts an event after it succeeds: the event goes at once to the streams on the same instance and through `NOTIFY` on `quillborne_event` to the others, and every instance skips the events it sent itself. An event carries a topic, a kind, an id and an op, never a row.
 
-The streams are `/api/campaign/:id/stream`, `/api/profile/stream`, `/api/resource/:id/stream`, `/api/character/:id/stream` and `/api/party/:id/stream`, server-sent events with a heartbeat and a retry. Opening one needs read like the matching REST read, and every event is checked again before it is sent, so a hidden roll never reaches a player's stream and a sheet's changes reach only those who read the sheet.
+The streams are `/api/campaign/:id/stream`, `/api/profile/stream`, `/api/resource/:id/stream`, `/api/character/:id/stream`, `/api/party/:id/stream` and `/api/vehicle/:id/stream`, and the campaign stream also carries the events of the campaign's vehicles, server-sent events with a heartbeat and a retry. Opening one needs read like the matching REST read, and every event is checked again before it is sent, so a hidden roll never reaches a player's stream and a sheet's changes reach only those who read the sheet.
 
 A broker counts as started only once its own notify has come back through its listener, because a `LISTEN` the driver has written is not yet active on the server; an instance that answers before then would miss what another instance sends.
 
-On the web a listener (`postChatListener`, `postMapsListener`, `postEncountersListener`, `postSongsListener`, `postCharactersListener`, `subscribeToProfile`, `subscribeToCharacter`, `subscribeToParty`, the updates in `collab.ts`) shares one EventSource per stream and reloads through its REST getter on connect and on every event of its kind, so what it shows always matches the api.
+On the web a listener (`postChatListener`, `postMapsListener`, `postEncountersListener`, `postSongsListener`, `postCharactersListener`, `subscribeToProfile`, `subscribeToCharacter`, `subscribeToParty`, `subscribeToVehicle`, `postVehiclesListener`, the updates in `collab.ts`) shares one EventSource per stream and reloads through its REST getter on connect and on every event of its kind, so what it shows always matches the api.
 
 ## Uploads
 

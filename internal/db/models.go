@@ -23,6 +23,7 @@ const (
 	OBJECT_TYPE_TAG           = "public.tag"
 	OBJECT_TYPE_TAG_OBJECT    = "public.tag_object"
 	OBJECT_TYPE_CATALOG_ENTRY = "public.catalog_entry"
+	OBJECT_TYPE_VEHICLE       = "public.vehicle"
 )
 
 const (
@@ -134,6 +135,35 @@ type Encounter struct {
 	CreatedAt time.Time    `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
 	UpdatedAt time.Time    `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
 	DeletedAt bun.NullTime `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
+}
+
+type Vehicle struct {
+	bun.BaseModel `bun:"table:vehicle"`
+
+	ID              uuid.UUID       `bun:"id,pk,default:gen_random_uuid()" json:"id"`
+	UserID          uuid.UUID       `bun:"user_id" json:"owner_id"`
+	CampaignID      *uuid.UUID      `bun:"campaign_id" json:"campaign_id"`
+	Name            string          `bun:"name" json:"name"`
+	System          string          `bun:"system" json:"system"`
+	Template        string          `bun:"template" json:"template"`
+	TemplateVersion int             `bun:"template_version" json:"template_version"`
+	Layout          string          `bun:"layout" json:"layout"`
+	Components      json.RawMessage `bun:"components,type:jsonb" json:"components"`
+	States          json.RawMessage `bun:"states,type:jsonb" json:"states"`
+	Stats           json.RawMessage `bun:"stats,type:jsonb" json:"stats"`
+	Rulings         json.RawMessage `bun:"rulings,type:jsonb" json:"rulings"`
+	Overlay         json.RawMessage `bun:"overlay,type:jsonb" json:"overlay"`
+	Customisation   string          `bun:"customisation" json:"customisation"`
+	Crew            json.RawMessage `bun:"crew,type:jsonb" json:"crew"`
+	Revision        int             `bun:"revision" json:"revision"`
+	History         json.RawMessage `bun:"history,type:jsonb" json:"history"`
+	Requests        json.RawMessage `bun:"requests,type:jsonb" json:"requests"`
+	CrewClaimID     *uuid.UUID      `bun:"crew_claim_id" json:"-"`
+	OwnerID         uuid.UUID       `bun:"sa_owner_id" json:"-"`
+	CreatedBy       *uuid.UUID      `bun:"sa_created_by" json:"-"`
+	CreatedAt       time.Time       `bun:"sa_created_at,nullzero,default:now()" json:"created_at"`
+	UpdatedAt       time.Time       `bun:"sa_updated_at,nullzero,default:now()" json:"updated_at"`
+	DeletedAt       bun.NullTime    `bun:"sa_deleted_at,soft_delete,nullzero" json:"-"`
 }
 
 type ChatEntry struct {

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { get } from 'svelte/store'
-import type { Readable, Unsubscriber } from 'svelte/store'
+import type { Readable, Unsubscriber, Writable } from 'svelte/store'
 import type { CampaignCardKind, CampaignChatEntry, UserProfile } from './firestore.types'
 import type { RollLogItem } from './types'
 import type { ChatLog, ReplicateLogItem } from './chat'
@@ -44,6 +44,9 @@ vi.mock('./firestore.service', () => ({
   },
   characterService: {
     getCharacter: () => Promise.resolve({ campaign_id: null })
+  },
+  vehicleService: {
+    getVehicle: (id: string) => Promise.resolve(id === 'ship-1' ? { campaign_id: 'camp-9' } : null)
   }
 }))
 
@@ -588,5 +591,20 @@ describe('character answers', () => {
     expect(getInventoryItem(inventory, 'ammunition')?.id).toBe('ammunition')
     expect(getInventoryItem(inventory, '+1')?.id).toBe('arrows-magic')
     expect(getInventoryItem(inventory, '  ')).toBeUndefined()
+  })
+})
+
+describe('the roll log aboard a vehicle', () => {
+  it('rolls into the campaign the vessel sails in', async () => {
+    const { currentRoute } = await import('sly-svelte-location-router')
+    const log = getChatLog()
+    close = log.unsubscribeChat
+
+    ;(currentRoute as unknown as Writable<unknown>).set({ path: '/main/vehicles/ship-1', params: { id: 'ship-1' } })
+    await Promise.resolve()
+    await Promise.resolve()
+
+    expect(get(currentCampaignId)).toBe('camp-9')
+    ;(currentRoute as unknown as Writable<unknown>).set(null)
   })
 })

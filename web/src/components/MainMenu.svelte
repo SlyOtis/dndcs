@@ -1,13 +1,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import { navigate, currentRoute, resolvedRoute } from 'sly-svelte-location-router'
-  import { campaignService, userService } from '$lib/firestore.service'
+  import { campaignService, userService, vehicleService } from '$lib/firestore.service'
   import type {
     Campaign,
     CampaignEncounter,
     CampaignMap,
     CharacterDocument,
-    EncounterCombatant
+    EncounterCombatant,
+    Vehicle
   } from '$lib/firestore.types'
   import { getAll, getChildren, getRoots, isResourceKind, RESOURCES, type Character, type Place, type Quest, type Resource, type ResourceKind } from '$lib/resources'
   import { user } from '$lib/stores/auth.store'
@@ -28,6 +29,7 @@
   let places = $state<Place[]>([])
   let maps = $state<CampaignMap[]>([])
   let encounters = $state<CampaignEncounter[]>([])
+  let vehicles = $state<Vehicle[]>([])
   let players = $state<{ id: string; name: string }[]>([])
   let loading = $state(false)
   let error = $state<string | null>(null)
@@ -85,6 +87,7 @@
       places = []
       maps = []
       encounters = []
+      vehicles = []
       players = []
       error = null
       loading = false
@@ -94,6 +97,9 @@
     loading = true
     const release = campaignService.postEncountersListener(id, (entries) => {
       if (live) encounters = entries
+    })
+    const releaseVehicles = vehicleService.postVehiclesListener(id, (entries) => {
+      if (live) vehicles = entries
     })
     error = null
 
@@ -135,6 +141,7 @@
     return () => {
       live = false
       release()
+      releaseVehicles()
     }
   })
 
@@ -194,6 +201,7 @@
     {@render section('places', 'Places', places.length, sites)}
     {@render section('maps', 'Maps', maps.length, charts)}
     {@render section('encounters', 'Encounters', knownEncounters.length, frays)}
+    {@render section('vehicles', 'Vehicles', vehicles.length, fleet)}
     {#each ROLLS as roll (roll)}
       <Fold
         title={RESOURCES[roll].many}
@@ -314,6 +322,23 @@
         />
       {/each}
     </div>
+  {/if}
+{/snippet}
+
+{#snippet fleet()}
+  {#if vehicles.length === 0}
+    <p class="dnd-menu-empty">No vessel sails with this table.</p>
+  {:else}
+    <div class="dnd-scroll dnd-menu-tree">
+      <Tree
+        rows={vehicles.map((entry) => ({ id: entry.id, title: entry.name, mark: `${entry.crew.length} crew`, kids: [] }))}
+        on={steps[1] === 'vehicles' ? (steps[2] ?? '') : ''}
+        onopen={(id) => navigate(`/main/vehicles/${id}`)}
+      />
+    </div>
+  {/if}
+  {#if campaign}
+    <button type="button" class="dnd-menu-link" onclick={() => openCampaign('/vehicles')}>The campaign’s dock</button>
   {/if}
 {/snippet}
 
@@ -510,6 +535,25 @@
     font-variant-numeric: tabular-nums;
     line-height: 1;
     text-shadow: 0 1px 0 #000, 0 0 8px var(--ember-glow);
+  }
+
+  .dnd-menu-link {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--metal);
+    cursor: pointer;
+  }
+
+  .dnd-menu-link:hover,
+  .dnd-menu-link:focus-visible {
+    color: var(--metal-bright);
+    text-shadow: var(--glow-text);
   }
 
   .dnd-menu-lede {
