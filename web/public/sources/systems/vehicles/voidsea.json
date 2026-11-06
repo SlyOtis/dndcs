@@ -152,7 +152,21 @@
       }
     ],
     "artilleryAction": "Ship Action, Artillery Step: Artillery or Hold Artillery",
-    "helmStep": "Accelerate / Decelerate / Zero Speed, and Manoeuvre"
+    "helmStep": "Accelerate / Decelerate / Zero Speed, and Manoeuvre",
+    "coreRules": [
+      {
+        "title": "Damage",
+        "body": "Damage that does not exceed the DT is ignored. At or below the IT a component is Impaired until fully repaired; at 0 HP it is Broken until its HP reach the IT again; reduced to 0 with 30 or more damage left over, it is destroyed."
+      },
+      {
+        "title": "Attacks",
+        "body": "To hit is your best allowed ability modifier plus your Artillery Proficiency perks, with no Proficiency Bonus. Area shots use DC 8 plus the same. Beyond normal range attacks have Disadvantage; long range is the maximum."
+      },
+      {
+        "title": "Raking",
+        "body": "A hit on a Hull within close range, fired perpendicular to its long axis, also damages one component and one random crew member."
+      }
+    ]
   },
   "installHours": {
     "Small": {

@@ -39,7 +39,10 @@ func getVehicleView(t *testing.T, answer envelope) vehicleView {
 
 func TestAVehicleIsReadByItsBuilderAlone(t *testing.T) {
 	requireStack(t)
-	vehicleID := postVehicle(t, `{"name":"Gull","system":"voidsea","components":[{"id":"hull"}]}`)
+	if status, _ := call(t, dungeonMaster, http.MethodPost, "/api/vehicle", `{"name":"Keelless"}`, nil, handler.PostVehicle); status != http.StatusBadRequest {
+		t.Fatalf("a vehicle without a system or a layout answered %d, want 400", status)
+	}
+	vehicleID := postVehicle(t, `{"system":"voidsea","layout":"jaws-deck","name":"Gull","components":[{"id":"hull"}]}`)
 	params := map[string]string{"id": vehicleID}
 
 	status, answer := call(t, dungeonMaster, http.MethodGet, "/", "", params, handler.GetVehicle)
@@ -69,10 +72,10 @@ func TestAVehicleIsReadByItsBuilderAlone(t *testing.T) {
 func TestACampaignVehicleIsReadAtItsTable(t *testing.T) {
 	requireStack(t)
 	campaignID := postCampaign(t)
-	if status, _ := call(t, player, http.MethodPost, "/api/vehicle", `{"name":"Stowaway","campaign_id":"`+campaignID+`"}`, nil, handler.PostVehicle); status != http.StatusForbidden {
+	if status, _ := call(t, player, http.MethodPost, "/api/vehicle", `{"system":"voidsea","layout":"jaws-deck","name":"Stowaway","campaign_id":"`+campaignID+`"}`, nil, handler.PostVehicle); status != http.StatusForbidden {
 		t.Fatalf("a player away from the table built a vehicle in it: %d", status)
 	}
-	vehicleID := postVehicle(t, `{"name":"Cauldron","campaign_id":"`+campaignID+`"}`)
+	vehicleID := postVehicle(t, `{"system":"voidsea","layout":"jaws-deck","name":"Cauldron","campaign_id":"`+campaignID+`"}`)
 	params := map[string]string{"id": vehicleID}
 	target := "/api/vehicle?campaign_id=" + campaignID
 
@@ -89,7 +92,7 @@ func TestACampaignVehicleIsReadAtItsTable(t *testing.T) {
 	if status, _ := call(t, player, http.MethodPut, "/", `{"states":{"hull":{"hp":1}}}`, params, handler.PutVehicle); status != http.StatusForbidden {
 		t.Fatalf("a seated player not of the crew changed the vehicle: %d", status)
 	}
-	status, built := call(t, player, http.MethodPost, "/api/vehicle", `{"name":"Skiff","campaign_id":"`+campaignID+`"}`, nil, handler.PostVehicle)
+	status, built := call(t, player, http.MethodPost, "/api/vehicle", `{"system":"voidsea","layout":"jaws-deck","name":"Skiff","campaign_id":"`+campaignID+`"}`, nil, handler.PostVehicle)
 	if status != http.StatusCreated {
 		t.Fatalf("a seated player could not build a vehicle at the table: %d %+v", status, built.Error)
 	}
@@ -111,7 +114,7 @@ func TestTheCrewChangesOnlyWhatTheVehicleAllows(t *testing.T) {
 		t.Fatalf("PostCharacter: %d %+v", status, made.Error)
 	}
 	characterID := id(t, made)
-	vehicleID := postVehicle(t, `{"name":"Heron","components":[{"id":"hull"}]}`)
+	vehicleID := postVehicle(t, `{"system":"voidsea","layout":"jaws-deck","name":"Heron","components":[{"id":"hull"}]}`)
 	params := map[string]string{"id": vehicleID}
 
 	crew := `{"crew":[{"character_id":"` + characterID + `","user_id":"` + dungeonMaster.String() + `","role":"pilot"},{"character_id":"` + uuid.NewString() + `","role":"ghost"}]}`
@@ -165,7 +168,7 @@ func TestTheCrewChangesOnlyWhatTheVehicleAllows(t *testing.T) {
 func TestTheVehicleStreamsCarryChangesToThoseWhoReadIt(t *testing.T) {
 	requireBroker(t)
 	campaignID := postCampaign(t)
-	vehicleID := postVehicle(t, `{"name":"Lantern","campaign_id":"`+campaignID+`"}`)
+	vehicleID := postVehicle(t, `{"system":"voidsea","layout":"jaws-deck","name":"Lantern","campaign_id":"`+campaignID+`"}`)
 	server := streamServer(t)
 
 	req, _ := http.NewRequest(http.MethodGet, server.URL+"/api/vehicle/"+vehicleID+"/stream", nil)

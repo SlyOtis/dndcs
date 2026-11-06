@@ -131,6 +131,11 @@
   })
 
   const pxPerFt = $derived(Math.min(width / view.w, height / view.h) || 1)
+  const sea = $derived.by(() => {
+    const w = Math.max(view.w, width / pxPerFt) * 1.5
+    const h = Math.max(view.h, height / pxPerFt) * 1.5
+    return { x: view.x + view.w / 2 - w / 2, y: view.y + view.h / 2 - h / 2, w, h }
+  })
 
   const toneOf = (types: string[]) => (types.length > 1 ? 'miscellaneous' : (types[0] ?? 'none'))
 
@@ -453,8 +458,8 @@
     </defs>
 
     <g onpointerdown={onBackgroundDown} role="presentation">
-      <rect x={view.x - view.w} y={view.y - view.h} width={view.w * 3} height={view.h * 3} fill="url(#{uid}-sea)" />
-      <rect x={view.x - view.w} y={view.y - view.h} width={view.w * 3} height={view.h * 3} fill="url(#{uid}-waves)" />
+      <rect x={sea.x} y={sea.y} width={sea.w} height={sea.h} fill="url(#{uid}-sea)" />
+      <rect x={sea.x} y={sea.y} width={sea.w} height={sea.h} fill="url(#{uid}-waves)" />
     </g>
 
     {#if overlays.navalGrid}

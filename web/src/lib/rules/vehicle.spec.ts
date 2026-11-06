@@ -125,7 +125,9 @@ describe('artillery with the crewman aboard', () => {
   it('reads the formula without a crewman', () => {
     const ctx = ctxFor(built())
     const gun = ctx.components.find((c) => c.slot === 'A1')!
-    expect(getWeaponModes(ctx, gun, null, 'functional')[0].toHit).toBeNull()
+    const [first] = getWeaponModes(ctx, gun, null, 'functional')
+    expect(first.toHit).toMatch(/^\+[A-Z]{3}(\/[A-Z]{3})*$/)
+    expect(first.bonus).toBeNull()
   })
 
   it('takes the stat block chain range only when the table rules so', () => {

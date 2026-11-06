@@ -486,7 +486,14 @@ export function getWeaponModes(ctx: VehicleContext, component: Placed, crewman: 
       key: shot.key,
       name: shot.name,
       kind: shot.target,
-      toHit: f.best == null ? null : shot.target === 'attack' ? getSigned(f.best) : `DC ${f.best}${saveAbility ? ` ${getAbbr(saveAbility)}` : ''}`,
+      toHit:
+        f.best == null
+          ? shot.target === 'attack'
+            ? `+${(s.abilities ?? []).map(getAbbr).join('/')}`
+            : `DC ${system.rules.saveBase}+${(s.abilities ?? []).map(getAbbr).join('/')}`
+          : shot.target === 'attack'
+            ? getSigned(f.best)
+            : `DC ${f.best}${saveAbility ? ` ${getAbbr(saveAbility)}` : ''}`,
       bonus: shot.target === 'attack' ? f.best : null,
       ability: f.ability,
       damageShort: `${shot.damage.dice}${bonusDice} ${shot.damage.type}`,

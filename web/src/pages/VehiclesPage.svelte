@@ -282,7 +282,11 @@
                 <Card
                   title={entry.name}
                   sub={summary(entry)}
-                  badge={entry.crew.length ? `${entry.crew.length} crew` : undefined}
+                  badge={entry.requests.length
+                    ? `${entry.requests.length} request${entry.requests.length === 1 ? '' : 's'}`
+                    : entry.crew.length
+                      ? `${entry.crew.length} crew`
+                      : undefined}
                   tone={entry.owner_id === $user?.uid ? 'ember' : 'verdigris'}
                   onclick={() => navigate(`/main/vehicles/${entry.id}`)}
                 />

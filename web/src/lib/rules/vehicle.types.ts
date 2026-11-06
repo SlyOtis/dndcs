@@ -231,6 +231,7 @@ export type VehicleSystem = {
     ramming: { label: string; value: string }[]
     artilleryAction: string
     helmStep: string
+    coreRules: { title: string; body: string }[]
   }
   installHours: Record<string, { light: number; heavy: number; hull: number }>
   qualities: Record<string, CoreStats>

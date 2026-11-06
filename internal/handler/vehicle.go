@@ -212,6 +212,9 @@ func PostVehicle(ctx echo.Context) error {
 	if err := ctx.Bind(&body); err != nil {
 		return respond.Error(ctx, http.StatusBadRequest, "Invalid JSON body")
 	}
+	if body.System == nil || *body.System == "" || body.Layout == nil || *body.Layout == "" {
+		return respond.Error(ctx, http.StatusBadRequest, "A vehicle names its system and its layout")
+	}
 	if body.Customisation != nil && !vehicleCustomisations[*body.Customisation] {
 		return respond.Error(ctx, http.StatusBadRequest, "customisation must be locked, approved or full")
 	}

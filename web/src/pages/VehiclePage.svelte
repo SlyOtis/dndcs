@@ -11,6 +11,7 @@
     getLayout,
     getMergedVehicleSystem,
     getMissing,
+    getPerkSummary,
     getTopSpeed,
     getFacing,
     getVehicleStats,
@@ -22,6 +23,7 @@
   import { anyDialogOpen, uiStore } from '$lib/stores/ui.store'
   import Button from '$components/ui/Button.svelte'
   import Field from '$components/ui/Field.svelte'
+  import Fold from '$components/ui/Fold.svelte'
   import Ornament from '$components/ui/Ornament.svelte'
   import Shell from '$components/ui/Shell.svelte'
   import Stat from '$components/ui/Stat.svelte'
@@ -63,6 +65,8 @@
 
   const OVERLAY_KEY = 'dnd_vehicle_overlays'
 
+  const NOBODY = 'nobody'
+
   const steps = $derived($resolvedRoute.path.split('/').filter(Boolean))
   const vehicleId = $derived(steps[1] === 'vehicles' ? (steps[2] ?? '') : '')
   const stop = $derived(STOPS.find((entry) => entry.id === steps[3])?.id ?? 'deck')
@@ -75,6 +79,8 @@
   let seats = $state<Record<string, CharacterDocument>>({})
   let names = $state<Record<string, string>>({})
   let aboard = $state('')
+  let sheetsRead = $state(false)
+  let overlaysOpen = $state(false)
   let resolved = $state<ResolvedCharacter | null>(null)
   let selected = $state<string | null>(null)
   let loading = $state(true)
@@ -138,7 +144,10 @@
 
   $effect(() => {
     if (!$user) return
-    void characterService.getUserCharacters().then((sheets) => (mine = sheets))
+    void characterService
+      .getUserCharacters()
+      .then((sheets) => (mine = sheets))
+      .finally(() => (sheetsRead = true))
   })
 
   const crewKey = $derived(JSON.stringify(vehicle?.crew.map((entry) => entry.character_id) ?? []))
@@ -170,9 +179,19 @@
     system && layout && vehicle ? getVehicleContext(system, layout, vehicle.components, vehicle.stats, vehicle.states, vehicle.rulings) : null
   )
   const missing = $derived(system && vehicle ? getMissing(system, vehicle.components) : [])
+  const problem = $derived(
+    !vehicle
+      ? null
+      : !vehicle.system
+        ? 'This vessel names no vehicle system, so it has no deck to draw.'
+        : system && !layout
+          ? `The deck layout “${vehicle.layout || 'none'}” is not part of ${system.title}, so there is no deck to draw.`
+          : null
+  )
   const stats = $derived(ctx ? getVehicleStats(ctx) : [])
   const movement = $derived(ctx ? { topSpeed: getTopSpeed(ctx).value, facing: getFacing(ctx).value } : null)
   const chosen = $derived(ctx?.components.find((entry) => entry.id === selected) ?? null)
+  const hull = $derived(ctx?.components.find((entry) => entry.def.category === 'hull') ?? null)
 
   const sailors = $derived([...mine, ...table.filter((entry) => !mine.some((own) => own.id === entry.id))])
   const choices = $derived(
@@ -186,10 +205,10 @@
   )
 
   $effect(() => {
-    if (!vehicleId || choices.length === 0) return
-    if (aboard && choices.some((entry) => entry.id === aboard)) return
+    if (!vehicleId || !sheetsRead) return
+    if (aboard === NOBODY || choices.some((entry) => entry.id === aboard)) return
     const held = localStorage.getItem(`dnd_vehicle_aboard_${vehicleId}`)
-    aboard = choices.find((entry) => entry.id === held)?.id ?? choices[0].id
+    aboard = held === NOBODY ? NOBODY : (choices.find((entry) => entry.id === held)?.id ?? choices[0]?.id ?? NOBODY)
   })
 
   const sheet = $derived(choices.find((entry) => entry.id === aboard) ?? null)
@@ -266,17 +285,27 @@
       <p class="dnd-empty">That vehicle does not exist, or you do not sail with it.</p>
       <Button variant="secondary" size="sm" onclick={() => navigate('/main/vehicles')}>Back to the dock</Button>
     </div>
-  {:else if error && !system}
-    <p class="ves-alarm" role="alert">{error}</p>
+  {:else if problem || (error && !system)}
+    <div class="ves-void">
+      <p class="ves-alarm" role="alert">{problem ?? error}</p>
+      <Button variant="secondary" size="sm" onclick={() => navigate(back)}>Back to the dock</Button>
+    </div>
   {:else if !system || !layout || !ctx}
     <div class="dnd-loading"><span class="dnd-spinner"></span></div>
   {:else}
     <div class="ves">
-      <header class="ves-crown">
-        <p class="dnd-label ves-eyebrow">{campaign ? campaign.name : 'Your own'} · {system.kind} · {system.title}</p>
-        <h1 class="dnd-heading dnd-heading-hero ves-name">{vehicle.name}</h1>
-        <span class="ves-rule"><Ornament name="divider" tone="metal" /></span>
-      </header>
+      {#if stop === 'deck'}
+        <header class="ves-line">
+          <h1 class="dnd-heading ves-title">{vehicle.name}</h1>
+          <p class="dnd-label ves-eyebrow">{campaign ? campaign.name : 'Your own'} · {system.kind} · {system.title}</p>
+        </header>
+      {:else}
+        <header class="ves-crown">
+          <p class="dnd-label ves-eyebrow">{campaign ? campaign.name : 'Your own'} · {system.kind} · {system.title}</p>
+          <h1 class="dnd-heading dnd-heading-hero ves-name">{vehicle.name}</h1>
+          <span class="ves-rule"><Ornament name="divider" tone="metal" /></span>
+        </header>
+      {/if}
 
       {#if error}
         <p class="ves-alarm" role="alert">{error}</p>
@@ -288,40 +317,48 @@
       {#if stop === 'deck'}
         <section class="ves-stats" aria-label="Vessel statistics">
           {#each stats as line (line.key)}
-            <Stat label={line.label} value={line.value} sub={line.pendingRuling ? 'ruling pending' : undefined} tone={toneOf(line.tone)} title={line.detail} />
+            <Stat
+              label={line.label}
+              value={line.value}
+              sub={line.pendingRuling ? 'ruling pending' : undefined}
+              tone={toneOf(line.tone)}
+              title={line.detail ?? line.label}
+              onclick={hull && (line.key === 'hull' || line.key === 'condition') ? () => (selected = hull.id) : undefined}
+            />
           {/each}
         </section>
-
-        <div class="ves-tools">
-          {#if choices.length}
-            <div class="ves-aboard">
-              <Field id="ves-aboard" label="Aboard as" help={crewman ? `${system.crew.level} ${crewman.crewLevel} · PB +${crewman.proficiency} · ${crewman.perks.reduce((sum, entry) => sum + entry.count, 0)} perks` : undefined}>
-                <select id="ves-aboard" value={aboard} onchange={(event) => choose(event.currentTarget.value)}>
-                  {#each choices as entry (entry.id)}
-                    <option value={entry.id}>{entry.metadata.name}</option>
-                  {/each}
-                </select>
-              </Field>
-            </div>
-          {:else}
-            <p class="ves-quiet">Forge a character and their abilities fill in every to hit and DC on this deck.</p>
-          {/if}
-          <fieldset class="ves-overlays">
-            <legend class="dnd-label">Overlays</legend>
-            {#each system.overlays as key (key)}
-              <label class="ves-toggle">
-                <input type="checkbox" bind:checked={overlays[key]} />
-                <span>{OVERLAYS[key]}</span>
-              </label>
-            {/each}
-          </fieldset>
-        </div>
 
         <div class="ves-deck">
           <div class="ves-map">
             <VehicleMap {ctx} {selected} {overlays} onselect={(id) => (selected = id)} {movement} />
           </div>
           <aside class="ves-side dnd-inset" aria-label="The chosen component">
+            <div class="ves-aboard">
+              <Field
+                id="ves-aboard"
+                label="Aboard as"
+                help={crewman
+                  ? `${system.crew.level} ${crewman.crewLevel} · PB +${crewman.proficiency} · ${crewman.perks.reduce((sum, entry) => sum + entry.count, 0)} perks`
+                  : 'To hit and DCs name the ability; pick a character to fill in the numbers.'}
+              >
+                <select id="ves-aboard" value={aboard} onchange={(event) => choose(event.currentTarget.value)}>
+                  <option value={NOBODY}>No character</option>
+                  {#each choices as entry (entry.id)}
+                    <option value={entry.id}>{entry.metadata.name}</option>
+                  {/each}
+                </select>
+              </Field>
+              <Fold title="Overlays" count={Object.values(overlays).filter(Boolean).length || undefined} variant="row" open={overlaysOpen} ontoggle={() => (overlaysOpen = !overlaysOpen)}>
+                <div class="ves-overlays">
+                  {#each system.overlays as key (key)}
+                    <label class="ves-toggle">
+                      <input type="checkbox" bind:checked={overlays[key]} />
+                      <span>{OVERLAYS[key]}</span>
+                    </label>
+                  {/each}
+                </div>
+              </Fold>
+            </div>
             {#if chosen}
               <ComponentPanel {ctx} component={chosen} {crewman} editable={keeps} onstate={putState}>
                 {#snippet actions()}
@@ -335,6 +372,19 @@
                 <p class="dnd-heading">Choose a component</p>
                 <p>Press one on the deck to read its statistics, change its hit points and condition, and see where a weapon reaches.</p>
               </div>
+              {#if crewman}
+                <section class="ves-perks" aria-label="{system.crew.perks} of {crewman.name}">
+                  <h3 class="dnd-label ves-perks-head">{system.crew.perks} · {crewman.name}</h3>
+                  {#each crewman.perks as entry (entry.id)}
+                    {@const perk = system.perks.find((candidate) => candidate.id === entry.id)}
+                    {#if perk}
+                      <p class="ves-perk"><strong>{perk.name}{entry.count > 1 ? ` ×${entry.count}` : ''}.</strong> {getPerkSummary(perk, entry.count, crewman)}</p>
+                    {/if}
+                  {:else}
+                    <p class="ves-quiet">No perks taken. Take them on the Crew tab.</p>
+                  {/each}
+                </section>
+              {/if}
             {/if}
           </aside>
         </div>
@@ -356,11 +406,24 @@
 <style>
   .ves {
     display: grid;
-    gap: var(--space-5);
+    gap: var(--space-4);
     min-width: 0;
     max-width: var(--size-page-max);
     margin-inline: auto;
     inline-size: 100%;
+  }
+
+  .ves-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    min-width: 0;
+  }
+
+  .ves-title {
+    margin: 0;
+    font-size: var(--text-xl);
   }
 
   .ves-crown {
@@ -403,21 +466,16 @@
 
   .ves-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
-    gap: var(--space-3);
+    grid-template-columns: repeat(auto-fit, minmax(min(8rem, 100%), 1fr));
+    gap: var(--space-2);
   }
 
-  .ves-tools {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
 
   .ves-aboard {
-    flex: 0 1 22rem;
-    min-width: 0;
+    display: grid;
+    gap: var(--space-2);
+    padding-block-end: var(--space-3);
+    border-block-end: var(--border-hair) solid color-mix(in srgb, var(--metal-dim) 50%, transparent);
   }
 
   .ves-quiet {
@@ -428,20 +486,12 @@
   }
 
   .ves-overlays {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-2) var(--space-4);
-    margin: 0;
-    padding: 0;
-    border: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    padding-block: var(--space-2);
   }
 
-  .ves-overlays legend {
-    float: left;
-    margin-inline-end: var(--space-3);
-    padding: 0;
-  }
 
   .ves-toggle {
     display: flex;
@@ -460,14 +510,33 @@
   }
 
   .ves-map {
-    block-size: clamp(24rem, 70vh, 56rem);
+    block-size: max(22rem, calc(100dvh - var(--size-bar) - 17rem));
     min-width: 0;
   }
 
   .ves-side {
-    max-block-size: clamp(24rem, 70vh, 56rem);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-block-size: max(22rem, calc(100dvh - var(--size-bar) - 17rem));
     padding: var(--space-4);
     overflow-y: auto;
+  }
+
+  .ves-perks {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .ves-perks-head {
+    margin: 0;
+    color: var(--metal-bright);
+  }
+
+  .ves-perk {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-dim);
   }
 
   @container page (max-width: 1200px) {

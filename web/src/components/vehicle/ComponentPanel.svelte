@@ -263,6 +263,12 @@
           {/if}
         </section>
       {/each}
+      <section class="vc-section" aria-label="Core rules">
+        <h3 class="dnd-label vc-section-title">Core rules</h3>
+        {#each ctx.system.text.coreRules as rule (rule.title)}
+          <p class="vc-text"><strong>{rule.title}.</strong> {rule.body}</p>
+        {/each}
+      </section>
     </div>
   </Fold>
 </article>
