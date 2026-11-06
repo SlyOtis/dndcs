@@ -17,7 +17,7 @@ export interface ThemeState {
 }
 
 export const availableThemes: ThemeOption[] = [
-  { id: 'medieval', name: 'Alliance', description: 'Carved granite, gilded trim and torchlight', colors: ['#d4a445', '#ff9f2e', '#4a4034'] },
+  { id: 'medieval', name: 'Alliance', description: 'Midnight blue, gilded trim and starlight', colors: ['#dcb672', '#ff9f2e', '#10182d'] },
   { id: 'forest', name: 'Night Elf', description: 'Moonlit violet wood and silver leaf', colors: ['#b39be6', '#7fe6d4', '#2c1f3d'] },
   { id: 'fire', name: 'Horde', description: 'Scorched timber, riveted iron and war paint', colors: ['#c2874a', '#ff4a1c', '#452414'] },
   { id: 'arcane', name: 'Scourge', description: 'Bone, black iron and plague light', colors: ['#cfc6a2', '#8fe04a', '#383c32'] },
