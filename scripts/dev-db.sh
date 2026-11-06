@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DB_NAME="${APP_NAME}-db"
+DB_NAME="$(basename "$PWD")-db"
 
 if ! docker image inspect "$DB_NAME" > /dev/null 2>&1; then
     echo "Image $DB_NAME not found. Run 'just build-db' first."

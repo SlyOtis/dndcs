@@ -83,7 +83,7 @@
     {
       "path": ".claude/rules/setup.md",
       "kind": "rule",
-      "answers": "The stack, where keys live, what a VITE prefix means, the just commands, what a deploy pushes, and the test convention.",
+      "answers": "The stack, where keys live, what a VITE prefix means, the just commands, what a deploy pushes, and the test convention. How several worktrees run their own local stacks on their own ports.",
       "keywords": [
         "setup",
         "stack",
@@ -94,7 +94,11 @@
         "deploy",
         "test",
         "vitest",
-        "pnpm"
+        "pnpm",
+        "worktree",
+        "ports",
+        "slot",
+        "parallel"
       ]
     },
     {

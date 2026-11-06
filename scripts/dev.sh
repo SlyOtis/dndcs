@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DB_NAME="${APP_NAME}-db"
+DB_NAME="$(basename "$PWD")-db"
 
 just dev-db &
 DB_PID=$!

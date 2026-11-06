@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm run brave & vite",
-    "brave": "pgrep -x 'Brave Browser' >/dev/null || { for i in $(seq 40); do nc -z localhost 5173 2>/dev/null && break; sleep 0.3; done; open -a 'Brave Browser' http://localhost:5173; }",
+    "brave": "port=$((5173 + ${SERVER_PORT:-4290} - 4290)); pgrep -x 'Brave Browser' >/dev/null || { for i in $(seq 40); do nc -z localhost $port 2>/dev/null && break; sleep 0.3; done; open -a 'Brave Browser' http://localhost:$port; }",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsgo --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",

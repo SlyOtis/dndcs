@@ -10,7 +10,7 @@ rm -rf web/node_modules
 echo "Cleaning web/dist..."
 rm -rf web/dist
 
-DB_NAME="${APP_NAME}-db"
+DB_NAME="$(basename "$PWD")-db"
 echo "Cleaning docker containers and volumes..."
 docker rm -f "$DB_NAME" > /dev/null 2>&1 || true
 docker volume rm "$DB_NAME-data" > /dev/null 2>&1 || true
