@@ -1,0 +1,73 @@
+[
+  {
+    "as": "pip",
+    "call": "POST /api/campaign",
+    "save": "bell",
+    "body": {
+      "name": "The Sunken Bell",
+      "description": "A drowned abbey rings its bell at low tide, and everyone who hears it dreams of the same door.",
+      "is_active": true,
+      "party_ids": []
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/campaign/${bell}/player",
+    "body": { "email": "testy@quillborne.local" }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/campaign/${bell}/character/${brann}"
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "sessions",
+      "campaign_id": "${bell}",
+      "title": "Low Tide",
+      "description": "Brann wades out to the abbey and hears the bell.",
+      "number": 1,
+      "played_at": "2026-10-24",
+      "body": "{\"blocks\":[{\"id\":\"bs1a\",\"kind\":\"paragraph\",\"text\":\"The tide went out further than anyone in Saltmarsh remembers, and the abbey's bell tower stood clear of the water for the first time in forty years.\",\"options\":{}}]}",
+      "share_campaigns": ["${bell}"]
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "quests",
+      "campaign_id": "${bell}",
+      "title": "Silence the Bell",
+      "description": "Climb the tower before the tide turns and find out who rings the bell.",
+      "state": "active",
+      "level": 3,
+      "giver": "Abbess Morwen",
+      "share_campaigns": ["${bell}"]
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "npcs",
+      "campaign_id": "${bell}",
+      "title": "Abbess Morwen",
+      "description": "The abbey's last abbess, forty years drowned and still keeping the hours.",
+      "role": "Ghost of the abbey",
+      "disposition": "unknown",
+      "species": "Human",
+      "share_campaigns": ["${bell}"]
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/campaign/${bell}/chat",
+    "body": {
+      "author_name": "Pip",
+      "kind": "message",
+      "body": "The tide turns in three rounds. Brann, the stairs are slick with weed."
+    }
+  }
+]
