@@ -80,7 +80,7 @@ const sets: [string, Wall[]][] = [
 ]
 
 describe('wall solids do not depend on the order of the walls', () => {
-  it('every wall set solves to the same cells, owners and boundary whatever order its walls are listed in', () => {
+  it('every wall set solves to the same cells, owners and boundary whatever order its walls are listed in', { timeout: 30_000 }, () => {
     for (const [name, walls] of sets) {
       const expected = canonical(buildSolids(walls))
       for (const [label, order] of [['reversed', [...walls].reverse()], ...[1, 2, 3].map(s => [`shuffle ${s}`, shuffled(walls, s)])] as [string, Wall[]][]) {

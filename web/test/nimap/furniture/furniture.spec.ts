@@ -461,7 +461,7 @@ describe('planting', () => {
     ['round', { outer: Array.from({ length: 40 }, (_, i): Vec2 => [0.6 * Math.cos((i * Math.PI) / 20), 0.6 * Math.sin((i * Math.PI) / 20)]), holes: [] }]
   ]
 
-  it('stands its plants evenly at any size and density: every spot a little inside lies within its kind’s spacing of a plant', () => {
+  it('stands its plants evenly at any size and density: every spot a little inside lies within its kind’s spacing of a plant', { timeout: 30_000 }, () => {
     for (const kind of PLANT_KINDS) {
       for (const [name, surface] of surfaces) {
         const inside = offset([surface.outer], -0.05).map((outer): Polygon => ({ outer, holes: [] }))

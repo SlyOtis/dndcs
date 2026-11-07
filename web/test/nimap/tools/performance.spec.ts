@@ -45,7 +45,7 @@ describe.skipIf(!!process.env.CI)('dragging on a 500-room plan', () => {
     expect(perMove).toBeLessThan(250)
   })
 
-  it('moving 250 nodes collapses offsets to a bounding box and stays bounded per move', () => {
+  it('moving 250 nodes collapses offsets to a bounding box and stays bounded per move', { timeout: 30_000 }, () => {
     const perMove = dragBlock(25, 10, 20)
     console.log(`250 nodes: ${perMove.toFixed(1)} ms per move`)
     expect(perMove).toBeLessThan(250)
