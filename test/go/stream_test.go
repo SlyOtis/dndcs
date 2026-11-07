@@ -127,6 +127,7 @@ func streamServer(t *testing.T) *httptest.Server {
 		}
 	}
 	e.GET("/api/campaign/:id/stream", handler.GetCampaignStream, actor)
+	e.GET("/api/vehicle/:id/stream", handler.GetVehicleStream, actor)
 	server := httptest.NewServer(e)
 	t.Cleanup(server.Close)
 	return server

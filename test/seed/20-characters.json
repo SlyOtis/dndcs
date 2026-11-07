@@ -6,6 +6,7 @@
     "body": {
       "metadata": { "name": "Brann Coalbeard", "level": 3, "class": "Fighter", "race": "Mountain Dwarf", "tags": ["dwarf", "frontline"], "status": "ready", "version": "1.0.0", "is_template": false, "is_public": false },
       "character": {
+        "crew": { "voidsea": { "level": 2, "perks": [{ "id": "encourage", "count": 1 }, { "id": "quick-fix", "count": 1 }] } },
         "info": {
           "name": "Brann Coalbeard",
           "description": "A soot-streaked smith who left the forge when his clan's mountain went quiet.",
@@ -225,6 +226,7 @@
     "body": {
       "metadata": { "name": "Wren Ashdown", "level": 3, "class": "Rogue", "race": "Lightfoot Halfling", "tags": ["halfling", "sneaky"], "status": "ready", "version": "1.0.0", "is_template": false, "is_public": false },
       "character": {
+        "crew": { "voidsea": { "level": 3, "perks": [{ "id": "artillery-proficiency", "count": 2 }, { "id": "crit-fisher", "count": 1 }] } },
         "info": {
           "name": "Wren Ashdown",
           "description": "A lamplighter's daughter who learned every rooftop in Hollowmere before she learned her letters.",

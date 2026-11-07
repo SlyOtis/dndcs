@@ -20,7 +20,13 @@ const routes: any = {
   '/main/create/campaign': { name: 'campaign-create', component: page() },
   '/character/:id': { name: 'character-view', component: page() },
   '/user': { name: 'user', component: page() },
-  '/campaign/:id': { name: 'campaign-view', component: page() }
+  '/campaign/:id': { name: 'campaign-view', component: page() },
+  '/main/campaign/:id': { name: 'main-campaign-view', component: page() },
+  '/main/vehicles': { name: 'vehicles-list', component: page() },
+  '/main/campaign/:id/vehicles': { name: 'campaign-vehicles', component: page() },
+  '/main/vehicles/:id': { name: 'vehicle-view', component: page() },
+  '/main/vehicles/:id/design': { name: 'vehicle-design', component: page() },
+  '/main/vehicles/:id/crew': { name: 'vehicle-crew', component: page() }
 }
 
 describe('every route the app can reach resolves to its own page', () => {
@@ -35,7 +41,13 @@ describe('every route the app can reach resolves to its own page', () => {
     ['/main/create/character/class', 'character-class'],
     ['/main/create/character/race', 'character-race'],
     ['/sources/classes/fighter', 'source-view'],
-    ['/sources/races/tiefling', 'source-view']
+    ['/sources/races/tiefling', 'source-view'],
+    ['/main/vehicles', 'vehicles-list'],
+    ['/main/vehicles/0c6f1d2e-0000-4000-8000-000000000001', 'vehicle-view'],
+    ['/main/vehicles/0c6f1d2e-0000-4000-8000-000000000001/design', 'vehicle-design'],
+    ['/main/vehicles/0c6f1d2e-0000-4000-8000-000000000001/crew', 'vehicle-crew'],
+    ['/main/campaign/abc123/vehicles', 'campaign-vehicles'],
+    ['/main/campaign/abc123', 'main-campaign-view']
   ] as const) {
     it(`${path} resolves to ${want}`, () => {
       const found = resolveRoute(path.split('/').filter(Boolean), routes)

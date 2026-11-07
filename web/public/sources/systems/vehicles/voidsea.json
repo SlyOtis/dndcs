@@ -1,0 +1,6262 @@
+{
+  "id": "voidsea",
+  "title": "VoidSea Naval Combat Lite",
+  "version": "B0.51",
+  "engine": "voidsea",
+  "description": "Ships, their components, Naval Perks and component conditions from VoidSea Naval Combat Lite B0.51. Jaws is the starter vessel.",
+  "kind": "Ship",
+  "crew": {
+    "level": "Naval Level",
+    "perks": "Naval Perks",
+    "roles": [
+      "Captain",
+      "Helmsman",
+      "Artillerist",
+      "Bosun",
+      "Crew"
+    ]
+  },
+  "sizes": [
+    "Tiny",
+    "Small",
+    "Medium",
+    "Large",
+    "Huge",
+    "Gargantuan"
+  ],
+  "footprints": {
+    "Tiny": 2.5,
+    "Small": 5,
+    "Medium": 5,
+    "Large": 10,
+    "Huge": 15,
+    "Gargantuan": 20
+  },
+  "overlays": [
+    "arcs",
+    "movement",
+    "locations",
+    "conditions",
+    "navalGrid",
+    "boardingGrid"
+  ],
+  "rules": {
+    "destroyOverflow": 30,
+    "speedPenalty": 30,
+    "facingPenalty": 1,
+    "saveBase": 8,
+    "critRange": 20,
+    "movementStep": 30,
+    "turnDegrees": 45,
+    "brokenRecovery": {
+      "ruling": "AMB-BROKEN-RECOVERY",
+      "strictWhen": "gt"
+    },
+    "weight": {
+      "ruling": "AMB-SHIP-WEIGHT",
+      "statedWhen": "stated"
+    },
+    "areaSave": {
+      "ruling": "AMB-AREA-SAVE-ABILITY",
+      "abilities": {
+        "dexterity": "Dexterity"
+      }
+    },
+    "impairedNoClose": "AMB-IMPAIRED-NO-CLOSE",
+    "kaijuNoise": {
+      "ruling": "AMB-KAIJU-ENGINE-NOISE",
+      "noisyWhen": "noisy-property"
+    },
+    "halfProficiency": {
+      "ruling": "AMB-HALF-PB-ROUNDING",
+      "downWhen": "down-where-unstated"
+    }
+  },
+  "text": {
+    "impaired": {
+      "artillery": "Long range is reduced to normal range, normal range to close range, and close range is lost.",
+      "control": "Change of Facing score is reduced by 1.",
+      "hull": "Rents open to the sea: 2d10 percent of ammunition, fuel, rations, repair parts, treasure, and fresh water are destroyed or lost; stored cargo or prisoners may be injured (GM’s discretion). Top Speed is reduced by 30 feet (minimum 0).",
+      "propulsion": "Primary and Secondary Speeds are each reduced by 30 feet (minimum 0).",
+      "ram": "Damage bonus during collisions is halved.",
+      "miscellaneous": "No generic effect."
+    },
+    "broken": {
+      "artillery": "Cannot be used to make attacks.",
+      "control": "A creature can’t take a Ship Action to Accelerate, Decelerate, or Manoeuvre the vessel.",
+      "hull": "The ship sinks in 1d6 minutes.",
+      "propulsion": "Primary and Secondary Speeds are 0.",
+      "ram": "Confers no damage bonus during collisions.",
+      "miscellaneous": "No generic effect."
+    },
+    "destroyed": "No amount of magic or craftsmanship can restore Hit Points to it (p. 19).",
+    "repairTools": {
+      "Bone": "Carpenter’s or Woodcarver’s Tools (STR or DEX)",
+      "Flesh": "Surgeon’s Tools (DEX or WIS)",
+      "Magitech": "Tinker’s Tools (DEX)",
+      "Metal": "Smith’s Tools (STR or CON)",
+      "Living Plant": "Herbalism Kit (INT)",
+      "Stone": "Mason’s Tools (STR)",
+      "Wood": "Carpenter’s or Woodcarver’s Tools (STR or DEX)"
+    },
+    "properties": {
+      "dead": "Dead — Resistance to Cold and Necrotic damage.",
+      "ferrous": "Ferrous — magnetism-based attacks have Advantage against it; Disadvantage on saves vs magnetism-based effects.",
+      "flammable": "Flammable ({value}) — Resistance to Cold. Sets aflame if it takes {value}+ Fire damage in one instance; while aflame takes 2d6 Fire damage at the start of each Ship Phase (bypassing DT). Put out by a Ship Action or {value}+ Cold damage.",
+      "heavy": "Heavy ({value}) — reduces Top Speed by {abs} ft after all other modifiers.",
+      "light": "Light (+{value}) — increases Top Speed by {value} ft if at least one Propulsion component is not Broken.",
+      "wind_driven": "Wind-Driven — downwind +30 ft Primary; upwind or no wind: speeds 0 (optional Speed and Wind rule, p. 5).",
+      "fuel": "Fuel — 1 GP of fuel per hour of runtime; does not function without fuel.",
+      "noisy": "Noisy ({value}) — can attract kaiju."
+    },
+    "shotProperties": {
+      "rake": "Rake — can rake a Hull within close range (p. 10)",
+      "advantage:hulls": "Advantage vs Hulls and kaiju within close range",
+      "advantage:masts": "Advantage vs masts and tall vertical structures within close range (GM decides)",
+      "anti_personnel": "Anti-Personnel — ignores creatures’ size bonus to AC vs artillery",
+      "area": "Area ({area}) — saving throw instead of attack; half damage on success",
+      "high_arc": "High Arc — ignores cover that does not block from above",
+      "linking": "Linking ({material}) — imposes the Linked condition on a hit",
+      "minimum_range": "Minimum Range ({feet} ft)"
+    },
+    "shotTags": {
+      "rake": "Rake",
+      "advantage:hulls": "Adv. vs hulls",
+      "advantage:masts": "Adv. vs masts",
+      "anti_personnel": "Anti-personnel",
+      "area": "{area}",
+      "high_arc": "High arc",
+      "linking": "Linking",
+      "minimum_range": "Min. {feet} ft"
+    },
+    "ramming": [
+      {
+        "label": "Ramming damage",
+        "value": "Ship weight (tons) + Ram damage bonus"
+      },
+      {
+        "label": "Combined Speed ≤ 30 ft",
+        "value": "No damage"
+      },
+      {
+        "label": "31–89 ft",
+        "value": "Weight only (Ram bonus ignored)"
+      },
+      {
+        "label": "90–149 ft",
+        "value": "Weight + Ram bonus"
+      },
+      {
+        "label": "150+ ft",
+        "value": "Weight + doubled Ram bonus"
+      }
+    ],
+    "artilleryAction": "Ship Action, Artillery Step: Artillery or Hold Artillery",
+    "helmStep": "Accelerate / Decelerate / Zero Speed, and Manoeuvre",
+    "coreRules": [
+      {
+        "title": "Damage",
+        "body": "Damage that does not exceed the DT is ignored. At or below the IT a component is Impaired until fully repaired; at 0 HP it is Broken until its HP reach the IT again; reduced to 0 with 30 or more damage left over, it is destroyed."
+      },
+      {
+        "title": "Attacks",
+        "body": "To hit is your best allowed ability modifier plus your Artillery Proficiency perks, with no Proficiency Bonus. Area shots use DC 8 plus the same. Beyond normal range attacks have Disadvantage; long range is the maximum."
+      },
+      {
+        "title": "Raking",
+        "body": "A hit on a Hull within close range, fired perpendicular to its long axis, also damages one component and one random crew member."
+      }
+    ]
+  },
+  "installHours": {
+    "Small": {
+      "light": 0.5,
+      "heavy": 3,
+      "hull": 10
+    },
+    "Medium": {
+      "light": 1,
+      "heavy": 4,
+      "hull": 20
+    },
+    "Large": {
+      "light": 2,
+      "heavy": 6,
+      "hull": 30
+    },
+    "Huge": {
+      "light": 3,
+      "heavy": 8,
+      "hull": 60
+    },
+    "Gargantuan": {
+      "light": 4,
+      "heavy": 10,
+      "hull": 120
+    }
+  },
+  "qualities": {
+    "Cheap": {
+      "ac": -1,
+      "dt": -5,
+      "hp": 0,
+      "it": 10,
+      "con": -2
+    },
+    "Credulous I": {
+      "ac": 0,
+      "dt": 0,
+      "hp": 0,
+      "it": -10,
+      "con": 0
+    },
+    "Credulous II": {
+      "ac": 0,
+      "dt": 0,
+      "hp": 0,
+      "it": -20,
+      "con": 0
+    },
+    "Credulous III": {
+      "ac": 0,
+      "dt": 0,
+      "hp": 0,
+      "it": -30,
+      "con": 0
+    },
+    "Precise I": {
+      "ac": 0,
+      "dt": 3,
+      "hp": 0,
+      "it": 5,
+      "con": 1
+    },
+    "Precise II": {
+      "ac": 0,
+      "dt": 5,
+      "hp": 0,
+      "it": 10,
+      "con": 2
+    },
+    "Precise III": {
+      "ac": 0,
+      "dt": 7,
+      "hp": 0,
+      "it": 10,
+      "con": 3
+    },
+    "Reliable I": {
+      "ac": 0,
+      "dt": 1,
+      "hp": 0,
+      "it": -5,
+      "con": 1
+    },
+    "Reliable II": {
+      "ac": 0,
+      "dt": 2,
+      "hp": 0,
+      "it": -10,
+      "con": 1
+    },
+    "Reliable III": {
+      "ac": 0,
+      "dt": 3,
+      "hp": 0,
+      "it": -15,
+      "con": 1
+    },
+    "Robust I": {
+      "ac": 1,
+      "dt": 4,
+      "hp": 4,
+      "it": 0,
+      "con": 0
+    },
+    "Robust II": {
+      "ac": 1,
+      "dt": 8,
+      "hp": 8,
+      "it": 0,
+      "con": 0
+    },
+    "Robust III": {
+      "ac": 2,
+      "dt": 10,
+      "hp": 10,
+      "it": 0,
+      "con": 0
+    }
+  },
+  "categories": [
+    {
+      "key": "hull",
+      "name": "Hull",
+      "description": "The cladding that protects the vessel’s ribs and cargo. Destroying it is the only sure way to sink a ship."
+    },
+    {
+      "key": "control",
+      "name": "Control",
+      "description": "A cockpit of levers, switches, and wheels with which a Helmsman steers the ship."
+    },
+    {
+      "key": "propulsion",
+      "name": "Propulsion",
+      "description": "The source of a vessel’s locomotion: sails and engines."
+    },
+    {
+      "key": "artillery",
+      "name": "Artillery",
+      "description": "Ship-mounted weapons that deal devastation at long range."
+    },
+    {
+      "key": "ram",
+      "name": "Ram",
+      "description": "A long, heavy piece of tough material on the front of a ship, used to breach hulls in collisions."
+    },
+    {
+      "key": "miscellaneous",
+      "name": "Miscellaneous",
+      "description": "The catchall for anything that doesn’t fit in the other component types."
+    }
+  ],
+  "components": [
+    {
+      "key": "energy-ray-basic",
+      "name": "Energy Ray, Basic",
+      "category": "artillery",
+      "family": "Energy Ray",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 1000,
+      "craftingTime": 24,
+      "value": 3000,
+      "stats": {
+        "ac": 19,
+        "dt": 18,
+        "hp": 30,
+        "it": 15,
+        "con": 3,
+        "abilities": [
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "artilleryType": "energy_ray",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "beam",
+            "name": "Beam",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "6d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": 120,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A focused beam of magical energy that creates a medium-range, high damage, single-target attack."
+          },
+          {
+            "key": "burst",
+            "name": "Burst",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "anti_personnel"
+              }
+            ],
+            "damage": {
+              "dice": "4d6",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A spinning plate splits the focussed beam into a dozen pulses, resulting in a slightly weaker, medium-damage attack better suited to hitting a creature."
+          },
+          {
+            "key": "refract",
+            "name": "Refract",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "30-foot Cone"
+              }
+            ],
+            "damage": {
+              "dice": "3d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "An intentional misalignment of the focussing lenses diffuses the beam, allowing it to deal high damage in a wide area at very short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "energy-ray-superior",
+      "name": "Energy Ray, Superior",
+      "category": "artillery",
+      "family": "Energy Ray",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 4000,
+      "craftingTime": 32,
+      "value": 12000,
+      "stats": {
+        "ac": 19,
+        "dt": 22,
+        "hp": 55,
+        "it": 28,
+        "con": 5,
+        "abilities": [
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "artilleryType": "energy_ray",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "beam",
+            "name": "Beam",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "7d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": 120,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A focused beam of magical energy that creates a medium-range, high damage, single-target attack."
+          },
+          {
+            "key": "burst",
+            "name": "Burst",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "anti_personnel"
+              }
+            ],
+            "damage": {
+              "dice": "5d6",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A spinning plate splits the focussed beam into a dozen pulses, resulting in a slightly weaker, medium-damage attack better suited to hitting a creature."
+          },
+          {
+            "key": "refract",
+            "name": "Refract",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "30-foot Cone"
+              }
+            ],
+            "damage": {
+              "dice": "4d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "An intentional misalignment of the focussing lenses diffuses the beam, allowing it to deal high damage in a wide area at very short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "energy-ray-masterwork",
+      "name": "Energy Ray, Masterwork",
+      "category": "artillery",
+      "family": "Energy Ray",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 10000,
+      "craftingTime": 48,
+      "value": 30000,
+      "stats": {
+        "ac": 19,
+        "dt": 24,
+        "hp": 70,
+        "it": 35,
+        "con": 6,
+        "abilities": [
+          "Intelligence",
+          "Wisdom",
+          "Charisma"
+        ],
+        "artilleryType": "energy_ray",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "beam",
+            "name": "Beam",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "8d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": 120,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A focused beam of magical energy that creates a medium-range, high damage, single-target attack."
+          },
+          {
+            "key": "burst",
+            "name": "Burst",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "anti_personnel"
+              }
+            ],
+            "damage": {
+              "dice": "6d6",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 240,
+              "long": 960
+            },
+            "description": "A spinning plate splits the focussed beam into a dozen pulses, resulting in a slightly weaker, medium-damage attack better suited to hitting a creature."
+          },
+          {
+            "key": "refract",
+            "name": "Refract",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "30-foot Cone"
+              }
+            ],
+            "damage": {
+              "dice": "5d8",
+              "type": "Force"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "An intentional misalignment of the focussing lenses diffuses the beam, allowing it to deal high damage in a wide area at very short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-ballista-basic",
+      "name": "Magitech Ballista, Basic",
+      "category": "artillery",
+      "family": "Magitech Ballista",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 400,
+      "craftingTime": 16,
+      "value": 1200,
+      "stats": {
+        "ac": 14,
+        "dt": 16,
+        "hp": 30,
+        "it": 15,
+        "con": 2,
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "artilleryType": "ballista",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "harpoon",
+            "name": "Harpoon",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "linking",
+                "material": "silk rope"
+              }
+            ],
+            "damage": {
+              "dice": "4d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 150,
+              "long": null
+            },
+            "description": "An over-sized javelin attached to a spool of rope or wire, with spring-loaded barbs. A mid-damage, low-range attack that causes a vessel or creature to become attached to the component."
+          },
+          {
+            "key": "javelin",
+            "name": "Javelin",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "3d12",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": 150,
+              "normal": 300,
+              "long": 1200
+            },
+            "description": "A huge arrow that causes high-damage to a single target at long range."
+          },
+          {
+            "key": "splinter",
+            "name": "Splinter Shot",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "150-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "2d4",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller arrows and lengths of metal whose weak binding tears when fired, causing the material to spread out, dealing low damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-ballista-superior",
+      "name": "Magitech Ballista, Superior",
+      "category": "artillery",
+      "family": "Magitech Ballista",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 800,
+      "craftingTime": 24,
+      "value": 2400,
+      "stats": {
+        "ac": 14,
+        "dt": 18,
+        "hp": 50,
+        "it": 25,
+        "con": 3,
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "artilleryType": "ballista",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "harpoon",
+            "name": "Harpoon",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "linking",
+                "material": "steel cable"
+              }
+            ],
+            "damage": {
+              "dice": "5d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 150,
+              "long": null
+            },
+            "description": "An over-sized javelin attached to a spool of rope or wire, with spring-loaded barbs. A mid-damage, low-range attack that causes a vessel or creature to become attached to the component."
+          },
+          {
+            "key": "javelin",
+            "name": "Javelin",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "4d12",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": 150,
+              "normal": 300,
+              "long": 1200
+            },
+            "description": "A huge arrow that causes high-damage to a single target at long range."
+          },
+          {
+            "key": "splinter",
+            "name": "Splinter Shot",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "150-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "3d4",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller arrows and lengths of metal whose weak binding tears when fired, causing the material to spread out, dealing low damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-ballista-masterwork",
+      "name": "Magitech Ballista, Masterwork",
+      "category": "artillery",
+      "family": "Magitech Ballista",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 0.5,
+      "cargoUnits": 2,
+      "materialCost": 3600,
+      "craftingTime": 32,
+      "value": 10800,
+      "stats": {
+        "ac": 14,
+        "dt": 22,
+        "hp": 85,
+        "it": 43,
+        "con": 5,
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "artilleryType": "ballista",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "harpoon",
+            "name": "Harpoon",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "linking",
+                "material": "mithral cord"
+              }
+            ],
+            "damage": {
+              "dice": "6d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 150,
+              "long": null
+            },
+            "description": "An over-sized javelin attached to a spool of rope or wire, with spring-loaded barbs. A mid-damage, low-range attack that causes a vessel or creature to become attached to the component."
+          },
+          {
+            "key": "javelin",
+            "name": "Javelin",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "5d12",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": 150,
+              "normal": 300,
+              "long": 1200
+            },
+            "description": "A huge arrow that causes high-damage to a single target at long range."
+          },
+          {
+            "key": "splinter",
+            "name": "Splinter Shot",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "150-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "4d4",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller arrows and lengths of metal whose weak binding tears when fired, causing the material to spread out, dealing low damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-cannon-basic",
+      "name": "Magitech Cannon, Basic",
+      "category": "artillery",
+      "family": "Magitech Cannon",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 2,
+      "materialCost": 600,
+      "craftingTime": 16,
+      "value": 1800,
+      "stats": {
+        "ac": 17,
+        "dt": 16,
+        "hp": 30,
+        "it": 18,
+        "con": 2,
+        "abilities": [
+          "Dexterity",
+          "Intelligence"
+        ],
+        "artilleryType": "cannon",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "ball",
+            "name": "Ball Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "hulls"
+              },
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "4d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "A spherical ball, usually made of metal. A long-range, high-damage, single-target attack."
+          },
+          {
+            "key": "chain",
+            "name": "Chain Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "masts"
+              }
+            ],
+            "damage": {
+              "dice": "3d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "Two smaller balls connected by a chain. When fired, the chain stretches horizontally, making it more likely to hit tall vertical structures like masts.",
+            "rulingRanges": {
+              "ruling": "AMB-CHAIN-RANGE",
+              "options": {
+                "statblock": {
+                  "close": null,
+                  "normal": 240,
+                  "long": 960
+                }
+              }
+            }
+          },
+          {
+            "key": "grape",
+            "name": "Grape Shot",
+            "target": "save",
+            "saveAbility": "Dexterity",
+            "properties": [
+              {
+                "key": "area",
+                "area": "90-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "2d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller balls tightly wrapped and bound with cloth and rope. When fired, the cloth rips, causing the shot to spread out, dealing medium damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-cannon-superior",
+      "name": "Magitech Cannon, Superior",
+      "category": "artillery",
+      "family": "Magitech Cannon",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 2,
+      "materialCost": 2400,
+      "craftingTime": 24,
+      "value": 7200,
+      "stats": {
+        "ac": 17,
+        "dt": 20,
+        "hp": 65,
+        "it": 39,
+        "con": 4,
+        "abilities": [
+          "Dexterity",
+          "Intelligence"
+        ],
+        "artilleryType": "cannon",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "ball",
+            "name": "Ball Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "hulls"
+              },
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "5d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "A spherical ball, usually made of metal. A long-range, high-damage, single-target attack."
+          },
+          {
+            "key": "chain",
+            "name": "Chain Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "masts"
+              }
+            ],
+            "damage": {
+              "dice": "4d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "Two smaller balls connected by a chain. When fired, the chain stretches horizontally, making it more likely to hit tall vertical structures like masts."
+          },
+          {
+            "key": "grape",
+            "name": "Grape Shot",
+            "target": "save",
+            "saveAbility": "Dexterity",
+            "properties": [
+              {
+                "key": "area",
+                "area": "90-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "3d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller balls tightly wrapped and bound with cloth and rope. When fired, the cloth rips, causing the shot to spread out, dealing medium damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-cannon-masterwork",
+      "name": "Magitech Cannon, Masterwork",
+      "category": "artillery",
+      "family": "Magitech Cannon",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 2,
+      "materialCost": 10800,
+      "craftingTime": 32,
+      "value": 32400,
+      "stats": {
+        "ac": 17,
+        "dt": 24,
+        "hp": 100,
+        "it": 60,
+        "con": 6,
+        "abilities": [
+          "Dexterity",
+          "Intelligence"
+        ],
+        "artilleryType": "cannon",
+        "kaijuThreshold": {
+          "value": 2,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "ball",
+            "name": "Ball Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "hulls"
+              },
+              {
+                "key": "rake"
+              }
+            ],
+            "damage": {
+              "dice": "6d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "A spherical ball, usually made of metal. A long-range, high-damage, single-target attack."
+          },
+          {
+            "key": "chain",
+            "name": "Chain Shot",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "advantage",
+                "target": "masts"
+              }
+            ],
+            "damage": {
+              "dice": "5d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": 180,
+              "normal": 360,
+              "long": 1440
+            },
+            "description": "Two smaller balls connected by a chain. When fired, the chain stretches horizontally, making it more likely to hit tall vertical structures like masts."
+          },
+          {
+            "key": "grape",
+            "name": "Grape Shot",
+            "target": "save",
+            "saveAbility": "Dexterity",
+            "properties": [
+              {
+                "key": "area",
+                "area": "90-foot Narrow Cone"
+              }
+            ],
+            "damage": {
+              "dice": "4d6",
+              "type": "Piercing"
+            },
+            "ranges": {
+              "close": null,
+              "normal": null,
+              "long": null
+            },
+            "description": "A dozen or more smaller balls tightly wrapped and bound with cloth and rope. When fired, the cloth rips, causing the shot to spread out, dealing medium damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-catapult-basic",
+      "name": "Magitech Catapult, Basic",
+      "category": "artillery",
+      "family": "Magitech Catapult",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 2,
+      "cargoUnits": 4,
+      "materialCost": 500,
+      "craftingTime": 32,
+      "value": 1500,
+      "stats": {
+        "ac": 15,
+        "dt": 11,
+        "hp": 30,
+        "it": 18,
+        "con": 2,
+        "abilities": [
+          "Strength",
+          "Intelligence"
+        ],
+        "artilleryType": "catapult",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "rock",
+            "name": "Rock",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "4d10",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": 900
+            },
+            "description": "A weighty piece of stone or metal is thrown with a high, arcing trajectory, causing high damage at short range to a single target."
+          },
+          {
+            "key": "pebbles",
+            "name": "Pebbles",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "10-foot-radius, 90-foot-high Cylinder"
+              },
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "3d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": null
+            },
+            "description": "Many cobble-sized rocks fired simultaneously fall in a small cylinder, dealing high damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-catapult-superior",
+      "name": "Magitech Catapult, Superior",
+      "category": "artillery",
+      "family": "Magitech Catapult",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 2,
+      "cargoUnits": 4,
+      "materialCost": 2000,
+      "craftingTime": 48,
+      "value": 6000,
+      "stats": {
+        "ac": 15,
+        "dt": 15,
+        "hp": 70,
+        "it": 42,
+        "con": 4,
+        "abilities": [
+          "Strength",
+          "Intelligence"
+        ],
+        "artilleryType": "catapult",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "rock",
+            "name": "Rock",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "5d10",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": 900
+            },
+            "description": "A weighty piece of stone or metal is thrown with a high, arcing trajectory, causing high damage at short range to a single target."
+          },
+          {
+            "key": "pebbles",
+            "name": "Pebbles",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "10-foot-radius, 90-foot-high Cylinder"
+              },
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "4d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": null
+            },
+            "description": "Many cobble-sized rocks fired simultaneously fall in a small cylinder, dealing high damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-catapult-masterwork",
+      "name": "Magitech Catapult, Masterwork",
+      "category": "artillery",
+      "family": "Magitech Catapult",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 2,
+      "cargoUnits": 4,
+      "materialCost": 5000,
+      "craftingTime": 64,
+      "value": 15000,
+      "stats": {
+        "ac": 15,
+        "dt": 17,
+        "hp": 85,
+        "it": 51,
+        "con": 5,
+        "abilities": [
+          "Strength",
+          "Intelligence"
+        ],
+        "artilleryType": "catapult",
+        "kaijuThreshold": {
+          "value": 1,
+          "condition": "Makes attack or AoE"
+        },
+        "shots": [
+          {
+            "key": "rock",
+            "name": "Rock",
+            "target": "attack",
+            "properties": [
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "6d10",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": 900
+            },
+            "description": "A weighty piece of stone or metal is thrown with a high, arcing trajectory, causing high damage at short range to a single target."
+          },
+          {
+            "key": "pebbles",
+            "name": "Pebbles",
+            "target": "save",
+            "saveAbility": null,
+            "properties": [
+              {
+                "key": "area",
+                "area": "10-foot-radius, 90-foot-high Cylinder"
+              },
+              {
+                "key": "high_arc"
+              },
+              {
+                "key": "minimum_range",
+                "feet": 150
+              }
+            ],
+            "damage": {
+              "dice": "5d8",
+              "type": "Bludgeoning"
+            },
+            "ranges": {
+              "close": null,
+              "normal": 300,
+              "long": null
+            },
+            "description": "Many cobble-sized rocks fired simultaneously fall in a small cylinder, dealing high damage in an area at short range."
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 23,
+        "section": "Artillery Summary; Artillery Shot Selection (p. 24); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-control-basic",
+      "name": "Magitech Control, Basic",
+      "category": "control",
+      "family": "Magitech Control",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 1400,
+      "craftingTime": 32,
+      "value": 4200,
+      "stats": {
+        "ac": 16,
+        "dt": 18,
+        "hp": 45,
+        "it": 27,
+        "con": 3,
+        "controlType": "magitech",
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "changesOfFacing": 2
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-control-superior",
+      "name": "Magitech Control, Superior",
+      "category": "control",
+      "family": "Magitech Control",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 5600,
+      "craftingTime": 48,
+      "value": 16800,
+      "stats": {
+        "ac": 16,
+        "dt": 22,
+        "hp": 80,
+        "it": 48,
+        "con": 5,
+        "controlType": "magitech",
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "changesOfFacing": 2
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-control-masterwork",
+      "name": "Magitech Control, Masterwork",
+      "category": "control",
+      "family": "Magitech Control",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 16800,
+      "craftingTime": 64,
+      "value": 50400,
+      "stats": {
+        "ac": 16,
+        "dt": 24,
+        "hp": 100,
+        "it": 60,
+        "con": 6,
+        "controlType": "magitech",
+        "abilities": [
+          "Dexterity",
+          "Wisdom"
+        ],
+        "changesOfFacing": 3
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mechanical-control-basic",
+      "name": "Mechanical Control, Basic",
+      "category": "control",
+      "family": "Mechanical Control",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 800,
+      "craftingTime": 24,
+      "value": 2400,
+      "stats": {
+        "ac": 19,
+        "dt": 16,
+        "hp": 25,
+        "it": 10,
+        "con": 2,
+        "controlType": "mechanical",
+        "abilities": [
+          "Strength",
+          "Wisdom"
+        ],
+        "changesOfFacing": 1
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mechanical-control-superior",
+      "name": "Mechanical Control, Superior",
+      "category": "control",
+      "family": "Mechanical Control",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 1600,
+      "craftingTime": 32,
+      "value": 4800,
+      "stats": {
+        "ac": 19,
+        "dt": 18,
+        "hp": 40,
+        "it": 16,
+        "con": 3,
+        "controlType": "mechanical",
+        "abilities": [
+          "Strength",
+          "Wisdom"
+        ],
+        "changesOfFacing": 1
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mechanical-control-masterwork",
+      "name": "Mechanical Control, Masterwork",
+      "category": "control",
+      "family": "Mechanical Control",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 1,
+      "materialCost": 4000,
+      "craftingTime": 48,
+      "value": 12000,
+      "stats": {
+        "ac": 19,
+        "dt": 20,
+        "hp": 55,
+        "it": 22,
+        "con": 4,
+        "controlType": "mechanical",
+        "abilities": [
+          "Strength",
+          "Wisdom"
+        ],
+        "changesOfFacing": 2
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 25,
+        "section": "Control Summary; Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "adamantine-hull-superior",
+      "name": "Adamantine Hull, Superior",
+      "category": "hull",
+      "family": "Adamantine Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 30,
+      "cargoUnits": 36,
+      "materialCost": 20000,
+      "craftingTime": 216,
+      "value": 60000,
+      "stats": {
+        "ac": 20,
+        "dt": 27,
+        "hp": 250,
+        "it": 125,
+        "con": 5,
+        "properties": [
+          {
+            "key": "heavy",
+            "value": -30
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "adamantine-hull-masterwork",
+      "name": "Adamantine Hull, Masterwork",
+      "category": "hull",
+      "family": "Adamantine Hull",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 30,
+      "cargoUnits": 36,
+      "materialCost": 60000,
+      "craftingTime": 320,
+      "value": 180000,
+      "stats": {
+        "ac": 20,
+        "dt": 29,
+        "hp": 315,
+        "it": 158,
+        "con": 6,
+        "properties": [
+          {
+            "key": "heavy",
+            "value": -30
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-hull-basic",
+      "name": "Bone Hull, Basic",
+      "category": "hull",
+      "family": "Bone Hull",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 15,
+      "cargoUnits": 36,
+      "materialCost": 1200,
+      "craftingTime": 128,
+      "value": 3600,
+      "stats": {
+        "ac": 16,
+        "dt": 11,
+        "hp": 95,
+        "it": 38,
+        "con": 2,
+        "properties": [
+          {
+            "key": "dead"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-hull-superior",
+      "name": "Bone Hull, Superior",
+      "category": "hull",
+      "family": "Bone Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 15,
+      "cargoUnits": 36,
+      "materialCost": 4800,
+      "craftingTime": 192,
+      "value": 14400,
+      "stats": {
+        "ac": 16,
+        "dt": 15,
+        "hp": 220,
+        "it": 88,
+        "con": 4,
+        "properties": [
+          {
+            "key": "dead"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-hull-masterwork",
+      "name": "Bone Hull, Masterwork",
+      "category": "hull",
+      "family": "Bone Hull",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 15,
+      "cargoUnits": 36,
+      "materialCost": 12000,
+      "craftingTime": 256,
+      "value": 36000,
+      "stats": {
+        "ac": 16,
+        "dt": 17,
+        "hp": 265,
+        "it": 106,
+        "con": 5,
+        "properties": [
+          {
+            "key": "dead"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mithral-alloy-hull-superior",
+      "name": "Mithral Alloy Hull, Superior",
+      "category": "hull",
+      "family": "Mithral Alloy Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 10,
+      "cargoUnits": 36,
+      "materialCost": 16000,
+      "craftingTime": 192,
+      "value": 48000,
+      "stats": {
+        "ac": 18,
+        "dt": 20,
+        "hp": 220,
+        "it": 110,
+        "con": 4,
+        "properties": [
+          {
+            "key": "light",
+            "value": 30
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mithral-alloy-hull-masterwork",
+      "name": "Mithral Alloy Hull, Masterwork",
+      "category": "hull",
+      "family": "Mithral Alloy Hull",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 10,
+      "cargoUnits": 36,
+      "materialCost": 50000,
+      "craftingTime": 296,
+      "value": 150000,
+      "stats": {
+        "ac": 18,
+        "dt": 24,
+        "hp": 330,
+        "it": 165,
+        "con": 6,
+        "properties": [
+          {
+            "key": "light",
+            "value": 30
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-hull-basic",
+      "name": "Steel Hull, Basic",
+      "category": "hull",
+      "family": "Steel Hull",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 30,
+      "cargoUnits": 36,
+      "materialCost": 1600,
+      "craftingTime": 128,
+      "value": 4800,
+      "stats": {
+        "ac": 19,
+        "dt": 16,
+        "hp": 105,
+        "it": 57,
+        "con": 1,
+        "properties": [
+          {
+            "key": "ferrous"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-hull-superior",
+      "name": "Steel Hull, Superior",
+      "category": "hull",
+      "family": "Steel Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 30,
+      "cargoUnits": 36,
+      "materialCost": 3200,
+      "craftingTime": 192,
+      "value": 9600,
+      "stats": {
+        "ac": 19,
+        "dt": 18,
+        "hp": 165,
+        "it": 90,
+        "con": 2,
+        "properties": [
+          {
+            "key": "ferrous"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-hull-masterwork",
+      "name": "Steel Hull, Masterwork",
+      "category": "hull",
+      "family": "Steel Hull",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 30,
+      "cargoUnits": 36,
+      "materialCost": 14400,
+      "craftingTime": 256,
+      "value": 43200,
+      "stats": {
+        "ac": 19,
+        "dt": 21,
+        "hp": 260,
+        "it": 132,
+        "con": 3,
+        "properties": [
+          {
+            "key": "ferrous"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "wooden-hull-basic",
+      "name": "Wooden Hull, Basic",
+      "category": "hull",
+      "family": "Wooden Hull",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 20,
+      "cargoUnits": 36,
+      "materialCost": 1300,
+      "craftingTime": 128,
+      "value": 3900,
+      "stats": {
+        "ac": 15,
+        "dt": 16,
+        "hp": 105,
+        "it": 53,
+        "con": 2,
+        "properties": [
+          {
+            "key": "flammable",
+            "value": 20
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "wooden-hull-superior",
+      "name": "Wooden Hull, Superior",
+      "category": "hull",
+      "family": "Wooden Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 20,
+      "cargoUnits": 36,
+      "materialCost": 2600,
+      "craftingTime": 192,
+      "value": 7800,
+      "stats": {
+        "ac": 15,
+        "dt": 18,
+        "hp": 165,
+        "it": 83,
+        "con": 3,
+        "properties": [
+          {
+            "key": "flammable",
+            "value": 30
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "wooden-hull-masterwork",
+      "name": "Wooden Hull, Masterwork",
+      "category": "hull",
+      "family": "Wooden Hull",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 20,
+      "cargoUnits": 36,
+      "materialCost": 6500,
+      "craftingTime": 256,
+      "value": 19500,
+      "stats": {
+        "ac": 15,
+        "dt": 20,
+        "hp": 240,
+        "it": 120,
+        "con": 4,
+        "properties": [
+          {
+            "key": "flammable",
+            "value": 40
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 27,
+        "section": "Hull Summary; Hull Properties (p. 26); Ship Components Metadata (p. 40)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "auxiliary-sail-basic",
+      "name": "Auxiliary Sail, Basic",
+      "category": "propulsion",
+      "family": "Auxiliary Sail",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 9,
+      "materialCost": 150,
+      "craftingTime": 16,
+      "value": 450,
+      "stats": {
+        "ac": 13,
+        "dt": 16,
+        "hp": 30,
+        "it": 12,
+        "con": 2,
+        "propulsionType": "auxiliary_sail",
+        "speed": {
+          "primary": 30,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [
+        "miscellaneous"
+      ]
+    },
+    {
+      "key": "auxiliary-sail-superior",
+      "name": "Auxiliary Sail, Superior",
+      "category": "propulsion",
+      "family": "Auxiliary Sail",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 9,
+      "materialCost": 300,
+      "craftingTime": 24,
+      "value": 900,
+      "stats": {
+        "ac": 13,
+        "dt": 18,
+        "hp": 50,
+        "it": 20,
+        "con": 3,
+        "propulsionType": "auxiliary_sail",
+        "speed": {
+          "primary": 30,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [
+        "miscellaneous"
+      ]
+    },
+    {
+      "key": "auxiliary-sail-masterwork",
+      "name": "Auxiliary Sail, Masterwork",
+      "category": "propulsion",
+      "family": "Auxiliary Sail",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 9,
+      "materialCost": 750,
+      "craftingTime": 32,
+      "value": 2250,
+      "stats": {
+        "ac": 13,
+        "dt": 20,
+        "hp": 70,
+        "it": 28,
+        "con": 4,
+        "propulsionType": "auxiliary_sail",
+        "speed": {
+          "primary": 60,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [
+        "miscellaneous"
+      ]
+    },
+    {
+      "key": "magitech-engine-basic",
+      "name": "Magitech Engine, Basic",
+      "category": "propulsion",
+      "family": "Magitech Engine",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 3,
+      "cargoUnits": 8,
+      "materialCost": 2000,
+      "craftingTime": 64,
+      "value": 6000,
+      "stats": {
+        "ac": 16,
+        "dt": 15,
+        "hp": 65,
+        "it": 39,
+        "con": 4,
+        "propulsionType": "magitech_engine",
+        "speed": {
+          "primary": 90,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 5
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 15,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-engine-superior",
+      "name": "Magitech Engine, Superior",
+      "category": "propulsion",
+      "family": "Magitech Engine",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 3,
+      "cargoUnits": 8,
+      "materialCost": 4000,
+      "craftingTime": 96,
+      "value": 12000,
+      "stats": {
+        "ac": 16,
+        "dt": 17,
+        "hp": 80,
+        "it": 48,
+        "con": 5,
+        "propulsionType": "magitech_engine",
+        "speed": {
+          "primary": 120,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 10
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 10,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "magitech-engine-masterwork",
+      "name": "Magitech Engine, Masterwork",
+      "category": "propulsion",
+      "family": "Magitech Engine",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Magitech",
+      "weight": 3,
+      "cargoUnits": 8,
+      "materialCost": 12000,
+      "craftingTime": 128,
+      "value": 36000,
+      "stats": {
+        "ac": 16,
+        "dt": 19,
+        "hp": 100,
+        "it": 60,
+        "con": 6,
+        "propulsionType": "magitech_engine",
+        "speed": {
+          "primary": 150,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 15
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 5,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mainsail-basic",
+      "name": "Mainsail, Basic",
+      "category": "propulsion",
+      "family": "Mainsail",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Huge",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 1,
+      "cargoUnits": 12,
+      "materialCost": 300,
+      "craftingTime": 32,
+      "value": 900,
+      "stats": {
+        "ac": 13,
+        "dt": 16,
+        "hp": 40,
+        "it": 16,
+        "con": 2,
+        "propulsionType": "mainsail",
+        "speed": {
+          "primary": 60,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mainsail-superior",
+      "name": "Mainsail, Superior",
+      "category": "propulsion",
+      "family": "Mainsail",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Huge",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 1,
+      "cargoUnits": 12,
+      "materialCost": 600,
+      "craftingTime": 48,
+      "value": 1800,
+      "stats": {
+        "ac": 13,
+        "dt": 18,
+        "hp": 65,
+        "it": 26,
+        "con": 3,
+        "propulsionType": "mainsail",
+        "speed": {
+          "primary": 60,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "mainsail-masterwork",
+      "name": "Mainsail, Masterwork",
+      "category": "propulsion",
+      "family": "Mainsail",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Huge",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 1,
+      "cargoUnits": 12,
+      "materialCost": 1800,
+      "craftingTime": 64,
+      "value": 5400,
+      "stats": {
+        "ac": 13,
+        "dt": 20,
+        "hp": 90,
+        "it": 36,
+        "con": 4,
+        "propulsionType": "mainsail",
+        "speed": {
+          "primary": 90,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steam-engine-basic",
+      "name": "Steam Engine, Basic",
+      "category": "propulsion",
+      "family": "Steam Engine",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 6,
+      "cargoUnits": 8,
+      "materialCost": 900,
+      "craftingTime": 64,
+      "value": 2700,
+      "stats": {
+        "ac": 19,
+        "dt": 18,
+        "hp": 45,
+        "it": 27,
+        "con": 2,
+        "propulsionType": "steam_engine",
+        "speed": {
+          "primary": 60,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 10
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 30,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [],
+      "materialRuling": {
+        "ruling": "AMB-STEAM-MATERIAL",
+        "options": {
+          "metal": "Metal",
+          "magitech": "Magitech"
+        }
+      }
+    },
+    {
+      "key": "steam-engine-superior",
+      "name": "Steam Engine, Superior",
+      "category": "propulsion",
+      "family": "Steam Engine",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 6,
+      "cargoUnits": 8,
+      "materialCost": 1800,
+      "craftingTime": 96,
+      "value": 5400,
+      "stats": {
+        "ac": 19,
+        "dt": 20,
+        "hp": 60,
+        "it": 36,
+        "con": 3,
+        "propulsionType": "steam_engine",
+        "speed": {
+          "primary": 90,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 20
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 20,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [],
+      "materialRuling": {
+        "ruling": "AMB-STEAM-MATERIAL",
+        "options": {
+          "metal": "Metal",
+          "magitech": "Magitech"
+        }
+      }
+    },
+    {
+      "key": "steam-engine-masterwork",
+      "name": "Steam Engine, Masterwork",
+      "category": "propulsion",
+      "family": "Steam Engine",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 6,
+      "cargoUnits": 8,
+      "materialCost": 4500,
+      "craftingTime": 128,
+      "value": 13500,
+      "stats": {
+        "ac": 19,
+        "dt": 22,
+        "hp": 75,
+        "it": 45,
+        "con": 4,
+        "propulsionType": "steam_engine",
+        "speed": {
+          "primary": 120,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "fuel"
+          },
+          {
+            "key": "noisy",
+            "value": 30
+          }
+        ],
+        "kaijuThreshold": {
+          "value": 10,
+          "condition": "Not Broken at end of battle"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 29,
+        "section": "Propulsion Summary; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": [],
+      "materialRuling": {
+        "ruling": "AMB-STEAM-MATERIAL",
+        "options": {
+          "metal": "Metal",
+          "magitech": "Magitech"
+        }
+      }
+    },
+    {
+      "key": "adamantine-ram-basic",
+      "name": "Adamantine Ram, Basic",
+      "category": "ram",
+      "family": "Adamantine Ram",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 2,
+      "cargoUnits": 3,
+      "materialCost": 900,
+      "craftingTime": 12,
+      "value": 2700,
+      "stats": {
+        "ac": 22,
+        "dt": 58,
+        "hp": 80,
+        "it": 40,
+        "con": 4,
+        "ramDamage": {
+          "dice": "2d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "adamantine-ram-superior",
+      "name": "Adamantine Ram, Superior",
+      "category": "ram",
+      "family": "Adamantine Ram",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 2,
+      "cargoUnits": 3,
+      "materialCost": 1800,
+      "craftingTime": 18,
+      "value": 5400,
+      "stats": {
+        "ac": 22,
+        "dt": 69,
+        "hp": 100,
+        "it": 50,
+        "con": 5,
+        "ramDamage": {
+          "dice": "3d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "adamantine-ram-masterwork",
+      "name": "Adamantine Ram, Masterwork",
+      "category": "ram",
+      "family": "Adamantine Ram",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 2,
+      "cargoUnits": 3,
+      "materialCost": 5400,
+      "craftingTime": 24,
+      "value": 16200,
+      "stats": {
+        "ac": 22,
+        "dt": 80,
+        "hp": 125,
+        "it": 63,
+        "con": 6,
+        "ramDamage": {
+          "dice": "4d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-ram-basic",
+      "name": "Bone Ram, Basic",
+      "category": "ram",
+      "family": "Bone Ram",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 200,
+      "craftingTime": 12,
+      "value": 600,
+      "stats": {
+        "ac": 16,
+        "dt": 42,
+        "hp": 65,
+        "it": 26,
+        "con": 3,
+        "ramDamage": {
+          "dice": "1d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-ram-superior",
+      "name": "Bone Ram, Superior",
+      "category": "ram",
+      "family": "Bone Ram",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 400,
+      "craftingTime": 18,
+      "value": 1200,
+      "stats": {
+        "ac": 16,
+        "dt": 52,
+        "hp": 87,
+        "it": 35,
+        "con": 4,
+        "ramDamage": {
+          "dice": "2d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "bone-ram-masterwork",
+      "name": "Bone Ram, Masterwork",
+      "category": "ram",
+      "family": "Bone Ram",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Bone",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 1000,
+      "craftingTime": 24,
+      "value": 3000,
+      "stats": {
+        "ac": 16,
+        "dt": 62,
+        "hp": 102,
+        "it": 41,
+        "con": 5,
+        "ramDamage": {
+          "dice": "3d10",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "iron-tipped-wooden-ram-basic",
+      "name": "Iron-Tipped Wooden Ram, Basic",
+      "category": "ram",
+      "family": "Iron-Tipped Wooden Ram",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 120,
+      "craftingTime": 12,
+      "value": 360,
+      "stats": {
+        "ac": 15,
+        "dt": 37,
+        "hp": 40,
+        "it": 24,
+        "con": 2,
+        "ramDamage": {
+          "dice": "1d6",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "iron-tipped-wooden-ram-superior",
+      "name": "Iron-Tipped Wooden Ram, Superior",
+      "category": "ram",
+      "family": "Iron-Tipped Wooden Ram",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 240,
+      "craftingTime": 18,
+      "value": 720,
+      "stats": {
+        "ac": 15,
+        "dt": 49,
+        "hp": 65,
+        "it": 39,
+        "con": 3,
+        "ramDamage": {
+          "dice": "2d6",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "iron-tipped-wooden-ram-masterwork",
+      "name": "Iron-Tipped Wooden Ram, Masterwork",
+      "category": "ram",
+      "family": "Iron-Tipped Wooden Ram",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Wood",
+      "weight": 0.5,
+      "cargoUnits": 3,
+      "materialCost": 600,
+      "craftingTime": 24,
+      "value": 1800,
+      "stats": {
+        "ac": 15,
+        "dt": 59,
+        "hp": 95,
+        "it": 57,
+        "con": 4,
+        "ramDamage": {
+          "dice": "3d6",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-ram-basic",
+      "name": "Steel Ram, Basic",
+      "category": "ram",
+      "family": "Steel Ram",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 3,
+      "materialCost": 267,
+      "craftingTime": 12,
+      "value": 800,
+      "stats": {
+        "ac": 19,
+        "dt": 46,
+        "hp": 55,
+        "it": 28,
+        "con": 3,
+        "ramDamage": {
+          "dice": "1d8",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-ram-superior",
+      "name": "Steel Ram, Superior",
+      "category": "ram",
+      "family": "Steel Ram",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 3,
+      "materialCost": 533,
+      "craftingTime": 18,
+      "value": 1600,
+      "stats": {
+        "ac": 19,
+        "dt": 56,
+        "hp": 75,
+        "it": 38,
+        "con": 4,
+        "ramDamage": {
+          "dice": "2d8",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "steel-ram-masterwork",
+      "name": "Steel Ram, Masterwork",
+      "category": "ram",
+      "family": "Steel Ram",
+      "tier": "Masterwork",
+      "quality": null,
+      "size": "Large",
+      "dimensions": null,
+      "material": "Metal",
+      "weight": 1,
+      "cargoUnits": 3,
+      "materialCost": 1333,
+      "craftingTime": 24,
+      "value": 4000,
+      "stats": {
+        "ac": 19,
+        "dt": 66,
+        "hp": 95,
+        "it": 48,
+        "con": 5,
+        "ramDamage": {
+          "dice": "3d8",
+          "type": "Bludgeoning"
+        }
+      },
+      "description": null,
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 30,
+        "section": "Ram Components; Ship Components Metadata (p. 41)"
+      },
+      "playerAvailable": true,
+      "slotTypes": []
+    },
+    {
+      "key": "jaws-mimicflesh-hull-superior",
+      "name": "Mimicflesh Hull, Superior",
+      "category": "hull",
+      "family": "Mimicflesh Hull",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": "90 ft × 30 ft × 30 ft",
+      "material": null,
+      "weight": null,
+      "cargoUnits": null,
+      "materialCost": null,
+      "craftingTime": null,
+      "value": null,
+      "stats": {
+        "ac": 15,
+        "dt": 16,
+        "hp": 200,
+        "it": 80,
+        "con": 4,
+        "mimic": true
+      },
+      "description": "Specific to Jaws.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 44,
+        "section": "Player Ship: Jaws — Hull",
+        "note": "No material or properties are stated."
+      },
+      "playerAvailable": false,
+      "slotTypes": []
+    },
+    {
+      "key": "jaws-mainsail-mast-superior",
+      "name": "Mainsail Mast, Superior",
+      "category": "propulsion",
+      "family": "Mainsail Mast",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": "5 ft × 5 ft × 60 ft",
+      "material": null,
+      "weight": null,
+      "cargoUnits": null,
+      "materialCost": null,
+      "craftingTime": null,
+      "value": null,
+      "stats": {
+        "ac": 13,
+        "dt": 18,
+        "hp": 60,
+        "it": 24,
+        "con": 2,
+        "propulsionType": "mainsail",
+        "speed": {
+          "primary": 60,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": "Specific to Jaws.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 44,
+        "section": "Player Ship: Jaws — Propulsion",
+        "note": "Differs from Mainsail, Superior on p. 29 (HP 65, IT 26, Con +3, Huge)."
+      },
+      "playerAvailable": false,
+      "slotTypes": []
+    },
+    {
+      "key": "jaws-auxiliary-mast-foresail",
+      "name": "Auxiliary Mast, Foresail",
+      "category": "propulsion",
+      "family": "Auxiliary Mast",
+      "tier": null,
+      "quality": null,
+      "size": "Gargantuan",
+      "dimensions": "5 ft × 5 ft × 45 ft",
+      "material": null,
+      "weight": null,
+      "cargoUnits": null,
+      "materialCost": null,
+      "craftingTime": null,
+      "value": null,
+      "stats": {
+        "ac": 12,
+        "dt": 18,
+        "hp": 50,
+        "it": 25,
+        "con": 2,
+        "propulsionType": "auxiliary_sail",
+        "speed": {
+          "primary": 30,
+          "secondary": 30
+        },
+        "properties": [
+          {
+            "key": "wind_driven"
+          }
+        ]
+      },
+      "description": "Specific to Jaws.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 44,
+        "section": "Player Ship: Jaws — Propulsion",
+        "note": "No tier stated. Differs from every Auxiliary Sail tier on p. 29."
+      },
+      "playerAvailable": false,
+      "slotTypes": [
+        "miscellaneous"
+      ]
+    },
+    {
+      "key": "jaws-jaw-ram-basic",
+      "name": "Jaw Ram, Basic (Mimic)",
+      "category": "ram",
+      "family": "Jaw Ram",
+      "tier": "Basic",
+      "quality": null,
+      "size": "Huge",
+      "dimensions": "12 ft × 5 ft × 5 ft",
+      "material": null,
+      "weight": null,
+      "cargoUnits": null,
+      "materialCost": null,
+      "craftingTime": null,
+      "value": null,
+      "stats": {
+        "ac": 12,
+        "dt": 45,
+        "hp": 80,
+        "it": 32,
+        "con": 3,
+        "ramDamage": {
+          "dice": "2d8",
+          "type": null,
+          "average": 9
+        },
+        "traits": [
+          {
+            "name": "Ram",
+            "text": "The rammed ship is Grappled by this component (escape acceleration of 60 feet)."
+          }
+        ],
+        "mimic": true
+      },
+      "description": "Specific to Jaws.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 44,
+        "section": "Player Ship: Jaws — Ram",
+        "note": "Damage type not stated (other Rams deal Bludgeoning)."
+      },
+      "playerAvailable": false,
+      "slotTypes": []
+    },
+    {
+      "key": "jaws-tail-club-superior",
+      "name": "Tail Club, Superior (Mimic)",
+      "category": "miscellaneous",
+      "family": "Tail Club",
+      "tier": "Superior",
+      "quality": null,
+      "size": "Medium",
+      "dimensions": "5 ft × 5 ft × 25 ft",
+      "material": null,
+      "weight": null,
+      "cargoUnits": null,
+      "materialCost": null,
+      "craftingTime": null,
+      "value": null,
+      "stats": {
+        "ac": 15,
+        "dt": 15,
+        "hp": 75,
+        "it": 25,
+        "con": 3,
+        "attackBonus": 7,
+        "actions": [
+          {
+            "name": "Whomp",
+            "text": "Melee Weapon Attack: +7, reach 25 ft. Hit: 12 (2d8 + 3) Bludgeoning damage. This attack can only target creatures or objects in contact with Jaws."
+          }
+        ],
+        "mimic": true
+      },
+      "description": "Specific to Jaws.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 44,
+        "section": "Player Ship: Jaws — Miscellaneous"
+      },
+      "playerAvailable": false,
+      "slotTypes": []
+    }
+  ],
+  "perkTrees": [
+    {
+      "key": "artillerist",
+      "name": "Artillerist",
+      "abilities": "All (depends on artillery type)",
+      "blurb": "Wielding a variety of long-ranged weapons, Artillerists specialise in dealing as much damage as possible as often as possible."
+    },
+    {
+      "key": "bosun",
+      "name": "Bosun",
+      "abilities": "Strength & Multiple",
+      "blurb": "The repair, maintenance, improvement, and general well-being of a vessel is all down to its Bosun."
+    },
+    {
+      "key": "captain",
+      "name": "Captain",
+      "abilities": "Charisma & Intelligence",
+      "blurb": "With wits or sheer force of personality, Captains eke the best out of their crew."
+    },
+    {
+      "key": "helmsman",
+      "name": "Helmsman",
+      "abilities": "Dexterity & Wisdom",
+      "blurb": "The Helmsman steers a ship through skill, instinct, and—on occasion—bravado."
+    }
+  ],
+  "perks": [
+    {
+      "id": "artillery-proficiency",
+      "tree": "artillerist",
+      "name": "Artillery Proficiency",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "You gain a +1 bonus to artillery attack rolls, as well as the save DCs of Artillery components.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the attack and save DC bonus increases by 1.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "artillery_bonus",
+          "perStack": 1
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 33,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "crit-fisher",
+      "tree": "artillerist",
+      "name": "Crit Fisher",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "Your Critical Threshold for artillery attacks is reduced by 1.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, your Critical Threshold is further reduced by 1.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "crit_threshold",
+          "perStack": 1
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 33,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "did-it-hit",
+      "tree": "artillerist",
+      "name": "Did it Hit?",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Reaction"
+      ],
+      "actionType": "Reaction",
+      "range": "DC by distance: 0–249 ft DC 8; 250–499 ft DC 12; 500–999 ft DC 16; 1,000–1,999 ft DC 20; 2,000–4,999 ft DC 25; 5,000–9,999 ft DC 32; 10,000+ ft DC 40 (Disadvantage in adverse conditions).",
+      "description": "When you make an artillery attack roll against a ship component, you can immediately take a Reaction to make a Wisdom (Perception) check. The DC is based on how far away the component is from you. If your attack roll misses and you succeed on the check, you have Advantage on the next artillery attack roll you make against that component before the end of the next Ship Phase. If your attack hits and you succeed on the check, you learn one of the following pieces of information of your choice about the component: its remaining Hit Points, its Armour Class, its Damage Threshold, or if it is Impaired.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, you learn one additional piece of information about the component on a hit.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Reaction after shooting a component: Perception check (DC by range). Miss → Advantage on your next shot at it; hit → learn {n} of its HP, AC, DT or Impaired"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 33,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "to-arms",
+      "tree": "artillerist",
+      "name": "To Arms",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "once"
+      },
+      "tags": [
+        "Ship Action"
+      ],
+      "actionType": "Ship Action",
+      "description": "As a Ship Action, you can move up to your Speed and make one artillery attack roll with an Artillery component within your reach.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: move up to your Speed and make one artillery attack"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 34,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "anti-personnel-specialist",
+      "tree": "artillerist",
+      "name": "Anti-Personnel Specialist",
+      "navalLevel": 5,
+      "prerequisites": [
+        "artillery-proficiency"
+      ],
+      "prerequisiteText": "Naval Level 5, Artillery Proficiency",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "When you make an artillery attack roll against a creature, you treat that creature as if it was one size larger (maximum Gargantuan) with respect to its AC bonus against artillery attack rolls.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, you treat the target creature as one additional size larger.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "creature_size_step",
+          "perStack": 1
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 34,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "lock-in",
+      "tree": "artillerist",
+      "name": "Lock In",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "once"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "When you make an artillery attack roll against a ship component or structure, you gain a +3 bonus to the roll if the last artillery attack roll you made was against the same target and that attack was made since the start of your last Ship Phase.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "conditional_attack_bonus",
+          "value": 3,
+          "condition": "same target as your last artillery attack (since your last Ship Phase)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 34,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "ray-specialist",
+      "tree": "artillerist",
+      "name": "Ray Specialist",
+      "navalLevel": 5,
+      "prerequisites": [
+        "artillery-proficiency"
+      ],
+      "prerequisiteText": "Naval Level 5, Artillery Proficiency Perk",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "restrictions": "You must be able to cast at least one damaging cantrip.",
+      "description": "If you can cast at least one damaging cantrip, you can choose to expend no ammunition when you make an attack with an Energy Ray, instead charging it with your magic. If you do, the attack deals an extra 3 damage on a hit, and its damage type changes to a damage type you can deal with one of your cantrips (your choice).",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the extra damage increases by 3.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "extra_damage_flat",
+          "perStack": 3,
+          "artilleryTypes": [
+            "energy_ray"
+          ],
+          "condition": "when charged with your magic (no ammunition); damage type becomes one of your cantrips’"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "shot-specialist",
+      "tree": "artillerist",
+      "name": "Shot Specialist",
+      "navalLevel": 5,
+      "prerequisites": [
+        "artillery-proficiency"
+      ],
+      "prerequisiteText": "Naval Level 5, Artillery Proficiency Perk",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "Artillery attacks you make with cannons and catapults deal an extra 1d6 damage of the attack’s type on a hit against ship components, structures, and kaiju.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the extra damage increases by 1d6.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "extra_damage_dice",
+          "die": "d6",
+          "perStack": 1,
+          "artilleryTypes": [
+            "cannon",
+            "catapult"
+          ],
+          "against": "ship components, structures, and kaiju"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Artillerist Perks"
+      }
+    },
+    {
+      "id": "attunement",
+      "tree": "bosun",
+      "name": "Attunement",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "You can attune to one ship component without it counting against the number of magic items to which you can normally attune.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus. For each additional time you take this perk, you can attune to one additional ship component without it counting against the number of magic items to which you can normally attune.",
+      "appliesTo": [
+        "any"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Attune to {n} more ship component(s) without using your magic item attunement slots"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Bosun Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "credulous",
+      "tree": "bosun",
+      "name": "Credulous",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "You can have Attunement to one ship component without it counting against the number of magic items to which you can normally attune.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, you can have Attunement to one additional ship component without it counting against the number of magic items to which you can normally attune.",
+      "restrictions": "Source text duplicates Attunement; see AMB-CREDULOUS-TEXT.",
+      "appliesTo": [
+        "any"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "As printed: same as Attunement, attune to {n} more ship component(s) (GM ruling pending)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "quick-fix",
+      "tree": "bosun",
+      "name": "Quick Fix",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Ship Action"
+      ],
+      "actionType": "Ship Action (Miscellaneous Step)",
+      "range": "A damaged ship component within your reach",
+      "resources": "Ship Parts (1 per Hit Point restored)",
+      "description": "While you are carrying Ship Parts, you can take a Ship Action to repair a damaged ship component within your reach. Make a Strength or Wisdom check. The component regains a number of Hit Points equal to half the result of the check (rounded down), or the number of Ship Parts you are carrying, whichever is lower. Each Hit Point restored consumes 1 Ship Part.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the number of Hit Points restored to the component increases by 2, regardless of the result of the check.",
+      "appliesTo": [
+        "any",
+        "repair"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: repair a component in reach for ⌊STR/WIS check ÷ 2⌋{extra2} HP (1 Ship Part per HP)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "reliable",
+      "tree": "bosun",
+      "name": "Reliable",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "Using redundant mechanisms and backups, you learn how to craft extra-reliable components. You can craft and upgrade ship components to have the Reliable I quality, and you can repair components with any tier of Reliable quality.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the level of Reliable quality increases by 1 (to Reliable II and Reliable III, respectively).",
+      "appliesTo": [
+        "crafting"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Craft and upgrade components to Reliable {roman}; repair any Reliable component"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 35,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "robust",
+      "tree": "bosun",
+      "name": "Robust",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "Laying on extra armour plating, and then placing a bit more plating on that plating, you learn to craft components capable of withstanding a beating. You can craft and upgrade ship components to have the Robust I quality, and you can repair components with any tier of Robust quality.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the level of Robust quality increases by 1 (to Robust II and Robust III, respectively).",
+      "appliesTo": [
+        "crafting"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Craft and upgrade components to Robust {roman}; repair any Robust component"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": "35–36",
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "scrutinise",
+      "tree": "bosun",
+      "name": "Scrutinise",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "once"
+      },
+      "tags": [
+        "Ship Action"
+      ],
+      "actionType": "Ship Action",
+      "range": "1,000 feet (2,000 feet with a Spyglass)",
+      "description": "You can identify the types and traits of components at a distance. As a Ship Action, you can choose one ship component on an enemy ship that you can see within 1,000 feet of you and make a Wisdom (Perception) check. The range of this action is 2,000 feet if you have a Spyglass. You learn the information that is equal to or lower than the result of your check: DC 8 name, tier, and quality; DC 12 Armour Class; DC 16 Damage Threshold; DC 20 current and maximum Hit Points; DC 24 Impairment Threshold; DC 28 if the component is magical.",
+      "appliesTo": [
+        "any"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: Perception check to learn an enemy component’s stats (1,000 ft; 2,000 with Spyglass)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 36,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "technical",
+      "tree": "bosun",
+      "name": "Technical",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "restrictions": "The Technical quality is not defined in the Quality tables; see AMB-TECHNICAL-QUALITY.",
+      "description": "With precise engineering, you learn to craft intricate and efficient components. You can craft and upgrade ship components to have the Technical I quality, and you can repair components with any tier of Technical quality.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the level of Technical quality increases by 1 (to Technical II and Technical III, respectively).",
+      "appliesTo": [
+        "crafting"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Craft and upgrade components to Technical {roman} (quality not defined in the beta, GM ruling pending)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 36,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "just-a-scratch",
+      "tree": "bosun",
+      "name": "Just a Scratch",
+      "navalLevel": 5,
+      "prerequisites": [
+        "quick-fix"
+      ],
+      "prerequisiteText": "Naval Level 5, Quick Fix Perk",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Ship Action"
+      ],
+      "actionType": "Ship Action (Miscellaneous Step)",
+      "range": "One Impaired, non-Hull ship component within your reach",
+      "duration": "Until the end of the next Ship Phase",
+      "description": "You can temporarily restore full function to Impaired components... sometimes! As a Ship Action, you can attempt to repair one Impaired, non-Hull ship component within your reach. Roll 1d4. On a 1, the component becomes Broken until it regains Hit Points that cause its current Hit Points to exceed its Impairment Threshold. On a 2+, the component loses any penalty imposed by being Impaired until the end of the next Ship Phase.",
+      "additional": "You can take this perk a number of times equal to half your Proficiency Bonus. For each additional time you take this perk, the size of the die you roll increases by one (from a d4 to a d6, and a d6 to a d8, respectively).",
+      "appliesTo": [
+        "any",
+        "repair"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action on an Impaired non-Hull component: roll 1{die}. 2+ ignores Impaired until end of next Ship Phase; 1 breaks it"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 36,
+        "section": "Naval Perks — Bosun Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "low-waste-repairs",
+      "tree": "bosun",
+      "name": "Low Waste Repairs",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "You are adept at reusing parts and finding that thingymajig you kept in a dark cupboard because you knew it would be useful. When you repair a component, roll 1d6. On a 6, you expend half as many Ship Parts (rounded up, minimum 1 Ship Part).",
+      "additional": "You can take this perk a number of times equal to half your Proficiency Bonus. The result on which you expend half as many Ship Parts becomes 5–6 when you take this perk twice and 4–6 when you take this perk three times.",
+      "appliesTo": [
+        "any",
+        "repair"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "When you repair, roll a d6: on {lowWaste} use only half the Ship Parts"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 36,
+        "section": "Naval Perks — Bosun Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "weak-spot",
+      "tree": "bosun",
+      "name": "Weak Spot",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "duration": "Until the start of your next Ship Phase",
+      "description": "Once on each Ship Phase, when you hit a ship component with an artillery attack roll, you can force it to make a DC 13 Constitution saving throw. On a failed save, if the component is not Broken, it is Impaired until the start of your next Ship Phase.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the save DC increases by 2.",
+      "appliesTo": [
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Once per Ship Phase, on an artillery hit vs a component: DC {weakSpotDc} Con save or it is Impaired until your next Ship Phase"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 36,
+        "section": "Naval Perks — Bosun Perks"
+      }
+    },
+    {
+      "id": "encourage",
+      "tree": "captain",
+      "name": "Encourage",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Ship Action",
+        "Auditory"
+      ],
+      "actionType": "Ship Action (Command Step)",
+      "range": "120 feet",
+      "duration": "Until the end of the next Creature Phase",
+      "description": "As a Ship Action, you can encourage one ally of your choice within 120 feet of you that can hear you to act. The target gains a bonus to the next ability check it makes before the end of the next Creature Phase. The bonus equals your Charisma modifier (minimum +1).",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, you can target one additional ally when you take this action.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: {allies} within 120 ft get +{chaMin1} on their next ability check (until end of next Creature Phase)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 37,
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "look-alive",
+      "tree": "captain",
+      "name": "Look Alive!",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Reaction",
+        "Ship Action",
+        "Auditory"
+      ],
+      "actionType": "Reaction; Ship Action (Command Step)",
+      "resources": "Uses regained on a Short or Long Rest",
+      "description": "You can take a Reaction at the start of the Command Step to assess the Initiative scores of each vessel you can see. As a Ship Action, you can increase your vessel’s Initiative score by a number equal to your Charisma modifier (minimum 1). You can take this Ship Action once, and you regain all expended uses when you finish a Short or Long Rest.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the number of times you can take this action increases by one.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Reaction: see each visible ship’s Initiative. Ship Action: +{chaMin1} to your ship’s Initiative ({uses} per rest)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 37,
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "take-aim",
+      "tree": "captain",
+      "name": "Take Aim!",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Ship Action",
+        "Auditory"
+      ],
+      "actionType": "Ship Action (Command Step)",
+      "resources": "Requires holding a Spyglass",
+      "duration": "Until the end of the next Creature Phase",
+      "description": "As a Ship Action while holding a Spyglass, you can relay information about the movements of a vessel you can see to an ally of your choice that can hear you. The target gains a bonus to the next attack roll it makes against any ship component on that vessel before the end of the next Creature Phase. The bonus equals your Intelligence modifier (minimum +1).",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, you can target one additional creature when you take this action.",
+      "appliesTo": [
+        "command",
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action with a Spyglass: {allies} get +{intMin1} on their next attack vs that ship’s components"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 37,
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "boarding-party",
+      "tree": "captain",
+      "name": "Boarding Party",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "once"
+      },
+      "tags": [
+        "Reaction",
+        "Auditory"
+      ],
+      "actionType": "Reaction",
+      "range": "90 feet",
+      "resources": "Once per Short or Long Rest",
+      "description": "When your vessel and another vessel or kaiju come within 5 feet of each other, you can take a Reaction to order a boarding. Up to four willing creatures of your choice within 90 feet of you that can hear you can take a Reaction to move up to their Speed and make one weapon attack. As part of the Reaction to order the boarding, you can move up to your Speed and make one weapon attack. Once you take this Reaction, you can’t do so again until you finish a Short or Long Rest.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Reaction within 5 ft of a ship: you and up to 4 allies move and attack (once per rest)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 37,
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "captain-cook",
+      "tree": "captain",
+      "name": "Captain Cook",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "1 Hour"
+      ],
+      "actionType": "1 Hour",
+      "resources": "Ingredients and Cook’s Utensils",
+      "duration": "Ship Die lasts until a Long Rest",
+      "description": "While aboard a vessel, if you have ingredients and Cook’s Utensils on hand, you can prepare a hearty meal for your crew over the course of 1 hour, which can be done as part of a Short or Long Rest. The meal can be consumed by up to six creatures over the course of 10 minutes and loses its effects if it isn’t consumed within 8 hours. A creature that consumes the meal gains a Ship Die, which is a d8 that lasts until the creature finishes a Long Rest. A creature can have only one Ship Die at a time. When the creature fails a D20 Test made as part of interacting with a ship component or to avoid the effects created by a ship component, the creature can roll the Ship Die and add the number rolled to the d20, potentially turning the failure into a success. A Ship Die is expended when it’s rolled.",
+      "additional": "You can take this perk a number of times equal to half your Proficiency Bonus. For each additional time you take this perk, the size of Ship Die your meal grants increases by one (from a d8 to a d10, and a d10 to a d12, respectively).",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "During a rest (1 hour, Cook’s Utensils): up to 6 crew each gain a {cookDie} Ship Die to add to a failed ship roll, until their long rest"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 37,
+        "section": "Naval Perks — Captain Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "demoralise",
+      "tree": "captain",
+      "name": "Demoralise",
+      "navalLevel": 5,
+      "prerequisites": [
+        "encourage"
+      ],
+      "prerequisiteText": "Naval Level 5, Encourage Perk",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Enhanced Action",
+        "Auditory or Visual"
+      ],
+      "actionType": "Enhanced Action (Encourage)",
+      "range": "120 feet",
+      "duration": "Until the end of the next Creature Phase",
+      "description": "When you take the Ship Action of the Encourage perk, you can also choose one enemy within 120 feet of you to launch a volley of sneering taunts at. If the target can see or hear you, it subtracts a number equal to your Charisma modifier (minimum 1) from the next ability check or attack roll it makes before the end of the next Creature Phase.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, you can target one additional enemy when you take this action.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "With Encourage: {enemies} within 120 ft take −{chaMin1} on their next check or attack"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": "37–38",
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "focus-fire",
+      "tree": "captain",
+      "name": "Focus Fire",
+      "navalLevel": 5,
+      "prerequisites": [
+        "take-aim"
+      ],
+      "prerequisiteText": "Naval Level 5, Take Aim! Perk",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Enhanced Action"
+      ],
+      "actionType": "Enhanced Action (Take Aim!)",
+      "description": "When you take the Ship Action of the Take Aim! perk, you can specify one ship component on the target vessel. Any attack that benefits from that action and hits the specified component deals an extra 1d8 damage of the attack’s type.",
+      "additional": "You can take this perk a number of times equal to half your Proficiency Bonus. For each additional time you take this perk, the die size of the extra damage increases by one (from a d8 to a d10, and a d10 to a d12, respectively).",
+      "appliesTo": [
+        "command",
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "With Take Aim!: name a component; hits on it from that bonus deal +1{focusDie} damage"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Captain Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "move-it",
+      "tree": "captain",
+      "name": "Move It!",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Ship Action",
+        "Auditory"
+      ],
+      "actionType": "Ship Action (Command Step)",
+      "duration": "Until the end of the next Creature Phase",
+      "description": "As a Ship Action, you can command an ally that can hear you to reposition. Before the end of the next Creature Phase, the target can take a Reaction to move up to its Speed immediately after it takes a Ship Action. If a creature does not take a Ship Action, it can take a Reaction to move up to its Speed at the end of the Ship Phase.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, you can target one additional creature when you take this action.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: {allies} may use their Reaction to move their Speed after their Ship Action"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Captain Perks"
+      }
+    },
+    {
+      "id": "take-cover",
+      "tree": "captain",
+      "name": "Take Cover!",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Ship Action",
+        "Auditory"
+      ],
+      "actionType": "Ship Action (Command Step)",
+      "duration": "Until the end of the next Creature Phase",
+      "restrictions": "Printed under the Naval Level 5 heading but its prerequisite says Naval Level 1; see AMB-TAKE-COVER-LEVEL.",
+      "description": "As a Ship Action, you can command your crew to assume defensive positions. Choose a number of allies on your vessel’s deck equal to your Intelligence or Charisma modifier (your choice, minimum 1); each target that can hear you gains a +1 bonus to AC and Dexterity saving throws until the end of the next Creature Phase. This bonus applies only to attacks and effects that originate from outside of your vessel.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the bonus increases by 1.",
+      "appliesTo": [
+        "command"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Ship Action: {coverCount} on deck get +{n} AC and Dex saves vs attacks from outside your ship"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Captain Perks"
+      },
+      "levelRuling": {
+        "ruling": "AMB-TAKE-COVER-LEVEL",
+        "options": {
+          "level-5": 5
+        }
+      }
+    },
+    {
+      "id": "full-rudder",
+      "tree": "helmsman",
+      "name": "Full Rudder",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "Once per Ship Phase, when you make one or more changes of facing, you can make a DC 13 Dexterity or Wisdom check (your choice). You have a +2 bonus to this check. On a success, you can make one additional change of facing.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the bonus increases by 2.",
+      "appliesTo": [
+        "control"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Once per Ship Phase when turning: DC 13 DEX/WIS check (+{bonus2}) for one extra change of facing"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "ramming-specialist",
+      "tree": "helmsman",
+      "name": "Ramming Specialist",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "When your vessel rams another, it deals an extra 1d8 Bludgeoning damage if you took a Ship Action to interact with the ship’s Control component during your vessel’s Helm Step.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the damage increases by 1d8.",
+      "appliesTo": [
+        "ram",
+        "control"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "+{n}d8 Bludgeoning when your ship rams, if you took the helm this round"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "sheet-to-the-wind",
+      "tree": "helmsman",
+      "name": "Sheet to the Wind",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Enhanced Action"
+      ],
+      "actionType": "Enhanced Action (Accelerate)",
+      "restrictions": "Not on the same turn as Give Her All She’s Got or Hard Turn.",
+      "description": "When you take a Ship Action to Accelerate a vessel propelled by a mast and your heading isn’t directly into the wind, you can make a DC 13 Dexterity or Wisdom check (your choice). You have a +2 bonus to this check. On a success, you increase the vessel’s Speed by 30 feet. As usual, you can’t increase the vessel’s Speed above its Top Speed. On a failure, one mast component on your vessel (randomly determined) takes 11 (2d10) Force damage, which ignores any Damage Threshold, Resistances, and Immunities. You can’t use this perk on the same turn that you use the Give Her All She’s Got or Hard Turn perk.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the bonus increases by 2.",
+      "appliesTo": [
+        "control",
+        "propulsion"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "When accelerating under sail (not into the wind): DC 13 DEX/WIS (+{bonus2}) for +30 ft Speed; fail = 2d10 Force to a mast"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 38,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "tracker",
+      "tree": "helmsman",
+      "name": "Tracker",
+      "navalLevel": 1,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 1",
+      "repeatLimit": {
+        "kind": "once"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "When a creature makes a Tracking check while aboard your vessel, you can assist it for the duration of the check. The creature gains a bonus to the check equal to your Wisdom modifier (minimum +1).",
+      "appliesTo": [
+        "control"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Creatures aboard get +{wisMin1} to Tracking checks"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "close-quarters-navigation",
+      "tree": "helmsman",
+      "name": "Close Quarters Navigation",
+      "navalLevel": 5,
+      "prerequisites": [
+        "tracker"
+      ],
+      "prerequisiteText": "Naval Level 5, Tracker Perk",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "You have a +2 bonus to ability checks you make to navigate your vessel through narrow spaces, like coral reefs or caves.",
+      "additional": "You can take this perk a number of times equal to half your Proficiency Bonus. For each additional time you take this perk, the bonus increases by 2.",
+      "appliesTo": [
+        "control"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "+{bonus2} to checks to steer through narrow spaces like reefs and caves"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      },
+      "halfUnstated": true
+    },
+    {
+      "id": "give-her-all-shes-got",
+      "tree": "helmsman",
+      "name": "Give Her All She’s Got",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Enhanced Action"
+      ],
+      "actionType": "Enhanced Action (Accelerate)",
+      "duration": "Until the start of the next Ship Phase",
+      "restrictions": "Not on the same turn as Hard Turn or Sheet to the Wind.",
+      "description": "When you take a Ship Action to Accelerate a vessel propelled by an engine, you can push it beyond its limits, causing its Top Speed and Current Speed to increase by 30 feet until the start of the next Ship Phase. The engine component must make a DC 15 Constitution saving throw. The engine takes 5d10 Force damage on a failed save or half as much damage on a successful one. This damage ignores any Damage Threshold, Immunities, and Resistances. You can’t use this perk on the same turn that you use the Hard Turn or Sheet to the Wind perk.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, you can increase the vessel’s Top Speed and Current Speed by an additional 30 feet. For each additional 30 feet increase beyond the first, the DC of the saving throw increases by 2.",
+      "appliesTo": [
+        "control",
+        "propulsion"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "When accelerating with an engine: +{speed30} ft Top and Current Speed until next Ship Phase; engine makes a DC {gearDc} Con save vs 5d10 Force"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "hard-turn",
+      "tree": "helmsman",
+      "name": "Hard Turn",
+      "navalLevel": 5,
+      "prerequisites": [
+        "full-rudder"
+      ],
+      "prerequisiteText": "Naval Level 5, Full Rudder Perk",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Enhanced Action"
+      ],
+      "actionType": "Enhanced Action (Control)",
+      "restrictions": "Not on the same turn as Give Her All She’s Got or Sheet to the Wind.",
+      "description": "When you take a Ship Action to interact with a Control component and either Accelerate, Decelerate, or Manoeuvre, you can make a DC 15 Dexterity or Wisdom check (your choice). You have a +2 bonus to this check. Success or failure, you reduce the vessel’s Current Speed by 30 feet. On a success, you can then make one additional Manoeuvre as part of that Ship Action at any point during your vessel’s Helm Step. You can’t use this perk on the same turn that you use the Give Her All She’s Got or Sheet to the Wind perk.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the bonus increases by 2.",
+      "appliesTo": [
+        "control"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "With a helm action: DC 15 DEX/WIS (+{bonus2}); always −30 ft Speed, on success one extra Manoeuvre"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "jink",
+      "tree": "helmsman",
+      "name": "Jink",
+      "navalLevel": 5,
+      "prerequisites": [],
+      "prerequisiteText": "Naval Level 5",
+      "repeatLimit": {
+        "kind": "pb"
+      },
+      "tags": [
+        "Reaction"
+      ],
+      "actionType": "Reaction (start of your Artillery Step)",
+      "resources": "Uses regained on a Short or Long Rest",
+      "description": "At the start of your vessel’s Artillery Step, you take a Reaction to make a quick series of direction changes while keeping your facing. During this step, artillery attack rolls made against ship components or creatures on your vessel have Disadvantage, and artillery attack rolls made by components on your vessel have Disadvantage. You can take this Reaction once, regaining all expended uses when you finish a Short or Long Rest.",
+      "additional": "You can take this perk a number of times equal to your Proficiency Bonus. For each additional time you take this perk, the number of times you can take this Reaction increases by one.",
+      "appliesTo": [
+        "control",
+        "artillery"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Reaction at your Artillery Step: all artillery attacks against and from your ship have Disadvantage ({uses} per rest)"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    },
+    {
+      "id": "wind-whisperer",
+      "tree": "helmsman",
+      "name": "Wind Whisperer",
+      "navalLevel": 5,
+      "prerequisites": [
+        "sheet-to-the-wind"
+      ],
+      "prerequisiteText": "Naval Level 5, Sheet to the Wind Perk",
+      "repeatLimit": {
+        "kind": "half_pb"
+      },
+      "tags": [
+        "Passive"
+      ],
+      "actionType": "Passive",
+      "description": "A vessel that you control and that is propelled by a mast can travel an extra 12 miles per day.",
+      "additional": "You can take this perk a number of times equal to half of your Proficiency Bonus (rounded up). For each additional time you take this perk, the miles the vessel can travel per day increase by an additional 12.",
+      "appliesTo": [
+        "control",
+        "propulsion"
+      ],
+      "effects": [
+        {
+          "kind": "scaling",
+          "text": "Your sail-powered ship travels +{miles12} miles per day"
+        }
+      ],
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 39,
+        "section": "Naval Perks — Helmsman Perks"
+      }
+    }
+  ],
+  "layouts": [
+    {
+      "key": "jaws-deck",
+      "name": "Jaws Deck Layout",
+      "widthFt": 30,
+      "lengthFt": 90,
+      "approximate": true,
+      "notes": "Measured from Fig. 6 (p. 43) on its 5-foot grid. Slot types and maximum sizes are exact (table, p. 15); positions and the hull outline are approximate.",
+      "source": {
+        "document": "VoidSea Naval Combat Lite",
+        "version": "B0.51",
+        "page": 43,
+        "section": "Player Ship: Jaws — Deck Layout (Fig. 6); Jaws Deck Layout table (p. 15)"
+      },
+      "shape": {
+        "outline": [
+          [
+            15,
+            -27
+          ],
+          [
+            17.5,
+            -14
+          ],
+          [
+            21,
+            -4
+          ],
+          [
+            27,
+            5
+          ],
+          [
+            31,
+            14
+          ],
+          [
+            32.5,
+            25
+          ],
+          [
+            33,
+            45
+          ],
+          [
+            32.5,
+            70
+          ],
+          [
+            31.5,
+            84
+          ],
+          [
+            28,
+            91
+          ],
+          [
+            22,
+            95
+          ],
+          [
+            15,
+            96.5
+          ],
+          [
+            8,
+            95
+          ],
+          [
+            2,
+            91
+          ],
+          [
+            -1.5,
+            84
+          ],
+          [
+            -2.5,
+            70
+          ],
+          [
+            -3,
+            45
+          ],
+          [
+            -2.5,
+            25
+          ],
+          [
+            -1,
+            14
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            9,
+            -4
+          ],
+          [
+            12.5,
+            -14
+          ]
+        ],
+        "traversable": [
+          [
+            2,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            5,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            4
+          ],
+          [
+            5,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            2,
+            11
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            3,
+            12
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            5,
+            12
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            2,
+            13
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            4,
+            13
+          ],
+          [
+            5,
+            13
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            2,
+            14
+          ],
+          [
+            3,
+            14
+          ],
+          [
+            4,
+            14
+          ],
+          [
+            5,
+            14
+          ],
+          [
+            0,
+            15
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            2,
+            15
+          ],
+          [
+            3,
+            15
+          ],
+          [
+            4,
+            15
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            1,
+            16
+          ],
+          [
+            2,
+            16
+          ],
+          [
+            3,
+            16
+          ],
+          [
+            4,
+            16
+          ],
+          [
+            1,
+            17
+          ],
+          [
+            2,
+            17
+          ],
+          [
+            3,
+            17
+          ],
+          [
+            4,
+            17
+          ]
+        ],
+        "bounds": {
+          "minX": -5,
+          "minY": -30,
+          "maxX": 35,
+          "maxY": 100
+        }
+      },
+      "slots": [
+        {
+          "code": "HULL",
+          "label": "Hull",
+          "acceptedTypes": [
+            "hull"
+          ],
+          "maxSize": "Gargantuan",
+          "x": 15,
+          "y": 45,
+          "rotation": 0,
+          "arc": null,
+          "approximate": false,
+          "notes": "Every ship has one Hull component (p. 14). Hulls can only be changed in a dry dock (p. 15)."
+        },
+        {
+          "code": "R1",
+          "label": "Ram",
+          "acceptedTypes": [
+            "ram"
+          ],
+          "maxSize": "Large",
+          "x": 15,
+          "y": -12,
+          "rotation": 0,
+          "arc": null,
+          "approximate": true
+        },
+        {
+          "code": "M1",
+          "label": "Fore emplacement (Any)",
+          "acceptedTypes": [
+            "artillery",
+            "miscellaneous",
+            "propulsion"
+          ],
+          "maxSize": "Large",
+          "x": 15,
+          "y": 15,
+          "rotation": 0,
+          "arc": {
+            "centerDeg": 0,
+            "widthDeg": 180
+          },
+          "approximate": true,
+          "notes": "Artillery here has a 180° Arc of Fire (p. 43)."
+        },
+        {
+          "code": "A1",
+          "label": "Port battery, forward",
+          "acceptedTypes": [
+            "artillery"
+          ],
+          "maxSize": "Medium",
+          "x": 4,
+          "y": 32.5,
+          "rotation": 270,
+          "arc": {
+            "centerDeg": 270,
+            "widthDeg": 90
+          },
+          "approximate": true
+        },
+        {
+          "code": "A2",
+          "label": "Starboard battery, forward",
+          "acceptedTypes": [
+            "artillery"
+          ],
+          "maxSize": "Medium",
+          "x": 26,
+          "y": 32.5,
+          "rotation": 90,
+          "arc": {
+            "centerDeg": 90,
+            "widthDeg": 90
+          },
+          "approximate": true
+        },
+        {
+          "code": "A3",
+          "label": "Port battery, aft",
+          "acceptedTypes": [
+            "artillery"
+          ],
+          "maxSize": "Medium",
+          "x": 4,
+          "y": 57.5,
+          "rotation": 270,
+          "arc": {
+            "centerDeg": 270,
+            "widthDeg": 90
+          },
+          "approximate": true
+        },
+        {
+          "code": "A4",
+          "label": "Starboard battery, aft",
+          "acceptedTypes": [
+            "artillery"
+          ],
+          "maxSize": "Medium",
+          "x": 26,
+          "y": 57.5,
+          "rotation": 90,
+          "arc": {
+            "centerDeg": 90,
+            "widthDeg": 90
+          },
+          "approximate": true
+        },
+        {
+          "code": "P1",
+          "label": "Mainmast",
+          "acceptedTypes": [
+            "propulsion"
+          ],
+          "maxSize": "Huge",
+          "x": 15,
+          "y": 45,
+          "rotation": 0,
+          "arc": null,
+          "approximate": true
+        },
+        {
+          "code": "C1",
+          "label": "Helm",
+          "acceptedTypes": [
+            "control"
+          ],
+          "maxSize": "Medium",
+          "x": 15,
+          "y": 72.5,
+          "rotation": 0,
+          "arc": null,
+          "approximate": true
+        },
+        {
+          "code": "M2",
+          "label": "Aft emplacement (Any)",
+          "acceptedTypes": [
+            "artillery",
+            "miscellaneous",
+            "propulsion"
+          ],
+          "maxSize": "Large",
+          "x": 15,
+          "y": 85,
+          "rotation": 180,
+          "arc": {
+            "centerDeg": 180,
+            "widthDeg": 180
+          },
+          "approximate": true,
+          "notes": "Arc not shown in Fig. 6; general aft rule applied (AMB-M2-ARC).",
+          "arcRuling": "AMB-M2-ARC"
+        }
+      ],
+      "gridFt": 5,
+      "navalGridFt": 30
+    }
+  ],
+  "templates": [
+    {
+      "key": "jaws",
+      "version": 1,
+      "name": "Jaws",
+      "description": "A mimic ship happy to accommodate your player characters. Gargantuan Vehicle (90 ft. by 30 ft.). Starter vessel from VoidSea Naval Combat Lite B0.51.",
+      "layout": "jaws-deck",
+      "stats": {
+        "sizeClass": "Gargantuan",
+        "dimensions": "90 ft. by 30 ft.",
+        "statedTopSpeed": 90,
+        "statedFacingTurns": 2,
+        "weightTons": 35,
+        "crew": 6,
+        "crewMax": 18,
+        "challenge": "5 (1,800 XP)",
+        "crewProficiencyBonus": "—",
+        "conditionImmunities": [
+          "Blinded",
+          "Charmed",
+          "Deafened",
+          "Exhaustion",
+          "Frightened",
+          "Incapacitated",
+          "Paralysed",
+          "Petrified",
+          "Poisoned",
+          "Prone",
+          "Stunned",
+          "Unconscious"
+        ],
+        "damageImmunities": [
+          "Poison",
+          "Psychic"
+        ],
+        "source": "VoidSea Naval Combat Lite B0.51, p. 44"
+      },
+      "components": [
+        {
+          "slot": "HULL",
+          "component": "jaws-mimicflesh-hull-superior",
+          "label": null,
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "R1",
+          "component": "jaws-jaw-ram-basic",
+          "label": null,
+          "override": true,
+          "overrideReason": "Stat-block size exceeds the slot maximum (AMB-JAWS-SIZES)."
+        },
+        {
+          "slot": "M1",
+          "component": "jaws-auxiliary-mast-foresail",
+          "label": "Foresail",
+          "override": true,
+          "overrideReason": "Stat-block size exceeds the slot maximum (AMB-JAWS-SIZES). Slot assignment per AMB-JAWS-PLACEMENT."
+        },
+        {
+          "slot": "A1",
+          "component": "magitech-cannon-basic",
+          "label": "Cannon A1",
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "A2",
+          "component": "magitech-cannon-basic",
+          "label": "Cannon A2",
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "A3",
+          "component": "magitech-cannon-basic",
+          "label": "Cannon A3",
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "A4",
+          "component": "magitech-cannon-basic",
+          "label": "Cannon A4",
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "P1",
+          "component": "jaws-mainsail-mast-superior",
+          "label": "Mainsail Mast",
+          "override": true,
+          "overrideReason": "Stat-block size exceeds the slot maximum (AMB-JAWS-SIZES)."
+        },
+        {
+          "slot": "C1",
+          "component": "magitech-control-basic",
+          "label": "Helm",
+          "override": false,
+          "overrideReason": null
+        },
+        {
+          "slot": "M2",
+          "component": "jaws-tail-club-superior",
+          "label": "Tail Club",
+          "override": false,
+          "overrideReason": null
+        }
+      ]
+    }
+  ],
+  "rulings": [
+    {
+      "id": "AMB-BROKEN-RECOVERY",
+      "title": "When does a Broken component become Impaired again?",
+      "description": "“Broken” (p. 19) says a component remains Broken until its current HP are equal to or higher than its IT. “Repairing Components” (p. 20) says it stays Broken until its current HP are higher than its IT, and Just a Scratch (p. 36) says “exceed its Impairment Threshold”.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 19,
+          "section": "Impaired and Broken Components — Broken"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 20,
+          "section": "Repairing Components"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 36,
+          "section": "Just a Scratch"
+        }
+      ],
+      "options": [
+        {
+          "key": "gte",
+          "label": "HP ≥ IT (p. 19)"
+        },
+        {
+          "key": "gt",
+          "label": "HP > IT (p. 20, p. 36)"
+        }
+      ],
+      "provisionalOption": "gte",
+      "affects": "Component condition calculation in Combat Mode."
+    },
+    {
+      "id": "AMB-IMPAIRED-NO-CLOSE",
+      "title": "Impaired artillery shots without a close range",
+      "description": "An Impaired Artillery component’s normal range is reduced to its close range and long range to its normal range (p. 19). Shots with no close range (e.g. Burst —/240/960, Harpoon —/150/—, Rock —/300/900) are left with no normal range.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 19,
+          "section": "Impaired Component Effect"
+        }
+      ],
+      "options": [
+        {
+          "key": "as-written",
+          "label": "As written: no normal range (every attack at Disadvantage)"
+        },
+        {
+          "key": "gm",
+          "label": "GM rules per shot at the table"
+        }
+      ],
+      "provisionalOption": "as-written",
+      "affects": "Impaired range display for shots without a close range."
+    },
+    {
+      "id": "AMB-CHAIN-RANGE",
+      "title": "Magitech Cannon (Basic) Chain Shot range",
+      "description": "The Artillery Shot Selection table (p. 24) gives Chain 180/360/1,440 ft for every cannon tier. The Jaws stat block (p. 44) gives Chain Shot range —/240/960 ft for its Basic cannons.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 24,
+          "section": "Artillery Shot Selection"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws — Artillery"
+        }
+      ],
+      "options": [
+        {
+          "key": "table",
+          "label": "180/360/1,440 ft (p. 24 table)"
+        },
+        {
+          "key": "statblock",
+          "label": "—/240/960 ft (Jaws stat block)"
+        }
+      ],
+      "provisionalOption": "table",
+      "affects": "Chain Shot ranges and range overlay for Magitech Cannon, Basic."
+    },
+    {
+      "id": "AMB-AREA-SAVE-ABILITY",
+      "title": "Saving throw ability for Area shots",
+      "description": "The Area property (p. 22) calls for a saving throw but never names the ability. Only the Jaws stat block states one: Grape Shot uses Dexterity. Refract, Splinter Shot and Pebbles have no stated ability.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 22,
+          "section": "Artillery Properties — Area"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws — Grape Shot"
+        }
+      ],
+      "options": [
+        {
+          "key": "unspecified",
+          "label": "Leave unspecified (GM decides at the table)"
+        },
+        {
+          "key": "dexterity",
+          "label": "Use Dexterity for all Area shots"
+        }
+      ],
+      "provisionalOption": "unspecified",
+      "affects": "Save descriptions for Refract, Splinter Shot and Pebbles."
+    },
+    {
+      "id": "AMB-JAWS-SIZES",
+      "title": "Jaws components exceed their slots’ maximum size",
+      "description": "The Jaws Deck Layout table (p. 15) gives R1 max Large, P1 max Huge, M1/M2 max Large. The Jaws stat block (p. 44) lists a Huge Jaw Ram, a Gargantuan Mainsail Mast and a Gargantuan Auxiliary Mast.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 15,
+          "section": "Example: Jaws — Jaws Deck Layout"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws"
+        }
+      ],
+      "options": [
+        {
+          "key": "override",
+          "label": "Keep stat-block components as explicit GM overrides"
+        },
+        {
+          "key": "enforce",
+          "label": "Enforce slot sizes (GM must replace them)"
+        }
+      ],
+      "provisionalOption": "override",
+      "affects": "Compatibility warnings on the Jaws template; the template installs them as GM overrides."
+    },
+    {
+      "id": "AMB-JAWS-MAST-STATS",
+      "title": "Jaws masts differ from the general Propulsion table",
+      "description": "Mainsail Mast, Superior (p. 44: HP 60, IT 24, Con +2, Gargantuan 5×5×60 ft) differs from Mainsail, Superior (p. 29: HP 65, IT 26, Con +3, Huge). Auxiliary Mast, Foresail (p. 44: AC 12, HP 50, IT 25, Con +2, no tier) matches no Auxiliary Sail tier (p. 29).",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 29,
+          "section": "Propulsion Summary"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws — Propulsion"
+        }
+      ],
+      "options": [
+        {
+          "key": "statblock",
+          "label": "Use the Jaws stat-block masts"
+        },
+        {
+          "key": "general",
+          "label": "Use the general Mainsail / Auxiliary Sail entries"
+        }
+      ],
+      "provisionalOption": "statblock",
+      "affects": "Which masts the Jaws template installs. Both variants are in the catalogue; swap them in Design Mode."
+    },
+    {
+      "id": "AMB-JAWS-PLACEMENT",
+      "title": "Which Jaws slot holds the Foresail and the Tail Club",
+      "description": "The Jaws stat block lists an Auxiliary Mast (Foresail) and a Tail Club, and the Deck Layout has two “Any” slots (M1 fore, M2 aft), but the PDF never assigns them. Slot coordinates are measured from Fig. 6 (p. 43) on a 5-foot grid and are approximate.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 43,
+          "section": "Deck Layout — Fig. 6"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws"
+        }
+      ],
+      "options": [
+        {
+          "key": "fore-aft",
+          "label": "Foresail in M1 (fore), Tail Club in M2 (aft)"
+        },
+        {
+          "key": "swapped",
+          "label": "Tail Club in M1, Foresail in M2"
+        }
+      ],
+      "provisionalOption": "fore-aft",
+      "affects": "Initial placement on the Jaws template (editable in Design Mode)."
+    },
+    {
+      "id": "AMB-M2-ARC",
+      "title": "Arc of fire of the aft “Any” emplacement (M2)",
+      "description": "Fig. 6 shows arcs for the side emplacements (90°) and the front Any emplacement (180°), but not for M2. Arcs of Fire (p. 9) says aft-mounted artillery has a 180° arc backwards.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 9,
+          "section": "Arcs of Fire"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 43,
+          "section": "Deck Layout — Fig. 6"
+        }
+      ],
+      "options": [
+        {
+          "key": "aft-180",
+          "label": "180° backwards (general rule, p. 9)"
+        },
+        {
+          "key": "none",
+          "label": "No artillery arc (not an emplacement)"
+        }
+      ],
+      "provisionalOption": "aft-180",
+      "affects": "Firing arc overlay for artillery installed in M2."
+    },
+    {
+      "id": "AMB-KAIJU-ENGINE-NOISE",
+      "title": "Engine Kaiju Threshold contribution",
+      "description": "Noisy (X) values in the Propulsion Summary (p. 29) increase with tier (magitech 5/10/15, steam 10/20/30). The Kaiju Threshold Contributors table (p. 12) decreases with tier (magitech +15/+10/+5, steam +30/+20/+10), which matches the prose that higher-tier engines are quieter (p. 28).",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 12,
+          "section": "Kaiju Threshold Contributors"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 28,
+          "section": "Engines"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 29,
+          "section": "Propulsion Summary"
+        }
+      ],
+      "options": [
+        {
+          "key": "threshold-table",
+          "label": "Kaiju Threshold table (p. 12)"
+        },
+        {
+          "key": "noisy-property",
+          "label": "Noisy (X) property (p. 29)"
+        }
+      ],
+      "provisionalOption": "threshold-table",
+      "affects": "Kaiju Threshold shown for engines."
+    },
+    {
+      "id": "AMB-STEAM-MATERIAL",
+      "title": "Steam Engine material",
+      "description": "The Propulsion Summary (p. 29) lists Steam Engines as Magitech; the Metadata table (p. 41) and the prose (p. 28, “made almost entirely of steel, iron, and bronze”) say Metal. Material decides repair tools (p. 20).",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 28,
+          "section": "Engines"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 29,
+          "section": "Propulsion Summary"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 41,
+          "section": "Ship Components Metadata"
+        }
+      ],
+      "options": [
+        {
+          "key": "metal",
+          "label": "Metal (Smith’s Tools)"
+        },
+        {
+          "key": "magitech",
+          "label": "Magitech (Tinker’s Tools)"
+        }
+      ],
+      "provisionalOption": "metal",
+      "affects": "Repair tool shown for Steam Engines."
+    },
+    {
+      "id": "AMB-SHIP-DEX",
+      "title": "Ship Dexterity modifier for Initiative",
+      "description": "Rolling Initiative (p. 3) adds “the ship’s Dexterity modifier”, but no ship or component in the document has a Dexterity score or modifier.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 3,
+          "section": "Rolling Initiative & Turn Order"
+        }
+      ],
+      "options": [
+        {
+          "key": "unspecified",
+          "label": "Unspecified (GM supplies a value per vehicle)"
+        },
+        {
+          "key": "zero",
+          "label": "Treat as +0"
+        }
+      ],
+      "provisionalOption": "unspecified",
+      "affects": "Initiative formula shown in the Combat tracker."
+    },
+    {
+      "id": "AMB-SHIP-WEIGHT",
+      "title": "How ship weight is determined",
+      "description": "Component weight is “used to calculate the ship’s total weight for collisions and ramming” (p. 14), but no formula is given. Jaws states 35 tons while its mimic components have no listed weight.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 14,
+          "section": "Metadata — Weight"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws"
+        }
+      ],
+      "options": [
+        {
+          "key": "stated",
+          "label": "Use the vessel’s stated weight when present, else the component sum"
+        },
+        {
+          "key": "component-sum",
+          "label": "Always sum component weights"
+        }
+      ],
+      "provisionalOption": "stated",
+      "affects": "Weight statistic and collision damage reference."
+    },
+    {
+      "id": "AMB-TECHNICAL-QUALITY",
+      "title": "The “Technical” quality is undefined",
+      "description": "The Technical perk (p. 36) and the Bosun description (p. 32) refer to a Technical quality, but the Quality tables (pp. 17–18) define Cheap, Credulous, Precise, Reliable and Robust. Technical may be Precise renamed.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 17,
+          "section": "Quality Statistic Modifier"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 32,
+          "section": "Naval Roles — Bosun"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 36,
+          "section": "Technical"
+        }
+      ],
+      "options": [
+        {
+          "key": "undefined",
+          "label": "Undefined (no statistics)"
+        },
+        {
+          "key": "precise",
+          "label": "Treat Technical as Precise"
+        }
+      ],
+      "provisionalOption": "undefined",
+      "affects": "Technical perk description."
+    },
+    {
+      "id": "AMB-CREDULOUS-TEXT",
+      "title": "Credulous perk text duplicates Attunement",
+      "description": "The Credulous perk (p. 35) repeats the Attunement perk’s effect. By analogy with Reliable, Robust and Technical it probably grants the Credulous quality, but the text does not say so.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 35,
+          "section": "Credulous"
+        }
+      ],
+      "options": [
+        {
+          "key": "as-printed",
+          "label": "As printed (free attunement)"
+        },
+        {
+          "key": "quality",
+          "label": "Craft/upgrade Credulous I–III quality"
+        }
+      ],
+      "provisionalOption": "as-printed",
+      "affects": "Credulous perk description."
+    },
+    {
+      "id": "AMB-TAKE-COVER-LEVEL",
+      "title": "Take Cover! Naval Level requirement",
+      "description": "Take Cover! is printed under the Captain “Naval Level 5” heading (p. 38) but its Prerequisite line says Naval Level 1.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 38,
+          "section": "Take Cover!"
+        }
+      ],
+      "options": [
+        {
+          "key": "level-1",
+          "label": "Naval Level 1 (prerequisite line)"
+        },
+        {
+          "key": "level-5",
+          "label": "Naval Level 5 (section heading)"
+        }
+      ],
+      "provisionalOption": "level-1",
+      "affects": "Perk prerequisite validation."
+    },
+    {
+      "id": "AMB-HALF-PB-ROUNDING",
+      "title": "“Half your Proficiency Bonus” rounding",
+      "description": "Perk Anatomy (p. 31) defines “Up to Half PB” as rounded up. Attunement, Just a Scratch, Low Waste Repairs, Captain Cook, Focus Fire and Close Quarters Navigation omit “(rounded up)” in their Additional Perks text.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 31,
+          "section": "Perk Anatomy"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 35,
+          "section": "Attunement"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 36,
+          "section": "Just a Scratch"
+        }
+      ],
+      "options": [
+        {
+          "key": "up",
+          "label": "Always round up (Perk Anatomy)"
+        },
+        {
+          "key": "down-where-unstated",
+          "label": "Round down where “(rounded up)” is missing"
+        }
+      ],
+      "provisionalOption": "up",
+      "affects": "Perk repeat-limit validation."
+    },
+    {
+      "id": "AMB-REEL-VALUE",
+      "title": "Harpoon Reel (X) value missing",
+      "description": "Grappling Hooks (p. 11) says the Magitech Ballista harpoon shot has the Reel property, but the Shot Selection table (p. 24) lists no Reel property or value.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 11,
+          "section": "Harpoons & Reeling"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 22,
+          "section": "Reel (X)"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 24,
+          "section": "Artillery Shot Selection"
+        }
+      ],
+      "options": [
+        {
+          "key": "not-applied",
+          "label": "No Reel until the GM sets a value"
+        },
+        {
+          "key": "gm-value",
+          "label": "GM supplies a Reel distance at the table"
+        }
+      ],
+      "provisionalOption": "not-applied",
+      "affects": "Harpoon shot properties."
+    },
+    {
+      "id": "AMB-SHIP-PARTS",
+      "title": "“Ship Parts” versus “Repair Parts”",
+      "description": "Quick Fix and Low Waste Repairs (pp. 35–36) consume “Ship Parts”; the repair rules (p. 20) and Cargo table (p. 16) use “Repair Parts (RP)”.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 16,
+          "section": "Cargo Units"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 20,
+          "section": "Repairing Components"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 35,
+          "section": "Quick Fix"
+        }
+      ],
+      "options": [
+        {
+          "key": "same",
+          "label": "Same resource"
+        },
+        {
+          "key": "different",
+          "label": "Separate resource"
+        }
+      ],
+      "provisionalOption": "same",
+      "affects": "Repair perk descriptions."
+    },
+    {
+      "id": "AMB-JAWS-UNSTATED",
+      "title": "Missing Jaws component data",
+      "description": "The Jaws stat block gives no material, weight, CU, cost or value for its mimic components, no material or properties for the Mimicflesh Hull, no tier for the Auxiliary Mast, and no damage type for the Jaw Ram (other Rams deal Bludgeoning).",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 44,
+          "section": "Player Ship: Jaws"
+        }
+      ],
+      "options": [
+        {
+          "key": "blank",
+          "label": "Leave blank until the GM fills them in"
+        }
+      ],
+      "provisionalOption": "blank",
+      "affects": "Metadata of Jaws-specific components (editable in the Component Catalogue)."
+    },
+    {
+      "id": "AMB-RAM-EXAMPLE",
+      "title": "Ramming example uses a different Ram DT",
+      "description": "The ramming example (p. 7) gives an Iron-Tipped Wooden Ram, Superior a DT of 40; the Ram table (p. 30) lists DT 49.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 7,
+          "section": "Rams"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 30,
+          "section": "Ram Components"
+        }
+      ],
+      "options": [
+        {
+          "key": "table",
+          "label": "Use the table (DT 49)"
+        }
+      ],
+      "provisionalOption": "table",
+      "affects": "Catalogue data (the table value is used)."
+    },
+    {
+      "id": "AMB-CRAFT-TIME-UNIT",
+      "title": "Crafting time unit",
+      "description": "The Metadata tables (pp. 40–41) list a crafting “Time” without a unit. The quality tables use hours.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 40,
+          "section": "Ship Components Metadata"
+        }
+      ],
+      "options": [
+        {
+          "key": "unitless",
+          "label": "Show the number without a unit"
+        }
+      ],
+      "provisionalOption": "unitless",
+      "affects": "Crafting time display."
+    },
+    {
+      "id": "AMB-UNRESOLVED-REFERENCES",
+      "title": "Unresolved “page XX” references",
+      "description": "The beta refers to undefined content: the Anti-Air artillery trait (p. 9), the Hold of Holding room (p. 16), enchantment options (p. 16), and “Appendix XX” reference tables. No Miscellaneous components other than the Jaws Tail Club are defined.",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 9,
+          "section": "Arcs of Fire"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 16,
+          "section": "Hold & Cargo; Magic Ship Components"
+        }
+      ],
+      "options": [
+        {
+          "key": "omitted",
+          "label": "Omitted until published"
+        }
+      ],
+      "provisionalOption": "omitted",
+      "affects": "Catalogue scope; GMs can add custom components."
+    },
+    {
+      "id": "AMB-MULTIPLE-CONTROLS",
+      "title": "Vessels with several Control components",
+      "description": "Every ship has “at least one” Control component (p. 14). The rules do not say which Change of Facing applies when several are installed; the Helmsman uses the one they interact with (p. 5).",
+      "sources": [
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 5,
+          "section": "Speed and Course"
+        },
+        {
+          "document": "VoidSea Naval Combat Lite",
+          "version": "B0.51",
+          "page": 14,
+          "section": "Deck Layout"
+        }
+      ],
+      "options": [
+        {
+          "key": "best",
+          "label": "Show the best non-Broken Control"
+        },
+        {
+          "key": "operated",
+          "label": "Use the Control the Helmsman operates"
+        }
+      ],
+      "provisionalOption": "best",
+      "affects": "Change of Facing statistic in the dashboard."
+    }
+  ]
+}

@@ -145,6 +145,10 @@
   })
 
   function openStop(stop: string) {
+    if (stop === 'vehicles') {
+      navigate(campaignId ? `/main/campaign/${campaignId}/vehicles` : '/main/vehicles')
+      return
+    }
     if (isResourceKind(stop)) {
       navigate(campaignId ? `/main/campaign/${campaignId}/${stop}` : `/main/${stop}`)
       return

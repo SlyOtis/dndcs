@@ -559,4 +559,13 @@ export interface Character {
 
   /** Rules this character alone carries, applied over the systems */
   overlay: RuleSystemOverlay | null
+
+  /** The character aboard a vehicle, by vehicle system id: the crew level and the perks taken */
+  crew?: Record<string, CharacterCrew>
+}
+
+/** A character's standing as crew under one vehicle system */
+export interface CharacterCrew {
+  level: number
+  perks: { id: string; count: number }[]
 }

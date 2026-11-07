@@ -43,3 +43,13 @@ A character can therefore add an attribute, a skill or a point pool nobody else 
 ## Adding a system
 
 A JSON file plus a case in `web/src/lib/rules/derive.spec.ts`. Never a branch in a component.
+
+## Vehicles
+
+A vehicle system is a JSON document under `web/public/sources/systems/vehicles/`, listed in its `index.json`. It declares the catalogue of `components` and their `categories`, the `sizes`, the deck `layouts` and their slots, the `templates` a vessel is built from, the crew `perks` and `perkTrees`, the open `rulings` with their provisional answers, the `qualities`, the `installHours`, the `text` of every condition and property, and `rules`: every threshold and penalty, and which ruling switches which rule. `web/src/lib/rules/vehicle.types.ts` is the shape.
+
+`web/src/lib/rules/vehicle.ts` interprets it: conditions, damage and repair, top speed, changes of facing, weight, weapon modes, compatibility, perk limits, comparisons, template drift and the deck map's footprints. A component that a ruling changes names the ruling in its own entry, so no ruling id or component key is written in the engine. A vessel's `overlay` adds or replaces catalogue entries by `key`, so homebrew stays on that vessel.
+
+A character's crew standing is `character.crew[<vehicle system id>]`, its level and perks. `getCrewman` takes the abilities and the proficiency from the resolved character, so every to hit and DC on a deck is the character the reader sails as.
+
+A new vehicle system is a JSON file plus a case in `web/src/lib/rules/vehicle.spec.ts`.

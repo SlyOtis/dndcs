@@ -10,7 +10,7 @@ import { getCsrfHeaders } from "./api";
 import { currentCharacterId } from "./stores/character.store";
 import { getExpressionValue } from "./rules/expression";
 import type { ResolvedCharacter } from "./rules/spec.types";
-import { campaignService, characterService } from "./firestore.service";
+import { campaignService, characterService, vehicleService } from "./firestore.service";
 import type { CampaignCardKind, CampaignChatEntry } from "./firestore.types";
 
 export type ReplicateLogItem = {
@@ -156,6 +156,19 @@ function postCampaignScope(): Unsubscriber {
 
     if (route?.path?.startsWith('/main/campaign/') && id) {
       currentCampaignId.set(id);
+      return;
+    }
+
+    const vehicleId = route?.path?.startsWith('/main/vehicles/') ? route.path.split('/')[3] ?? '' : '';
+    if (vehicleId) {
+      vehicleService.getVehicle(vehicleId)
+        .then(vehicle => {
+          if (get(currentRoute)?.path === route.path) currentCampaignId.set(vehicle?.campaign_id ?? null);
+        })
+        .catch(error => {
+          console.error('Campaign scope did not resolve:', error);
+          currentCampaignId.set(null);
+        });
       return;
     }
 
