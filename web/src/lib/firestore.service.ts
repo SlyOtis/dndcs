@@ -12,7 +12,9 @@ import type {
   UserPreferences,
   Party,
   Owner,
-  Song
+  Song,
+  Vehicle,
+  VehicleFields
 } from './firestore.types';
 import { COLLECTIONS } from './firestore.types';
 import type { Character } from './character.types';
@@ -264,6 +266,36 @@ export const partyService = {
 
   async deletePartyCharacter(partyId: string, characterId: string): Promise<void> {
     await deleteApi(`/party/${partyId}/character/${characterId}`);
+  }
+};
+
+export const vehicleService = {
+  async getVehicles(campaignId?: string): Promise<Vehicle[]> {
+    return getApi<Vehicle[]>(`/vehicle${getQuery({ campaign_id: campaignId })}`);
+  },
+
+  async getVehicle(vehicleId: string): Promise<Vehicle | null> {
+    return getApi<Vehicle>(`/vehicle/${vehicleId}`).catch((error) => getAbsent(error, null));
+  },
+
+  subscribeToVehicle(vehicleId: string, onChange: (vehicle: Vehicle | null) => void): Unsubscribe {
+    return getStream(`/vehicle/${vehicleId}/stream`, 'vehicle', () => this.getVehicle(vehicleId), onChange, (error) => console.error('Vehicle did not load:', error));
+  },
+
+  postVehiclesListener(campaignId: string, onChange: (vehicles: Vehicle[]) => void): Unsubscribe {
+    return getStream(`/campaign/${campaignId}/stream`, 'vehicle', () => this.getVehicles(campaignId), onChange, (error) => console.error('Campaign vehicles did not load:', error));
+  },
+
+  async postVehicle(fields: VehicleFields): Promise<Vehicle> {
+    return postApi<Vehicle>('/vehicle', fields);
+  },
+
+  async putVehicle(vehicleId: string, updates: VehicleFields): Promise<Vehicle> {
+    return putApi<Vehicle>(`/vehicle/${vehicleId}`, updates);
+  },
+
+  async deleteVehicle(vehicleId: string): Promise<void> {
+    await deleteApi(`/vehicle/${vehicleId}`);
   }
 };
 

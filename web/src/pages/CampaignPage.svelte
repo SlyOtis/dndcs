@@ -152,6 +152,10 @@
   }
 
   function openRoll(where: string) {
+    if (where === 'vehicles') {
+      navigate(`/main/campaign/${campaignId}/vehicles`)
+      return
+    }
     if (isResourceKind(where)) {
       navigate(`/main/campaign/${campaignId}/${where}`)
       return

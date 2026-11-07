@@ -1,0 +1,237 @@
+[
+  {
+    "as": "testy",
+    "call": "POST /api/campaign",
+    "save": "ember",
+    "body": {
+      "name": "The Ember Road",
+      "description": "Lamplighters are vanishing along the road to Hollowmere, and the fog that follows them smells of cinders.",
+      "is_active": true,
+      "party_ids": []
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/campaign/${ember}/player",
+    "body": { "email": "pip@quillborne.local" }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/campaign/${ember}/character/${wren}"
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/party",
+    "save": "lantern",
+    "body": {
+      "name": "The Lantern Company",
+      "description": "Hired to find Hollowmere's missing lamplighters, paid in lamp oil and promises.",
+      "member_ids": ["${testy}"],
+      "character_ids": ["${wren}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "PUT /api/campaign/${ember}",
+    "body": { "party_ids": ["${lantern}"] }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "save": "ember_session_1",
+    "body": {
+      "kind": "sessions",
+      "campaign_id": "${ember}",
+      "title": "The Toll at Cinder Bridge",
+      "description": "The company meets, and pays a toll nobody should have asked for.",
+      "tags": ["arc one"],
+      "number": 1,
+      "played_at": "2026-10-17",
+      "body": "{\"blocks\":[{\"id\":\"es1a\",\"kind\":\"heading\",\"text\":\"Recap\",\"options\":{\"level\":2}},{\"id\":\"es1b\",\"kind\":\"paragraph\",\"text\":\"Reeve Halda Morrow hired the company at the Drowned Lantern. On the road north, bandits in ash-grey cloaks held Cinder Bridge and demanded a toll in lamp oil.\",\"options\":{}},{\"id\":\"es1c\",\"kind\":\"bullet\",\"text\":\"Wren picked the toll-keeper's pocket and found a map of every lamp post in Hollowmere.\",\"options\":{}},{\"id\":\"es1d\",\"kind\":\"bullet\",\"text\":\"The bandits fled into the fog rather than fight.\",\"options\":{}}]}",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "save": "ember_session_2",
+    "body": {
+      "kind": "sessions",
+      "campaign_id": "${ember}",
+      "title": "Smoke over Hollowmere",
+      "description": "The fog reaches the town, and one more lamp goes dark.",
+      "tags": ["arc one"],
+      "number": 2,
+      "played_at": "2026-10-31",
+      "body": "{\"blocks\":[{\"id\":\"es2a\",\"kind\":\"heading\",\"text\":\"Recap\",\"options\":{\"level\":2}},{\"id\":\"es2b\",\"kind\":\"paragraph\",\"text\":\"Old Tamsin, the last lamplighter, swore she saw a figure with a burning hand walk out of the fog. By morning her lamp was cold and she was gone.\",\"options\":{}},{\"id\":\"es2c\",\"kind\":\"todo\",\"text\":\"Follow the soot trail east of the bridge\",\"options\":{\"done\":false}}]}",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "quests",
+      "campaign_id": "${ember}",
+      "title": "Clear Cinder Bridge",
+      "description": "Drive the ash-cloaked bandits off the only road into Hollowmere.",
+      "state": "done",
+      "level": 1,
+      "giver": "Reeve Halda Morrow",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "quests",
+      "campaign_id": "${ember}",
+      "title": "Find the Missing Lamplighters",
+      "description": "Five lamplighters have vanished in a month. Find them, or find out what took them.",
+      "tags": ["main"],
+      "state": "active",
+      "level": 2,
+      "giver": "Old Tamsin",
+      "body": "{\"blocks\":[{\"id\":\"eq2a\",\"kind\":\"paragraph\",\"text\":\"Every disappearance happened on a night the fog came in from the east.\",\"options\":{}},{\"id\":\"eq2b\",\"kind\":\"callout\",\"text\":\"Reward: 200 gp and free lodging at the Drowned Lantern.\",\"options\":{}}]}",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "npcs",
+      "campaign_id": "${ember}",
+      "title": "Reeve Halda Morrow",
+      "description": "Hollowmere's tired reeve, who pays in coin she does not quite have.",
+      "role": "Reeve of Hollowmere",
+      "disposition": "friendly",
+      "species": "Human",
+      "image_url": "/sources/art/races/human.svg",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "npcs",
+      "campaign_id": "${ember}",
+      "title": "The Ashen Hand",
+      "description": "The cult leader behind the fog. Kept from the players until they earn the name.",
+      "tags": ["secret"],
+      "role": "Cult leader",
+      "disposition": "hostile",
+      "species": "Tiefling",
+      "image_url": "/sources/art/races/tiefling.svg",
+      "body": "{\"blocks\":[{\"id\":\"ena1\",\"kind\":\"heading\",\"text\":\"DM only\",\"options\":{\"level\":2}},{\"id\":\"ena2\",\"kind\":\"paragraph\",\"text\":\"Feeds the stolen lamplight to an ember spirit bound beneath Cinder Bridge. Wants Hollowmere dark by midwinter.\",\"options\":{}}]}"
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "locations",
+      "campaign_id": "${ember}",
+      "title": "Hollowmere",
+      "description": "A lakeside town of crooked roofs and a hundred lamp posts, fewer lit each week.",
+      "category": "town",
+      "map_id": "",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "locations",
+      "campaign_id": "${ember}",
+      "title": "The Drowned Lantern",
+      "description": "Hollowmere's inn, half sunk into the lake shore. The ale is warm and the gossip is warmer.",
+      "category": "inn",
+      "map_id": "",
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/resource",
+    "body": {
+      "kind": "items",
+      "campaign_id": "${ember}",
+      "title": "Lantern of Kindled Paths",
+      "description": "While lit, it shows footprints left in the last day as faint embers.",
+      "category": "wondrous item",
+      "rarity": "uncommon",
+      "attunement": true,
+      "weight": 2,
+      "value": 250,
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/campaign/${ember}/encounter",
+    "body": {
+      "title": "Ambush at Cinder Bridge",
+      "round": 2,
+      "turn": 1,
+      "is_active": true,
+      "combatants": [
+        { "id": "ember-wren", "name": "Wren Ashdown", "kind": "character", "character_id": "${wren}", "modifier": 3, "initiative": 19, "hit_points": 15, "max_hit_points": 21, "conditions": [], "is_hit_points_known": true },
+        { "id": "ember-captain", "name": "Ash-cloaked Captain", "kind": "npc", "modifier": 2, "initiative": 16, "hit_points": 52, "max_hit_points": 65, "conditions": [], "is_hit_points_known": false },
+        { "id": "ember-bandit-1", "name": "Ash-cloaked Bandit", "kind": "npc", "modifier": 1, "initiative": 12, "hit_points": 4, "max_hit_points": 11, "conditions": ["prone"], "is_hit_points_known": false },
+        { "id": "ember-bandit-2", "name": "Ash-cloaked Bandit", "kind": "npc", "modifier": 1, "initiative": 7, "hit_points": 11, "max_hit_points": 11, "conditions": [], "is_hit_points_known": false }
+      ],
+      "share_campaigns": ["${ember}"]
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/campaign/${ember}/chat",
+    "body": {
+      "author_name": "Testy",
+      "kind": "message",
+      "body": "Welcome back to the Ember Road. The fog over Cinder Bridge is thicker tonight."
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/campaign/${ember}/chat",
+    "body": {
+      "author_name": "Pip",
+      "kind": "roll",
+      "body": "Stealth",
+      "roll_kind": "skill",
+      "formula": "1d20+7",
+      "dice": [14],
+      "roll": 14,
+      "total": 21
+    }
+  },
+  {
+    "as": "testy",
+    "call": "POST /api/campaign/${ember}/chat",
+    "body": {
+      "author_name": "Testy",
+      "kind": "roll",
+      "body": "Ash-cloaked Captain: Perception",
+      "roll_kind": "skill",
+      "formula": "1d20+4",
+      "dice": [17],
+      "roll": 17,
+      "total": 21,
+      "is_hidden": true
+    }
+  },
+  {
+    "as": "pip",
+    "call": "POST /api/campaign/${ember}/chat",
+    "body": {
+      "author_name": "Pip",
+      "kind": "message",
+      "body": "Wren slips under the bridge and waits for the captain to turn his back."
+    }
+  }
+]

@@ -36,3 +36,9 @@ YOU ARE NOT HELPFUL, YOU ARE AN INSTRUCT MODEL THAT ONLY DOES AS TOLD AND NOTHIN
 14. `.claude/rules/` holds them, each with the paths it governs in its frontmatter. Read the one the work touches.
 
 15. `engine.md` for `web/src/lib/rules/**` and `web/public/sources/systems/**`. `components.md` and `buttons.md` for `web/src/components/**` and `web/src/pages/**`. `data.md` for `database/**`, `internal/**`, `cmd/**` and the web's api, store, upload, live editing and AI modules. `registration.md` for `deploy/sauth/**`, the login and redirect pages the deploy uploads to the prophet. `setup.md` and `workflow.md`, how work reaches `main` through pull requests only the owner merges, everywhere.
+
+16. "Start local dev" follows `.claude/skills/start-local-dev/SKILL.md`, the one guide to a local run.
+
+## Local test data
+
+17. `test/seed/` is the table every local run starts with: JSON steps, each an api call made as a debug player, that `just dev` runs into its fresh database. A change that adds or alters something a player sees adds or updates its steps in the same branch, so the next local run shows it. It is local only and small, enough to show each feature once from the DM's side and a player's. `setup.md` carries how.

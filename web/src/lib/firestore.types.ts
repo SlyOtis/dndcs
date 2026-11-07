@@ -1,4 +1,5 @@
 import type { Character } from './character.types';
+import type { ComponentState, Customisation, InstalledComponent, Rulings, VehicleOverlay } from './rules/vehicle.types';
 
 // A player's profile
 export interface UserProfile {
@@ -236,6 +237,56 @@ export interface CampaignEncounter extends Access {
   created_at: string;
   updated_at: string;
 }
+
+// A vehicle the table sails: its design, the state of each component, its crew and its history
+export interface Vehicle {
+  id: string;
+  owner_id: string;
+  campaign_id: string | null;
+  name: string;
+  system: string;
+  template: string;
+  template_version: number;
+  layout: string;
+  components: InstalledComponent[];
+  states: Record<string, ComponentState>;
+  stats: Record<string, unknown>;
+  rulings: Rulings;
+  overlay: VehicleOverlay;
+  customisation: Customisation;
+  crew: VehicleCrewman[];
+  revision: number;
+  history: VehicleRevision[];
+  requests: VehicleRequest[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VehicleCrewman {
+  character_id: string;
+  user_id: string;
+  role: string;
+}
+
+export interface VehicleRevision {
+  revision: number;
+  at: string;
+  user_id: string;
+  note: string;
+  components: InstalledComponent[];
+}
+
+// A design a crewman proposes when the vessel's customisation does not let them save it
+export interface VehicleRequest {
+  id: string;
+  user_id: string;
+  at: string;
+  note: string;
+  base_revision: number;
+  components: InstalledComponent[];
+}
+
+export type VehicleFields = Partial<Omit<Vehicle, 'id' | 'owner_id' | 'history' | 'created_at' | 'updated_at'>> & { note?: string };
 
 // The places a record belongs to
 export const COLLECTIONS = {

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DB_NAME="${APP_NAME}-db"
+DB_NAME="$(basename "$PWD")-db"
 
 echo "Removing existing database container and volume..."
 docker rm -f "$DB_NAME" > /dev/null 2>&1 || true

@@ -55,6 +55,9 @@ dev-server:
 dev-web:
     cd web && pnpm dev
 
+seed:
+    go run ./test/seed
+
 preview: build-web
     cd web && pnpm preview
 

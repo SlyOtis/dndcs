@@ -100,6 +100,30 @@
       name: "party-view",
       component: page("PartyPage", () => import("./pages/PartyPage.svelte")),
       guard: requireSignIn
+    },
+    "/main/vehicle": "/main/vehicles",
+    "/main/vehicles": {
+      name: "vehicles-list",
+      component: page("VehiclesPage", () => import("./pages/VehiclesPage.svelte")),
+      guard: requireSignIn
+    },
+    "/main/campaign/:id/vehicles": {
+      name: "campaign-vehicles",
+      component: page("VehiclesPage", () => import("./pages/VehiclesPage.svelte")),
+      guard: requireSignIn
+    },
+    "/main/vehicles/:id": {
+      name: "vehicle-view",
+      component: page("VehiclePage", () => import("./pages/VehiclePage.svelte")),
+      guard: requireSignIn
+    }
+  }
+
+  for (const stop of ["design", "crew", "history", "rules", "papers"]) {
+    routes[`/main/vehicles/:id/${stop}`] = {
+      name: `vehicle-${stop}`,
+      component: page("VehiclePage", () => import("./pages/VehiclePage.svelte")),
+      guard: requireSignIn
     }
   }
 

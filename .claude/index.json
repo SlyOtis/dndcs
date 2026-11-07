@@ -83,7 +83,7 @@
     {
       "path": ".claude/rules/setup.md",
       "kind": "rule",
-      "answers": "The stack, where keys live, what a VITE prefix means, the just commands, what a deploy pushes, and the test convention.",
+      "answers": "The stack, where keys live, what a VITE prefix means, the just commands, what a deploy pushes, and the test convention. How several worktrees run their own local stacks on their own ports.",
       "keywords": [
         "setup",
         "stack",
@@ -94,7 +94,11 @@
         "deploy",
         "test",
         "vitest",
-        "pnpm"
+        "pnpm",
+        "worktree",
+        "ports",
+        "slot",
+        "parallel"
       ]
     },
     {
@@ -460,6 +464,158 @@
         "dnd_theme",
         "dialog",
         "store"
+      ]
+    },
+    {
+      "path": ".claude/skills/start-local-dev/SKILL.md",
+      "kind": "rule",
+      "answers": "How an agent starts the local stack: the tools, .env and its local seed, the database image, the ports, just dev, what to ask the user and what to tell them.",
+      "keywords": [
+        "local",
+        "dev",
+        "start",
+        "run",
+        "setup",
+        "env",
+        "seed",
+        "docker",
+        "air",
+        "ports",
+        "readme",
+        "skill"
+      ]
+    },
+    {
+      "path": "test/seed/",
+      "kind": "data",
+      "answers": "The local test data every just dev starts with: users.json names the debug players, every other numbered file is a list of api steps run as a player through handler.PutRoutes, and main_test.go proves each step reaches a mounted route. A feature a player sees adds or updates its steps here.",
+      "keywords": [
+        "seed",
+        "fixture",
+        "local",
+        "test",
+        "data",
+        "testdata",
+        "debug",
+        "testy",
+        "pip",
+        "campaign",
+        "character",
+        "dev"
+      ]
+    },
+    {
+      "path": "web/public/sources/systems/vehicles/voidsea.json",
+      "kind": "data",
+      "answers": "The VoidSea Naval Combat Lite vehicle system: the component catalogue, the Jaws deck layout and template, the Naval Perks and their trees, the open rules questions with their provisional answers, the thresholds and penalties, and which ruling switches which rule.",
+      "keywords": [
+        "vehicle",
+        "ship",
+        "voidsea",
+        "catalogue",
+        "component",
+        "perk",
+        "naval",
+        "jaws",
+        "layout",
+        "template",
+        "ruling"
+      ]
+    },
+    {
+      "path": "web/src/lib/rules/vehicle.ts",
+      "kind": "source",
+      "answers": "The vehicle engine. Loads a vehicle system, merges a vessel's homebrew overlay, and computes conditions, damage and repair, top speed, changes of facing, weight, weapon modes with the crewman's abilities and perks, compatibility, perk limits, comparisons, template drift, the deck map's footprints and the vehicle file.",
+      "keywords": [
+        "vehicle",
+        "ship",
+        "engine",
+        "damage",
+        "condition",
+        "speed",
+        "weapon",
+        "perk",
+        "crew",
+        "compatibility",
+        "template",
+        "export",
+        "import"
+      ]
+    },
+    {
+      "path": "web/src/lib/rules/vehicle.types.ts",
+      "kind": "source",
+      "answers": "The shape of a vehicle system, an installed component, a component state, a crewman and every view the vehicle pages draw.",
+      "keywords": [
+        "vehicle",
+        "types",
+        "system",
+        "component",
+        "slot",
+        "layout",
+        "crewman",
+        "perk"
+      ]
+    },
+    {
+      "path": "web/src/pages/VehiclePage.svelte",
+      "kind": "page",
+      "answers": "One vessel at /main/vehicles/:id with its stops Deck, Design, Crew, History, Rules and Papers. Picks the character the reader sails as and reads its abilities and crew perks from the rules engine.",
+      "keywords": [
+        "vehicle",
+        "ship",
+        "vessel",
+        "deck",
+        "design",
+        "crew",
+        "history",
+        "rules",
+        "papers",
+        "page"
+      ]
+    },
+    {
+      "path": "web/src/pages/VehiclesPage.svelte",
+      "kind": "page",
+      "answers": "The Dock at /main/vehicles and a campaign's fleet at /main/campaign/:id/vehicles: the vessels the reader sails with, building from a template or a bare keel, importing a vessel file, and the catalogue, perks and rulings for reference.",
+      "keywords": [
+        "vehicle",
+        "dock",
+        "fleet",
+        "build",
+        "import",
+        "catalogue",
+        "perks",
+        "page"
+      ]
+    },
+    {
+      "path": "web/src/components/vehicle/VehicleMap.svelte",
+      "kind": "component",
+      "answers": "The deck map of a vessel in SVG: hull, components by category, slots, overlays for arcs, movement, conditions and grids, a weapon's range bands, pan, zoom and dragging in design.",
+      "keywords": [
+        "vehicle",
+        "map",
+        "deck",
+        "svg",
+        "arc",
+        "range",
+        "overlay",
+        "slot"
+      ]
+    },
+    {
+      "path": "internal/handler/vehicle.go",
+      "kind": "source",
+      "answers": "The /api/vehicle routes: list, build, read, change and scuttle a vessel, the Crew claim, the steward and crew rules, and the revision history.",
+      "keywords": [
+        "vehicle",
+        "api",
+        "crew",
+        "claim",
+        "steward",
+        "revision",
+        "history"
       ]
     }
   ]

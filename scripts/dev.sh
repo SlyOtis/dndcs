@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DB_NAME="${APP_NAME}-db"
+DB_NAME="$(basename "$PWD")-db"
 
 just dev-db &
 DB_PID=$!
@@ -35,6 +35,8 @@ until docker logs "$DB_NAME" 2>&1 | tail -5 | grep -q "database system is ready 
     sleep 1
 done
 echo "Database ready."
+
+just seed
 
 just dev-web &
 WEB_PID=$!

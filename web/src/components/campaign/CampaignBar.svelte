@@ -26,7 +26,8 @@
       label: 'World',
       under: [
         { id: 'maps', label: 'Maps' },
-        { id: 'places', label: 'Places' }
+        { id: 'places', label: 'Places' },
+        { id: 'vehicles', label: 'Vehicles' }
       ]
     },
     {
